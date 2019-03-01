@@ -1,0 +1,14 @@
+name: curve25519
+version: 0.1.0
+author: Gohilla.com team <opensource@gohilla.com>
+homepage: https://github.com/gohilla/curve25519
+description: Implements X25519 key exchange (elliptic curve Diffie-Hellman over Curve25519).
+
+environment:
+  sdk: '>=2.0.0 <3.0.0'
+
+dev_dependencies:
+  benchmark_harness: ^1.0.0
+  pedantic: ^1.0.0
+  raw: ^0.2.0
+  test: ^1.4.0
