@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:convert';
 import 'dart:typed_data';
 
 class Key {
@@ -35,26 +36,28 @@ class Key {
 
   /// Returns  string representation of the key.
   ///
-  /// If [isPublic] is true, returns the result of [toHex].
+  /// If [isPublic] is true, returns the result of [toBase64].
   ///
   /// Otherwise a static string so developers don't accidentally print secrets
   /// keys.
   @override
   String toString() {
     if (isPublic) {
-      return "Key('${toHex()}')";
+      return "Key('${toBase64()}')";
     }
     return "Key('some bytes')";
   }
 
-  /// Returns a hex representation of the bytes.
-  String toHex() {
-    final sb = StringBuffer();
-    final bytes = this.bytes;
-    for (var i = 0; i < bytes.length; i++) {
-      sb.write(bytes[i].toRadixString(16).padLeft(2, "0"));
-    }
-    return sb.toString();
+  /// Returns a Key from the base64 representation
+  static Key fromBase64(String encoded, bool isPublic) {
+    final bytes = base64.decode(encoded);
+    if (isPublic) return Key.withPublicBytes(bytes);
+    return Key(bytes);
+  }
+
+  /// Returns a base64 representation of the bytes.
+  String toBase64() {
+    return base64.encode(this.bytes);
   }
 
   static bool _byteListEqual(List<int> left, List<int> right) {
