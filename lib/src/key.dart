@@ -1,4 +1,4 @@
-// Copyright 2019 Gohilla.com team.
+// Copyright 2019 terrier989 <terrier989@gmail.com>.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,6 +14,26 @@
 
 import 'dart:typed_data';
 
+/// X25519 public and secret key.
+class AsymmetricKeyPair {
+  final Key publicKey;
+  final Key secretKey;
+
+  AsymmetricKeyPair({this.secretKey, this.publicKey})
+      : assert(secretKey != null),
+        assert(publicKey != null);
+
+  @override
+  int get hashCode => publicKey.hashCode;
+
+  @override
+  operator ==(other) =>
+      other is AsymmetricKeyPair &&
+      secretKey == other.secretKey &&
+      publicKey == other.publicKey;
+}
+
+/// X25519 key.
 class Key {
   final Uint8List bytes;
   final bool isPublic;
@@ -33,6 +53,16 @@ class Key {
     return false;
   }
 
+  /// Returns a hex representation of the bytes.
+  String toHex() {
+    final sb = StringBuffer();
+    final bytes = this.bytes;
+    for (var i = 0; i < bytes.length; i++) {
+      sb.write(bytes[i].toRadixString(16).padLeft(2, "0"));
+    }
+    return sb.toString();
+  }
+
   /// Returns  string representation of the key.
   ///
   /// If [isPublic] is true, returns the result of [toHex].
@@ -47,45 +77,15 @@ class Key {
     return "Key('some bytes')";
   }
 
-  /// Returns a hex representation of the bytes.
-  String toHex() {
-    final sb = StringBuffer();
-    final bytes = this.bytes;
-    for (var i = 0; i < bytes.length; i++) {
-      sb.write(bytes[i].toRadixString(16).padLeft(2, "0"));
-    }
-    return sb.toString();
-  }
-
   static bool _byteListEqual(List<int> left, List<int> right) {
     if (left.length != right.length) {
       return false;
     }
-    var result = true;
     for (var i = 0; i < left.length; i++) {
       if (left[i] != right[i]) {
-        result = false;
+        return false;
       }
     }
-    return result;
+    return true;
   }
-}
-
-/// Holds a secret key and a public key.
-class AsymmetricKeyPair {
-  final Key publicKey;
-  final Key secretKey;
-
-  AsymmetricKeyPair({this.secretKey, this.publicKey})
-      : assert(secretKey != null),
-        assert(publicKey != null);
-
-  @override
-  int get hashCode => publicKey.hashCode;
-
-  @override
-  operator ==(other) =>
-      other is AsymmetricKeyPair &&
-      secretKey == other.secretKey &&
-      publicKey == other.publicKey;
 }
