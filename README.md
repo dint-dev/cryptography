@@ -1,4 +1,5 @@
 [![Pub Package](https://img.shields.io/pub/v/curve25519.svg)](https://pub.dev/packages/curve25519)
+[![Build Status](https://travis-ci.org/gohilla/curve25519.svg?branch=master)](https://travis-ci.org/gohilla/curve25519)
 
 # Introduction
 A [Dart](https://dartlang.org) package that implements X25519 key exchange
