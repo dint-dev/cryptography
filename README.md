@@ -1,3 +1,4 @@
+[![Pub Package](https://img.shields.io/pub/v/cryptography.svg)](https://pub.dev/packages/cryptography)
 [![Build Status](https://travis-ci.org/gohilla/curve25519.svg?branch=master)](https://travis-ci.org/gohilla/curve25519)
 
 # Introduction
@@ -22,10 +23,10 @@ have been merged into this package.
 ### Hashes
   * SHA2 (224/256/384/512)
     * The implementation uses [package:crypto](https://pub.dev/packages/crypto)
+  * _(Additional algorithms are welcomed)_
 
 ### Other
   * HMAC
-    * The implementation uses [package:crypto](https://pub.dev/packages/crypto)
 
 # Details
 ## Chacha20
