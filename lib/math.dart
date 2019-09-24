@@ -1,4 +1,4 @@
-// Copyright 2019 terrier989 <terrier989@gmail.com>.
+// Copyright 2019 Gohilla (opensource@gohilla.com).
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,8 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/// X25519 key exchange.
-library curve25519;
+/// Functions for implementing cryptographic algorithms.
+library cryptography.math;
 
-export 'src/key.dart';
-export 'src/x25519.dart';
+export 'src/math/equality.dart';
+export 'src/math/hex.dart';
+export 'src/math/multiply256.dart';
+export 'src/math/pack256.dart';
+export 'src/math/rotate.dart';

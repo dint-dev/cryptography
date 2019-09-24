@@ -1,4 +1,4 @@
-// Copyright 2019 terrier989 <terrier989@gmail.com>.
+// Copyright 2019 Gohilla (opensource@gohilla.com).
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
 
 import 'dart:typed_data';
 
-import 'package:curve25519/curve25519.dart';
+import 'package:cryptography/cryptography.dart';
 import 'package:raw/raw.dart';
 import 'package:test/test.dart';
 
@@ -24,50 +24,44 @@ void main() {
       // The following constants are from RFC 7748:
       // https://tools.ietf.org/html/rfc7748
 
-      final aliceSecretKey = Key(const DebugHexDecoder().convert(
+      final aliceSecretKey = SecretKey(const DebugHexDecoder().convert(
         "77076d0a7318a57d3c16c17251b26645df4c2f87ebc0992ab177fba51db92c2a",
       ));
-      final alicePublicKey = Key(const DebugHexDecoder().convert(
+      final alicePublicKey = PublicKey(const DebugHexDecoder().convert(
         "8520f0098930a754748b7ddcb43ef75a0dbf3a0d26381af4eba4a98eaa9b4e6a",
       ));
-      final bobSecretKey = Key(const DebugHexDecoder().convert(
+      final bobSecretKey = SecretKey(const DebugHexDecoder().convert(
         "5dab087e624a8a4b79e17f8b83800ee66f3bb1292618b6fd1c2f8b27ff88e0eb",
       ));
-      final bobPublicKey = Key(const DebugHexDecoder().convert(
+      final bobPublicKey = PublicKey(const DebugHexDecoder().convert(
         "de9edb7d7b7dc1b4d35b61c2ece435373f8343c85b78674dadfc7e146f882b4f",
       ));
-      final sharedSecret = Key(const DebugHexDecoder().convert(
+      final sharedSecret = SecretKey(const DebugHexDecoder().convert(
         "4a5d9d5ba4ce2de1728e3bf480350f25e07e21c947d19e3376f09b3c1e161742",
       ));
 
       // Test generating a public key (for Alice)
       expect(
-        (await x25519.generateKeyPair(seed: aliceSecretKey.bytes))
-            .publicKey
-            .toHex(),
-        alicePublicKey.toHex(),
+        (await x25519.newKeyPairFromSeed(aliceSecretKey)).publicKey,
+        alicePublicKey,
       );
 
       // Test generating a public key (for Bob)
       expect(
-        (await x25519.generateKeyPair(seed: bobSecretKey.bytes))
-            .publicKey
-            .toHex(),
-        bobPublicKey.toHex(),
+        (await x25519.newKeyPairFromSeed(bobSecretKey)).publicKey,
+        bobPublicKey,
       );
 
       // Test generating a shared secret (for Alice)
       expect(
-        (await x25519.calculateSharedSecret(aliceSecretKey, bobPublicKey))
-            .toHex(),
-        sharedSecret.toHex(),
+        (await x25519.sharedSecret(aliceSecretKey, bobPublicKey)),
+        sharedSecret,
       );
 
       // Test generating a shared secret (for Bob)
       expect(
-        (await x25519.calculateSharedSecret(bobSecretKey, alicePublicKey))
-            .toHex(),
-        sharedSecret.toHex(),
+        (await x25519.sharedSecret(bobSecretKey, alicePublicKey)),
+        sharedSecret,
       );
     });
 
@@ -84,7 +78,7 @@ void main() {
       // 'n' times
       for (var i = 0; i < n; i++) {
         // Generate a public key
-        final keyPair = x25519.generateKeyPairSync(seed: input);
+        final keyPair = x25519.newKeyPairFromSeed(SecretKey(input));
 
         // Use the output as the next input
         input = keyPair.publicKey.bytes;

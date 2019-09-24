@@ -1,0 +1,14 @@
+name: curve25519
+version: 2.0.0
+author: Gohilla team <opensource@gohilla.com>
+homepage: https://github.com/gohilla/cryptography.dart
+description: Curve25519 Diffie-Hellman (X25519).
+
+environment:
+  sdk: '>=2.0.0 <3.0.0'
+
+dependencies:
+  cryptography: any
+
+dev_dependencies:
+  pedantic: ^1.0.0

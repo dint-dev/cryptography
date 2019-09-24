@@ -1,19 +1,19 @@
-import 'package:curve25519/curve25519.dart';
+import 'package:cryptography/cryptography.dart';
 
 void main() async {
   // Let's generate two asymmetric keypair.
-  final keypair1 = await X25519().generateKeyPair();
-  final keypair2 = await X25519().generateKeyPair();
+  final keypair1 = x25519.newKeyPair();
+  final keypair2 = x25519.newKeyPair();
 
   // We can now calculate a shared secret using the (sender's) private key and
   // the (recipient's) public key.
-  var sharedSecret = await X25519().calculateSharedSecret(
+  var sharedSecret = x25519.sharedSecret(
     keypair1.secretKey,
     keypair2.publicKey,
   );
   print("#1 -> #2: ${sharedSecret.toHex()}");
 
-  sharedSecret = await X25519().calculateSharedSecret(
+  sharedSecret = x25519.sharedSecret(
     keypair2.secretKey,
     keypair1.publicKey,
   );

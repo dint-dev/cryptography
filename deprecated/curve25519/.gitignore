@@ -12,6 +12,5 @@ pubspec.lock
 # If you don't generate documentation locally you can remove this line.
 doc/api/
 
-# IDEs
-.idea/
-.VSCode/
+.idea
+.VSCode
