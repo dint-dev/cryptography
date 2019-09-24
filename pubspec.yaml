@@ -1,5 +1,5 @@
 name: cryptography
-version: 0.1.0
+version: 0.1.1
 author: Gohilla team <opensource@gohilla.com>
 homepage: https://github.com/gohilla/cryptography.dart
 description: Cryptographic algorithms implemented in Dart.
