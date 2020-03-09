@@ -14,6 +14,7 @@ Copyright 2019 Gohilla Ltd. Licensed under the [Apache License 2.0](LICENSE).
   * [Github repository](https://github.com/dint-dev/cryptography)
   * [Issue tracker](https://github.com/dint-dev/cryptography/issues)
   * [API reference](https://pub.dev/documentation/cryptography/latest/)
+  * [Pub package](https://pub.dev/packages/cryptography)
 
 ## Available algorithms
 ### Key exchange algorithms
