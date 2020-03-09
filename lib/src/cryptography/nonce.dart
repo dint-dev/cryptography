@@ -18,6 +18,11 @@ import 'dart:typed_data';
 import 'package:collection/collection.dart';
 
 /// A nonce. Sometimes known as Initialization Vector (IV).
+///
+/// ```
+/// // Generate a random 512 bit nonce
+/// final nonce = Nonce.randomBytes(64);
+/// ```
 class Nonce {
   static final _random = Random.secure();
 

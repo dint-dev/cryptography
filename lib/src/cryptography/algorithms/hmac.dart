@@ -16,12 +16,19 @@ import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
 
-const Hmac hmacSha224 = Hmac(sha224);
-const Hmac hmacSha256 = Hmac(sha256);
-const Hmac hmacSha384 = Hmac(sha384);
-const Hmac hmacSha512 = Hmac(sha512);
-
-/// Implements HMAC.
+/// HMAC ("hash-based message authentication code").
+///
+/// An example:
+/// ```
+/// import 'package:cryptography/cryptography.dart';
+///
+/// void main() {
+///   final hmac = const Hmac(sha256);
+///   final mac = hmac.calculateMac([1,2,3], secretKey:SecretKey([1,2,3]);
+///   sink.add(<int>[1,2,3]);
+///   final hash = sink.close();
+/// }
+/// ```
 class Hmac extends MacAlgorithm {
   final HashAlgorithm hashAlgorithm;
 

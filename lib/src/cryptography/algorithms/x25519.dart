@@ -20,7 +20,25 @@ import 'package:meta/meta.dart';
 
 /// _X25519_ ([RFC 7748](https://tools.ietf.org/html/rfc7748)) key exchange
 /// algorithm.
-const X25519 x25519 = X25519();
+///
+/// An example:
+/// ```dart
+/// import 'package:cryptography/cryptography.dart';
+///
+/// void main() async {
+///   // Let's generate two keypairs.
+///   final localKeyPair = await x25519.newKeyPair();
+///   final remoteKeyPair = await x5519.newKeyPair();
+///
+///   // We can now calculate a shared secret
+///   var sharedSecret = await x25519.sharedSecret(
+///     localPrivateKey: localKeyPair.privateKey,
+///     remotePublicKey: remoteKeyPair.publicKey,
+///   );
+///   print('Shared secret: ${sharedSecret.toHex()}');
+/// }
+///```
+const _X25519 x25519 = _X25519();
 
 void _pack256(Uint8List result, Int32List unpacked) {
   final byteData = ByteData.view(result.buffer, result.offsetInBytes, 32);
@@ -36,7 +54,7 @@ void _unpack256(Int32List result, Uint8List packed) {
   }
 }
 
-class X25519 extends KeyExchangeAlgorithm {
+class _X25519 extends KeyExchangeAlgorithm {
   /// Constant [9, 0, ..., 0] is used when calculating shared secret.
   static final Uint8List _constant9 = () {
     final result = Uint8List(32);
@@ -52,7 +70,7 @@ class X25519 extends KeyExchangeAlgorithm {
     return result;
   }();
 
-  const X25519();
+  const _X25519();
 
   @override
   SeedableKeyPairGenerator get keyPairGenerator =>
@@ -286,12 +304,12 @@ class _X25519KeyPairGenerator extends SeedableKeyPairGenerator {
     }
 
     // Create a secret key
-    X25519.replaceSeedWithSecretKey(seed);
+    _X25519.replaceSeedWithSecretKey(seed);
     final privateKey = PrivateKey(seed);
 
     // Calculate public key
     final publicKeyBytes = Uint8List(32);
-    X25519._scalarMultiply(publicKeyBytes, seed, X25519._constant9);
+    _X25519._scalarMultiply(publicKeyBytes, seed, _X25519._constant9);
 
     // Return a keypair
     final publicKey = PublicKey(publicKeyBytes);

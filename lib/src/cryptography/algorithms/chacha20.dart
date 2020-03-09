@@ -24,11 +24,11 @@ import 'package:meta/meta.dart';
 ///   * You must not use the same key/nonce twice.
 ///   * The message is not authenticated. See [chacha20Poly1305Aead] for a good
 ///     cipher with authentication.
-const Chacha20 chacha20 = Chacha20._();
+const _Chacha20 chacha20 = _Chacha20._();
 
 /// API for [chacha20].
-class Chacha20 extends SyncKeyStreamCipher {
-  const Chacha20._();
+class _Chacha20 extends SyncKeyStreamCipher {
+  const _Chacha20._();
 
   @override
   SecretKeyGenerator get secretKeyGenerator => const SecretKeyGenerator(
@@ -223,7 +223,7 @@ class _Chacha20State extends SyncKeyStreamCipherState {
     _state.lengthInBytes,
   );
 
-  final Chacha20 _chacha;
+  final _Chacha20 _chacha;
 
   final Uint32List initialState = Uint32List(_stateLength);
 

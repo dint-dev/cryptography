@@ -17,7 +17,7 @@ import 'package:cryptography/cryptography.dart';
 import 'web_crypto.dart';
 
 /// NIST P-256 Elliptic Curve Diffie-Hellman (ECDH) key exchange algorithm.
-/// __Currently supported only in the browser.__
+/// Currently supported __only in the browser.__
 const KeyExchangeAlgorithm ecdhP256 = WebEcdh(
   name: 'p256',
   webCryptoNamedCurve: 'P-256',
@@ -29,7 +29,7 @@ const KeyExchangeAlgorithm ecdhP256 = WebEcdh(
 );
 
 /// NIST P-384 Elliptic Curve Diffie-Hellman (ECDH) key exchange algorithm.
-/// __Currently supported only in the browser.__
+/// Currently supported __only in the browser.__
 const KeyExchangeAlgorithm ecdhP384 = WebEcdh(
   name: 'p384',
   webCryptoNamedCurve: 'P-384',
@@ -41,7 +41,7 @@ const KeyExchangeAlgorithm ecdhP384 = WebEcdh(
 );
 
 /// NIST P-521 Elliptic Curve Diffie-Hellman (ECDH) key exchange algorithm.
-/// __Currently supported only in the browser.__
+/// Currently supported __only in the browser.__
 const KeyExchangeAlgorithm ecdhP521 = WebEcdh(
   name: 'p521',
   webCryptoNamedCurve: 'P-521',
@@ -53,7 +53,19 @@ const KeyExchangeAlgorithm ecdhP521 = WebEcdh(
 );
 
 /// NIST P-256 Elliptic Curve Digital Signature Algorithm (ECDSA).
-/// __Currently supported only in the browser.__
+/// Currently supported __only in the browser.__
+///
+/// An example:
+/// ```
+/// void main() async {
+///   final algorithm = ecdsaP256;
+///   final keyPair = algorithm.keyPairGenerator.generateSync();
+///   final signature = await algorithm.sign([1,2,3], keyPair);
+///
+///   // Anyone can verify the signature
+///   final isVerified = await algorithm.verify([1,2,3], signature);
+/// }
+/// ```
 ///
 /// For more about ECDSA, see [RFC 6090](https://www.ietf.org/rfc/rfc6090.txt).
 const SignatureAlgorithm ecdsaP256Sha256 = WebEcdsa(
@@ -68,9 +80,21 @@ const SignatureAlgorithm ecdsaP256Sha256 = WebEcdsa(
 );
 
 /// NIST P-384 Elliptic Curve Digital Signature Algorithm (ECDSA).
-/// __Currently supported only in the browser.__
+/// Currently supported __only in the browser.__
 ///
 /// For more about ECDSA, see [RFC 6090](https://www.ietf.org/rfc/rfc6090.txt).
+///
+/// An example:
+/// ```
+/// void main() async {
+///   final algorithm = ecdsaP384;
+///   final keyPair = algorithm.keyPairGenerator.generateSync();
+///   final signature = await algorithm.sign([1,2,3], keyPair);
+///
+///   // Anyone can verify the signature
+///   final isVerified = await algorithm.verify([1,2,3], signature);
+/// }
+/// ```
 const SignatureAlgorithm ecdsaP384Sha256 = WebEcdsa(
   name: 'p384',
   webCryptoNamedCurve: 'P-384',
@@ -83,9 +107,21 @@ const SignatureAlgorithm ecdsaP384Sha256 = WebEcdsa(
 );
 
 /// NIST P-521 Elliptic Curve Digital Signature Algorithm (ECDSA).
-/// __Currently supported only in the browser.__
+/// Currently supported __only in the browser.__
 ///
 /// For more about ECDSA, see [RFC 6090](https://www.ietf.org/rfc/rfc6090.txt).
+///
+/// An example:
+/// ```
+/// void main() async {
+///   final algorithm = ecdsaP511;
+///   final keyPair = algorithm.keyPairGenerator.generateSync();
+///   final signature = await algorithm.sign([1,2,3], keyPair);
+///
+///   // Anyone can verify the signature
+///   final isVerified = await algorithm.verify([1,2,3], signature);
+/// }
+/// ```
 const SignatureAlgorithm ecdsaP521Sha256 = WebEcdsa(
   name: 'p521',
   webCryptoNamedCurve: 'P-521',

@@ -1,9 +1,9 @@
 name: cryptography
-version: 0.2.0
+version: 0.2.1
 homepage: https://github.com/dint-dev/cryptography
 description:
-  Cryptography for applications, including key exchange algorithms (X25519, ECDH-P256, etc.),
-  ciphers (AES, Chacha20) and cryptographic hash functions (Blake2s, SHA2). Web Crypto API support.
+  Cryptography for applications. Key exchange (X25519, ECDH-P256, etc.), encryption (AES, Chacha20),
+  and cryptographic hash functions (Blake2s, SHA2). Web Crypto API support.
 
 environment:
   sdk: '>=2.7.0 <3.0.0'

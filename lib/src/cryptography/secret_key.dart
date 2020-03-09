@@ -18,6 +18,11 @@ import 'dart:typed_data';
 import 'package:cryptography/utils.dart';
 
 /// A secret sequence of bytes.
+///
+/// ```
+/// // Generates a random 256-bit key.
+/// final secretKey = SecretKey.randomBytes(32);
+/// ```
 class SecretKey {
   static final _random = Random.secure();
 

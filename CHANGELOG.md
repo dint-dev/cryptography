@@ -1,3 +1,6 @@
+## 0.2.1
+  * Improves documentation and stops exporting a few declarations.
+
 ## 0.2.0
   * Major refactoring and breaking API changes.
   * Improves in documentation.

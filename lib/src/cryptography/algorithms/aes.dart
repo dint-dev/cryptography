@@ -17,13 +17,81 @@ import 'package:cryptography/cryptography.dart';
 import 'web_crypto.dart';
 
 /// AES-CBC cipher.
-/// __Supported only in the browser.__
+/// Currently supported __only in the browser.__
+///
+/// An example:
+/// ```dart
+/// final input = <int>[1,2,3];
+/// final cipher = aesGcm;
+/// final secretKey = cipher.secretKeyGenerator.generateSync();
+/// final nonce = cipher.newNonce();
+///
+/// // Encrypt
+/// final encryptedBytes = cipher.encrypt(
+///   input,
+///   secretKey: secretKey,
+///   nonce: nonce,
+/// );
+///
+/// // Decrypt
+/// final decryptedBytes = cipher.encrypt(
+///   encryptedBytes,
+///   secretKey: secretKey,
+///   nonce: nonce,
+/// );
+/// ```
 const Cipher aesCbc = WebAesCbcCipher();
 
 /// AES-CTR cipher.
-/// __Supported only in the browser.__
+/// Currently supported __only in the browser.__
+///
+/// An example:
+/// ```dart
+/// final input = <int>[1,2,3];
+/// final cipher = aesGcm;
+/// final secretKey = cipher.secretKeyGenerator.generateSync();
+/// final nonce = cipher.newNonce();
+///
+/// // Encrypt
+/// final encryptedBytes = cipher.encrypt(
+///   input,
+///   secretKey: secretKey,
+///   nonce: nonce,
+/// );
+///
+/// // Decrypt
+/// final decryptedBytes = cipher.encrypt(
+///   encryptedBytes,
+///   secretKey: secretKey,
+///   nonce: nonce,
+/// );
+/// ```
 const Cipher aesCtr = WebAesCtrCipher();
 
 /// AES-GCM (Galois/Counter Mode) cipher.
-/// __Supported only in the browser.__
+/// Currently supported __only in the browser.__
+///
+/// An example:
+/// ```dart
+/// void main() async {
+///   final input = <int>[1,2,3];
+///   final cipher = aesGcm;
+///   final secretKey = cipher.secretKeyGenerator.generateSync();
+///   final nonce = cipher.newNonce();
+///
+///   // Encrypt
+///   final encryptedBytes = await cipher.encrypt(
+///     input,
+///     secretKey: secretKey,
+///     nonce: nonce,
+///   );
+///
+///   // Decrypt
+///   final decryptedBytes = await cipher.encrypt(
+///     encryptedBytes,
+///     secretKey: secretKey,
+///     nonce: nonce,
+///   );
+/// }
+/// ```
 const Cipher aesGcm = WebAesGcmCipher();

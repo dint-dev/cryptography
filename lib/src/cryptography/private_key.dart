@@ -19,6 +19,12 @@ import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/utils.dart';
 
 /// Private key part of [KeyPair].
+///
+/// An example:
+/// ```
+/// final keyPair = x25519.keyPairGenerator.generateSync();
+/// final privateKey = keyPair.privateKey;
+/// ```
 class PrivateKey {
   static final _random = Random.secure();
 

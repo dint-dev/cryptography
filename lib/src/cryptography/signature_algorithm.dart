@@ -16,9 +16,18 @@ import 'package:collection/collection.dart';
 import 'package:cryptography/cryptography.dart';
 import 'package:meta/meta.dart';
 
-/// A cryptographic signature. Typically the signer creates the signature with
-/// its private key and the recipient verifies the signature using the signer's
-/// public key.
+/// A cryptographic public-key signature.
+///
+/// An example:
+/// ```
+/// void main() async {
+///   final keyPair = ecdsaP256.keyPairGenerator.generateSync();
+///   final signature = await ecdsaP256.sign([1,2,3], keyPair);
+///
+///   // Anyone can verify the signature
+///   final isVerified = await ecdsaP256.verify([1,2,3], signature);
+/// }
+/// ```
 class Signature {
   final List<int> bytes;
   final PublicKey publicKey;
@@ -42,6 +51,17 @@ class Signature {
 }
 
 /// Superclass for signature-generating algorithms.
+///
+/// An example:
+/// ```
+/// void main() async {
+///   final keyPair = ecdsaP256.keyPairGenerator.generateSync();
+///   final signature = await ecdsaP256.sign([1,2,3], keyPair);
+///
+///   // Anyone can verify the signature
+///   final isVerified = await ecdsaP256.verify([1,2,3], signature);
+/// }
+/// ```
 abstract class SignatureAlgorithm {
   const SignatureAlgorithm();
 

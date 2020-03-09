@@ -18,19 +18,75 @@ import 'package:crypto/crypto.dart' as impl;
 import 'package:crypto/src/digest_sink.dart' as impl;
 import 'package:cryptography/cryptography.dart';
 
-/// Implements SHA1.
+/// _SHA1_, an old cryptographic hash function that's not recommended for new
+/// applications.
+///
+/// An example:
+/// ```
+/// import 'package:cryptography/cryptography.dart';
+///
+/// void main() {
+///   final sink = sha256.newSink();
+///   sink.add(<int>[1,2,3]);
+///   final hash = sink.close();
+/// }
+/// ```
 const HashAlgorithm sha1 = _Sha1();
 
-/// Implements SHA224 (one of the functions in the SHA2 specification).
+/// _SHA224_, a function in the SHA2 family of cryptographic hash functions.
+///
+/// An example:
+/// ```
+/// import 'package:cryptography/cryptography.dart';
+///
+/// void main() {
+///   final sink = sha224.newSink();
+///   sink.add(<int>[1,2,3]);
+///   final hash = sink.close();
+/// }
+/// ```
 const HashAlgorithm sha224 = _Sha224();
 
-/// Implements SHA256 (one of the functions in the SHA2 specification).
+/// _SHA256_, a function in the SHA2 family of cryptographic hash functions.
+///
+/// An example:
+/// ```
+/// import 'package:cryptography/cryptography.dart';
+///
+/// void main() {
+///   final sink = sha256.newSink();
+///   sink.add(<int>[1,2,3]);
+///   final hash = sink.close();
+/// }
+/// ```
 const HashAlgorithm sha256 = _Sha256();
 
-/// Implements SHA385 (one of the functions in the SHA2 specification).
+/// _SHA385_, a function in the SHA2 family of cryptographic hash functions.
+///
+/// An example:
+/// ```
+/// import 'package:cryptography/cryptography.dart';
+///
+/// void main() {
+///   final sink = sha385.newSink();
+///   sink.add(<int>[1,2,3]);
+///   final hash = sink.close();
+/// }
+/// ```
 const HashAlgorithm sha384 = _Sha384();
 
-/// Implements SHA512 (one of the functions in the SHA2 specification).
+/// _SHA512_, a function in the SHA2 family of cryptographic hash functions.
+///
+/// An example:
+/// ```
+/// import 'package:cryptography/cryptography.dart';
+///
+/// void main() {
+///   final sink = sha512.newSink();
+///   sink.add(<int>[1,2,3]);
+///   final hash = sink.close();
+/// }
+/// ```
 const HashAlgorithm sha512 = _Sha512();
 
 class _DigestSink implements Sink<impl.Digest> {

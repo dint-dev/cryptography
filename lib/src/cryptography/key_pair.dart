@@ -16,6 +16,12 @@ import 'package:cryptography/cryptography.dart';
 import 'package:meta/meta.dart';
 
 /// A pair of keys ([SecretKey] and a [PublicKey]).
+///
+/// ```
+/// final keyPair = x25519.keyPairGenerator.generateSync();
+/// print('private key: ${keyPair.privateKey.bytes}');
+/// print('public key: ${keyPair.publicKey.bytes}');
+/// ```
 class KeyPair {
   final PrivateKey privateKey;
   final PublicKey publicKey;

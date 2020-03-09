@@ -13,6 +13,14 @@
 // limitations under the License.
 
 /// Cryptographic algorithms.
+///
+/// See:
+///   * [AuthenticatedCipher]
+///   * [Cipher]
+///   * [KeyExchangeAlgorithm]
+///   * [HashAlgorithm]
+///   * [SignatureAlgorithm]
+///
 library cryptography;
 
 export 'src/cryptography/algorithms/aes.dart';
