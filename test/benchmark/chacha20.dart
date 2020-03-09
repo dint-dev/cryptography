@@ -1,4 +1,4 @@
-// Copyright 2019 Gohilla (opensource@gohilla.com).
+// Copyright 2019 Gohilla Ltd (https://gohilla.com).
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,23 +20,23 @@ import 'package:cryptography/cryptography.dart';
 const million = 1000000;
 
 void main() {
-  print("Benchmarks:");
-  print("--");
+  print('Benchmarks:');
+  print('--');
   Chacha20StreamBenchmark(million).report();
-  print("--");
+  print('--');
   Chacha20NumerousSmallMessagesBenchmark(million, 100).report();
-  print("--");
+  print('--');
 }
 
 class Chacha20StreamBenchmark extends BenchmarkBase {
   final int totalLength;
   SecretKey secretKey;
-  SecretKey nonce;
+  Nonce nonce;
   Uint8List cleartext;
   Uint8List result;
 
   Chacha20StreamBenchmark(this.totalLength)
-      : super("${totalLength ~/ million} MB stream");
+      : super('${totalLength ~/ million} MB stream');
 
   @override
   void setup() {
@@ -45,7 +45,7 @@ class Chacha20StreamBenchmark extends BenchmarkBase {
     for (var i = 0; i < cleartext.lengthInBytes; i++) {
       cleartext[i] = 0xFF & i;
     }
-    secretKey = chacha20.newSecretKey();
+    secretKey = chacha20.newSecretKeySync();
     nonce = chacha20.newNonce();
     result = Uint8List(cleartext.length);
   }
@@ -53,7 +53,7 @@ class Chacha20StreamBenchmark extends BenchmarkBase {
   @override
   void run() {
     chacha20
-        .newState(secretKey, nonce: nonce)
+        .newState(secretKey: secretKey, nonce: nonce)
         .fillWithConverted(result, 0, cleartext, 0);
   }
 
@@ -67,13 +67,13 @@ class Chacha20NumerousSmallMessagesBenchmark extends BenchmarkBase {
   final int totalLength;
   final int messageLength;
   SecretKey secretKey;
-  SecretKey nonce;
+  Nonce nonce;
   Uint8List cleartext;
   Uint8List result;
 
   Chacha20NumerousSmallMessagesBenchmark(this.totalLength, this.messageLength)
       : super(
-            "${totalLength ~/ million} MB in ${messageLength} byte long messages");
+            '${totalLength ~/ million} MB in ${messageLength} byte long messages');
 
   @override
   void setup() {
@@ -81,14 +81,14 @@ class Chacha20NumerousSmallMessagesBenchmark extends BenchmarkBase {
     for (var i = 0; i < cleartext.lengthInBytes; i++) {
       cleartext[i] = 0xFF & i;
     }
-    secretKey = chacha20.newSecretKey();
+    secretKey = chacha20.newSecretKeySync();
     nonce = chacha20.newNonce();
     result = Uint8List(cleartext.lengthInBytes);
   }
 
   @override
   void run() {
-    final state = chacha20.newState(secretKey, nonce: nonce);
+    final state = chacha20.newState(secretKey: secretKey, nonce: nonce);
     state.fillWithConverted(result, 0, cleartext, 0);
   }
 

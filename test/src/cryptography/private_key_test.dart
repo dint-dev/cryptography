@@ -18,12 +18,12 @@ import 'package:cryptography/cryptography.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group('PublicKey:', () {
+  group('PrivateKey:', () {
     test('"==" / hashCode', () {
-      final value = PublicKey(Uint8List.fromList([3, 1, 4]));
-      final clone = PublicKey(Uint8List.fromList([3, 1, 4]));
-      final other0 = PublicKey(Uint8List.fromList([3, 1, 999]));
-      final other1 = PublicKey(Uint8List.fromList([3, 1, 4, 999]));
+      final value = PrivateKey(Uint8List.fromList([3, 1, 4]));
+      final clone = PrivateKey(Uint8List.fromList([3, 1, 4]));
+      final other0 = PrivateKey(Uint8List.fromList([3, 1, 999]));
+      final other1 = PrivateKey(Uint8List.fromList([3, 1, 4, 999]));
 
       expect(value, clone);
       expect(value, isNot(other0));
@@ -34,9 +34,9 @@ void main() {
       expect(value.hashCode, isNot(other1.hashCode));
     });
 
-    test('toString()', () {
-      final a = PublicKey(Uint8List.fromList([18, 19, 20]));
-      expect(a.toString(), 'PublicKey([18, 19, 20])');
+    test('toString() does not expose actual bytes', () {
+      final a = PrivateKey(Uint8List(3));
+      expect(a, isNot(contains('0')));
     });
   });
 }

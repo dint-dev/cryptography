@@ -1,4 +1,4 @@
-// Copyright 2019 Gohilla (opensource@gohilla.com).
+// Copyright 2019 Gohilla Ltd (https://gohilla.com).
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,25 +14,23 @@
 
 import 'dart:typed_data';
 
-/// Example: [0x0A, 0xABCD] --> "A ABCD"
 String hexFromBytes(Iterable<int> list) {
   if (list == null) {
-    return "null";
+    return 'null';
   }
-  return list.map((v) => v.toRadixString(16)).join(" ");
+  return list.map((v) => v.toRadixString(16).padLeft(2, '0')).join(' ');
 }
 
-/// Example: ["0a 0b:0c"] --> [10,11,12]
 Uint8List hexToBytes(String input) {
   if (input == null) {
     return null;
   }
-  final s = input.replaceAll(" ", "").replaceAll(":", "").replaceAll("\n", "");
+  final s = input.replaceAll(' ', '').replaceAll(':', '').replaceAll('\n', '');
   final result = <int>[];
   for (var i = 0; i < s.length; i++) {
     var value = int.tryParse(s.substring(i, i + 1), radix: 16);
     if (value == null) {
-      throw ArgumentError.value(input, "input");
+      throw ArgumentError.value(input, 'input');
     }
     if (i % 2 == 0) {
       result.add(16 * value);

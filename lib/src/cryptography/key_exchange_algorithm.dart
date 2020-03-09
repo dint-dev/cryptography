@@ -1,4 +1,4 @@
-// Copyright 2019 Gohilla (opensource@gohilla.com).
+// Copyright 2019 Gohilla Ltd (https://gohilla.com).
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,26 +13,36 @@
 // limitations under the License.
 
 import 'package:cryptography/cryptography.dart';
+import 'package:meta/meta.dart';
 
+/// Superclass for key exchange algorithms.
+///
+/// Examples:
+///   * [ecdhP256]
+///   * [x25519]
 abstract class KeyExchangeAlgorithm {
   String get name;
 
-  final int keyLengthInBytes;
+  KeyPairGenerator get keyPairGenerator;
 
-  const KeyExchangeAlgorithm({this.keyLengthInBytes});
-
-  /// Generates a random [KeyPair].
-  ///
-  /// Optional parameter [seed] can be used to supply the bytes the key is
-  /// derived from. If the implementation does not support seeds, it will throw
-  /// [UnsupportedError].
-  KeyPair newKeyPair() {
-    return newKeyPairFromSeed(SecretKey.randomBytes(keyLengthInBytes));
-  }
-
-  /// Generates a key pair from the seed bytes.
-  KeyPair newKeyPairFromSeed(SecretKey seedKey);
+  const KeyExchangeAlgorithm();
 
   /// Calculates a shared secret.
-  SecretKey sharedSecret(SecretKey secretKey, PublicKey publicKey);
+  Future<SecretKey> sharedSecret({
+    @required PrivateKey localPrivateKey,
+    @required PublicKey remotePublicKey,
+  }) {
+    return Future<SecretKey>(
+      () => sharedSecretSync(
+        localPrivateKey: localPrivateKey,
+        remotePublicKey: remotePublicKey,
+      ),
+    );
+  }
+
+  /// Calculates a shared secret.
+  SecretKey sharedSecretSync({
+    @required PrivateKey localPrivateKey,
+    @required PublicKey remotePublicKey,
+  });
 }

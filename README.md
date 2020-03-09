@@ -1,46 +1,72 @@
 [![Pub Package](https://img.shields.io/pub/v/cryptography.svg)](https://pub.dev/packages/cryptography)
-[![Build Status](https://travis-ci.org/gohilla/curve25519.svg?branch=master)](https://travis-ci.org/gohilla/curve25519)
+[![Github Actions CI](https://github.com/dint-dev/cryptography/workflows/Dart%20CI/badge.svg)](https://github.com/dint-dev/cryptography/actions?query=workflow%3A%22Dart+CI%22)
 
 # Introduction
-A collection of cryptographic algorithms implemented in Dart.
+This package gives you a collection of cryptographic algorithms.
 
-The package is licensed under the [Apache License 2.0](LICENSE). Two previously separate packages,
-[chacha20](https://pub.dev/packages/chacha20) and [curve25519](https://pub.dev/packages/curve25519),
-have been merged into this package.
+Some algorithms are implemented in pure Dart. Some algorithms are implemented with
+[Web Cryptography API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API) and don't
+work outside the browser yet.
 
-## Contributing
-  * [Github repository](https://github.com/gohilla/cryptography.dart)
+Copyright 2019 Gohilla Ltd. Licensed under the [Apache License 2.0](LICENSE).
 
-## Algorithms
-### Elliptic curve cryptography
-  * X25519 (Curve25519)
-  * _(Additional algorithms are welcomed)_
+## Links
+  * [Github repository](https://github.com/dint-dev/cryptography)
+  * [Issue tracker](https://github.com/dint-dev/cryptography/issues)
+  * [API reference](https://pub.dev/documentation/cryptography/latest/)
+
+## Available algorithms
+### Key exchange algorithms
+  * __P256/P384/P521__ _(currently browser-only)_
+    * P256/P384/P521 are elliptic curves approved for key exchange by NIST.
+  * __X25519__
+    * X25519 is Elliptic Curve Diffie-Hellman (ECDH) using Curve25519. The algorithm is used in
+      protocols such as SSH, TLS, Signal, WhatsApp, and Wireguard. Performance of this Dart
+      implementation is about 1k exchanges per second on Macbook Pro.
+
+### Digital signature algorithms
+  * __P256/P384/P521__ _(currently browser-only)_
+    * P256/P384/P521 are elliptic curves approved for digital signature by NIST.
 
 ### Ciphers
-  * Chacha20
-  * _(Additional algorithms are welcomed)_
+  * __AES (CBC, CTR, GCM)__ _(currently browser-only)_
+    * AES is a symmetric cipher approved by NIST.
+  * __CHACHA20__ and __AEAD_CHACHA20_POLY1305__
+    * Chacha20 is a symmetric encryption algorithm that's simpler than AES and may also perform
+      better than AES in CPUs that don't have AES instructions. The algorithm is used in protocols
+      such as TLS, SSH, Signal, and Wireguard. Performance of this Dart implementation is about
+      50-100MB/s on Macbook Pro.
 
-### Hashes
-  * SHA2 (224/256/384/512)
-    * The implementation uses [package:crypto](https://pub.dev/packages/crypto)
-  * _(Additional algorithms are welcomed)_
+### Message authentication codes
+  * __HMAC__
+    * The implementation uses [package:crypto](https://pub.dev/packages/crypto), a package by
+      Dart SDK team.
+  * __POLY1305__
+    * Often used with Chacha20. The current implementation uses BigInt instead of optimized 128bit
+      arithmetic, which is a known issue.
 
-### Other
-  * HMAC
+### Cryptographic hash functions
+  * __BLAKE2S__
+    * Blake2 is used in protocols such as WhatsApp and WireGuard.
+  * __SHA1__
+    * SHA1 is used by older software. The implementation uses [package:crypto](https://pub.dev/packages/crypto) (a package by Dart SDK team).
+  * __SHA2__ (SHA224, SHA256, SHA384, SHA512)
+    * SHA2 is approved by NIST. The implementation uses
+      [package:crypto](https://pub.dev/packages/crypto) (a package by Dart SDK team).
 
-# Details
-## Chacha20
-Tests use examples from [RFC 7539](https://tools.ietf.org/html/rfc7539), an implementation guide by
-the the Internet Research Task Force.
+# Getting started
+## 1. Add dependency
+```yaml
+dependencies:
+  cryptography: ^0.2.0
+```
 
-Performance on new Apple laptops is about 50-100MB/s. Optimized C implementations can be up to a
-magnitude faster.
-
-An example:
+## 2. Use
+### AEAD_CHACHA20_POLY1305
 ```dart
 import 'package:cryptography/cryptography.dart';
 
-void main() {
+Future<void> main() async {
   // Generate a random 256-bit secret key
   final secretKey = chacha20.newSecretKey();
 
@@ -48,19 +74,31 @@ void main() {
   final nonce = chacha20.newNonce();
 
   // Encrypt
-  final result = chacha20.encrypt(
+  final result = await chacha20Poly1305Aead.encrypt(
     [1, 2, 3],
-    secretKey,
-    nonce: nonce,
+    secretKey: secretKey,
+    nonce: nonce, // The same secretKey/nonce combination should not be used twice
+    aad: const <int>[], // You can authenticate additional data here
   );
-  print(result);
+  print('Bytes: ${result.cipherText}');
+  print('MAC: ${result.mac}');
 }
 ```
 
-## X25519
-X25519 is Elliptic Curve Diffie-Hellman (ECDH) over Curve25519. Tests use test vectors from X25519
-key exchange specification ([RFC 7748](https://tools.ietf.org/html/rfc7748)) and an additional
-10,000 round test vector.
+### X25519
+```dart
+import 'package:cryptography/cryptography.dart';
 
-Performance on new Apple laptops is about 1k operations per second. Optimized C implementations can
-be up to a magnitude faster.
+void main() async {
+  // Let's generate two keypairs.
+  final localKeyPair = await x25519.newKeyPair();
+  final remoteKeyPair = await x5519.newKeyPair();
+
+  // We can now calculate a shared secret
+  var sharedSecret = await x25519.sharedSecret(
+    privateKey: localKeyPair.privateKey,
+    publicKey: remoteKeyPair.publicKey,
+  );
+  print('Shared secret: ${sharedSecret.toHex()}');
+}
+```

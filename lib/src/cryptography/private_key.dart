@@ -15,30 +15,30 @@
 import 'dart:math' show Random;
 import 'dart:typed_data';
 
+import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/utils.dart';
 
-/// A secret sequence of bytes.
-class SecretKey {
+/// Private key part of [KeyPair].
+class PrivateKey {
   static final _random = Random.secure();
 
   /// Bytes of the key. May be null.
   final List<int> bytes;
 
-  /// Constructs a secret key on the heap.
-  SecretKey(this.bytes) {
+  PrivateKey(this.bytes) {
     ArgumentError.checkNotNull(bytes, 'bytes');
   }
 
   /// Generates N random bytes.
   ///
   /// You can optionally give a random number generator that's used.
-  factory SecretKey.randomBytes(int length, {Random random}) {
-    random ??= _random;
+  factory PrivateKey.randomBytes(int length, {Random random}) {
+    random ??= PrivateKey._random;
     final data = Uint8List(length);
     for (var i = 0; i < data.length; i++) {
       data[i] = random.nextInt(256);
     }
-    return SecretKey(data);
+    return PrivateKey(data);
   }
 
   @override
@@ -55,10 +55,10 @@ class SecretKey {
 
   @override
   bool operator ==(other) {
-    return other is SecretKey &&
+    return other is PrivateKey &&
         const ConstantTimeBytesEquality().equals(bytes, other.bytes);
   }
 
   @override
-  String toString() => 'SecretKey(...)';
+  String toString() => 'PrivateKey(...)';
 }

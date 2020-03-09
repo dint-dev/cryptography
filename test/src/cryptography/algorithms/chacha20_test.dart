@@ -1,4 +1,4 @@
-// Copyright 2019 Gohilla (opensource@gohilla.com).
+// Copyright 2019 Gohilla Ltd (https://gohilla.com).
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,34 +15,34 @@
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
-import 'package:cryptography/math.dart';
+import 'package:cryptography/utils.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group("Chacha20:", () {
-    test("newSecretKey(): two results are not equal", () {
-      final key = chacha20.newSecretKey();
+  group('Chacha20:', () {
+    test('newSecretKeySync(): two results are not equal', () {
+      final key = chacha20.newSecretKeySync();
       expect(key.bytes, hasLength(32));
-      expect(key, isNot(chacha20.newSecretKey()));
+      expect(key, isNot(chacha20.newSecretKeySync()));
     });
 
-    test("newNonce(): two results are not equal", () {
+    test('newNonce(): two results are not equal', () {
       final nonce = chacha20.newNonce();
       expect(nonce.bytes, hasLength(12));
       expect(nonce, isNot(chacha20.newNonce()));
     });
 
-    group("newState(...):", () {
+    group('newState(...):', () {
       test("throws ArgumentError when 'secretKey' is null", () {
         expect(() {
-          chacha20.newState(null, nonce: chacha20.newNonce());
+          chacha20.newState(secretKey: null, nonce: chacha20.newNonce());
         }, throwsA(const TypeMatcher<ArgumentError>()));
       });
 
       test("throws ArgumentError when 'secretKey' has a wrong length", () {
         expect(() {
           chacha20.newState(
-            SecretKey(List<int>(31)),
+            secretKey: SecretKey(Uint8List(31)),
             nonce: chacha20.newNonce(),
           );
         }, throwsA(const TypeMatcher<ArgumentError>()));
@@ -51,18 +51,18 @@ void main() {
       test("throws ArgumentError when 'nonce' has a wrong length", () {
         expect(() {
           chacha20.newState(
-            chacha20.newSecretKey(),
-            nonce: SecretKey(Uint8List(13)),
+            secretKey: chacha20.newSecretKeySync(),
+            nonce: Nonce(Uint8List(13)),
           );
         }, throwsA(const TypeMatcher<ArgumentError>()));
       });
     });
   });
 
-  group("Chacha20State:", () {
-    test("keyStreamIndex: can be mutated", () {
+  group('Chacha20State:', () {
+    test('keyStreamIndex: can be mutated', () {
       final state = chacha20.newState(
-        chacha20.newSecretKey(),
+        secretKey: chacha20.newSecretKeySync(),
         nonce: chacha20.newNonce(),
       );
       expect(state.keyStreamIndex, equals(0));
@@ -71,9 +71,9 @@ void main() {
       expect(state.keyStreamIndex, equals(1));
     });
 
-    test("keyStreamIndex: is automatically incremented", () {
+    test('keyStreamIndex: is automatically incremented', () async {
       final state = chacha20.newState(
-        chacha20.newSecretKey(),
+        secretKey: chacha20.newSecretKeySync(),
         nonce: chacha20.newNonce(),
       );
       expect(state.keyStreamIndex, equals(0));
@@ -95,9 +95,9 @@ void main() {
       expect(state.keyStreamIndex, equals(64));
     });
 
-    test("convert(...): throws StateError after close()", () {
+    test('convert(...): throws StateError after close()', () async {
       final state = chacha20.newState(
-        chacha20.newSecretKey(),
+        secretKey: chacha20.newSecretKeySync(),
         nonce: chacha20.newNonce(),
       );
       state.close();
@@ -107,15 +107,16 @@ void main() {
       );
     });
 
-    test("convert(...): all input lengths 0...1000 behave consistently", () {
+    test('convert(...): all input lengths 0...1000 behave consistently',
+        () async {
       final state = chacha20.newState(
-        chacha20.newSecretKey(),
+        secretKey: chacha20.newSecretKeySync(),
         nonce: chacha20.newNonce(),
       );
 
       // Clear text is a sequence of 'a' letters
       final clearText = Uint8List(1000);
-      final charCodeForA = "a".codeUnitAt(0);
+      final charCodeForA = 'a'.codeUnitAt(0);
       clearText.fillRange(0, clearText.length, charCodeForA);
 
       for (var n = 0; n < 1000; n++) {
@@ -142,10 +143,10 @@ void main() {
         "convert(...): various 'keyStreamIndex' values and input lengths behave consistently",
         () async {
       final state = chacha20.newState(
-        chacha20.newSecretKey(),
+        secretKey: chacha20.newSecretKeySync(),
         nonce: chacha20.newNonce(),
       );
-      final input = List.filled(130, "a".codeUnitAt(0));
+      final input = List.filled(130, 'a'.codeUnitAt(0));
       final expectedOutput = state.convert(input);
 
       for (var skip in const [0, 1, 63, 64, 65, 127, 128, 129]) {
@@ -193,36 +194,36 @@ void main() {
       }
     });
 
-    group("RFC 7539: encryption example", () {
-      /// -----------------------------------
-      /// These constants are from RFC 7539:
-      /// https://tools.ietf.org/html/rfc7539
-      /// -----------------------------------
+    group('RFC 7539: encryption example', () {
+      // -----------------------------------------------------------------------
+      // The following input/output constants are copied from the RFC 7539:
+      // https://tools.ietf.org/html/rfc7539
+      // -----------------------------------------------------------------------
 
       final cleartext =
           "Ladies and Gentlemen of the class of '99: If I could offer you only one tip for the future, sunscreen would be it."
               .runes
               .toList();
 
-      final key = SecretKey(hexToBytes(
-        "00:01:02:03:04:05:06:07:08:09:0a:0b:0c:0d:0e:0f:10:11:12:13:14:15:16:17:18:19:1a:1b:1c:1d:1e:1f",
+      final secretKey = SecretKey(hexToBytes(
+        '00:01:02:03:04:05:06:07:08:09:0a:0b:0c:0d:0e:0f:10:11:12:13:14:15:16:17:18:19:1a:1b:1c:1d:1e:1f',
       ));
 
-      final nonce = SecretKey(hexToBytes(
-        "00:00:00:00:00:00:00:4a:00:00:00:00",
+      final nonce = Nonce(hexToBytes(
+        '00:00:00:00:00:00:00:4a:00:00:00:00',
       ));
 
       final initialKeyStreamIndex = 64;
 
-      final expectedKeyStream = hexToBytes("""
+      final expectedKeyStream = hexToBytes('''
         22:4f:51:f3:40:1b:d9:e1:2f:de:27:6f:b8:63:1d:ed:8c:13:1f:82:3d:2c:06
         e2:7e:4f:ca:ec:9e:f3:cf:78:8a:3b:0a:a3:72:60:0a:92:b5:79:74:cd:ed:2b
         93:34:79:4c:ba:40:c6:3e:34:cd:ea:21:2c:4c:f0:7d:41:b7:69:a6:74:9f:3f
         63:0f:41:22:ca:fe:28:ec:4d:c4:7e:26:d4:34:6d:70:b9:8c:73:f3:e9:c5:3a
         c4:0c:59:45:39:8b:6e:da:1a:83:2c:89:c1:67:ea:cd:90:1d:7e:2b:f3:63              
-      """);
+      ''');
 
-      final expectedEncrypted = hexToBytes("""
+      final expectedCipherText = hexToBytes('''
         6e 2e 35 9a 25 68 f9 80 41 ba 07 28 dd 0d 69 81
         e9 7e 7a ec 1d 43 60 c2 0a 27 af cc fd 9f ae 0b
         f9 1b 65 c5 52 47 33 ab 8f 59 3d ab cd 62 b3 57
@@ -231,62 +232,77 @@ void main() {
         52 bc 51 4d 16 cc f8 06 81 8c e9 1a b7 79 37 36
         5a f9 0b bf 74 a3 5b e6 b4 0b 8e ed f2 78 5e 42
         87 4d                   
-      """);
+      ''');
 
-      /// ------------------------------
-      /// End of constants from RFC 7539
-      /// ------------------------------
+      // -----------------------------------------------------------------------
+      // End of constants from RFC 7539
+      // -----------------------------------------------------------------------
 
-      KeyStreamCipherState state;
+      SyncKeyStreamCipherState state;
       setUp(() {
         state = chacha20.newState(
-          key,
+          secretKey: secretKey,
           nonce: nonce,
           keyStreamIndex: initialKeyStreamIndex,
         );
       });
 
-      test("keystream", () {
+      test('keystream', () {
         final keyStream = Uint8List(cleartext.length);
         state.fillWithKeyStream(keyStream, 0);
         expect(
-            hexFromBytes(keyStream), equals(hexFromBytes(expectedKeyStream)));
+          hexFromBytes(keyStream),
+          hexFromBytes(expectedKeyStream),
+        );
       });
 
-      test("convert", () {
+      test('convert', () {
         final encrypted = state.convert(cleartext);
         expect(
-            hexFromBytes(encrypted), equals(hexFromBytes(expectedEncrypted)));
+          hexFromBytes(encrypted),
+          hexFromBytes(expectedCipherText),
+        );
       });
 
-      test("convert encrypted to cleartext", () {
-        final decrypted = state.convert(expectedEncrypted);
-        expect(hexFromBytes(decrypted), equals(hexFromBytes(cleartext)));
+      test('convert encrypted to cleartext', () {
+        final decrypted = state.convert(expectedCipherText);
+        expect(
+          hexFromBytes(decrypted),
+          hexFromBytes(cleartext),
+        );
       });
 
-      test("convert in multiple parts", () {
+      test('convert in multiple parts', () {
         // Span 0:0
         var encrypted = state.convert(cleartext.sublist(0, 0));
-        expect(hexFromBytes(encrypted),
-            equals(hexFromBytes(expectedEncrypted.sublist(0, 0))));
+        expect(
+          hexFromBytes(encrypted),
+          equals(hexFromBytes(expectedCipherText.sublist(0, 0))),
+        );
 
         // Span 0:1
         encrypted = state.convert(cleartext.sublist(0, 1));
-        expect(hexFromBytes(encrypted),
-            equals(hexFromBytes(expectedEncrypted.sublist(0, 1))));
+        expect(
+          hexFromBytes(encrypted),
+          hexFromBytes(expectedCipherText.sublist(0, 1)),
+        );
 
         // Span 1:3
         encrypted = state.convert(cleartext.sublist(1, 3));
-        expect(hexFromBytes(encrypted),
-            equals(hexFromBytes(expectedEncrypted.sublist(1, 3))));
+        expect(
+          hexFromBytes(encrypted),
+          hexFromBytes(expectedCipherText.sublist(1, 3)),
+        );
 
         // Span 3:end
         encrypted = state.convert(cleartext.sublist(3));
-        expect(hexFromBytes(encrypted),
-            equals(hexFromBytes(expectedEncrypted.sublist(3))));
+        expect(
+          hexFromBytes(encrypted),
+          hexFromBytes(expectedCipherText.sublist(3)),
+        );
       });
 
-      test("fillWithConverted throws ArgumentError if length is negative", () {
+      test('fillWithConverted throws ArgumentError if length is negative', () {
         final buffer = Uint8List(65);
         expect(
           () => state.fillWithConverted(buffer, 0, cleartext, 0, length: -1),
@@ -294,7 +310,7 @@ void main() {
         );
       });
 
-      test("fillWithConverted throws ArgumentError if length is too large", () {
+      test('fillWithConverted throws ArgumentError if length is too large', () {
         final buffer = Uint8List(1);
         expect(
           () => state.fillWithConverted(buffer, 0, cleartext, 0, length: 2),
@@ -302,7 +318,7 @@ void main() {
         );
       });
 
-      test("fillWithConverted in multiple parts", () {
+      test('fillWithConverted in multiple parts', () {
         final buffer = Uint8List(65);
         var filledLength = 0;
 
@@ -323,7 +339,7 @@ void main() {
           // Check
           expect(
             hexFromBytes(buffer.sublist(0, filledLength)),
-            equals(hexFromBytes(expectedEncrypted.sublist(0, filledLength))),
+            equals(hexFromBytes(expectedCipherText.sublist(0, filledLength))),
           );
 
           // Zeroes after it
@@ -334,7 +350,7 @@ void main() {
         }
       });
 
-      test("fillWithConverted when buffer is smaller than cleartext", () {
+      test('fillWithConverted when buffer is smaller than cleartext', () {
         final buffer = Uint8List(5);
         final bufferStart = 4;
         const clearTextStart = 2;
@@ -350,12 +366,12 @@ void main() {
         // 4:N is converted
         expect(
           hexFromBytes(buffer.sublist(bufferStart)),
-          equals(hexFromBytes(expectedEncrypted.sublist(
+          equals(hexFromBytes(expectedCipherText.sublist(
               clearTextStart, clearTextStart + buffer.length - bufferStart))),
         );
       });
 
-      test("fillWithConverted when buffer is larger than cleartext", () {
+      test('fillWithConverted when buffer is larger than cleartext', () {
         final buffer = Uint8List(512);
         final bufferStart = 4;
         const clearTextStart = 2;
@@ -365,19 +381,23 @@ void main() {
 
         // 0:4 is zeroes
         expect(
-            buffer.sublist(0, bufferStart).every((item) => item == 0), isTrue);
+          buffer.sublist(0, bufferStart).every((item) => item == 0),
+          isTrue,
+        );
 
         // 4:N is converted
         final bufferFilledEnd =
-            bufferStart + expectedEncrypted.length - clearTextStart;
+            bufferStart + expectedCipherText.length - clearTextStart;
         expect(
           hexFromBytes(buffer.sublist(bufferStart, bufferFilledEnd)),
-          equals(hexFromBytes(expectedEncrypted.sublist(clearTextStart))),
+          hexFromBytes(expectedCipherText.sublist(clearTextStart)),
         );
 
         // N: is zeroes
         expect(
-            buffer.sublist(bufferFilledEnd).every((item) => item == 0), isTrue);
+          buffer.sublist(bufferFilledEnd).every((item) => item == 0),
+          isTrue,
+        );
       });
     });
   });

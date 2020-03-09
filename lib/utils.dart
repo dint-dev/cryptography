@@ -1,4 +1,4 @@
-// Copyright 2019 Gohilla (opensource@gohilla.com).
+// Copyright 2019 Gohilla Ltd (https://gohilla.com).
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,17 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/// For ensuring that result of calculation will be 32-bit integer.
-const int uint32mask = 0xFFFFFFFF;
+/// Functions for implementing cryptographic algorithms.
+library cryptography.utils;
 
-/// Rotates 32-bit integer to the left.
-int rotateLeft32(int value, int shift) {
-  assert(shift >= 0 && shift <= 32);
-  return (uint32mask & (value << shift)) | (value >> (32 - shift));
-}
-
-/// Rotates 32-bit integer to the right.
-int rotateRight32(int value, int shift) {
-  assert(shift >= 0 && shift <= 32);
-  return (uint32mask & (value << (32 - shift))) | (value >> shift);
-}
+export 'src/utils/constant_time_equality.dart';
+export 'src/utils/hex.dart';
+export 'src/utils/multiply256.dart';
+export 'src/utils/rotate.dart';

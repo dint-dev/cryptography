@@ -1,30 +1,18 @@
 import 'package:cryptography/cryptography.dart';
 
-void chacha20_example() {
+Future<void> main() async {
   // Generate a random 256-bit secret key
-  final secretKey = chacha20.newSecretKey();
+  final secretKey = await chacha20.newSecretKey();
 
   // Generate a random 96-bit nonce.
   final nonce = chacha20.newNonce();
 
   // Encrypt
-  final result = chacha20.encrypt(
+  final result = await chacha20Poly1305Aead.encrypt(
     [1, 2, 3],
-    secretKey,
+    secretKey: secretKey,
     nonce: nonce,
   );
-  print(result);
-}
-
-void x25519_example() async {
-  // Let's generate two asymmetric keypair.
-  final keypair1 = x25519.newKeyPair();
-  final keypair2 = x25519.newKeyPair();
-
-  // We can now calculate a shared secret
-  var sharedSecret = x25519.sharedSecret(
-    keypair1.secretKey,
-    keypair2.publicKey,
-  );
-  print(sharedSecret.toHex());
+  print('Bytes: ${result.cipherText}');
+  print('MAC: ${result.mac}');
 }

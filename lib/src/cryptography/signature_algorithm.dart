@@ -1,4 +1,4 @@
-// Copyright 2019 Gohilla (opensource@gohilla.com).
+// Copyright 2019 Gohilla Ltd (https://gohilla.com).
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,37 +12,52 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:typed_data';
-
 import 'package:collection/collection.dart';
 import 'package:cryptography/cryptography.dart';
-import 'package:cryptography/math.dart';
+import 'package:meta/meta.dart';
 
-abstract class SignatureAlgorithm {
-  String get name;
-
-  Signature sign(List<int> input, KeyPair keyPair);
-}
-
+/// A cryptographic signature. Typically the signer creates the signature with
+/// its private key and the recipient verifies the signature using the signer's
+/// public key.
 class Signature {
-  final Uint8List bytes;
+  final List<int> bytes;
   final PublicKey publicKey;
 
-  Signature(this.bytes, {this.publicKey});
+  const Signature(this.bytes, {@required this.publicKey})
+      : assert(bytes != null),
+        assert(publicKey != null);
 
   @override
-  int get hashCode => const ListEquality<int>().hash(bytes);
+  int get hashCode =>
+      const ListEquality<int>().hash(bytes) ^ publicKey.hashCode;
 
   @override
-  operator ==(other) =>
+  bool operator ==(other) =>
       other is Signature &&
       const ListEquality<int>().equals(bytes, other.bytes) &&
       publicKey == other.publicKey;
 
-  String toHex() {
-    return hexFromBytes(bytes);
+  @override
+  String toString() => 'Signature(...)';
+}
+
+/// Superclass for signature-generating algorithms.
+abstract class SignatureAlgorithm {
+  const SignatureAlgorithm();
+
+  KeyPairGenerator get keyPairGenerator;
+
+  String get name;
+
+  Future<Signature> sign(List<int> input, KeyPair keyPair) {
+    return Future<Signature>(() => signSync(input, keyPair));
   }
 
-  @override
-  String toString() => toHex();
+  Signature signSync(List<int> input, KeyPair keyPair);
+
+  Future<bool> verify(List<int> input, Signature signature) {
+    return Future<bool>(() => verifySync(input, signature));
+  }
+
+  bool verifySync(List<int> input, Signature signature);
 }

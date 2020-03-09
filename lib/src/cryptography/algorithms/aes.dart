@@ -14,32 +14,16 @@
 
 import 'package:cryptography/cryptography.dart';
 
-import 'common.dart';
+import 'web_crypto.dart';
 
-void main() {
-  X25519Benchmark().report();
-}
+/// AES-CBC cipher.
+/// __Supported only in the browser.__
+const Cipher aesCbc = WebAesCbcCipher();
 
-class X25519Benchmark extends ThroughputBenchmarkBase {
-  final KeyExchangeAlgorithm implementation;
+/// AES-CTR cipher.
+/// __Supported only in the browser.__
+const Cipher aesCtr = WebAesCtrCipher();
 
-  X25519Benchmark({this.implementation = x25519})
-      : super('Calculating shared secret');
-
-  KeyPair keypair1;
-  KeyPair keypair2;
-
-  @override
-  void setup() {
-    keypair1 = x25519.keyPairGenerator.generateSync();
-    keypair2 = x25519.keyPairGenerator.generateSync();
-  }
-
-  @override
-  void run() {
-    implementation.sharedSecretSync(
-      localPrivateKey: keypair1.privateKey,
-      remotePublicKey: keypair2.publicKey,
-    );
-  }
-}
+/// AES-GCM (Galois/Counter Mode) cipher.
+/// __Supported only in the browser.__
+const Cipher aesGcm = WebAesGcmCipher();

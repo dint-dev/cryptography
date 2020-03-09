@@ -12,53 +12,60 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:math' show Random;
+import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:cryptography/utils.dart';
+import 'package:collection/collection.dart';
 
-/// A secret sequence of bytes.
-class SecretKey {
+/// A nonce. Sometimes known as Initialization Vector (IV).
+class Nonce {
   static final _random = Random.secure();
 
-  /// Bytes of the key. May be null.
   final List<int> bytes;
 
-  /// Constructs a secret key on the heap.
-  SecretKey(this.bytes) {
+  Nonce(this.bytes) {
     ArgumentError.checkNotNull(bytes, 'bytes');
   }
 
   /// Generates N random bytes.
   ///
   /// You can optionally give a random number generator that's used.
-  factory SecretKey.randomBytes(int length, {Random random}) {
+  factory Nonce.randomBytes(int length, {Random random}) {
     random ??= _random;
     final data = Uint8List(length);
     for (var i = 0; i < data.length; i++) {
       data[i] = random.nextInt(256);
     }
-    return SecretKey(data);
+    return Nonce(data);
   }
 
   @override
   int get hashCode {
-    /// Exposes maximum 16 bits of the key.
-    var h = 0;
-    final bytes = this.bytes;
-    for (var i = 0; i < bytes.length; i++) {
-      final b = bytes[i];
-      h ^= (b << (i % 16)) ^ (b >> (16 - (i % 16)));
-    }
-    return h;
+    return const ListEquality<int>().hash(bytes);
   }
 
   @override
   bool operator ==(other) {
-    return other is SecretKey &&
-        const ConstantTimeBytesEquality().equals(bytes, other.bytes);
+    return other is Nonce &&
+        const ListEquality<int>().equals(bytes, other.bytes);
+  }
+
+  /// Increments the secret key bits by 1. This can be used to generate
+  /// sequential nonce values.
+  Nonce increment() {
+    final bytes = this.bytes;
+    final result = Uint8List.fromList(bytes);
+    for (var i = result.length - 1; i >= 0; i--) {
+      result[i]++;
+      if (result[i] != 0) {
+        break;
+      }
+    }
+    return Nonce(result);
   }
 
   @override
-  String toString() => 'SecretKey(...)';
+  String toString() {
+    return "Nonce(['${bytes.join(', ')}'])";
+  }
 }

@@ -12,28 +12,5 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:collection/collection.dart';
-import 'package:cryptography/cryptography.dart';
-
-/// Public key part of [KeyPair].
-class PublicKey {
-  final List<int> bytes;
-
-  const PublicKey(this.bytes) : assert(bytes != null);
-
-  @override
-  int get hashCode {
-    return const ListEquality<int>().hash(bytes);
-  }
-
-  @override
-  bool operator ==(other) {
-    return other is PublicKey &&
-        const ListEquality<int>().equals(bytes, other.bytes);
-  }
-
-  @override
-  String toString() {
-    return "PublicKey([${bytes.join(', ')}])";
-  }
-}
+export 'web_crypto_impl_default.dart'
+    if (dart.library.html) 'web_crypto_impl_browser.dart';

@@ -1,4 +1,4 @@
-// Copyright 2019 Gohilla (opensource@gohilla.com).
+// Copyright 2019 Gohilla Ltd (https://gohilla.com).
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,39 +12,49 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-library chacha20;
-
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
-import 'package:cryptography/math.dart';
+import 'package:cryptography/utils.dart';
 import 'package:meta/meta.dart';
 
-/// Implements Chacha20 ([https://tools.ietf.org/html/rfc7539](RFC 7539) cipher.
+/// _Chacha20_ cipher ([https://tools.ietf.org/html/rfc7539](RFC 7539).
+///
+/// Remember that:
+///   * You must not use the same key/nonce twice.
+///   * The message is not authenticated. See [chacha20Poly1305Aead] for a good
+///     cipher with authentication.
 const Chacha20 chacha20 = Chacha20._();
 
-class Chacha20 extends KeyStreamCipher {
+/// API for [chacha20].
+class Chacha20 extends SyncKeyStreamCipher {
   const Chacha20._();
 
   @override
-  String get name => "chacha20";
+  SecretKeyGenerator get secretKeyGenerator => const SecretKeyGenerator(
+        validLengths: <int>{32},
+        defaultLength: 32,
+      );
 
   @override
-  int get secretKeyLength => 32;
+  String get name => 'chacha20';
 
   @override
   int get nonceLength => 12;
 
   @override
-  KeyStreamCipherState newState(SecretKey secretKey,
-      {int keyStreamIndex = 0, @required SecretKey nonce}) {
-    KeyStreamCipher.checkNewStateArguments(
+  SyncKeyStreamCipherState newState({
+    @required SecretKey secretKey,
+    int keyStreamIndex = 0,
+    @required Nonce nonce,
+  }) {
+    SyncKeyStreamCipher.checkNewStateArguments(
       this,
-      secretKey,
+      secretKey: secretKey,
       keyStreamIndex: keyStreamIndex,
       nonce: nonce,
     );
-    final state = _Chacha20State();
+    final state = _Chacha20State(this);
     state.initialize(
       key: secretKey.bytes,
       nonce: nonce.bytes,
@@ -53,11 +63,7 @@ class Chacha20 extends KeyStreamCipher {
     return state;
   }
 
-  /// Chacha20 state encryption algorithm. Used by [fillWithKeyStream].
-  ///
-  /// Throws [StateError] if [initialize] has not been invoked or [clear] has
-  /// been invoked.
-  void encryptState(Uint32List state, Uint32List initialState) {
+  void _encryptState(Uint32List state, Uint32List initialState) {
     // Validate that we have a proper initial state.
     _validateInitialState(initialState);
 
@@ -85,24 +91,9 @@ class Chacha20 extends KeyStreamCipher {
     // Step 2: Do 20 column/diagonal rounds
     //
     // We inlined the 'quarterRound' function because benchmarks showed
-    // significant enough difference to non-inlined version. The code size and
-    // code review trade-off seemed worthy at the time.
+    // significant enough difference to non-inlined version.
     // -------------------------------------------------------------------------
     for (var i = 0; i < 10; i++) {
-      // Non-inlined version
-      // -------------------
-      // A column round
-      // quarterRound(state, 0, 4, 8, 12);
-      // quarterRound(state, 1, 5, 9, 13);
-      // quarterRound(state, 2, 6, 10, 14);
-      // quarterRound(state, 3, 7, 11, 15);
-      //
-      // A diagonal round
-      // quarterRound(state, 0, 5, 10, 15);
-      // quarterRound(state, 1, 6, 11, 12);
-      // quarterRound(state, 2, 7, 8, 13);
-      // quarterRound(state, 3, 4, 9, 14);
-
       // -------
       // Columns
       // -------
@@ -203,27 +194,15 @@ class Chacha20 extends KeyStreamCipher {
     state[15] = uint32mask & (v15 + initialState[15]);
   }
 
-  void quarterRound(Uint32List state, int a, int b, int c, int d) {
-    int v0 = state[a];
-    int v4 = state[b];
-    int v8 = state[c];
-    int v12 = state[d];
-    v0 = uint32mask & (v0 + v4);
-    v12 = rotateLeft32(v12 ^ v0, 16);
-    v8 = uint32mask & (v8 + v12);
-    v4 = rotateLeft32(v4 ^ v8, 12);
-    v0 = uint32mask & (v0 + v4);
-    v12 = rotateLeft32(v12 ^ v0, 8);
-    v8 = uint32mask & (v8 + v12);
-    v4 = rotateLeft32(v4 ^ v8, 7);
-    state[a] = v0;
-    state[b] = v4;
-    state[c] = v8;
-    state[d] = v12;
+  void _validateInitialState(Uint32List initialState) {
+    if (initialState[0] != 0x61707865) {
+      throw StateError(
+          "Initial state is invalid. Did you forget to call 'initialize'?");
+    }
   }
 }
 
-class _Chacha20State extends KeyStreamCipherState {
+class _Chacha20State extends SyncKeyStreamCipherState {
   // ---------------------------------------------------------------------------
   // Some constants
   // ---------------------------------------------------------------------------
@@ -244,49 +223,16 @@ class _Chacha20State extends KeyStreamCipherState {
     _state.lengthInBytes,
   );
 
+  final Chacha20 _chacha;
+
+  final Uint32List initialState = Uint32List(_stateLength);
+
   // ---------------------------------------------------------------------------
   // Initialization
   // ---------------------------------------------------------------------------
-  final Uint32List initialState = Uint32List(_stateLength);
-
-  /// Sets initial state using the key, nonce, and counter.
-  ///
-  /// A few rules:
-  ///   * You must define key. You can generate a random key with
-  ///     [Chacha20.randomKey].
-  ///   * If nonce is null, zeroes will be used.
-  ///   * It's important that you never use the same (key, nonce) combination
-  ///     for two different message.
-  void initialize({
-    @required List<int> key,
-    @required List<int> nonce,
-    int keyStreamIndex = 0,
-  }) {
-    if (key == null) {
-      throw ArgumentError.notNull("key");
-    }
-
-    // Mark as uninitialized so encryption will fail if this method throws.
-    final state = this.initialState;
-    state[0] = 0;
-
-    // Key
-    this.setKeyBytes(key);
-
-    // Counter
-    this.keyStreamIndex = keyStreamIndex;
-
-    // Nonce
-    this.setNonceBytes(nonce);
-
-    // Finally, set constants
-    state[0] = 0x61707865;
-    state[1] = 0x3320646e;
-    state[2] = 0x79622d32;
-    state[3] = 0x6b206574;
-  }
-
   int _keyStreamIndex = 0;
+
+  _Chacha20State(this._chacha);
 
   @override
   int get keyStreamIndex => _keyStreamIndex;
@@ -296,103 +242,32 @@ class _Chacha20State extends KeyStreamCipherState {
     if (value < 0) {
       throw ArgumentError.value(value);
     }
-    this._keyStreamIndex = value;
-    this.initialState[12] = value ~/ 64;
-  }
-
-  /// Sets the 256-bit Chacha20 key using the bytes.
-  void setKeyBytes(List<int> key) {
-    if (key == null) {
-      throw ArgumentError.notNull("key");
-    }
-    if (key.length != _keyLengthInBytes) {
-      throw ArgumentError.value(
-        key,
-        "key",
-        "length is ${key.length}, should be ${_keyLengthInBytes}",
-      );
-    }
-
-    final state = this.initialState;
-    final stateByteData = ByteData.view(
-      state.buffer,
-      state.offsetInBytes,
-      state.lengthInBytes,
-    );
-
-    int stateBytesIndex = 4 * 4;
-    for (var i = 0; i < key.length; i++) {
-      stateByteData.setUint8(stateBytesIndex, key[i]);
-      stateBytesIndex++;
-    }
-
-    // Convert little endian --> host endian
-    for (var i = 4; i < 12; i++) {
-      state[i] = stateByteData.getUint32(4 * i, Endian.little);
-    }
-  }
-
-  /// Sets the 96-bit Chacha20 nonce using the bytes.
-  /// If the argument is null, zeroes will be used.
-  void setNonceBytes(List<int> nonce) {
-    if (nonce == null) {
-      for (var i = 13; i < 16; i++) {
-        initialState[i] = 0;
-      }
-      return;
-    }
-    if (nonce.length != _nonceLengthInBytes) {
-      throw ArgumentError.value(
-        nonce,
-        "nonce",
-        "length is ${nonce.length}, should be ${_nonceLengthInBytes}",
-      );
-    }
-
-    final state = this.initialState;
-    final stateByteData = ByteData.view(
-      state.buffer,
-      state.offsetInBytes,
-      state.lengthInBytes,
-    );
-
-    var stateBytesIndex = 13 * 4;
-    for (var i = 0; i < nonce.length; i++) {
-      stateByteData.setUint8(stateBytesIndex, nonce[i]);
-      stateBytesIndex++;
-    }
-
-    // Convert little endian --> host endian
-    for (var i = 13; i < 16; i++) {
-      state[i] = stateByteData.getUint32(4 * i, Endian.little);
-    }
+    _keyStreamIndex = value;
+    initialState[12] = value ~/ 64;
   }
 
   /// Removes secrets from the heap.
   ///
   /// After invoking this method, encryption operations will fail unless
   /// [initialize] is called.
+  @override
   void close() {
     initialState.fillRange(0, initialState.length, 0);
     super.close();
   }
 
-  // ---------------------------------------------------------------------------
-  // Other methods
-  // ---------------------------------------------------------------------------
-
   @override
   void fillWithKeyStream(List<int> result, int start, {int length}) {
-    KeyStreamCipherState.checkNotClosed(this);
+    SyncKeyStreamCipherState.checkNotClosed(this);
     if (start < 0) {
-      throw ArgumentError.value(start, "start");
+      throw ArgumentError.value(start, 'start');
     }
     if (length == null) {
       length = result.length - start;
     } else if (length < 0 || length > result.length - start) {
-      throw ArgumentError.value(length, "length");
+      throw ArgumentError.value(length, 'length');
     }
-    _validateInitialState(initialState);
+    _chacha._validateInitialState(initialState);
 
     // ----------------------------
     // Special case for empty lists
@@ -434,7 +309,7 @@ class _Chacha20State extends KeyStreamCipherState {
       // -----------------------------------------------------------------------
       while (length > 0) {
         // Encrypt state
-        chacha20.encryptState(state, initialState);
+        _chacha._encryptState(state, initialState);
 
         // Should we copy
         if (resultByteData != null && length >= 64) {
@@ -484,11 +359,89 @@ class _Chacha20State extends KeyStreamCipherState {
       }
     }
   }
-}
 
-void _validateInitialState(Uint32List initialState) {
-  if (initialState[0] != 0x61707865) {
-    throw StateError(
-        "Initial state is invalid. Did you forget to call 'initialize'?");
+  // ---------------------------------------------------------------------------
+  // Other methods
+  // ---------------------------------------------------------------------------
+
+  /// Sets initial state using the key, nonce, and counter.
+  ///
+  /// A few rules:
+  ///   * You must define key. You can generate a random key with
+  ///     [Chacha20.randomKey].
+  ///   * If nonce is null, zeroes will be used.
+  ///   * It's important that you never use the same (key, nonce) combination
+  ///     for two different message.
+  void initialize({
+    @required List<int> key,
+    @required List<int> nonce,
+    int keyStreamIndex = 0,
+  }) {
+    if (key == null) {
+      throw ArgumentError.notNull('key');
+    } else if (key.length != _keyLengthInBytes) {
+      throw ArgumentError.value(
+        key,
+        'key',
+        'Key length ${key.length} is invalid: should be ${_keyLengthInBytes}',
+      );
+    }
+    if (nonce != null && nonce.length != _nonceLengthInBytes) {
+      throw ArgumentError.value(
+        nonce,
+        'nonce',
+        'Nonce length ${nonce.length} is invalid: should be ${_nonceLengthInBytes}',
+      );
+    }
+
+    // Mark as uninitialized so encryption will fail if this method throws.
+    final state = initialState;
+    state[0] = 0x61707865;
+    state[1] = 0x3320646e;
+    state[2] = 0x79622d32;
+    state[3] = 0x6b206574;
+
+    final stateByteData = ByteData.view(
+      state.buffer,
+      state.offsetInBytes,
+      state.lengthInBytes,
+    );
+
+    //
+    // Key
+    //
+    var stateBytesIndex = 4 * 4;
+    for (var i = 0; i < key.length; i++) {
+      stateByteData.setUint8(stateBytesIndex, key[i]);
+      stateBytesIndex++;
+    }
+    // Convert little endian --> host endian
+    for (var i = 4; i < 12; i++) {
+      state[i] = stateByteData.getUint32(4 * i, Endian.little);
+    }
+
+    //
+    // Counter
+    //
+    this.keyStreamIndex = keyStreamIndex;
+
+    //
+    // Nonce
+    //
+    if (nonce == null) {
+      for (var i = 13; i < 16; i++) {
+        initialState[i] = 0;
+      }
+    } else {
+      stateBytesIndex = 13 * 4;
+      for (var i = 0; i < nonce.length; i++) {
+        stateByteData.setUint8(stateBytesIndex, nonce[i]);
+        stateBytesIndex++;
+      }
+      // Convert little endian --> host endian
+      for (var i = 13; i < 16; i++) {
+        state[i] = stateByteData.getUint32(4 * i, Endian.little);
+      }
+    }
   }
 }

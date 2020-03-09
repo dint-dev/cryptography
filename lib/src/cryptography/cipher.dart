@@ -1,4 +1,4 @@
-// Copyright 2019 Gohilla (opensource@gohilla.com).
+// Copyright 2019 Gohilla Ltd (https://gohilla.com).
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,104 +18,159 @@ import 'dart:typed_data';
 import 'package:cryptography/cryptography.dart';
 import 'package:meta/meta.dart';
 
+/// Superclass for symmetric ciphers.
+///
+/// Examples:
+///   * [aesGcm]
+///   * [chacha20]
 abstract class Cipher {
   const Cipher();
-
   String get name;
+  int get nonceLength => 0;
 
-  int get nonceLength => null;
-
-  int get secretKeyLength;
+  SecretKeyGenerator get secretKeyGenerator;
 
   /// Decrypts a message.
-  Uint8List decrypt(
-    List<int> input,
-    SecretKey secretKey, {
+  Future<Uint8List> decrypt(
+    List<int> input, {
+    @required SecretKey secretKey,
+    @required Nonce nonce,
     int offset = 0,
-    SecretKey nonce,
+  }) {
+    return Future<Uint8List>(
+      () => decryptSync(
+        input,
+        secretKey: secretKey,
+        offset: offset,
+        nonce: nonce,
+      ),
+    );
+  }
+
+  /// Decrypts a message.
+  Uint8List decryptSync(
+    List<int> input, {
+    @required SecretKey secretKey,
+    @required Nonce nonce,
+    int offset = 0,
   });
 
   /// Encrypts a message.
-  Uint8List encrypt(
-    List<int> input,
-    SecretKey secretKey, {
+  Future<Uint8List> encrypt(
+    List<int> input, {
+    @required SecretKey secretKey,
+    @required Nonce nonce,
     int offset = 0,
-    SecretKey nonce,
+  }) {
+    return Future<Uint8List>(
+      () => encryptSync(
+        input,
+        secretKey: secretKey,
+        offset: offset,
+        nonce: nonce,
+      ),
+    );
+  }
+
+  /// Encrypts a message.
+  Uint8List encryptSync(
+    List<int> input, {
+    @required SecretKey secretKey,
+    @required Nonce nonce,
+    int offset = 0,
   });
 
-  SecretKey newNonce() {
+  Nonce newNonce() {
     final nonceLength = this.nonceLength;
     if (nonceLength == null) {
       return null;
     }
-    return SecretKey.randomBytes(nonceLength);
+    return Nonce.randomBytes(nonceLength);
   }
 
-  SecretKey newSecretKey() => SecretKey.randomBytes(secretKeyLength);
+  Future<SecretKey> newSecretKey() => secretKeyGenerator.generate();
+
+  SecretKey newSecretKeySync() => secretKeyGenerator.generateSync();
 }
 
 /// Superclass for key stream ciphers.
-abstract class KeyStreamCipher extends Cipher {
-  const KeyStreamCipher();
+abstract class SyncKeyStreamCipher extends Cipher {
+  const SyncKeyStreamCipher();
 
-  static void checkNewStateArguments(
-      KeyStreamCipher cipher, SecretKey secretKey,
-      {@required int keyStreamIndex, SecretKey nonce}) {
-    ArgumentError.checkNotNull(secretKey, "secretKey");
-    ArgumentError.checkNotNull(keyStreamIndex, "offset");
-    final expectedSecretKeyLength = cipher.secretKeyLength;
-    final secretKeyLength = secretKey.bytes.length;
-    if (secretKeyLength != expectedSecretKeyLength) {
-      throw ArgumentError.value(
-        secretKey,
-        "secretKey",
-        "Secret key length is $secretKeyLength, should be $expectedSecretKeyLength",
+  @override
+  Uint8List decryptSync(
+    List<int> input, {
+    @required SecretKey secretKey,
+    @required Nonce nonce,
+    int offset = 0,
+  }) {
+    final state = newState(
+      secretKey: secretKey,
+      keyStreamIndex: offset,
+      nonce: nonce,
+    );
+    return state.convert(input);
+  }
+
+  @override
+  Uint8List encryptSync(
+    List<int> input, {
+    @required SecretKey secretKey,
+    @required Nonce nonce,
+    int offset = 0,
+  }) {
+    final state = newState(
+      secretKey: secretKey,
+      keyStreamIndex: offset,
+      nonce: nonce,
+    );
+    return state.convert(input);
+  }
+
+  SyncKeyStreamCipherState newState({
+    @required SecretKey secretKey,
+    @required Nonce nonce,
+    int keyStreamIndex,
+  });
+
+  static void checkNewStateArguments(SyncKeyStreamCipher cipher,
+      {@required SecretKey secretKey,
+      @required int keyStreamIndex,
+      Nonce nonce}) {
+    ArgumentError.checkNotNull(secretKey, 'secretKey');
+    ArgumentError.checkNotNull(keyStreamIndex, 'offset');
+
+    if (!cipher.secretKeyGenerator.isValidLength(secretKey.bytes.length)) {
+      throw ArgumentError(
+        'Secret key length ${secretKey.bytes.length} is invalid',
       );
     }
 
     final expectedNonceLength = cipher.nonceLength;
     if (expectedNonceLength == null) {
       if (nonce != null) {
-        throw ArgumentError.value(nonce, "nonce");
+        throw ArgumentError.value(nonce, 'nonce');
       }
     } else {
-      ArgumentError.checkNotNull(nonce, "nonce");
+      ArgumentError.checkNotNull(nonce, 'nonce');
       final nonceLength = nonce.bytes.length;
       if (nonceLength != expectedNonceLength) {
-        throw ArgumentError.value(
-          nonce,
-          "nonce",
-          "Secret key length is $nonceLength, should be $expectedNonceLength",
+        throw ArgumentError(
+          'Nonce length is $nonceLength is invalid: should be $expectedNonceLength',
         );
       }
     }
   }
-
-  @override
-  Uint8List decrypt(List<int> input, SecretKey secretKey,
-      {int offset = 0, SecretKey nonce}) {
-    final state = newState(secretKey, keyStreamIndex: offset, nonce: nonce);
-    return state.convert(input);
-  }
-
-  @override
-  Uint8List encrypt(List<int> input, SecretKey secretKey,
-      {int offset = 0, SecretKey nonce}) {
-    final state = newState(secretKey, keyStreamIndex: offset, nonce: nonce);
-    return state.convert(input);
-  }
-
-  KeyStreamCipherState newState(SecretKey secretKey,
-      {int keyStreamIndex, SecretKey nonce});
 }
 
-/// Constructed by [KeyStreamCipher].
-abstract class KeyStreamCipherState extends Converter<List<int>, Uint8List> {
+/// Constructed by [SyncKeyStreamCipher].
+abstract class SyncKeyStreamCipherState
+    extends Converter<List<int>, Uint8List> {
   int keyStreamIndex;
 
   bool _isClosed = false;
 
-  KeyStreamCipherState({@required this.keyStreamIndex});
+  SyncKeyStreamCipherState({@required this.keyStreamIndex});
 
   bool get isClosed => _isClosed;
 
@@ -129,12 +184,6 @@ abstract class KeyStreamCipherState extends Converter<List<int>, Uint8List> {
     final result = Uint8List(input.length);
     fillWithConverted(result, 0, input, 0);
     return result;
-  }
-
-  static void checkNotClosed(KeyStreamCipherState state) {
-    if (state.isClosed) {
-      throw StateError("Cipher state is closed");
-    }
   }
 
   /// Fills the list with converted bytes.
@@ -166,4 +215,10 @@ abstract class KeyStreamCipherState extends Converter<List<int>, Uint8List> {
   /// Throws [StateError] if [initialize] has not been invoked or [deleteAll] has
   /// been invoked.
   void fillWithKeyStream(List<int> result, int start, {int length});
+
+  static void checkNotClosed(SyncKeyStreamCipherState state) {
+    if (state.isClosed) {
+      throw StateError('Cipher state is closed');
+    }
+  }
 }

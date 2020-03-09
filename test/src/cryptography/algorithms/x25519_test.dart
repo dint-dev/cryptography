@@ -1,4 +1,4 @@
-// Copyright 2019 Gohilla (opensource@gohilla.com).
+// Copyright 2019 Gohilla Ltd (https://gohilla.com).
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,60 +15,75 @@
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
-import 'package:raw/raw.dart';
+import 'package:cryptography/utils.dart';
 import 'package:test/test.dart';
 
 void main() {
   group('X25519:', () {
     test('Test vectors from RFC 7748', () async {
+      // -----------------------------------------------------------------------
       // The following constants are from RFC 7748:
       // https://tools.ietf.org/html/rfc7748
+      // -----------------------------------------------------------------------
 
-      final aliceSecretKey = SecretKey(const DebugHexDecoder().convert(
-        "77076d0a7318a57d3c16c17251b26645df4c2f87ebc0992ab177fba51db92c2a",
+      final alicePrivateKey = PrivateKey(hexToBytes(
+        '77076d0a7318a57d3c16c17251b26645df4c2f87ebc0992ab177fba51db92c2a',
       ));
-      final alicePublicKey = PublicKey(const DebugHexDecoder().convert(
-        "8520f0098930a754748b7ddcb43ef75a0dbf3a0d26381af4eba4a98eaa9b4e6a",
+
+      final alicePublicKey = PublicKey(hexToBytes(
+        '8520f0098930a754748b7ddcb43ef75a0dbf3a0d26381af4eba4a98eaa9b4e6a',
       ));
-      final bobSecretKey = SecretKey(const DebugHexDecoder().convert(
-        "5dab087e624a8a4b79e17f8b83800ee66f3bb1292618b6fd1c2f8b27ff88e0eb",
+
+      final bobPrivateKey = PrivateKey(hexToBytes(
+        '5dab087e624a8a4b79e17f8b83800ee66f3bb1292618b6fd1c2f8b27ff88e0eb',
       ));
-      final bobPublicKey = PublicKey(const DebugHexDecoder().convert(
-        "de9edb7d7b7dc1b4d35b61c2ece435373f8343c85b78674dadfc7e146f882b4f",
+
+      final bobPublicKey = PublicKey(hexToBytes(
+        'de9edb7d7b7dc1b4d35b61c2ece435373f8343c85b78674dadfc7e146f882b4f',
       ));
-      final sharedSecret = SecretKey(const DebugHexDecoder().convert(
-        "4a5d9d5ba4ce2de1728e3bf480350f25e07e21c947d19e3376f09b3c1e161742",
+
+      final sharedSecret = SecretKey(hexToBytes(
+        '4a5d9d5ba4ce2de1728e3bf480350f25e07e21c947d19e3376f09b3c1e161742',
       ));
+
+      // -----------------------------------------------------------------------
+      // End of constants from RFC 7748
+      // -----------------------------------------------------------------------
 
       // Test generating a public key (for Alice)
       expect(
-        (await x25519.newKeyPairFromSeed(aliceSecretKey)).publicKey,
+        (await x25519.keyPairGenerator.generateFromSeed(alicePrivateKey))
+            .publicKey,
         alicePublicKey,
       );
 
       // Test generating a public key (for Bob)
       expect(
-        (await x25519.newKeyPairFromSeed(bobSecretKey)).publicKey,
+        (await x25519.keyPairGenerator.generateFromSeed(bobPrivateKey))
+            .publicKey,
         bobPublicKey,
       );
 
       // Test generating a shared secret (for Alice)
       expect(
-        (await x25519.sharedSecret(aliceSecretKey, bobPublicKey)),
+        (await x25519.sharedSecret(
+          localPrivateKey: alicePrivateKey,
+          remotePublicKey: bobPublicKey,
+        )),
         sharedSecret,
       );
 
       // Test generating a shared secret (for Bob)
       expect(
-        (await x25519.sharedSecret(bobSecretKey, alicePublicKey)),
+        (await x25519.sharedSecret(
+          localPrivateKey: bobPrivateKey,
+          remotePublicKey: alicePublicKey,
+        )),
         sharedSecret,
       );
     });
 
-    test("Test public key generation with 10 000 cycles", () {
-      // A concise test that gives us confidence that fewer than 0.01% of
-      // outputs are incorrect.
-
+    test('Test public key generation with 10 000 cycles', () async {
       const n = 10000;
 
       // Initial secret key
@@ -78,7 +93,9 @@ void main() {
       // 'n' times
       for (var i = 0; i < n; i++) {
         // Generate a public key
-        final keyPair = x25519.newKeyPairFromSeed(SecretKey(input));
+        final keyPair = await x25519.keyPairGenerator.generateFromSeed(
+          PrivateKey(input),
+        );
 
         // Use the output as the next input
         input = keyPair.publicKey.bytes;
@@ -94,6 +111,6 @@ void main() {
       ]);
 
       expect(input, equals(expected));
-    });
+    }, testOn: 'vm', timeout: Timeout(const Duration(seconds: 120)));
   });
 }

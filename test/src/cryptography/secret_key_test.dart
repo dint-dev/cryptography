@@ -1,73 +1,49 @@
+// Copyright 2019 Gohilla Ltd (https://gohilla.com).
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group("SecretKey:", () {
-    test("SecretKey.randomBytes()", () {
+  group('SecretKey:', () {
+    test('SecretKey.randomBytes()', () {
       final a = SecretKey.randomBytes(32);
       final b = SecretKey.randomBytes(32);
-      expect(a.hashCode, isNot(b.hashCode));
       expect(a, isNot(b));
-    });
-
-    test("increment(): [..., 0,0,2] --> [...0,0,3]", () {
-      var bytes = Uint8List(12);
-      bytes[11] = 2;
-      bytes = SecretKey(bytes).increment().bytes;
-      expect(bytes[11], equals(3));
-      expect(bytes[10], equals(0));
-      expect(bytes[9], equals(0));
-    });
-
-    test("increment(): [..., 0,2,255] --> [...0,3,0]", () {
-      var bytes = Uint8List(12);
-      bytes[11] = 255;
-      bytes[10] = 2;
-      bytes = SecretKey(bytes).increment().bytes;
-      expect(bytes[11], equals(0));
-      expect(bytes[10], equals(3));
-      expect(bytes[9], equals(0));
-    });
-
-    test("increment(): [..., 2,255,255] --> [...3,0,0]", () {
-      var bytes = Uint8List(12);
-      bytes[11] = 255;
-      bytes[10] = 255;
-      bytes[9] = 2;
-      bytes = SecretKey(bytes).increment().bytes;
-      expect(bytes[11], equals(0));
-      expect(bytes[10], equals(0));
-      expect(bytes[9], equals(3));
-    });
-
-    test("== (same bytes)", () {
-      final a = SecretKey(Uint8List.fromList([3, 1, 4]));
-      final b = SecretKey(Uint8List.fromList([3, 1, 4]));
-      expect(a.hashCode, b.hashCode);
-      expect(a, b);
-    });
-
-    test("== (different bytes)", () {
-      final a = SecretKey(Uint8List.fromList([3, 3, 4]));
-      final b = SecretKey(Uint8List.fromList([3, 1, 4]));
       expect(a.hashCode, isNot(b.hashCode));
-      expect(a, isNot(b));
-      expect(b, isNot(a));
     });
 
-    test("== (different lengths)", () {
-      final a = SecretKey(Uint8List.fromList([3, 1]));
-      final b = SecretKey(Uint8List.fromList([3, 1, 4]));
-      expect(a.hashCode, isNot(b.hashCode));
-      expect(a, isNot(b));
-      expect(b, isNot(a));
+    test('"==" / hashCode', () {
+      final value = SecretKey(Uint8List.fromList([3, 1, 4]));
+      final clone = SecretKey(Uint8List.fromList([3, 1, 4]));
+      final other0 = SecretKey(Uint8List.fromList([3, 1, 999]));
+      final other1 = SecretKey(Uint8List.fromList([3, 1, 4, 999]));
+
+      expect(value, clone);
+      expect(value, isNot(other0));
+      expect(value, isNot(other1));
+
+      expect(value.hashCode, clone.hashCode);
+      expect(value.hashCode, isNot(other0.hashCode));
+      expect(value.hashCode, isNot(other1.hashCode));
     });
 
-    test("toString() does not contain bytes", () {
+    test('toString() does not expose actual bytes', () {
       final a = SecretKey(Uint8List(3));
-      expect(a, isNot(contains("0")));
+      expect(a, isNot(contains('0')));
     });
   });
 }

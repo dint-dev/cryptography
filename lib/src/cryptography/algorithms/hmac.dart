@@ -1,4 +1,4 @@
-// Copyright 2019 Gohilla (opensource@gohilla.com).
+// Copyright 2019 Gohilla Ltd (https://gohilla.com).
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -28,10 +28,10 @@ class Hmac extends MacAlgorithm {
   const Hmac(this.hashAlgorithm);
 
   @override
-  Mac calculateMac(Uint8List input, SecretKey secretKey) {
+  Future<Mac> calculateMac(List<int> input, {SecretKey secretKey}) async {
     final hashAlgorithm = this.hashAlgorithm;
-    final blockLength = hashAlgorithm.blockLength;
-    final secretBytes = _secretKeyToBlock(secretKey, blockLength);
+    final blockLength = hashAlgorithm.hashLengthInBytes;
+    final secretBytes = await _secretKeyToBlock(secretKey, blockLength);
     final innerPad = Uint8List(blockLength);
     final outerPad = Uint8List(blockLength);
     for (var i = 0; i < blockLength; i++) {
@@ -42,20 +42,23 @@ class Hmac extends MacAlgorithm {
     final innerHashBuilder = hashAlgorithm.newSink();
     innerHashBuilder.add(innerPad);
     innerHashBuilder.add(input);
-    final innerHash = innerHashBuilder.close();
+    final innerHash = await innerHashBuilder.close();
     final outerHashBuilder = hashAlgorithm.newSink();
     outerHashBuilder.add(outerPad);
     outerHashBuilder.add(innerHash.bytes);
-    return Mac(outerHashBuilder.close().bytes);
+    final outerHash = await outerHashBuilder.close();
+    return Mac(outerHash.bytes);
   }
 
-  Uint8List _secretKeyToBlock(SecretKey secretKey, int blockLength) {
+  Future<Uint8List> _secretKeyToBlock(
+      SecretKey secretKey, int blockLength) async {
     final data = secretKey.bytes;
     if (data == null) {
-      throw ArgumentError.value(secretKey, "secretKey");
+      throw ArgumentError.value(secretKey, 'secretKey');
     }
     if (data.length > blockLength) {
-      return hashAlgorithm.hash(data).bytes;
+      final hash = await hashAlgorithm.hash(data);
+      return hash.bytes;
     }
     if (data.length < blockLength) {
       final result = Uint8List(blockLength);

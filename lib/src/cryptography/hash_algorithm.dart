@@ -1,4 +1,4 @@
-// Copyright 2019 Gohilla (opensource@gohilla.com).
+// Copyright 2019 Gohilla Ltd (https://gohilla.com).
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,64 +12,59 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:cryptography/math.dart';
-import 'package:meta/meta.dart';
+import 'package:cryptography/utils.dart';
 
+/// A result of [HashAlgorithm].
+class Hash {
+  final List<int> bytes;
+
+  Hash(this.bytes) {
+    ArgumentError.checkNotNull(bytes, 'bytes');
+  }
+
+  @override
+  int get hashCode => const ConstantTimeBytesEquality().hash(bytes);
+
+  @override
+  bool operator ==(other) =>
+      other is Hash &&
+      const ConstantTimeBytesEquality().equals(bytes, other.bytes);
+
+  @override
+  String toString() => 'Hash(...)';
+}
+
+/// Superclass for hash algorithms.
 abstract class HashAlgorithm {
-  const HashAlgorithm({@required this.blockLength});
+  String get name;
 
-  const factory HashAlgorithm.fromSinkFactory(HashSink newSink(),
-      {@required int blockLength}) = _HashAlgorithm;
+  /// Hash length in bytes.
+  int get hashLengthInBytes;
 
-  /// Block length in bytes.
-  final int blockLength;
+  const HashAlgorithm();
 
   /// Hashes the data.
-  Hash hash(List<int> input) {
+  Future<Hash> hash(List<int> input) {
+    return Future<Hash>(() => hashSync(input));
+  }
+
+  /// Hashes the data.
+  Hash hashSync(List<int> input) {
     final sink = newSink();
     sink.add(input);
-    return sink.close();
+    return sink.closeSync();
   }
 
   /// Constructs a new sink for synchronous hashing.
   HashSink newSink();
 }
 
-class _HashAlgorithm extends HashAlgorithm {
-  final HashSink Function() _newSink;
-
-  const _HashAlgorithm(this._newSink, {@required int blockLength})
-      : super(blockLength: blockLength);
-
-  @override
-  HashSink newSink() {
-    return _newSink();
-  }
-}
-
+/// A sink created by [HashAlgorithm].
 abstract class HashSink implements Sink<List<int>> {
   @override
-  void add(List<int> data);
-
-  @override
-  Hash close();
-}
-
-class Hash {
-  final List<int> bytes;
-
-  Hash(this.bytes) {
-    ArgumentError.checkNotNull(bytes, "bytes");
+  Future<Hash> close() {
+    return Future<Hash>(() => closeSync());
   }
 
-  @override
-  operator ==(other) =>
-      other is Hash &&
-      const ConstantTimeBytesEquality().equals(bytes, other.bytes);
-
-  @override
-  int get hashCode => const ConstantTimeBytesEquality().hash(bytes);
-
-  @override
-  String toString() => "Hash(...)";
+  Hash closeSync();
 }

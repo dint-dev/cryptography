@@ -1,16 +1,42 @@
+// Copyright 2019 Gohilla Ltd (https://gohilla.com).
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
-import 'package:cryptography/math.dart';
+import 'package:cryptography/utils.dart';
+import 'package:meta/meta.dart';
 
-/// Implements X25519 ([RFC 7748](https://tools.ietf.org/html/rfc7748)) key
-/// exchange algorithm.
-const KeyExchangeAlgorithm x25519 = _X25519();
+/// _X25519_ ([RFC 7748](https://tools.ietf.org/html/rfc7748)) key exchange
+/// algorithm.
+const X25519 x25519 = X25519();
 
-class _X25519 extends KeyExchangeAlgorithm {
-  @override
-  String get name => "x25519";
+void _pack256(Uint8List result, Int32List unpacked) {
+  final byteData = ByteData.view(result.buffer, result.offsetInBytes, 32);
+  for (var i = 0; i < 16; i++) {
+    byteData.setUint16(2 * i, unpacked[i], Endian.little);
+  }
+}
 
+void _unpack256(Int32List result, Uint8List packed) {
+  final byteData = ByteData.view(packed.buffer, packed.offsetInBytes, 32);
+  for (var i = 0; i < 16; i++) {
+    result[i] = byteData.getUint16(2 * i, Endian.little);
+  }
+}
+
+class X25519 extends KeyExchangeAlgorithm {
   /// Constant [9, 0, ..., 0] is used when calculating shared secret.
   static final Uint8List _constant9 = () {
     final result = Uint8List(32);
@@ -26,35 +52,24 @@ class _X25519 extends KeyExchangeAlgorithm {
     return result;
   }();
 
-  const _X25519() : super(keyLengthInBytes: 32);
+  const X25519();
 
   @override
-  KeyPair newKeyPairFromSeed(SecretKey seedKey) {
-    ArgumentError.checkNotNull(seedKey, "seedKey");
-    final seed = seedKey.bytes;
-    if (seed.length != 32) {
-      throw ArgumentError.value(seedKey, "seed", "Seed length is not 32 bytes");
-    }
-
-    // Create a secret key
-    replaceSeedWithSecretKey(seed);
-    final secretKey = SecretKey(seed);
-
-    // Calculate public key
-    final publicKeyBytes = Uint8List(32);
-    _scalarMultiply(publicKeyBytes, seed, _constant9);
-
-    // Return a keypair
-    final publicKey = PublicKey(publicKeyBytes);
-    return KeyPair(secretKey, publicKey);
-  }
+  SeedableKeyPairGenerator get keyPairGenerator =>
+      const _X25519KeyPairGenerator();
 
   @override
-  SecretKey sharedSecret(SecretKey secretKey, PublicKey publicKey) {
-    final secretKeyTransformed = Uint8List.fromList(secretKey.bytes);
+  String get name => 'x25519';
+
+  @override
+  SecretKey sharedSecretSync({
+    @required PrivateKey localPrivateKey,
+    @required PublicKey remotePublicKey,
+  }) {
+    final secretKeyTransformed = Uint8List.fromList(localPrivateKey.bytes);
     replaceSeedWithSecretKey(secretKeyTransformed);
     final result = Uint8List(32);
-    _scalarMultiply(result, secretKeyTransformed, publicKey.bytes);
+    _scalarMultiply(result, secretKeyTransformed, remotePublicKey.bytes);
     return SecretKey(result);
   }
 
@@ -95,7 +110,7 @@ class _X25519 extends KeyExchangeAlgorithm {
     // Unpack public key into the internal Int32List
     // -------------------------------------------------------------------------
     final unpackedPublicKey = Int32List(16);
-    unpack256(unpackedPublicKey, publicKey);
+    _unpack256(unpackedPublicKey, publicKey);
 
     // Clear the last bit
     unpackedPublicKey[15] &= 0x7FFF;
@@ -124,13 +139,13 @@ class _X25519 extends KeyExchangeAlgorithm {
     // For each bit in 'secretKey'
     for (var i = 254; i >= 0; i--) {
       // Get the bit
-      final bit = 1 & (secretKey[i >> 3] >> (7 & i));
+      final isSwap = 1 & (secretKey[i >> 3] >> (7 & i));
 
-      // if bit == 1:
+      // if isSwap == 1:
       //   swap(a, b)
       //   swap(c, d)
-      _conditionalSwap(a, b, bit);
-      _conditionalSwap(c, d, bit);
+      _conditionalSwap(a, b, isSwap);
+      _conditionalSwap(c, d, isSwap);
 
       // e = a + c
       // a = a + c
@@ -190,8 +205,8 @@ class _X25519 extends KeyExchangeAlgorithm {
       // if bit == 1:
       //   swap(a, b)
       //   swap(c, d)
-      _conditionalSwap(a, b, bit);
-      _conditionalSwap(c, d, bit);
+      _conditionalSwap(a, b, isSwap);
+      _conditionalSwap(c, d, isSwap);
     }
 
     // Copy 'c' to 'd'
@@ -249,6 +264,37 @@ class _X25519 extends KeyExchangeAlgorithm {
     // -------------------------------------------------------------------------
     // Pack the internal Int32List into result bytes
     // -------------------------------------------------------------------------
-    pack256(result, a);
+    _pack256(result, a);
+  }
+}
+
+class _X25519KeyPairGenerator extends SeedableKeyPairGenerator {
+  const _X25519KeyPairGenerator();
+
+  @override
+  int get defaultSeedLength => 32;
+
+  @override
+  String get name => 'x25519';
+
+  @override
+  KeyPair generateFromSeedSync(PrivateKey seedKey) {
+    ArgumentError.checkNotNull(seedKey, 'seedKey');
+    final seed = seedKey.bytes;
+    if (seed.length != 32) {
+      throw ArgumentError.value(seedKey, 'seed', 'Seed length is not 32 bytes');
+    }
+
+    // Create a secret key
+    X25519.replaceSeedWithSecretKey(seed);
+    final privateKey = PrivateKey(seed);
+
+    // Calculate public key
+    final publicKeyBytes = Uint8List(32);
+    X25519._scalarMultiply(publicKeyBytes, seed, X25519._constant9);
+
+    // Return a keypair
+    final publicKey = PublicKey(publicKeyBytes);
+    return KeyPair(privateKey: privateKey, publicKey: publicKey);
   }
 }
