@@ -17,9 +17,18 @@ import 'dart:typed_data';
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/utils.dart';
 
-/// BLAKE2S hash function.
+/// _BLAKE2S_ hash function ([RFC 7693](https://tools.ietf.org/html/rfc7693)).
 ///
-/// See [RFC 7693](https://tools.ietf.org/html/rfc7693).
+/// An example:
+/// ```
+/// import 'package:cryptography/cryptography.dart';
+///
+/// void main() {
+///   final sink = blake2s.newSink();
+///   sink.add(<int>[1,2,3]);
+///   final hash = sink.close();
+/// }
+/// ```
 const HashAlgorithm blake2s = _Blake2s();
 
 class _Blake2s extends HashAlgorithm {

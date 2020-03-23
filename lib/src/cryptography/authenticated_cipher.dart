@@ -23,13 +23,14 @@ import 'package:meta/meta.dart';
 /// The output of encryption (and input of decryption) is
 /// [AuthenticatedCipherText].
 ///
-/// An example:
+/// Examples:
+///   * [chacha20Poly1305Aead]
+///
 /// ```
 /// const chacha20HmacSha256 = AuthenticatedCipher.from(
 ///   cipher: chacha20,
 ///   macAlgorithm: Hmac(sha256),
 /// );
-/// ```
 abstract class AuthenticatedCipher {
   const AuthenticatedCipher();
 

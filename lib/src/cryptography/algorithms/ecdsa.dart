@@ -16,8 +16,23 @@ import 'package:cryptography/cryptography.dart';
 
 import 'web_crypto.dart';
 
-/// NIST P-256 Elliptic Curve Diffie-Hellman (ECDH) key exchange algorithm.
+/// _NIST P-256_ Elliptic Curve Diffie-Hellman (ECDH) key exchange algorithm.
 /// Currently supported __only in the browser.__
+///
+/// An example:
+/// ```
+/// import 'package:cryptography/cryptography.dart';
+///
+/// void main() async {
+///   final algorithm = ecdhP256;
+///   final localKeyPair = await algorithm.keyPairGenerator.generate();
+///   final remoteKeyPair = await algorithm.keyPairGenerator.generate();
+///   final sharedSecretKey = await algorithm.secretKey(
+///     localPrivateKey: localKeyPair.privateKey,
+///     remotePublicKey: localKeyPair.publicKey,
+///   );
+/// }
+/// ```
 const KeyExchangeAlgorithm ecdhP256 = WebEcdh(
   name: 'p256',
   webCryptoNamedCurve: 'P-256',
@@ -28,8 +43,23 @@ const KeyExchangeAlgorithm ecdhP256 = WebEcdh(
   polyfill: null,
 );
 
-/// NIST P-384 Elliptic Curve Diffie-Hellman (ECDH) key exchange algorithm.
+/// _NIST P-384_ Elliptic Curve Diffie-Hellman (ECDH) key exchange algorithm.
 /// Currently supported __only in the browser.__
+///
+/// An example:
+/// ```
+/// import 'package:cryptography/cryptography.dart';
+///
+/// void main() async {
+///   final algorithm = ecdhP384;
+///   final localKeyPair = await algorithm.keyPairGenerator.generate();
+///   final remoteKeyPair = await algorithm.keyPairGenerator.generate();
+///   final sharedSecretKey = await algorithm.secretKey(
+///     localPrivateKey: localKeyPair.privateKey,
+///     remotePublicKey: localKeyPair.publicKey,
+///   );
+/// }
+/// ```
 const KeyExchangeAlgorithm ecdhP384 = WebEcdh(
   name: 'p384',
   webCryptoNamedCurve: 'P-384',
@@ -40,8 +70,23 @@ const KeyExchangeAlgorithm ecdhP384 = WebEcdh(
   polyfill: null,
 );
 
-/// NIST P-521 Elliptic Curve Diffie-Hellman (ECDH) key exchange algorithm.
+/// _NIST P-521_ Elliptic Curve Diffie-Hellman (ECDH) key exchange algorithm.
 /// Currently supported __only in the browser.__
+///
+/// An example:
+/// ```
+/// import 'package:cryptography/cryptography.dart';
+///
+/// void main() async {
+///   final algorithm = ecdhP521;
+///   final localKeyPair = await algorithm.keyPairGenerator.generate();
+///   final remoteKeyPair = await algorithm.keyPairGenerator.generate();
+///   final sharedSecretKey = await algorithm.secretKey(
+///     localPrivateKey: localKeyPair.privateKey,
+///     remotePublicKey: localKeyPair.publicKey,
+///   );
+/// }
+/// ```
 const KeyExchangeAlgorithm ecdhP521 = WebEcdh(
   name: 'p521',
   webCryptoNamedCurve: 'P-521',
@@ -52,11 +97,13 @@ const KeyExchangeAlgorithm ecdhP521 = WebEcdh(
   polyfill: null,
 );
 
-/// NIST P-256 Elliptic Curve Digital Signature Algorithm (ECDSA).
+/// _NIST P-256_ Elliptic Curve Digital Signature Algorithm (ECDSA).
 /// Currently supported __only in the browser.__
 ///
 /// An example:
 /// ```
+/// import 'package:cryptograhy/cryptography.dart';
+///
 /// void main() async {
 ///   final algorithm = ecdsaP256;
 ///   final keyPair = algorithm.keyPairGenerator.generateSync();
@@ -79,13 +126,13 @@ const SignatureAlgorithm ecdsaP256Sha256 = WebEcdsa(
   polyfill: null,
 );
 
-/// NIST P-384 Elliptic Curve Digital Signature Algorithm (ECDSA).
+/// _NIST P-384_ Elliptic Curve Digital Signature Algorithm (ECDSA).
 /// Currently supported __only in the browser.__
-///
-/// For more about ECDSA, see [RFC 6090](https://www.ietf.org/rfc/rfc6090.txt).
 ///
 /// An example:
 /// ```
+/// import 'package:cryptograhy/cryptography.dart';
+///
 /// void main() async {
 ///   final algorithm = ecdsaP384;
 ///   final keyPair = algorithm.keyPairGenerator.generateSync();
@@ -106,13 +153,13 @@ const SignatureAlgorithm ecdsaP384Sha256 = WebEcdsa(
   polyfill: null,
 );
 
-/// NIST P-521 Elliptic Curve Digital Signature Algorithm (ECDSA).
+/// _NIST P-521_ Elliptic Curve Digital Signature Algorithm (ECDSA).
 /// Currently supported __only in the browser.__
-///
-/// For more about ECDSA, see [RFC 6090](https://www.ietf.org/rfc/rfc6090.txt).
 ///
 /// An example:
 /// ```
+/// import 'package:cryptograhy/cryptography.dart';
+///
 /// void main() async {
 ///   final algorithm = ecdsaP511;
 ///   final keyPair = algorithm.keyPairGenerator.generateSync();

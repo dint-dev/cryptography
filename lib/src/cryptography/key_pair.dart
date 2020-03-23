@@ -15,7 +15,7 @@
 import 'package:cryptography/cryptography.dart';
 import 'package:meta/meta.dart';
 
-/// A pair of keys ([SecretKey] and a [PublicKey]).
+/// A pair of keys ([PublicKey] and a [PublicKey]).
 ///
 /// ```
 /// final keyPair = x25519.keyPairGenerator.generateSync();
@@ -41,5 +41,5 @@ class KeyPair {
       privateKey == other.privateKey;
 
   @override
-  String toString() => 'KeyPair(..., $publicKey)';
+  String toString() => 'KeyPair(..., publicKey: $publicKey)';
 }

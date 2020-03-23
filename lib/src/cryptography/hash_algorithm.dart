@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/utils.dart';
 
 /// A result of [HashAlgorithm].
@@ -23,18 +24,24 @@ class Hash {
   }
 
   @override
-  int get hashCode => const ConstantTimeBytesEquality().hash(bytes);
+  int get hashCode => constantTimeBytesEquality.hash(bytes);
 
   @override
   bool operator ==(other) =>
-      other is Hash &&
-      const ConstantTimeBytesEquality().equals(bytes, other.bytes);
+      other is Hash && constantTimeBytesEquality.equals(bytes, other.bytes);
 
   @override
   String toString() => 'Hash(...)';
 }
 
 /// Superclass for hash algorithms.
+///
+/// Examples:
+///   * [blake2s]
+///   * [sha1]
+///   * [sha256]
+///   * [sha384]
+///   * [sha512]
 abstract class HashAlgorithm {
   String get name;
 

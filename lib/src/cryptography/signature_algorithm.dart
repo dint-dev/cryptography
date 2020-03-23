@@ -16,20 +16,12 @@ import 'package:collection/collection.dart';
 import 'package:cryptography/cryptography.dart';
 import 'package:meta/meta.dart';
 
-/// A cryptographic public-key signature.
-///
-/// An example:
-/// ```
-/// void main() async {
-///   final keyPair = ecdsaP256.keyPairGenerator.generateSync();
-///   final signature = await ecdsaP256.sign([1,2,3], keyPair);
-///
-///   // Anyone can verify the signature
-///   final isVerified = await ecdsaP256.verify([1,2,3], signature);
-/// }
-/// ```
+/// A cryptographic signature. Bytes can be signed with [SignatureAlgorithm].
 class Signature {
+  /// Signature bytes.
   final List<int> bytes;
+
+  /// Signer's public key.
   final PublicKey publicKey;
 
   const Signature(this.bytes, {@required this.publicKey})
@@ -47,15 +39,23 @@ class Signature {
       publicKey == other.publicKey;
 
   @override
-  String toString() => 'Signature(...)';
+  String toString() =>
+      'Signature(bytes:[${bytes.join(', ')}], publicKey: [${publicKey.bytes.join(', ')}])';
 }
 
 /// Superclass for signature-generating algorithms.
 ///
+/// Examples:
+///   * [ecdsaP256Sha256]
+///   * [ecdsaP384Sha256]
+///   * [ecdsaP521Sha256]
+///
 /// An example:
 /// ```
+/// import 'package:cryptography/cryptography.dart';
+///
 /// void main() async {
-///   final keyPair = ecdsaP256.keyPairGenerator.generateSync();
+///   final keyPair = await ecdsaP256.keyPairGenerator.generate();
 ///   final signature = await ecdsaP256.sign([1,2,3], keyPair);
 ///
 ///   // Anyone can verify the signature
@@ -65,19 +65,27 @@ class Signature {
 abstract class SignatureAlgorithm {
   const SignatureAlgorithm();
 
+  /// A keypair generator for this algorithm.
   KeyPairGenerator get keyPairGenerator;
 
+  /// Name of this algorithm.
   String get name;
 
+  /// Signs bytes.
   Future<Signature> sign(List<int> input, KeyPair keyPair) {
     return Future<Signature>(() => signSync(input, keyPair));
   }
 
+  /// Signs bytes synchronously. Throws [UnsupportedError] if the operation can
+  /// not be performed synchronously.
   Signature signSync(List<int> input, KeyPair keyPair);
 
+  /// Verifies a signature.
   Future<bool> verify(List<int> input, Signature signature) {
     return Future<bool>(() => verifySync(input, signature));
   }
 
+  /// Verifies a signature synchronously. Throws [UnsupportedError] if the\
+  /// operation can not be performed synchronously.
   bool verifySync(List<int> input, Signature signature);
 }

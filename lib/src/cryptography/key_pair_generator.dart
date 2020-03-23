@@ -14,7 +14,9 @@
 
 import 'package:cryptography/cryptography.dart';
 
-/// For example, [x25519].
+/// Generates [KeyPair] instances from seeds.
+///
+/// For example, [x25519] supports this seeds.
 abstract class SeedableKeyPairGenerator extends KeyPairGenerator {
   int get defaultSeedLength;
 
@@ -40,6 +42,19 @@ abstract class SeedableKeyPairGenerator extends KeyPairGenerator {
 }
 
 /// Generates [KeyPair] instances.
+///
+/// This is helper used by [KeyExchangeAlgorithm] and [SignatureAlgorithm]
+/// subclasses.
+///
+/// An example:
+/// ```
+/// import 'package:cryptography/cryptography.dart';
+///
+/// void main() {
+///   final keyPairGenerator = x25519.keyPairGenerator;
+///   final keyPair = keyPairGenerator.generateSync();
+/// }
+/// ```
 abstract class KeyPairGenerator {
   String get name;
 

@@ -22,12 +22,20 @@ import 'package:meta/meta.dart';
 ///
 /// Examples:
 ///   * [aesGcm]
+///   * [aesCbc]
+///   * [aesGcm]
 ///   * [chacha20]
 abstract class Cipher {
   const Cipher();
+
+  /// Name of this algorithm.
   String get name;
+
+  /// Length of nonce argument required by [decrypt] and [encrypt]. By default,
+  /// 0.
   int get nonceLength => 0;
 
+  /// Secret key generator for this algorithm.
   SecretKeyGenerator get secretKeyGenerator;
 
   /// Decrypts a message.
@@ -48,6 +56,8 @@ abstract class Cipher {
   }
 
   /// Decrypts a message.
+  ///
+  /// If synchronous computation is not supported, throws [UnsupportedError].
   Uint8List decryptSync(
     List<int> input, {
     @required SecretKey secretKey,
@@ -73,6 +83,8 @@ abstract class Cipher {
   }
 
   /// Encrypts a message.
+  ///
+  /// If synchronous computation is not supported, throws [UnsupportedError].
   Uint8List encryptSync(
     List<int> input, {
     @required SecretKey secretKey,
@@ -80,6 +92,7 @@ abstract class Cipher {
     int offset = 0,
   });
 
+  /// Generates a nonce of the correct length.
   Nonce newNonce() {
     final nonceLength = this.nonceLength;
     if (nonceLength == null) {
@@ -88,8 +101,10 @@ abstract class Cipher {
     return Nonce.randomBytes(nonceLength);
   }
 
+  /// A shorthand for calling [secretKeyGenerator] method `generate`.
   Future<SecretKey> newSecretKey() => secretKeyGenerator.generate();
 
+  /// A shorthand for calling [secretKeyGenerator] method `generateSync`.
   SecretKey newSecretKeySync() => secretKeyGenerator.generateSync();
 }
 

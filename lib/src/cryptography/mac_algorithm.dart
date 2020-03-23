@@ -56,19 +56,18 @@ class _MacSink extends MacSink {
   }
 }
 
-/// A Message Authentication Code (MAC).
+/// A Message Authentication Code (MAC) calculated by [MacAlgorithm].
 class Mac {
   final List<int> bytes;
 
   const Mac(this.bytes) : assert(bytes != null);
 
   @override
-  int get hashCode => const ConstantTimeBytesEquality().hash(bytes);
+  int get hashCode => constantTimeBytesEquality.hash(bytes);
 
   @override
   bool operator ==(other) =>
-      other is Mac &&
-      const ConstantTimeBytesEquality().equals(other.bytes, bytes);
+      other is Mac && constantTimeBytesEquality.equals(other.bytes, bytes);
 
   @override
   String toString() => hexFromBytes(bytes);

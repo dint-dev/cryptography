@@ -14,6 +14,7 @@
 
 import 'dart:typed_data';
 
+/// Converts a list of bytes to a hexadecimal string.
 String hexFromBytes(Iterable<int> list) {
   if (list == null) {
     return 'null';
@@ -21,6 +22,7 @@ String hexFromBytes(Iterable<int> list) {
   return list.map((v) => v.toRadixString(16).padLeft(2, '0')).join(' ');
 }
 
+/// Converts a hexadecimal string to a list of bytes.
 Uint8List hexToBytes(String input) {
   if (input == null) {
     return null;

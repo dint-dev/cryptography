@@ -20,7 +20,8 @@ import 'package:cryptography/utils.dart';
 
 /// Private key part of [KeyPair].
 ///
-/// An example:
+/// Equality operator for private keys uses [constantTimeBytesE
+///
 /// ```
 /// final keyPair = x25519.keyPairGenerator.generateSync();
 /// final privateKey = keyPair.privateKey;
@@ -31,9 +32,7 @@ class PrivateKey {
   /// Bytes of the key. May be null.
   final List<int> bytes;
 
-  PrivateKey(this.bytes) {
-    ArgumentError.checkNotNull(bytes, 'bytes');
-  }
+  const PrivateKey(this.bytes) : assert(bytes != null);
 
   /// Generates N random bytes.
   ///
@@ -62,7 +61,7 @@ class PrivateKey {
   @override
   bool operator ==(other) {
     return other is PrivateKey &&
-        const ConstantTimeBytesEquality().equals(bytes, other.bytes);
+        constantTimeBytesEquality.equals(bytes, other.bytes);
   }
 
   @override

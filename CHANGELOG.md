@@ -1,3 +1,7 @@
+## 0.2.2
+  * Improves documentation.
+  * Deprecates ConstantTimeBytesEquality in favor of constantTimeBytesEquality.
+
 ## 0.2.1
   * Improves documentation and stops exporting a few declarations.
 

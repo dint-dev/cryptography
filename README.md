@@ -25,9 +25,13 @@ Copyright 2019 Gohilla Ltd. Licensed under the [Apache License 2.0](LICENSE).
       protocols such as SSH, TLS, Signal, WhatsApp, and Wireguard. Performance of this Dart
       implementation is about 1k exchanges per second on Macbook Pro.
 
+For more more documentation, see [KeyExchangeAlgorithm](https://pub.dev/documentation/cryptography/latest/cryptography/KeyExchangeAlgorithm-class.html).
+
 ### Digital signature algorithms
   * __P256/P384/P521__ _(currently browser-only)_
     * P256/P384/P521 are elliptic curves approved for digital signature by NIST.
+
+For more more documentation, see [SignatureAlgorithm](https://pub.dev/documentation/cryptography/latest/cryptography/SignatureAlgorithm-class.html).
 
 ### Ciphers
   * __AES (CBC, CTR, GCM)__ _(currently browser-only)_
@@ -38,6 +42,8 @@ Copyright 2019 Gohilla Ltd. Licensed under the [Apache License 2.0](LICENSE).
       such as TLS, SSH, Signal, and Wireguard. Performance of this Dart implementation is about
       50-100MB/s on Macbook Pro.
 
+For more more documentation, see [Cipher](https://pub.dev/documentation/cryptography/latest/cryptography/Cipher-class.html).
+
 ### Message authentication codes
   * __HMAC__
     * The implementation uses [package:crypto](https://pub.dev/packages/crypto), a package by
@@ -45,6 +51,8 @@ Copyright 2019 Gohilla Ltd. Licensed under the [Apache License 2.0](LICENSE).
   * __POLY1305__
     * Often used with Chacha20. The current implementation uses BigInt instead of optimized 128bit
       arithmetic, which is a known issue.
+
+For more more documentation, see [MacAlgorithm](https://pub.dev/documentation/cryptography/latest/cryptography/MacAlgorithm-class.html).
 
 ### Cryptographic hash functions
   * __BLAKE2S__
@@ -55,21 +63,25 @@ Copyright 2019 Gohilla Ltd. Licensed under the [Apache License 2.0](LICENSE).
     * SHA2 is approved by NIST. The implementation uses
       [package:crypto](https://pub.dev/packages/crypto) (a package by Dart SDK team).
 
+For more more documentation, see [HashAlgorithm](https://pub.dev/documentation/cryptography/latest/cryptography/HashAlgorithm-class.html).
+
+
 # Getting started
 ## 1. Add dependency
 ```yaml
 dependencies:
-  cryptography: ^0.2.0
+  cryptography: ^0.2.2
 ```
 
 ## 2. Use
 ### AEAD_CHACHA20_POLY1305
+In this example, we use [chacha20](https://pub.dev/documentation/cryptography/latest/cryptography/chacha20Poly1305Aead-constant.html).
 ```dart
 import 'package:cryptography/cryptography.dart';
 
 Future<void> main() async {
   // Generate a random 256-bit secret key
-  final secretKey = chacha20.newSecretKey();
+  final secretKey = await chacha20.newSecretKey();
 
   // Generate a random 96-bit nonce.
   final nonce = chacha20.newNonce();
@@ -81,12 +93,13 @@ Future<void> main() async {
     nonce: nonce, // The same secretKey/nonce combination should not be used twice
     aad: const <int>[], // You can authenticate additional data here
   );
-  print('Bytes: ${result.cipherText}');
+  print('Ciphertext: ${result.cipherText}');
   print('MAC: ${result.mac}');
 }
 ```
 
 ### X25519
+In this example, we use [x25519](https://pub.dev/documentation/cryptography/latest/cryptography/x25519-constant.html).
 ```dart
 import 'package:cryptography/cryptography.dart';
 
@@ -96,10 +109,9 @@ void main() async {
   final remoteKeyPair = await x5519.newKeyPair();
 
   // We can now calculate a shared secret
-  var sharedSecret = await x25519.sharedSecret(
-    privateKey: localKeyPair.privateKey,
-    publicKey: remoteKeyPair.publicKey,
+  var secretKey = await x25519.sharedSecret(
+    localPrivateKey: localKeyPair.privateKey,
+    remotePublicKey: remoteKeyPair.publicKey,
   );
-  print('Shared secret: ${sharedSecret.toHex()}');
 }
 ```

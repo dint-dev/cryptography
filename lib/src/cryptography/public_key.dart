@@ -17,7 +17,7 @@ import 'package:cryptography/cryptography.dart';
 
 /// Public key part of [KeyPair].
 ///
-/// An example:
+/// An example of generating a public key:
 /// ```
 /// final keyPair = x25519.keyPairGenerator.generateSync();
 /// final publicKey = keyPair.publicKey;

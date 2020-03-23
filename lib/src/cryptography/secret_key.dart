@@ -19,6 +19,8 @@ import 'package:cryptography/utils.dart';
 
 /// A secret sequence of bytes.
 ///
+/// Equality operator for keys uses [constantTimeBytesEquality].
+///
 /// ```
 /// // Generates a random 256-bit key.
 /// final secretKey = SecretKey.randomBytes(32);
@@ -30,9 +32,7 @@ class SecretKey {
   final List<int> bytes;
 
   /// Constructs a secret key on the heap.
-  SecretKey(this.bytes) {
-    ArgumentError.checkNotNull(bytes, 'bytes');
-  }
+  SecretKey(this.bytes) : assert(bytes != null);
 
   /// Generates N random bytes.
   ///
@@ -61,7 +61,7 @@ class SecretKey {
   @override
   bool operator ==(other) {
     return other is SecretKey &&
-        const ConstantTimeBytesEquality().equals(bytes, other.bytes);
+        constantTimeBytesEquality.equals(bytes, other.bytes);
   }
 
   @override

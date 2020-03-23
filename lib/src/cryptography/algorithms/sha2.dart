@@ -26,7 +26,7 @@ import 'package:cryptography/cryptography.dart';
 /// import 'package:cryptography/cryptography.dart';
 ///
 /// void main() {
-///   final sink = sha256.newSink();
+///   final sink = sha1.newSink();
 ///   sink.add(<int>[1,2,3]);
 ///   final hash = sink.close();
 /// }

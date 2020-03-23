@@ -18,12 +18,35 @@ import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/utils.dart';
 import 'package:meta/meta.dart';
 
-/// _Chacha20_ cipher ([https://tools.ietf.org/html/rfc7539](RFC 7539).
+/// _Chacha20_ cipher ([RFC 7539](https://tools.ietf.org/html/rfc7539)).
 ///
 /// Remember that:
-///   * You must not use the same key/nonce twice.
-///   * The message is not authenticated. See [chacha20Poly1305Aead] for a good
-///     cipher with authentication.
+///   * Secret key and nonce combination must be unique.
+///   * The message is not authenticated. If you want to use chacha20 as
+///     cipher, you may want to use [chacha20Poly1305Aead].
+///
+/// An example:
+/// ```dart
+/// import 'package:cryptography/cryptography.dart';
+///
+/// Future<void> main() async {
+///   // Generate a random 256-bit secret key
+///   final secretKey = await chacha20.newSecretKey();
+///
+///   // Generate a random 96-bit nonce.
+///   final nonce = chacha20.newNonce();
+///
+///   // Encrypt
+///   final result = await chacha20Poly1305Aead.encrypt(
+///     [1, 2, 3],
+///     secretKey: secretKey,
+///     nonce: nonce, // The same secretKey/nonce combination should not be used twice
+///     aad: const <int>[], // You can authenticate additional data here
+///   );
+///   print('Ciphertext: ${result.cipherText}');
+///   print('MAC: ${result.mac}');
+/// }
+/// ```
 const _Chacha20 chacha20 = _Chacha20._();
 
 /// API for [chacha20].

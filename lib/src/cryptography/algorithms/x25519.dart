@@ -35,7 +35,6 @@ import 'package:meta/meta.dart';
 ///     localPrivateKey: localKeyPair.privateKey,
 ///     remotePublicKey: remoteKeyPair.publicKey,
 ///   );
-///   print('Shared secret: ${sharedSecret.toHex()}');
 /// }
 ///```
 const _X25519 x25519 = _X25519();

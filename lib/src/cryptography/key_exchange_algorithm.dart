@@ -19,15 +19,34 @@ import 'package:meta/meta.dart';
 ///
 /// Examples:
 ///   * [ecdhP256]
+///   * [ecdhP384]
+///   * [ecdhP521]
 ///   * [x25519]
+///
+/// An example:
+/// ```
+/// import 'package:cryptography/cryptography.dart';
+///
+/// void main() async {
+///   final keyPair = x25519.keyPairGenerator.generateSync();
+///   final sharedKey = await ecdsaP256.sign([1,2,3], keyPair);
+///
+///   // Anyone can verify the signature
+///   final isVerified = await ecdsaP256.verify([1,2,3], signature);
+/// }
+/// ```
 abstract class KeyExchangeAlgorithm {
-  String get name;
-
-  KeyPairGenerator get keyPairGenerator;
-
   const KeyExchangeAlgorithm();
 
+  /// A keypair generator for this algorithm.
+  KeyPairGenerator get keyPairGenerator;
+
+  /// Name of this algorithm.
+  String get name;
+
   /// Calculates a shared secret.
+  ///
+  /// Both parameters [localPrivateKey] and [remotePublicKey] must be non-null.
   Future<SecretKey> sharedSecret({
     @required PrivateKey localPrivateKey,
     @required PublicKey remotePublicKey,
@@ -41,6 +60,10 @@ abstract class KeyExchangeAlgorithm {
   }
 
   /// Calculates a shared secret.
+  ///
+  /// Both parameters [localPrivateKey] and [remotePublicKey] must be non-null.
+  ///
+  /// If synchronous computation is not supported, throws [UnsupportedError].
   SecretKey sharedSecretSync({
     @required PrivateKey localPrivateKey,
     @required PublicKey remotePublicKey,

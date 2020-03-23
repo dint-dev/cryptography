@@ -16,6 +16,18 @@ import 'package:cryptography/cryptography.dart';
 import 'package:meta/meta.dart';
 
 /// Generates [SecretKey] instances.
+///
+/// This is helper used by [Cipher] subclasses.
+///
+/// An example:
+/// ```
+/// import 'package:cryptography/cryptography.dart';
+///
+/// void main() {
+///   final keyGenerator = chacha20.keyGenerator;
+///   final secretKey = keyGenerator.generateSync();
+/// }
+/// ```
 class SecretKeyGenerator {
   final Set<int> validLengths;
   final int defaultLength;
@@ -23,7 +35,7 @@ class SecretKeyGenerator {
   const SecretKeyGenerator({
     @required this.validLengths,
     @required this.defaultLength,
-  });
+  }) : assert(defaultLength != null);
 
   /// Generates a new [SecretKey].
   /// You can optionally define key `length` (in bytes).
@@ -41,7 +53,7 @@ class SecretKeyGenerator {
       throw ArgumentError.value(
         length,
         'length',
-        'Not a valid length',
+        'Should be one of: ${validLengths.join(', ')}',
       );
     }
     return SecretKey.randomBytes(length);

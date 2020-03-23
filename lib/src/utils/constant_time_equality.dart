@@ -14,13 +14,19 @@
 
 import 'package:collection/collection.dart';
 
-/// Constant-time comparison of bytes.
+/// An implementation of [Equality] that compares bytes in constant time.
 ///
-/// The comparison takes a different time than normally only when:
+/// The only deviations from non-constant time are the following special cases:
 ///   * Either argument is null
 ///   * Lengths are non-equal
 ///
 /// The implementation of [hash] produces a 16-bit hash by using XOR.
+///
+const Equality<List<int>> constantTimeBytesEquality =
+    // ignore: deprecated_member_use_from_same_package
+    ConstantTimeBytesEquality();
+
+@Deprecated('Use `constantTimeBytesEquality` instead')
 class ConstantTimeBytesEquality implements Equality<List<int>> {
   const ConstantTimeBytesEquality();
 
