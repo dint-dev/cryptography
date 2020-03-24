@@ -39,14 +39,8 @@ class _Poly1305 extends MacAlgorithm {
   const _Poly1305();
 
   @override
-  Future<Mac> calculateMac(List<int> input, {@required SecretKey secretKey}) {
-    final sink = newSink(secretKey: secretKey);
-    sink.add(input);
-    return sink.close();
-  }
-
-  @override
   MacSink newSink({@required SecretKey secretKey}) {
+    ArgumentError.checkNotNull(secretKey);
     final secretKeyBytes = secretKey.bytes;
     final r = _Poly1305Sink._bytesToBigInt(secretKeyBytes, 0, 16);
     final p = _Poly1305Sink._bytesToBigInt(secretKeyBytes, 16, 32);
@@ -82,10 +76,13 @@ class _Poly1305Sink extends MacSink {
         assert(_s != null);
 
   @override
-  void add(List<int> data) {
+  void addSlice(List<int> chunk, int start, int end, bool isLast) {
+    ArgumentError.checkNotNull(chunk, 'chunk');
+    ArgumentError.checkNotNull(start, 'start');
+    ArgumentError.checkNotNull(end, 'end');
     final buffer = _buffer;
     var bufferLength = _bufferLength;
-    for (var b in data) {
+    for (var i = start; i < end; i++) {
       if (bufferLength == 16) {
         _accumulator = _round(
           accumulator: _accumulator,
@@ -95,7 +92,7 @@ class _Poly1305Sink extends MacSink {
         );
         bufferLength = 0;
       }
-      buffer[bufferLength] = b;
+      buffer[bufferLength] = chunk[i];
       bufferLength++;
     }
     _bufferLength = bufferLength;
@@ -103,6 +100,11 @@ class _Poly1305Sink extends MacSink {
 
   @override
   Future<Mac> close() {
+    return Future<Mac>.value(closeSync());
+  }
+
+  @override
+  Mac closeSync() {
     final bigInt = (_round(
               accumulator: _accumulator,
               r: _r,
@@ -111,8 +113,7 @@ class _Poly1305Sink extends MacSink {
             ) +
             _s) %
         (BigInt.one << 128);
-    final bytes = _bytesFromBigInt(bigInt);
-    return Future<Mac>.value(Mac(bytes));
+    return Mac(_bytesFromBigInt(bigInt));
   }
 
   static Uint8List _bytesFromBigInt(BigInt bigInt) {

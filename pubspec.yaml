@@ -1,5 +1,5 @@
 name: cryptography
-version: 0.2.2
+version: 0.2.3
 homepage: https://github.com/dint-dev/cryptography
 description:
   Cryptography for applications. Key exchange (X25519, ECDH-P256, etc.), encryption (AES, Chacha20),
@@ -10,7 +10,7 @@ environment:
 
 dependencies:
   collection: ^1.14.0
-  crypto: ^2.1.0
+  crypto: ^2.1.4
   js: ^0.6.0
   meta: ^1.1.0
   typed_data: ^1.1.0

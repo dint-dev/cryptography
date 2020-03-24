@@ -20,9 +20,18 @@ import 'package:test/test.dart';
 
 void main() {
   group('blake2s:', () {
+    test('name', () {
+      expect(blake2s.name, 'blake2s');
+    });
+
     test('hash length', () {
       expect(blake2s.hashLengthInBytes, 32);
     });
+
+    test('block length', () {
+      expect(blake2s.blockLength, 32);
+    });
+
     test('test vector from RFC 7693', () async {
       // The following vector is from RFC 7693:
       // https://tools.ietf.org/html/rfc7693

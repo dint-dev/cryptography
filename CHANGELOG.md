@@ -1,3 +1,6 @@
+## 0.2.3
+  * Improves documentation, clarity, test coverage.
+
 ## 0.2.2
   * Improves documentation.
   * Deprecates ConstantTimeBytesEquality in favor of constantTimeBytesEquality.

@@ -26,7 +26,7 @@ import 'package:cryptography/utils.dart';
 /// void main() {
 ///   final sink = blake2s.newSink();
 ///   sink.add(<int>[1,2,3]);
-///   final hash = sink.close();
+///   final hash = sink.closeSync();
 /// }
 /// ```
 const HashAlgorithm blake2s = _Blake2s();
@@ -37,6 +37,9 @@ class _Blake2s extends HashAlgorithm {
 
   @override
   int get hashLengthInBytes => 32;
+
+  @override
+  int get blockLength => 32;
 
   const _Blake2s();
 
@@ -104,7 +107,7 @@ class _Blake2sSink extends HashSink {
   }
 
   @override
-  void add(List<int> data) {
+  void addSlice(List<int> chunk, int start, int end, bool isLast) {
     if (_isClosed) {
       throw StateError('close() has been called');
     }
@@ -114,13 +117,13 @@ class _Blake2sSink extends HashSink {
       _bufferAsBytes = bufferAsBytes;
     }
     var length = _length;
-    for (var i = 0; i < data.length; i++) {
+    for (var i = start; i < end; i++) {
       final bufferIndex = length % 64;
       if (bufferIndex == 0 && length != 0) {
         _length = length;
         _compress(false);
       }
-      bufferAsBytes[bufferIndex] = data[i];
+      bufferAsBytes[bufferIndex] = chunk[i];
       length++;
     }
     _length = length;

@@ -12,7 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:typed_data';
+
 import 'package:cryptography/cryptography.dart';
+import 'package:meta/meta.dart';
 
 import 'web_crypto.dart';
 
@@ -44,7 +47,7 @@ import 'web_crypto.dart';
 ///   );
 /// }
 /// ```
-const Cipher aesCbc = WebAesCbcCipher();
+const Cipher aesCbc = webAesCbc ?? _UnsupportedCipher('aesCbc');
 
 /// _AES-CTR_ cipher.
 /// Currently supported __only in the browser.__
@@ -74,7 +77,7 @@ const Cipher aesCbc = WebAesCbcCipher();
 ///   );
 /// }
 /// ```
-const Cipher aesCtr = WebAesCtrCipher();
+const Cipher aesCtr = webAesCtr ?? _UnsupportedCipher('aesCtr');
 
 /// _AES-GCM_ (Galois/Counter Mode) cipher.
 /// Currently supported __only in the browser.__
@@ -104,4 +107,34 @@ const Cipher aesCtr = WebAesCtrCipher();
 ///   );
 /// }
 /// ```
-const Cipher aesGcm = WebAesGcmCipher();
+const Cipher aesGcm = webAesGcm ?? _UnsupportedCipher('aesGcm');
+
+class _UnsupportedCipher extends Cipher {
+  @override
+  final String name;
+
+  const _UnsupportedCipher(this.name);
+
+  @override
+  SecretKeyGenerator get secretKeyGenerator => null;
+
+  @override
+  Uint8List decryptSync(
+    List<int> input, {
+    @required SecretKey secretKey,
+    @required Nonce nonce,
+    int offset = 0,
+  }) {
+    throw UnsupportedError('Only supported in the browser');
+  }
+
+  @override
+  Uint8List encryptSync(
+    List<int> input, {
+    @required SecretKey secretKey,
+    @required Nonce nonce,
+    int offset = 0,
+  }) {
+    throw UnsupportedError('Only supported in the browser');
+  }
+}

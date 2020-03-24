@@ -21,7 +21,7 @@ import 'package:meta/meta.dart';
 /// _Chacha20_ cipher ([RFC 7539](https://tools.ietf.org/html/rfc7539)).
 ///
 /// Remember that:
-///   * Secret key and nonce combination must be unique.
+///   * You must not use the same key/nonce combination twice.
 ///   * The message is not authenticated. If you want to use chacha20 as
 ///     cipher, you may want to use [chacha20Poly1305Aead].
 ///
@@ -30,40 +30,46 @@ import 'package:meta/meta.dart';
 /// import 'package:cryptography/cryptography.dart';
 ///
 /// Future<void> main() async {
+///   final algorithm = chacha20;
+///
 ///   // Generate a random 256-bit secret key
-///   final secretKey = await chacha20.newSecretKey();
+///   final secretKey = await algorithm.newSecretKey();
 ///
 ///   // Generate a random 96-bit nonce.
-///   final nonce = chacha20.newNonce();
+///   final nonce = algorithm.newNonce();
 ///
 ///   // Encrypt
-///   final result = await chacha20Poly1305Aead.encrypt(
+///   final encrypted = await algorithm.encrypt(
 ///     [1, 2, 3],
 ///     secretKey: secretKey,
-///     nonce: nonce, // The same secretKey/nonce combination should not be used twice
-///     aad: const <int>[], // You can authenticate additional data here
+///     nonce: nonce,
 ///   );
-///   print('Ciphertext: ${result.cipherText}');
-///   print('MAC: ${result.mac}');
+///
+///   // Decrypt
+///   final decrypted = await algorithm.decrypt(
+///     encrypted,
+///     secretKey: secretKey,
+///     nonce: nonce,
+///   );
 /// }
 /// ```
-const _Chacha20 chacha20 = _Chacha20._();
+const SyncKeyStreamCipher chacha20 = _Chacha20._();
 
 /// API for [chacha20].
 class _Chacha20 extends SyncKeyStreamCipher {
   const _Chacha20._();
 
   @override
-  SecretKeyGenerator get secretKeyGenerator => const SecretKeyGenerator(
-        validLengths: <int>{32},
-        defaultLength: 32,
-      );
-
-  @override
   String get name => 'chacha20';
 
   @override
   int get nonceLength => 12;
+
+  @override
+  SecretKeyGenerator get secretKeyGenerator => const SecretKeyGenerator(
+        validLengths: <int>{32},
+        defaultLength: 32,
+      );
 
   @override
   SyncKeyStreamCipherState newState({

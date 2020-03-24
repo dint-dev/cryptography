@@ -23,6 +23,75 @@ import 'package:meta/meta.dart';
 
 import 'web_crypto_bindings.dart' as web_crypto;
 
+const Cipher webAesCbc = _WebAesCbcCipher();
+
+const Cipher webAesCtr = _WebAesCtrCipher();
+
+const Cipher webAesGcm = _WebAesGcmCipher();
+
+const KeyExchangeAlgorithm webEcdhP256 = _WebEcdh(
+  name: 'ecdhP256',
+  webCryptoNamedCurve: 'P-256',
+  keyPairGenerator: _WebEcKeyPairGenerator(
+    name: 'p256',
+    webCryptoName: 'P-256',
+  ),
+  polyfill: null,
+);
+
+const KeyExchangeAlgorithm webEcdhP384 = _WebEcdh(
+  name: 'ecdhP384',
+  webCryptoNamedCurve: 'P-384',
+  keyPairGenerator: _WebEcKeyPairGenerator(
+    name: 'p384',
+    webCryptoName: 'P-384',
+  ),
+  polyfill: null,
+);
+
+const KeyExchangeAlgorithm webEcdhP521 = _WebEcdh(
+  name: 'ecdhP521',
+  webCryptoNamedCurve: 'P-521',
+  keyPairGenerator: _WebEcKeyPairGenerator(
+    name: 'p521',
+    webCryptoName: 'P-521',
+  ),
+  polyfill: null,
+);
+
+const SignatureAlgorithm webEcdsaP256Sha256 = _WebEcdsa(
+  name: 'ecdsaP256Sha256',
+  webCryptoNamedCurve: 'P-256',
+  webCryptoHashName: 'SHA-256',
+  keyPairGenerator: _WebEcKeyPairGenerator(
+    name: 'p256',
+    webCryptoName: 'P-256',
+  ),
+  polyfill: null,
+);
+
+const SignatureAlgorithm webEcdsaP384Sha256 = _WebEcdsa(
+  name: 'ecdsaP384Sha256',
+  webCryptoNamedCurve: 'P-384',
+  webCryptoHashName: 'SHA-256',
+  keyPairGenerator: _WebEcKeyPairGenerator(
+    name: 'p384',
+    webCryptoName: 'P-384',
+  ),
+  polyfill: null,
+);
+
+const SignatureAlgorithm webEcdsaP521Sha256 = _WebEcdsa(
+  name: 'ecdsaP521Sha256',
+  webCryptoNamedCurve: 'P-521',
+  webCryptoHashName: 'SHA-256',
+  keyPairGenerator: _WebEcKeyPairGenerator(
+    name: 'p521',
+    webCryptoName: 'P-521',
+  ),
+  polyfill: null,
+);
+
 const _aesKeyGenerator = SecretKeyGenerator(
   validLengths: <int>{16, 24, 32},
   defaultLength: 32,
@@ -32,8 +101,39 @@ ByteBuffer _jsArrayBufferFrom(List<int> data) {
   return Uint8List.fromList(data).buffer;
 }
 
-class WebAesCbcCipher extends Cipher {
-  const WebAesCbcCipher();
+class WebHashAlgorithm extends HashAlgorithm {
+  @override
+  final String name;
+
+  @override
+  final hashLengthInBytes;
+
+  @override
+  final int blockLength;
+
+  final String webCryptoName;
+
+  final HashAlgorithm polyfill;
+
+  const WebHashAlgorithm({
+    @required this.name,
+    @required this.hashLengthInBytes,
+    @required this.blockLength,
+    @required this.webCryptoName,
+    @required this.polyfill,
+  })  : assert(name != null),
+        assert(hashLengthInBytes != null),
+        assert(blockLength != null),
+        assert(webCryptoName != null);
+
+  @override
+  HashSink newSink() {
+    return polyfill.newSink();
+  }
+}
+
+class _WebAesCbcCipher extends Cipher {
+  const _WebAesCbcCipher();
 
   @override
   String get name => 'aesCbc';
@@ -141,8 +241,8 @@ class WebAesCbcCipher extends Cipher {
   }
 }
 
-class WebAesCtrCipher extends Cipher {
-  const WebAesCtrCipher();
+class _WebAesCtrCipher extends Cipher {
+  const _WebAesCtrCipher();
 
   @override
   String get name => 'aesCtr';
@@ -256,8 +356,8 @@ class WebAesCtrCipher extends Cipher {
   }
 }
 
-class WebAesGcmCipher extends Cipher {
-  const WebAesGcmCipher();
+class _WebAesGcmCipher extends Cipher {
+  const _WebAesGcmCipher();
 
   @override
   String get name => 'aesGcm';
@@ -369,7 +469,7 @@ class WebAesGcmCipher extends Cipher {
   }
 }
 
-class WebEcdh extends KeyExchangeAlgorithm {
+class _WebEcdh extends KeyExchangeAlgorithm {
   @override
   final String name;
   final String webCryptoNamedCurve;
@@ -377,7 +477,7 @@ class WebEcdh extends KeyExchangeAlgorithm {
   final KeyPairGenerator keyPairGenerator;
   final KeyExchangeAlgorithm polyfill;
 
-  const WebEcdh({
+  const _WebEcdh({
     @required this.name,
     @required this.webCryptoNamedCurve,
     @required this.keyPairGenerator,
@@ -468,7 +568,7 @@ class WebEcdh extends KeyExchangeAlgorithm {
   }
 }
 
-class WebEcdsa extends SignatureAlgorithm {
+class _WebEcdsa extends SignatureAlgorithm {
   @override
   final String name;
   final String webCryptoNamedCurve;
@@ -477,7 +577,7 @@ class WebEcdsa extends SignatureAlgorithm {
   final KeyPairGenerator keyPairGenerator;
   final SignatureAlgorithm polyfill;
 
-  const WebEcdsa({
+  const _WebEcdsa({
     @required this.name,
     @required this.webCryptoNamedCurve,
     @required this.webCryptoHashName,
@@ -576,12 +676,12 @@ class WebEcdsa extends SignatureAlgorithm {
   }
 }
 
-class WebEcKeyPairGenerator extends KeyPairGenerator {
+class _WebEcKeyPairGenerator extends KeyPairGenerator {
   @override
   final String name;
   final String webCryptoName;
 
-  const WebEcKeyPairGenerator({
+  const _WebEcKeyPairGenerator({
     @required this.name,
     @required this.webCryptoName,
   })  : assert(name != null),
@@ -644,88 +744,5 @@ class WebEcKeyPairGenerator extends KeyPairGenerator {
       default:
         return base64Url.decode(s);
     }
-  }
-}
-
-class WebHashAlgorithm extends HashAlgorithm {
-  @override
-  final String name;
-  @override
-  final hashLengthInBytes;
-  final String webCryptoName;
-
-  final HashAlgorithm polyfill;
-
-  const WebHashAlgorithm({
-    @required this.name,
-    @required this.hashLengthInBytes,
-    @required this.webCryptoName,
-    @required this.polyfill,
-  })  : assert(name != null),
-        assert(hashLengthInBytes != null),
-        assert(webCryptoName != null);
-
-  @override
-  HashSink newSink() {
-    return polyfill.newSink();
-  }
-}
-
-class WebSignatureAlgorithm extends SignatureAlgorithm {
-  @override
-  final String name;
-  final String webCryptoName;
-  @override
-  final KeyPairGenerator keyPairGenerator;
-  final SignatureAlgorithm polyfill;
-
-  const WebSignatureAlgorithm({
-    @required this.name,
-    @required this.webCryptoName,
-    @required this.keyPairGenerator,
-    @required this.polyfill,
-  })  : assert(name != null),
-        assert(webCryptoName != null);
-
-  @override
-  Future<Signature> sign(List<int> input, KeyPair keyPair) {
-    final promise = web_crypto.subtle.sign(
-      webCryptoName,
-      null,
-      _jsArrayBufferFrom(input),
-    );
-    return js.promiseToFuture(promise).then((jsObj) {
-      throw UnimplementedError();
-    });
-  }
-
-  @override
-  Signature signSync(List<int> input, KeyPair keyPair) {
-    if (polyfill == null) {
-      throw UnsupportedError('signSync() is unsupported');
-    }
-    return polyfill.signSync(input, keyPair);
-  }
-
-  @override
-  Future<bool> verify(List<int> input, Signature signature) {
-    final cryptoSignature = null;
-    final promise = web_crypto.subtle.verify(
-      webCryptoName,
-      null,
-      cryptoSignature,
-      _jsArrayBufferFrom(input),
-    );
-    return js.promiseToFuture(promise).then((jsObj) {
-      return jsObj;
-    });
-  }
-
-  @override
-  bool verifySync(List<int> input, Signature signature) {
-    if (polyfill == null) {
-      throw UnsupportedError('verifySync() is unsupported');
-    }
-    return polyfill.verifySync(input, signature);
   }
 }

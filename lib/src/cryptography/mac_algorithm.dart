@@ -12,10 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:convert';
+
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/utils.dart';
 import 'package:meta/meta.dart';
-import 'package:typed_data/typed_buffers.dart';
 
 /// Superclass for message authentication code algorithms.
 ///
@@ -25,35 +26,37 @@ import 'package:typed_data/typed_buffers.dart';
 abstract class MacAlgorithm {
   const MacAlgorithm();
 
-  Future<Mac> calculateMac(List<int> input, {@required SecretKey secretKey});
-
-  MacSink newSink({@required SecretKey secretKey}) {
-    return _MacSink(this, secretKey);
+  Future<Mac> calculateMac(List<int> input, {@required SecretKey secretKey}) {
+    return Future<Mac>.value(calculateMacSync(
+      input,
+      secretKey: secretKey,
+    ));
   }
+
+  Mac calculateMacSync(List<int> input, {@required SecretKey secretKey}) {
+    ArgumentError.checkNotNull(input);
+    ArgumentError.checkNotNull(secretKey);
+    final sink = newSink(secretKey: secretKey);
+    sink.addSlice(input, 0, input.length, true);
+    return sink.closeSync();
+  }
+
+  MacSink newSink({@required SecretKey secretKey});
 }
 
 /// Superclass for message authentication code builders.
-abstract class MacSink implements Sink<List<int>> {
+abstract class MacSink implements ByteConversionSink {
   @override
-  Future<Mac> close();
-}
-
-class _MacSink extends MacSink {
-  final MacAlgorithm _algorithm;
-  final SecretKey _secretKey;
-  final Uint8Buffer _bytes = Uint8Buffer();
-
-  _MacSink(this._algorithm, this._secretKey);
-
-  @override
-  void add(List<int> bytes) {
-    _bytes.addAll(bytes);
+  void add(List<int> chunk) {
+    addSlice(chunk, 0, chunk.length, false);
   }
 
   @override
-  Future<Mac> close() async {
-    return _algorithm.calculateMac(_bytes, secretKey: _secretKey);
+  Future<Mac> close() {
+    return Future<Mac>(() => closeSync());
   }
+
+  Mac closeSync();
 }
 
 /// A Message Authentication Code (MAC) calculated by [MacAlgorithm].

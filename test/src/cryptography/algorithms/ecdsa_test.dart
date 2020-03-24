@@ -17,40 +17,76 @@ import 'package:test/test.dart';
 
 void main() {
   group('ecdhP256:', () {
-    test('key exchange', () async {
-      await _testKeyExchange(ecdhP256);
+    const algorithm = ecdhP256;
+
+    test('name', () {
+      expect(algorithm.name, 'ecdhP256');
     });
-  }, testOn: 'chrome');
+
+    test('in browser', () async {
+      await _testKeyExchange(algorithm);
+    }, testOn: 'chrome');
+  });
 
   group('ecdhP384:', () {
-    test('key exchange', () async {
-      await _testKeyExchange(ecdhP384);
+    const algorithm = ecdhP384;
+
+    test('name', () {
+      expect(algorithm.name, 'ecdhP384');
     });
-  }, testOn: 'chrome');
+
+    test('in browser', () async {
+      await _testKeyExchange(algorithm);
+    }, testOn: 'chrome');
+  });
 
   group('ecdhP521:', () {
-    test('key exchange', () async {
-      await _testKeyExchange(ecdhP521);
+    const algorithm = ecdhP521;
+
+    test('name', () {
+      expect(algorithm.name, 'ecdhP521');
     });
-  }, testOn: 'chrome');
+
+    test('in browser', () async {
+      await _testKeyExchange(algorithm);
+    }, testOn: 'chrome');
+  });
 
   group('ecdsaP256Sha256:', () {
-    test('signature', () async {
-      await _testSignature(ecdsaP256Sha256);
+    const algorithm = ecdsaP256Sha256;
+
+    test('name', () {
+      expect(algorithm.name, 'ecdsaP256Sha256');
     });
-  }, testOn: 'chrome');
+
+    test('in browser', () async {
+      await _testSignature(algorithm);
+    }, testOn: 'chrome');
+  });
 
   group('ecdsaP384Sha256:', () {
-    test('signature', () async {
-      await _testSignature(ecdsaP384Sha256);
+    const algorithm = ecdsaP384Sha256;
+
+    test('name', () {
+      expect(algorithm.name, 'ecdsaP384Sha256');
     });
-  }, testOn: 'chrome');
+
+    test('in browser', () async {
+      await _testSignature(algorithm);
+    }, testOn: 'chrome');
+  });
 
   group('ecdsaP521Sha256:', () {
-    test('signature', () async {
-      await _testSignature(ecdsaP521Sha256);
+    const algorithm = ecdsaP521Sha256;
+
+    test('name', () {
+      expect(algorithm.name, 'ecdsaP521Sha256');
     });
-  }, testOn: 'chrome');
+
+    test('in browser', () async {
+      await _testSignature(algorithm);
+    }, testOn: 'chrome');
+  });
 }
 
 Future<void> _testKeyExchange(KeyExchangeAlgorithm algorithm) async {

@@ -22,12 +22,50 @@ import 'package:meta/meta.dart';
 /// _Chacha20_ ([https://tools.ietf.org/html/rfc7539](RFC 7539) cipher.
 ///
 /// Remember that:
-///   * You must not use the same key/nonce twice.
+///   * You must not use the same key/nonce combination twice.
+///
+/// An example:
+/// ```dart
+/// import 'package:cryptography/cryptography.dart';
+///
+/// Future<void> main() async {
+///   final algorithm = chacha20Poly1305Aead;
+///
+///   // Generate a random 256-bit secret key
+///   final secretKey = await algorithm.newSecretKey();
+///
+///   // Generate a random 96-bit nonce.
+///   final nonce = algorithm.newNonce();
+///
+///   // Encrypt.
+///   final authenticatedCipherText = await algorithm.encrypt(
+///     [1, 2, 3],
+///     secretKey: secretKey,
+///     nonce: nonce, // The same secretKey/nonce combination should not be used twice
+///     aad: const <int>[], // You can authenticate additional data here
+///   );
+///   print('Ciphertext: ${authenticatedCipherText.cipherText}');
+///   print('MAC: ${authenticatedCipherText.mac}');
+///
+///   // Decrypt.
+///   //
+///   // If the message authentication code is incorrect,
+///   // the method will return null.
+///   //
+///   final decrypted = await algorithm.decrypt(
+///     authenticatedCipherText,
+///     secretKey: secretKey,
+///     nonce: nonce,
+///   );
+/// }
+/// ```
 const Chacha20Poly1305Aead chacha20Poly1305Aead = Chacha20Poly1305Aead._();
 
 class Chacha20Poly1305Aead extends AuthenticatedCipher {
   static final _footer = ByteData(16);
   static final _footerUint8List = Uint8List.view(_footer.buffer);
+
+  const Chacha20Poly1305Aead._();
 
   @override
   Cipher get cipher => chacha20;
@@ -35,7 +73,60 @@ class Chacha20Poly1305Aead extends AuthenticatedCipher {
   @override
   MacAlgorithm get macAlgorithm => poly1305;
 
-  const Chacha20Poly1305Aead._();
+  @override
+  Future<Uint8List> decrypt(
+    AuthenticatedCipherText input, {
+    List<int> aad,
+    @required SecretKey secretKey,
+    @required Nonce nonce,
+  }) async {
+    // Calculate MAC
+    final expectedMac = await _calculateMac(
+      input.cipherText,
+      aad: aad,
+      secretKey: secretKey,
+      nonce: nonce,
+    );
+
+    // Verify MAC
+    if (input.mac != expectedMac) {
+      return null;
+    }
+
+    return chacha20.decrypt(
+      input.cipherText,
+      secretKey: secretKey,
+      nonce: nonce,
+      offset: 64, // Block counter = 1
+    );
+  }
+
+  @override
+  Future<AuthenticatedCipherText> encrypt(
+    List<int> input, {
+    List<int> aad,
+    @required SecretKey secretKey,
+    @required Nonce nonce,
+  }) async {
+    final cipherText = await cipher.encrypt(
+      input,
+      secretKey: secretKey,
+      nonce: nonce,
+      offset: 64, // Block counter = 1
+    );
+
+    final mac = await _calculateMac(
+      cipherText,
+      aad: aad,
+      secretKey: secretKey,
+      nonce: nonce,
+    );
+
+    return AuthenticatedCipherText(
+      cipherText: cipherText,
+      mac: mac,
+    );
+  }
 
   /// Calculates MAC.
   Future<Mac> _calculateMac(
@@ -109,60 +200,5 @@ class Chacha20Poly1305Aead extends AuthenticatedCipher {
 
     // Return MAC
     return sink.close();
-  }
-
-  @override
-  Future<Uint8List> decrypt(
-    AuthenticatedCipherText input, {
-    List<int> aad,
-    @required SecretKey secretKey,
-    @required Nonce nonce,
-  }) async {
-    // Calculate MAC
-    final expectedMac = await _calculateMac(
-      input.cipherText,
-      aad: aad,
-      secretKey: secretKey,
-      nonce: nonce,
-    );
-
-    // Verify MAC
-    if (input.mac != expectedMac) {
-      return null;
-    }
-
-    return chacha20.decrypt(
-      input.cipherText,
-      secretKey: secretKey,
-      nonce: nonce,
-      offset: 64, // Block counter = 1
-    );
-  }
-
-  @override
-  Future<AuthenticatedCipherText> encrypt(
-    List<int> input, {
-    List<int> aad,
-    @required SecretKey secretKey,
-    @required Nonce nonce,
-  }) async {
-    final cipherText = await cipher.encrypt(
-      input,
-      secretKey: secretKey,
-      nonce: nonce,
-      offset: 64, // Block counter = 1
-    );
-
-    final mac = await _calculateMac(
-      cipherText,
-      aad: aad,
-      secretKey: secretKey,
-      nonce: nonce,
-    );
-
-    return AuthenticatedCipherText(
-      cipherText: cipherText,
-      mac: mac,
-    );
   }
 }

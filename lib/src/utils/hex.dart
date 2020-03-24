@@ -23,22 +23,21 @@ String hexFromBytes(Iterable<int> list) {
 }
 
 /// Converts a hexadecimal string to a list of bytes.
-Uint8List hexToBytes(String input) {
+List<int> hexToBytes(String input) {
   if (input == null) {
     return null;
   }
   final s = input.replaceAll(' ', '').replaceAll(':', '').replaceAll('\n', '');
-  final result = <int>[];
-  for (var i = 0; i < s.length; i++) {
-    var value = int.tryParse(s.substring(i, i + 1), radix: 16);
+  if (s.length % 2 != 0) {
+    throw ArgumentError.value(input);
+  }
+  final result = Uint8List(s.length ~/ 2);
+  for (var i = 0; i < s.length; i += 2) {
+    var value = int.tryParse(s.substring(i, i + 2), radix: 16);
     if (value == null) {
       throw ArgumentError.value(input, 'input');
     }
-    if (i % 2 == 0) {
-      result.add(16 * value);
-    } else {
-      result[i ~/ 2] += value;
-    }
+    result[i ~/ 2] = value;
   }
   return Uint8List.fromList(result);
 }

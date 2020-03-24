@@ -16,114 +16,160 @@ import 'package:cryptography/cryptography.dart';
 import 'package:test/test.dart';
 
 void main() {
-  test('aesCbc', () async {
+  group('aesCbc:', () {
     final algorithm = aesCbc;
-    final clearText = <int>[1, 2, 3];
-    final nonce = Nonce.randomBytes(43);
 
-    // Check nonce length information
-    expect(algorithm.nonceLength, 16);
+    test('in VM', () {
+      expect(algorithm, isNotNull);
+      expect(
+        () => aesCbc.encryptSync(
+          const [],
+          secretKey: SecretKey.randomBytes(16),
+          nonce: Nonce.randomBytes(16),
+        ),
+        throwsUnsupportedError,
+      );
+    });
 
-    //
-    // Generate secret key
-    //
-    final secretKey = await algorithm.secretKeyGenerator.generate();
-    expect(secretKey.bytes.length, 32);
+    test('in browser', () async {
+      final clearText = <int>[1, 2, 3];
+      final nonce = Nonce.randomBytes(43);
 
-    //
-    // Encrypt
-    //
-    final encrypted = await algorithm.encrypt(
-      clearText,
-      secretKey: secretKey,
-      nonce: nonce,
-    );
-    expect(encrypted, isNotNull);
-    expect(encrypted, isNot(clearText));
-    expect(encrypted, hasLength(16));
+      // Check nonce length information
+      expect(algorithm.nonceLength, 16);
 
-    //
-    // Decrypt
-    //
-    final decrypted = await algorithm.decrypt(
-      encrypted,
-      secretKey: secretKey,
-      nonce: nonce,
-    );
-    expect(decrypted, clearText);
-  }, testOn: 'chrome');
+      //
+      // Generate secret key
+      //
+      final secretKey = await algorithm.secretKeyGenerator.generate();
+      expect(secretKey.bytes.length, 32);
 
-  test('aesCtr', () async {
+      //
+      // Encrypt
+      //
+      final encrypted = await algorithm.encrypt(
+        clearText,
+        secretKey: secretKey,
+        nonce: nonce,
+      );
+      expect(encrypted, isNotNull);
+      expect(encrypted, isNot(clearText));
+      expect(encrypted, hasLength(16));
+
+      //
+      // Decrypt
+      //
+      final decrypted = await algorithm.decrypt(
+        encrypted,
+        secretKey: secretKey,
+        nonce: nonce,
+      );
+      expect(decrypted, clearText);
+    }, testOn: 'chrome');
+  });
+
+  group('aesCtr:', () {
     final algorithm = aesCtr;
-    final clearText = <int>[1, 2, 3];
-    final nonce = Nonce.randomBytes(43);
 
-    // Check nonce length information
-    expect(algorithm.nonceLength, 16);
+    test('in VM', () {
+      expect(algorithm, isNotNull);
+      expect(
+        () => aesCbc.encryptSync(
+          const [],
+          secretKey: SecretKey.randomBytes(16),
+          nonce: Nonce.randomBytes(16),
+        ),
+        throwsUnsupportedError,
+      );
+    });
 
-    //
-    // Generate secret key
-    //
-    final secretKey = await algorithm.secretKeyGenerator.generate();
-    expect(secretKey.bytes.length, 32);
+    test('in browser', () async {
+      final clearText = <int>[1, 2, 3];
+      final nonce = Nonce.randomBytes(43);
 
-    //
-    // Encrypt
-    //
-    final encrypted = await algorithm.encrypt(
-      clearText,
-      secretKey: secretKey,
-      nonce: nonce,
-    );
-    expect(encrypted, isNotNull);
-    expect(encrypted, isNot(clearText));
-    expect(encrypted, hasLength(3));
+      // Check nonce length information
+      expect(algorithm.nonceLength, 16);
 
-    //
-    // Decrypt
-    //
-    final decrypted = await algorithm.decrypt(
-      encrypted,
-      secretKey: secretKey,
-      nonce: nonce,
-    );
-    expect(decrypted, clearText);
-  }, testOn: 'chrome');
+      //
+      // Generate secret key
+      //
+      final secretKey = await algorithm.secretKeyGenerator.generate();
+      expect(secretKey.bytes.length, 32);
 
-  test('aesGcm', () async {
+      //
+      // Encrypt
+      //
+      final encrypted = await algorithm.encrypt(
+        clearText,
+        secretKey: secretKey,
+        nonce: nonce,
+      );
+      expect(encrypted, isNotNull);
+      expect(encrypted, isNot(clearText));
+      expect(encrypted, hasLength(3));
+
+      //
+      // Decrypt
+      //
+      final decrypted = await algorithm.decrypt(
+        encrypted,
+        secretKey: secretKey,
+        nonce: nonce,
+      );
+      expect(decrypted, clearText);
+    }, testOn: 'chrome');
+  });
+
+  group('aesGcm', () {
     final algorithm = aesGcm;
-    final clearText = <int>[1, 2, 3];
-    final nonce = Nonce.randomBytes(43);
 
-    // Check nonce length information
-    expect(algorithm.nonceLength, 16);
+    test('in VM', () {
+      expect(algorithm, isNotNull);
+      expect(
+        () => aesCbc.encryptSync(
+          const [],
+          secretKey: SecretKey.randomBytes(16),
+          nonce: Nonce.randomBytes(16),
+        ),
+        throwsUnsupportedError,
+      );
+    });
 
-    //
-    // Generate secret key
-    //
-    final secretKey = await algorithm.secretKeyGenerator.generate();
-    expect(secretKey.bytes.length, 32);
+    test('in browser', () async {
+      final algorithm = aesGcm;
+      final clearText = <int>[1, 2, 3];
+      final nonce = Nonce.randomBytes(43);
 
-    //
-    // Encrypt
-    //
-    final encrypted = await algorithm.encrypt(
-      clearText,
-      secretKey: secretKey,
-      nonce: nonce,
-    );
-    expect(encrypted, isNotNull);
-    expect(encrypted, isNot(clearText));
-    expect(encrypted, hasLength(clearText.length + 16));
+      // Check nonce length information
+      expect(algorithm.nonceLength, 16);
 
-    //
-    // Decrypt
-    //
-    final decrypted = await algorithm.decrypt(
-      encrypted,
-      secretKey: secretKey,
-      nonce: nonce,
-    );
-    expect(decrypted, clearText);
-  }, testOn: 'chrome');
+      //
+      // Generate secret key
+      //
+      final secretKey = await algorithm.secretKeyGenerator.generate();
+      expect(secretKey.bytes.length, 32);
+
+      //
+      // Encrypt
+      //
+      final encrypted = await algorithm.encrypt(
+        clearText,
+        secretKey: secretKey,
+        nonce: nonce,
+      );
+      expect(encrypted, isNotNull);
+      expect(encrypted, isNot(clearText));
+      expect(encrypted, hasLength(clearText.length + 16));
+
+      //
+      // Decrypt
+      //
+      final decrypted = await algorithm.decrypt(
+        encrypted,
+        secretKey: secretKey,
+        nonce: nonce,
+      );
+      expect(decrypted, clearText);
+    }, testOn: 'chrome');
+  });
 }

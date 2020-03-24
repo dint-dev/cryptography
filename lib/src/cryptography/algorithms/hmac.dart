@@ -15,6 +15,7 @@
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
+import 'package:meta/meta.dart';
 
 /// HMAC ("hash-based message authentication code").
 ///
@@ -23,10 +24,13 @@ import 'package:cryptography/cryptography.dart';
 /// import 'package:cryptography/cryptography.dart';
 ///
 /// void main() {
-///   final hmac = const Hmac(sha256);
-///   final mac = hmac.calculateMac([1,2,3], secretKey:SecretKey([1,2,3]);
+///   final algorithm = const Hmac(sha256);
+///   final mac = algorithm.calculateMac(
+///     [1,2,3],
+///     secretKey: SecretKey([1,2,3]),
+///   );
 ///   sink.add(<int>[1,2,3]);
-///   final hash = sink.close();
+///   final hash = sink.closeSync();
 /// }
 /// ```
 class Hmac extends MacAlgorithm {
@@ -35,43 +39,77 @@ class Hmac extends MacAlgorithm {
   const Hmac(this.hashAlgorithm);
 
   @override
-  Future<Mac> calculateMac(List<int> input, {SecretKey secretKey}) async {
+  MacSink newSink({@required SecretKey secretKey}) {
+    ArgumentError.checkNotNull(secretKey);
+
     final hashAlgorithm = this.hashAlgorithm;
-    final blockLength = hashAlgorithm.hashLengthInBytes;
-    final secretBytes = await _secretKeyToBlock(secretKey, blockLength);
-    final innerPad = Uint8List(blockLength);
-    final outerPad = Uint8List(blockLength);
-    for (var i = 0; i < blockLength; i++) {
-      final b = secretBytes[i];
-      innerPad[i] = b ^ 0x36;
-      outerPad[i] = b ^ 0x5c;
+    final blockLength = hashAlgorithm.blockLength;
+
+    //
+    // secret
+    //
+    var hmacKey = secretKey.bytes;
+    if (hmacKey.length > blockLength) {
+      hmacKey = hashAlgorithm.hashSync(hmacKey).bytes;
     }
-    final innerHashBuilder = hashAlgorithm.newSink();
-    innerHashBuilder.add(innerPad);
-    innerHashBuilder.add(input);
-    final innerHash = await innerHashBuilder.close();
-    final outerHashBuilder = hashAlgorithm.newSink();
-    outerHashBuilder.add(outerPad);
-    outerHashBuilder.add(innerHash.bytes);
-    final outerHash = await outerHashBuilder.close();
-    return Mac(outerHash.bytes);
+
+    //
+    // inner sink
+    //
+    final innerSink = hashAlgorithm.newSink();
+    final innerPadding = Uint8List(blockLength);
+    _preparePadding(innerPadding, hmacKey, 0x36);
+    innerSink.add(innerPadding);
+
+    //
+    // outer sink
+    //
+    final outerSink = hashAlgorithm.newSink();
+    final outerPadding = Uint8List(blockLength);
+    _preparePadding(outerPadding, hmacKey, 0x5c);
+    outerSink.add(outerPadding);
+
+    return _HmacSink(innerSink, outerSink);
   }
 
-  Future<Uint8List> _secretKeyToBlock(
-      SecretKey secretKey, int blockLength) async {
-    final data = secretKey.bytes;
-    if (data == null) {
-      throw ArgumentError.value(secretKey, 'secretKey');
+  @override
+  String toString() => 'Hmac(${hashAlgorithm.name})';
+
+  static void _preparePadding(List<int> padding, List<int> key, int byte) {
+    for (var i = 0; i < padding.length; i++) {
+      padding[i] = i < key.length ? (key[i] ^ byte) : byte;
     }
-    if (data.length > blockLength) {
-      final hash = await hashAlgorithm.hash(data);
-      return hash.bytes;
-    }
-    if (data.length < blockLength) {
-      final result = Uint8List(blockLength);
-      result.setAll(0, data);
-      return result;
-    }
-    return data;
+  }
+}
+
+class _HmacSink extends MacSink {
+  final HashSink _innerSink;
+  final HashSink _outerSink;
+  bool _isClosed = false;
+
+  _HmacSink(this._innerSink, this._outerSink);
+
+  @override
+  void add(List<int> bytes) {
+    _innerSink.add(bytes);
+  }
+
+  @override
+  void addSlice(List<int> chunk, int start, int end, bool isLast) {
+    _innerSink.addSlice(chunk, start, end, isLast);
+  }
+
+  @override
+  Mac closeSync() {
+    if (_isClosed) throw StateError('The sink is closed');
+    _isClosed = true;
+
+    final innerHash = _innerSink.closeSync().bytes;
+
+    final outerSink = _outerSink;
+    outerSink.add(innerHash);
+    final outerHash = outerSink.closeSync().bytes;
+
+    return Mac(outerHash);
   }
 }

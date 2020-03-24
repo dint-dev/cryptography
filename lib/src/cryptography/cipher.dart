@@ -21,8 +21,8 @@ import 'package:meta/meta.dart';
 /// Superclass for symmetric ciphers.
 ///
 /// Examples:
-///   * [aesGcm]
-///   * [aesCbc]
+///   * [aesGbc]
+///   * [aesCtr]
 ///   * [aesGcm]
 ///   * [chacha20]
 abstract class Cipher {

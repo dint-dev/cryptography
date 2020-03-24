@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:convert';
+
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/utils.dart';
 
@@ -48,6 +50,9 @@ abstract class HashAlgorithm {
   /// Hash length in bytes.
   int get hashLengthInBytes;
 
+  /// Block length in bytes.
+  int get blockLength;
+
   const HashAlgorithm();
 
   /// Hashes the data.
@@ -57,6 +62,7 @@ abstract class HashAlgorithm {
 
   /// Hashes the data.
   Hash hashSync(List<int> input) {
+    ArgumentError.checkNotNull(input);
     final sink = newSink();
     sink.add(input);
     return sink.closeSync();
@@ -67,7 +73,12 @@ abstract class HashAlgorithm {
 }
 
 /// A sink created by [HashAlgorithm].
-abstract class HashSink implements Sink<List<int>> {
+abstract class HashSink implements ByteConversionSink {
+  @override
+  void add(List<int> chunk) {
+    addSlice(chunk, 0, chunk.length, false);
+  }
+
   @override
   Future<Hash> close() {
     return Future<Hash>(() => closeSync());

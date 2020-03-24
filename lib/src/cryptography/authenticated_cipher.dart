@@ -26,11 +26,45 @@ import 'package:meta/meta.dart';
 /// Examples:
 ///   * [chacha20Poly1305Aead]
 ///
+/// An example:
+/// ```dart
+/// import 'package:cryptography/cryptography.dart';
+///
+/// Future<void> main() async {
+///   // CHACHA20 + HMAC-SHA256
+///   final algorithm = AuthenticatedCipher.from(
+///     cipher: chacha20,
+///     macAlgorithm: Hmac(sha256),
+///   );
+///
+///   // Generate a random secret key
+///   final secretKey = await algorithm.newSecretKey();
+///
+///   // Generate a random nonce.
+///   final nonce = algorithm.newNonce();
+///
+///   // Encrypt.
+///   final authenticatedCipherText = await algorithm.encrypt(
+///     [1, 2, 3],
+///     secretKey: secretKey,
+///     nonce: nonce, // The same secretKey/nonce combination should not be used twice
+///     aad: const <int>[], // You can authenticate additional data here
+///   );
+///   print('Ciphertext: ${authenticatedCipherText.cipherText}');
+///   print('MAC: ${authenticatedCipherText.mac}');
+///
+///   // Decrypt.
+///   //
+///   // If the message authentication code is incorrect,
+///   // the method will return null.
+///   //
+///   final decrypted = await algorithm.decrypt(
+///     authenticatedCipherText,
+///     secretKey: secretKey,
+///     nonce: nonce,
+///   );
+/// }
 /// ```
-/// const chacha20HmacSha256 = AuthenticatedCipher.from(
-///   cipher: chacha20,
-///   macAlgorithm: Hmac(sha256),
-/// );
 abstract class AuthenticatedCipher {
   const AuthenticatedCipher();
 
@@ -42,10 +76,10 @@ abstract class AuthenticatedCipher {
     @required MacAlgorithm macAlgorithm,
   }) = _AuthenticatedCipher;
 
-  /// Cipher used for encryption/decryption.
+  /// [Cipher] used by the algorithm.
   Cipher get cipher;
 
-  /// Message authentication code (MAC) algorithm.
+  /// [MacAlgorithm] used by the algorithm.
   MacAlgorithm get macAlgorithm;
 
   /// Whether the algorithm supports Associated Authenticated Data (AAD).
@@ -119,6 +153,7 @@ class AuthenticatedCipherText {
 class _AuthenticatedCipher extends AuthenticatedCipher {
   @override
   final Cipher cipher;
+
   @override
   final MacAlgorithm macAlgorithm;
 
