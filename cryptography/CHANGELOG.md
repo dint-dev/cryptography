@@ -1,3 +1,6 @@
+## 0.2.4
+  * Improves documentation.
+
 ## 0.2.3
   * Improves documentation, clarity, test coverage.
 

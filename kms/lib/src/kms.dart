@@ -1,0 +1,127 @@
+// Copyright 2019 Gohilla Ltd (https://gohilla.com).
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+import 'package:cryptography/cryptography.dart';
+import 'package:kms/kms.dart';
+import 'package:meta/meta.dart';
+
+/// Describes type of a secret key managed by some [Kms].
+enum CipherType {
+  /// AES-CBC.
+  aesCbc,
+
+  /// AES-CTR.
+  aesCtr,
+
+  /// AES-GCM.
+  aesGcm,
+
+  /// Chacha20.
+  chacha20,
+}
+
+/// Describes key exchange type of a secret key managed by some [Kms].
+enum KeyExchangeType {
+  /// ECDH with P256.
+  ecdhP256,
+
+  /// ECDH with P384.
+  ecdhP384,
+
+  /// ECDH with P521.
+  ecdhP521,
+
+  /// ECDH with Curve25519.
+  ecdhCurve25519,
+}
+
+abstract class Kms {
+  static Kms current = MemoryKms();
+
+  /// Set of [CipherType] values supported by [createSecretKey].
+  Set<CipherType> get supportedCipherTypes;
+
+  /// Set of [KeyExchangeType] values supported by [createKeyPair].
+  Set<KeyExchangeType> get supportedKeyExchangeTypes;
+
+  /// Set of [SignatureType] values supported by [createKeyPair].
+  Set<SignatureType> get supportedSignatureTypes;
+
+  /// Creates a keypair for key exchange and/or signing.
+  Future<KmsKey> createKeyPair({
+    @required String keyRingId,
+    @required KeyExchangeType keyExchangeType,
+    @required SignatureType signatureType,
+    String id,
+  });
+
+  /// Creates a secret key for encrypting/decrypting.
+  Future<KmsKey> createSecretKey({
+    @required String keyRingId,
+    @required CipherType cipherType,
+    String id,
+  });
+
+  /// Decrypts bytes.
+  Future<List<int>> decrypt(List<int> bytes, KmsKey kmsKey,
+      {@required Nonce nonce});
+
+  /// Deletes a stored cryptographic key.
+  Future<void> delete(KmsKey kmsKey);
+
+  /// Encrypts bytes.
+  Future<List<int>> encrypt(
+    List<int> bytes,
+    KmsKey kmsKey, {
+    @required Nonce nonce,
+  });
+
+  Stream<KmsKey> findAll({KmsKeyQuery query});
+
+  Future<PublicKey> getPublicKey(KmsKey kmsKey);
+
+  /// Calculates shared secret.
+  Future<SecretKey> sharedSecret(KmsKey kmsKey, PublicKey publicKey);
+
+  /// Signs bytes.
+  Future<Signature> sign(List<int> bytes, KmsKey kmsKey);
+
+  /// Verifies signature.
+  Future<bool> verifySignature(
+    List<int> bytes,
+    Signature signature,
+    KmsKey kmsKey,
+  );
+}
+
+class KmsKeyDoesNotExistException implements Exception {
+  final KmsKey kmsKey;
+
+  KmsKeyDoesNotExistException(this.kmsKey);
+
+  @override
+  String toString() => 'Key does not exist: $kmsKey';
+}
+
+/// Describes signature type of a secret key managed by some [Kms].
+enum SignatureType {
+  /// ECDSA with P256 + SHA256.
+  ecdsaP256Sha256,
+
+  /// ECDSA with P384 + SHA384.
+  ecdsaP384Sha384,
+
+  /// ECDSA with Curve25519 + SHA256.
+  ecdsaCurve25519Sha256,
+}
