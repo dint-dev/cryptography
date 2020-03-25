@@ -1,15 +1,20 @@
-#!/bin/sh
+#!/bin/bash
+
 set -e
 cd `dirname $0`
 
-cd cryptography
-pub run test
-cd ..
+ARGS="${@:1}"
 
-cd kms
-pub run test
-cd ..
+visit() {
+  NAME=$1
+  echo "-------------------------------------------------"
+  echo "Testing '$NAME'"
+  echo "-------------------------------------------------"
+  cd $NAME
+  pub run test $ARGS
+  cd ..
+}
 
-cd kms_adapter_cupertino
-pub run test
-cd ..
+visit cryptography
+visit kms
+visit kms_adapter_cupertino

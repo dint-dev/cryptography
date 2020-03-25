@@ -15,4 +15,4 @@ jobs:
       - name: Install dependencies
         run: ./get_dependencies.sh
       - name: Run tests
-        run: ./test.sh
+        run: ./test_in_vm.sh
