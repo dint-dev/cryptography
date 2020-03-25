@@ -46,6 +46,7 @@ enum KeyExchangeType {
   ecdhCurve25519,
 }
 
+/// A Key Management Service (KMS).
 abstract class Kms {
   static Kms current = MemoryKms();
 
@@ -59,6 +60,8 @@ abstract class Kms {
   Set<SignatureType> get supportedSignatureTypes;
 
   /// Creates a keypair for key exchange and/or signing.
+  ///
+  /// Throws [StateError] if you define [id] and the key already exists.
   Future<KmsKey> createKeyPair({
     @required String keyRingId,
     @required KeyExchangeType keyExchangeType,
@@ -67,6 +70,8 @@ abstract class Kms {
   });
 
   /// Creates a secret key for encrypting/decrypting.
+  ///
+  /// Throws [StateError] if you define [id] and the key already exists.
   Future<KmsKey> createSecretKey({
     @required String keyRingId,
     @required CipherType cipherType,
@@ -74,30 +79,49 @@ abstract class Kms {
   });
 
   /// Decrypts bytes.
+  ///
+  /// Throws [KmsKeyDoesNotExistException] if the key does not exist.
+  /// Throws [StateError] if the key is invalid type.
   Future<List<int>> decrypt(List<int> bytes, KmsKey kmsKey,
       {@required Nonce nonce});
 
   /// Deletes a stored cryptographic key.
+  ///
+  /// Does not throw anything even if the key does not exist.
   Future<void> delete(KmsKey kmsKey);
 
   /// Encrypts bytes.
+  ///
+  /// Throws [KmsKeyDoesNotExistException] if the key does not exist.
+  /// Throws [StateError] if the key is invalid type.
   Future<List<int>> encrypt(
     List<int> bytes,
     KmsKey kmsKey, {
     @required Nonce nonce,
   });
 
+  /// Returns all keys stored by the KMS.
   Stream<KmsKey> findAll({KmsKeyQuery query});
 
+  /// Returns [PublicKey] of the key pair.
+  ///
+  /// Throws [KmsKeyDoesNotExistException] if the key does not exist.
+  /// Throws [StateError] if the key is invalid type.
   Future<PublicKey> getPublicKey(KmsKey kmsKey);
 
-  /// Calculates shared secret.
+  /// Calculates a shared [SecretKey] for communications between two parties.
+  ///
+  /// Throws [KmsKeyDoesNotExistException] if the key does not exist.
+  /// Throws [StateError] if the key is invalid type.
   Future<SecretKey> sharedSecret(KmsKey kmsKey, PublicKey publicKey);
 
-  /// Signs bytes.
+  /// Calculates [Signature] for the bytes.
+  ///
+  /// Throws [KmsKeyDoesNotExistException] if the key does not exist.
+  /// Throws [StateError] if the key is invalid type.
   Future<Signature> sign(List<int> bytes, KmsKey kmsKey);
 
-  /// Verifies signature.
+  /// Verifies a [Signature].
   Future<bool> verifySignature(
     List<int> bytes,
     Signature signature,
@@ -105,6 +129,7 @@ abstract class Kms {
   );
 }
 
+/// Thrown by [Kms] when a non-existing key is used.
 class KmsKeyDoesNotExistException implements Exception {
   final KmsKey kmsKey;
 

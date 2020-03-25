@@ -15,6 +15,7 @@
 import 'package:cryptography/cryptography.dart';
 import 'package:kms/kms.dart';
 
+/// A base class for [Kms] implementations.
 abstract class KmsBase implements Kms {
   final Kms _kms;
 

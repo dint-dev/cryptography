@@ -16,6 +16,7 @@ import 'package:cryptography/cryptography.dart';
 import 'package:kms/kms.dart';
 import 'package:meta/meta.dart';
 
+/// An in-memory implementation of [Kms].
 class MemoryKms extends KmsBase {
   static const Map<KeyExchangeType, KeyExchangeAlgorithm>
       defaultKeyExchangeAlgorithms = {

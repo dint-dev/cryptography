@@ -4,9 +4,9 @@
 # Overview
 This package gives you a collection of cryptographic algorithms.
 
-Some algorithms are implemented in pure Dart. Some algorithms are implemented with
-[Web Cryptography API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API) and don't
-work outside the browser yet.
+Some algorithms are implemented in pure Dart and work in all platforms. Some algorithms are
+implemented with [Web Cryptography API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API)
+and work only in the browsers at the moment.
 
 This package is used by [package:kms](https://pub.dev/packages/kms), which enables you to take
 advantage of hardware-based key managers that are isolated from the main processor.
@@ -28,9 +28,8 @@ Copyright 2019 Gohilla Ltd. Licensed under the [Apache License 2.0](LICENSE).
   * [ecdhP521](https://pub.dev/documentation/cryptography/latest/cryptography/ecdhP521-constant.html) (ECDH P521)
     * _Currently browser-only_
   * [x25519](https://pub.dev/documentation/cryptography/latest/cryptography/x25519-constant.html) (ECDH Curve25519)
-    * X25519 is Elliptic Curve Diffie-Hellman (ECDH) using Curve25519. The algorithm is used in
-      protocols such as SSH, TLS, Signal, WhatsApp, and Wireguard. Performance of this Dart
-      implementation is about 1k exchanges per second on Macbook Pro.
+    * X25519 is used in protocols such as SSH, TLS, Signal, WhatsApp, and Wireguard. Performance of
+      this Dart implementation is about 1k exchanges per second on Macbook Pro.
 
 For more more documentation, see [KeyExchangeAlgorithm](https://pub.dev/documentation/cryptography/latest/cryptography/KeyExchangeAlgorithm-class.html).
 
@@ -52,10 +51,10 @@ For more more documentation, see [SignatureAlgorithm](https://pub.dev/documentat
   * [aesGcm](https://pub.dev/documentation/cryptography/latest/cryptography/aesGcm-constant.html) (AES-GCM)
     * _Currently browser-only_
   * [chacha20](https://pub.dev/documentation/cryptography/latest/cryptography/chacha20-constant.html)
-    * Chacha20 is a symmetric encryption algorithm that's simpler than AES and may also perform
-      better than AES in CPUs that don't have AES instructions. The algorithm is used in protocols
-      such as TLS, SSH, Signal, and Wireguard. Performance of this Dart implementation is about
-      50-100MB/s on Macbook Pro.
+    * Chacha20 is a symmetric encryption algorithm that's simpler than AES and tends to perform
+      better than the latter in CPUs that don't have AES instructions. The algorithm is used in
+      protocols such as TLS, SSH, Signal, and Wireguard. Performance of this Dart implementation is
+      about 50-100MB/s on Macbook Pro.
   * [chacha20Poly1305Aead](https://pub.dev/documentation/cryptography/latest/cryptography/chacha20Poly1305Aead-constant.html) (AEAD_CHACHA20_POLY1305)
 
 For more more documentation, see [Cipher](https://pub.dev/documentation/cryptography/latest/cryptography/Cipher-class.html).

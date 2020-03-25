@@ -4,10 +4,17 @@
 # Overview
 This package gives you a vendor-agnostic API for accessing Key Management Service (KMS) products.
 Many operating systems and major cloud platforms (AWS, Azure, Google) offer such APIs.
+KMS adapters are subclasses of [Kms](https://pub.dev/documentation/kms/latest/kms/Kms-class.html).
 
-In browser, you can use [MemoryKms](https://pub.dev/documentation/kms/latest/kms/MemoryKms-class.html),
-which is our in-memory KMS that runs in all platforms. It uses cryptographic implementations in our
-sibling project, [package:cryptography](https://pub.dev/packages/cryptography).
+You may want to start with [MemoryKms](https://pub.dev/documentation/kms/latest/kms/MemoryKms-class.html),
+which works in all platforms. It uses cryptographic implementations in our sibling project,
+[package:cryptography](https://pub.dev/packages/cryptography).
+
+## Links
+  * [Github repository](https://github.com/dint-dev/cryptography)
+  * [Issue tracker](https://github.com/dint-dev/cryptography/issues)
+  * [Pub package](https://pub.dev/packages/kms)
+  * [API reference](https://pub.dev/documentation/kms/latest/)
 
 # Getting started
 ## 1.Add dependency
