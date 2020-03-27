@@ -14,33 +14,6 @@
 
 import 'package:cryptography/cryptography.dart';
 
-/// Generates [KeyPair] instances from seeds.
-///
-/// For example, [x25519] supports this seeds.
-abstract class SeedableKeyPairGenerator extends KeyPairGenerator {
-  int get defaultSeedLength;
-
-  const SeedableKeyPairGenerator();
-
-  @override
-  Future<KeyPair> generate() async {
-    return Future<KeyPair>(() => generateSync());
-  }
-
-  /// Generates a key pair from the seed bytes. The result is deterministic.
-  Future<KeyPair> generateFromSeed(PrivateKey seedKey) {
-    return Future<KeyPair>(() => generateFromSeedSync(seedKey));
-  }
-
-  /// Generates a key pair from the seed bytes. The result is deterministic.
-  KeyPair generateFromSeedSync(PrivateKey seedKey);
-
-  @override
-  KeyPair generateSync() {
-    return generateFromSeedSync(PrivateKey.randomBytes(defaultSeedLength));
-  }
-}
-
 /// Generates [KeyPair] instances.
 ///
 /// This is helper used by [KeyExchangeAlgorithm] and [SignatureAlgorithm]
@@ -56,17 +29,54 @@ abstract class SeedableKeyPairGenerator extends KeyPairGenerator {
 /// }
 /// ```
 abstract class KeyPairGenerator {
-  String get name;
+  const KeyPairGenerator();
 
   int get lengthInBytes => null;
 
-  const KeyPairGenerator();
+  String get name;
 
   /// Generates a random [KeyPair].
   Future<KeyPair> generate() async {
     return Future<KeyPair>(() => generateSync());
   }
 
+  /// Generates a key pair from the seed bytes. The result is deterministic.
+  Future<KeyPair> generateFromSeed(PrivateKey seedKey) {
+    return Future<KeyPair>(() => generateFromSeedSync(seedKey));
+  }
+
+  /// Generates a key pair from the seed bytes. The result is deterministic.
+  KeyPair generateFromSeedSync(PrivateKey seedKey) {
+    throw UnsupportedError('Seeds are unsupported');
+  }
+
   /// Generates a random [KeyPair].
   KeyPair generateSync();
+}
+
+/// Generates [KeyPair] instances from seeds.
+///
+/// For example, [x25519] supports this seeds.
+abstract class SeedableKeyPairGenerator extends KeyPairGenerator {
+  const SeedableKeyPairGenerator();
+
+  int get defaultSeedLength;
+
+  @override
+  Future<KeyPair> generate() async {
+    return Future<KeyPair>(() => generateSync());
+  }
+
+  @override
+  Future<KeyPair> generateFromSeed(PrivateKey seedKey) {
+    return Future<KeyPair>(() => generateFromSeedSync(seedKey));
+  }
+
+  @override
+  KeyPair generateFromSeedSync(PrivateKey seedKey);
+
+  @override
+  KeyPair generateSync() {
+    return generateFromSeedSync(PrivateKey.randomBytes(defaultSeedLength));
+  }
 }

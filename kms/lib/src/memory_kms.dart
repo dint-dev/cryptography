@@ -29,7 +29,7 @@ class MemoryKms extends KmsBase {
   };
   static const Map<CipherType, Cipher> defaultCiphers = {
     CipherType.aesCbc: aesCbc,
-    CipherType.aesCtr: aesCtr,
+    CipherType.aesCtr: aesCtr32,
     CipherType.aesGcm: aesGcm,
     CipherType.chacha20: chacha20,
   };

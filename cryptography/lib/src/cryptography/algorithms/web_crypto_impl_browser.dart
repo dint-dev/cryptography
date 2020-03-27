@@ -25,7 +25,7 @@ import 'web_crypto_bindings.dart' as web_crypto;
 
 const Cipher webAesCbc = _WebAesCbcCipher();
 
-const Cipher webAesCtr = _WebAesCtrCipher();
+const Cipher webAesCtr32 = _WebAesCtr32Cipher();
 
 const Cipher webAesGcm = _WebAesGcmCipher();
 
@@ -241,14 +241,14 @@ class _WebAesCbcCipher extends Cipher {
   }
 }
 
-class _WebAesCtrCipher extends Cipher {
-  const _WebAesCtrCipher();
+class _WebAesCtr32Cipher extends Cipher {
+  const _WebAesCtr32Cipher();
 
   @override
-  String get name => 'aesCtr';
+  String get name => 'aesCtr32';
 
   @override
-  int get nonceLength => 16;
+  int get nonceLength => 12;
 
   @override
   SecretKeyGenerator get secretKeyGenerator => _aesKeyGenerator;
@@ -278,14 +278,16 @@ class _WebAesCtrCipher extends Cipher {
         ['decrypt'],
       ),
     );
-    final counter = Uint8List.fromList(nonce.bytes.sublist(0, 16)).buffer;
-    ByteData.view(counter)..setUint32(8, 0)..setUint32(12, 0);
+    final counterBytes = Uint8List.fromList(nonce.bytes.sublist(0, 16));
+    counterBytes.setRange(0, 12, nonce.bytes);
+    final counterByteData = ByteData.view(counterBytes.buffer);
+    counterByteData.setUint32(12, offset, Endian.big);
     final byteBuffer = await js.promiseToFuture<ByteBuffer>(
       web_crypto.subtle.decrypt(
         web_crypto.AesCtrParams(
           name: 'AES-CTR',
-          counter: counter,
-          length: 64,
+          counter: counterBytes.buffer,
+          length: 32,
         ),
         cryptoKey,
         _jsArrayBufferFrom(input),
@@ -329,14 +331,16 @@ class _WebAesCtrCipher extends Cipher {
         ['encrypt'],
       ),
     );
-    final counter = Uint8List.fromList(nonce.bytes.sublist(0, 16)).buffer;
-    ByteData.view(counter)..setUint32(8, 0)..setUint32(12, 0);
+    final counterBytes = Uint8List.fromList(nonce.bytes.sublist(0, 16));
+    counterBytes.setRange(0, 12, nonce.bytes);
+    final counterByteData = ByteData.view(counterBytes.buffer);
+    counterByteData.setUint32(12, offset, Endian.big);
     final byteBuffer = await js.promiseToFuture<ByteBuffer>(
       web_crypto.subtle.encrypt(
         web_crypto.AesCtrParams(
           name: 'AES-CTR',
-          counter: counter,
-          length: 64,
+          counter: counterBytes.buffer,
+          length: 32,
         ),
         cryptoKey,
         _jsArrayBufferFrom(input),

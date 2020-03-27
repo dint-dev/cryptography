@@ -19,13 +19,13 @@ import 'package:cryptography/utils.dart';
 import 'package:meta/meta.dart';
 
 /// _X25519_ ([RFC 7748](https://tools.ietf.org/html/rfc7748)) key exchange
-/// algorithm.
+/// algorithm (ECDH with Curve25519).
 ///
 /// An example:
 /// ```dart
 /// import 'package:cryptography/cryptography.dart';
 ///
-/// void main() async {
+/// Future<void> main() async {
 ///   // Let's generate two keypairs.
 ///   final localKeyPair = await x25519.newKeyPair();
 ///   final remoteKeyPair = await x5519.newKeyPair();
@@ -37,7 +37,7 @@ import 'package:meta/meta.dart';
 ///   );
 /// }
 ///```
-const _X25519 x25519 = _X25519();
+const KeyExchangeAlgorithm x25519 = _X25519();
 
 void _pack256(Uint8List result, Int32List unpacked) {
   final byteData = ByteData.view(result.buffer, result.offsetInBytes, 32);

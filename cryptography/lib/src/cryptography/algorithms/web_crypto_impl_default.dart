@@ -15,13 +15,15 @@
 import 'package:cryptography/cryptography.dart';
 
 const Cipher webAesCbc = null;
-const Cipher webAesCtr = null;
+const Cipher webAesCtr32 = null;
 const Cipher webAesGcm = null;
 
 const KeyExchangeAlgorithm webEcdhP256 = null;
 const KeyExchangeAlgorithm webEcdhP384 = null;
 const KeyExchangeAlgorithm webEcdhP521 = null;
+const KeyExchangeAlgorithm webX25519 = null;
 
 const SignatureAlgorithm webEcdsaP256Sha256 = null;
 const SignatureAlgorithm webEcdsaP384Sha256 = null;
 const SignatureAlgorithm webEcdsaP521Sha256 = null;
+const SignatureAlgorithm webEd25519 = null;

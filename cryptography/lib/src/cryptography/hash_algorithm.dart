@@ -41,9 +41,15 @@ class Hash {
 /// Examples:
 ///   * [blake2s]
 ///   * [sha1]
-///   * [sha256]
-///   * [sha384]
-///   * [sha512]
+///   * [sha224] (SHA2-224)
+///   * [sha256] (SHA2-256)
+///   * [sha384] (SHA2-384)
+///   * [sha512] (SHA2-512)
+///   * [sha3V224] (SHA3-224)
+///   * [sha3V256] (SHA3-256)
+///   * [sha3V384] (SHA3-384)
+///   * [sha3V521] (SHA3-521)
+///
 abstract class HashAlgorithm {
   String get name;
 
@@ -55,12 +61,12 @@ abstract class HashAlgorithm {
 
   const HashAlgorithm();
 
-  /// Hashes the data.
+  /// Calculates hash for the input.
   Future<Hash> hash(List<int> input) {
     return Future<Hash>(() => hashSync(input));
   }
 
-  /// Hashes the data.
+  /// Synchronous version of [hash].
   Hash hashSync(List<int> input) {
     ArgumentError.checkNotNull(input);
     final sink = newSink();
@@ -79,10 +85,12 @@ abstract class HashSink implements ByteConversionSink {
     addSlice(chunk, 0, chunk.length, false);
   }
 
+  /// Closes the sink and calculates hash for all added bytes.
   @override
   Future<Hash> close() {
     return Future<Hash>(() => closeSync());
   }
 
+  /// Synchronous version of [close].
   Hash closeSync();
 }

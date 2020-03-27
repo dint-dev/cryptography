@@ -2,14 +2,15 @@
 [![Github Actions CI](https://github.com/dint-dev/cryptography/workflows/Dart%20CI/badge.svg)](https://github.com/dint-dev/cryptography/actions?query=workflow%3A%22Dart+CI%22)
 
 # Overview
-This package gives you a collection of cryptographic algorithms.
+Popular cryptographic algorithms implemented in Dart.
 
-Some algorithms are implemented in pure Dart and work in all platforms. Some algorithms are
-implemented with [Web Cryptography API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API)
-and work only in the browsers at the moment.
+We also recommend you to consider [package:kms](https://pub.dev/packages/kms), which enables you to
+take advantage of hardware-based key managers as well as dedicated cloud services.
 
-This package is used by [package:kms](https://pub.dev/packages/kms), which enables you to take
-advantage of hardware-based key managers that are isolated from the main processor.
+In browsers, the package takes advantage of [Web Cryptography API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API)
+whenever possible, which should improve security and code size. Some algorithms are implemented
+using [package:crypto](https://pub.dev/packages/crypto) (BSD-style license) or
+[package:pointycastle](https://pub.dev/packages/pointycastle) (MPL 3.0 license).
 
 Copyright 2019 Gohilla Ltd. Licensed under the [Apache License 2.0](LICENSE).
 
@@ -21,35 +22,45 @@ Copyright 2019 Gohilla Ltd. Licensed under the [Apache License 2.0](LICENSE).
 
 ## Available algorithms
 ### Key exchange algorithms
-  * [ecdhP256](https://pub.dev/documentation/cryptography/latest/cryptography/ecdhP256-constant.html) (ECDH P256)
-    * _Currently browser-only_
-  * [ecdhP384](https://pub.dev/documentation/cryptography/latest/cryptography/ecdhP384-constant.html) (ECDH P384)
-    * _Currently browser-only_
-  * [ecdhP521](https://pub.dev/documentation/cryptography/latest/cryptography/ecdhP521-constant.html) (ECDH P521)
-    * _Currently browser-only_
-  * [x25519](https://pub.dev/documentation/cryptography/latest/cryptography/x25519-constant.html) (ECDH Curve25519)
+  * [ecdhP256](https://pub.dev/documentation/cryptography/latest/cryptography/ecdhP256-constant.html) (ECDH P256/secp256r1)
+    * In browsers, the implementation takes advantage of _Web Cryptography API_.
+    * In other platforms, throws _UnsupportedError_.
+  * [ecdhP384](https://pub.dev/documentation/cryptography/latest/cryptography/ecdhP384-constant.html) (ECDH P384/secp384r1)
+    * In browsers, the implementation takes advantage of _Web Cryptography API_.
+    * In other platforms, throws _UnsupportedError_.
+  * [ecdhP521](https://pub.dev/documentation/cryptography/latest/cryptography/ecdhP521-constant.html) (ECDH P521/secp521r1)
+    * In browsers, the implementation takes advantage of _Web Cryptography API_.
+    * In other platforms, throws _UnsupportedError_.
+  * [x25519](https://pub.dev/documentation/cryptography/latest/cryptography/x25519-constant.html) (A curve25519-based specification)
     * X25519 is used in protocols such as SSH, TLS, Signal, WhatsApp, and Wireguard. Performance of
       this Dart implementation is about 1k exchanges per second on Macbook Pro.
 
 For more more documentation, see [KeyExchangeAlgorithm](https://pub.dev/documentation/cryptography/latest/cryptography/KeyExchangeAlgorithm-class.html).
 
 ### Digital signature algorithms
-  * [ecdsaP256](https://pub.dev/documentation/cryptography/latest/cryptography/ecdsaP256-constant.html) (ECDSA P256)
-    * _Currently browser-only_
-  * [ecdsaP384](https://pub.dev/documentation/cryptography/latest/cryptography/ecdsaP384-constant.html) (ECDSA P384)
-    * _Currently browser-only_
-  * [ecdsaP521](https://pub.dev/documentation/cryptography/latest/cryptography/ecdsaP521-constant.html) (ECDSA P521)
-    * _Currently browser-only_
+  * [ecdsaP256Sha256](https://pub.dev/documentation/cryptography/latest/cryptography/ecdsaP256Sha256-constant.html) (ECDSA P256/secp256r1 with SHA256)
+    * In browsers, the implementation takes advantage of _Web Cryptography API_.
+    * In other platforms, throws _UnsupportedError_.
+  * [ecdsaP384Sha256](https://pub.dev/documentation/cryptography/latest/cryptography/ecdsaP384Sha256-constant.html) (ECDSA P384/secp384r1 with SHA256)
+    * In browsers, the implementation takes advantage of _Web Cryptography API_.
+    * In other platforms, throws _UnsupportedError_.
+  * [ecdsaP521Sha256](https://pub.dev/documentation/cryptography/latest/cryptography/ecdsaP521Sha256-constant.html) (ECDSA P521/secp521r1 with SHA256)
+    * In browsers, the implementation takes advantage of _Web Cryptography API_.
+    * In other platforms, throws _UnsupportedError_.
+  * [ed25519](https://pub.dev/documentation/cryptography/latest/cryptography/ed25519-constant.html)
 
 For more more documentation, see [SignatureAlgorithm](https://pub.dev/documentation/cryptography/latest/cryptography/SignatureAlgorithm-class.html).
 
 ### Ciphers
   * [aesCbc](https://pub.dev/documentation/cryptography/latest/cryptography/aesCbc-constant.html) (AES-CBC)
-    * _Currently browser-only_
-  * [aesCtr](https://pub.dev/documentation/cryptography/latest/cryptography/aesCtr-constant.html) (AES-CTR)
-    * _Currently browser-only_
+    * In browsers, the implementation takes advantage of _Web Cryptography API_.
+    * In other platforms, the implementation uses _package:pointycastle_.
+  * [aesCtr32](https://pub.dev/documentation/cryptography/latest/cryptography/aesCtr32-constant.html) (AES-CTR, 96-bit nonce, 32-bit counter)
+    * In browsers, the implementation takes advantage of _Web Cryptography API_.
+    * In other platforms, the implementation uses _package:pointycastle_.
   * [aesGcm](https://pub.dev/documentation/cryptography/latest/cryptography/aesGcm-constant.html) (AES-GCM)
-    * _Currently browser-only_
+    * In browsers, the implementation takes advantage of _Web Cryptography API_.
+    * In other platforms, throws _UnsupportedError_.
   * [chacha20](https://pub.dev/documentation/cryptography/latest/cryptography/chacha20-constant.html)
     * Chacha20 is a symmetric encryption algorithm that's simpler than AES and tends to perform
       better than the latter in CPUs that don't have AES instructions. The algorithm is used in
@@ -61,26 +72,34 @@ For more more documentation, see [Cipher](https://pub.dev/documentation/cryptogr
 
 ### Message authentication codes
   * [Hmac](https://pub.dev/documentation/cryptography/latest/cryptography/Hmac-class.html)
-    * HMAC-SHA256 is a widely used message authentication code.
+    * HMAC is a widely used message authentication code.
   * [poly1305](https://pub.dev/documentation/cryptography/latest/cryptography/poly1305-constant.html)
-    * Often used with Chacha20. The current implementation uses BigInt instead of optimized 128bit
-      arithmetic, which is a known issue.
+    * The current implementation uses BigInt instead of optimized 128bit arithmetic, which is a
+      known issue.
 
 For more more documentation, see [MacAlgorithm](https://pub.dev/documentation/cryptography/latest/cryptography/MacAlgorithm-class.html).
 
 ### Cryptographic hash functions
-  * [blake2s](https://pub.dev/documentation/cryptography/latest/cryptography/blake2s-constant.html)
+  * [blake2s](https://pub.dev/documentation/cryptography/latest/cryptography/blake2s-constant.html) (BLAKE2S)
     * Blake2 is used in protocols such as WhatsApp and WireGuard.
-  * [sha1](https://pub.dev/documentation/cryptography/latest/cryptography/sha1-constant.html)
-    * Implemented with [package:crypto](https://pub.dev/packages/crypto).
-  * [sha224](https://pub.dev/documentation/cryptography/latest/cryptography/sha224-constant.html)
-    * Implemented with [package:crypto](https://pub.dev/packages/crypto).
-  * [sha256](https://pub.dev/documentation/cryptography/latest/cryptography/sha256-constant.html)
-    * Implemented with [package:crypto](https://pub.dev/packages/crypto).
-  * [sha384](https://pub.dev/documentation/cryptography/latest/cryptography/sha384-constant.html)
-    * Implemented with [package:crypto](https://pub.dev/packages/crypto).
-  * [sha512](https://pub.dev/documentation/cryptography/latest/cryptography/sha512-constant.html)
-    * Implemented with [package:crypto](https://pub.dev/packages/crypto).
+  * [sha1](https://pub.dev/documentation/cryptography/latest/cryptography/sha1-constant.html) (SHA1)
+    * The implementation uses _package:crypto_.
+  * [sha224](https://pub.dev/documentation/cryptography/latest/cryptography/sha224-constant.html) (SHA2-224)
+    * The implementation uses _package:crypto_.
+  * [sha256](https://pub.dev/documentation/cryptography/latest/cryptography/sha256-constant.html) (SHA2-256)
+    * The implementation uses _package:crypto_.
+  * [sha384](https://pub.dev/documentation/cryptography/latest/cryptography/sha384-constant.html) (SHA2-384)
+    * The implementation uses _package:crypto_.
+  * [sha512](https://pub.dev/documentation/cryptography/latest/cryptography/sha512-constant.html) (SHA2-512)
+    * The implementation uses _package:crypto_.
+  * [sha3V224](https://pub.dev/documentation/cryptography/latest/cryptography/sha3V224-constant.html) (SHA3-224)
+    * The implementation uses _package:pointycastle_.
+  * [sha3V256](https://pub.dev/documentation/cryptography/latest/cryptography/sha3V256-constant.html) (SHA3-256)
+    * The implementation uses _package:pointycastle_.
+  * [sha3V384](https://pub.dev/documentation/cryptography/latest/cryptography/sha3V384-constant.html) (SHA3-384)
+    * The implementation uses _package:pointycastle_.
+  * [sha3V512](https://pub.dev/documentation/cryptography/latest/cryptography/sha3V512-constant.html) (SHA3-521)
+    * The implementation uses _package:pointycastle_.
 
 For more more documentation, see [HashAlgorithm](https://pub.dev/documentation/cryptography/latest/cryptography/HashAlgorithm-class.html).
 
@@ -89,7 +108,7 @@ For more more documentation, see [HashAlgorithm](https://pub.dev/documentation/c
 ## 1. Add dependency
 ```yaml
 dependencies:
-  cryptography: ^0.2.4
+  cryptography: ^0.2.5
 ```
 
 ## 2. Use
@@ -122,7 +141,7 @@ In this example, we use [x25519](https://pub.dev/documentation/cryptography/late
 ```dart
 import 'package:cryptography/cryptography.dart';
 
-void main() async {
+Future<void> main() async {
   // Let's generate two keypairs.
   final localKeyPair = await x25519.newKeyPair();
   final remoteKeyPair = await x5519.newKeyPair();

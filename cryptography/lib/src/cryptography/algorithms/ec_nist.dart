@@ -13,8 +13,17 @@
 // limitations under the License.
 
 import 'package:cryptography/cryptography.dart';
+import 'package:cryptography/src/utils/hex.dart';
 
+import 'package:pointycastle/api.dart' as pointycastle;
+import 'package:pointycastle/ecc/api.dart' as pointycastle;
+import 'package:pointycastle/digests/sha256.dart' as pointycastle;
+import 'package:pointycastle/ecc/curves/secp256r1.dart' as pointycastle;
+import 'package:pointycastle/signers/ecdsa_signer.dart' as pointycastle;
+import 'package:pointycastle/key_generators/ec_key_generator.dart'
+    as pointycastle;
 import 'web_crypto.dart';
+import 'dart:typed_data';
 
 /// _NIST P-256_ Elliptic Curve Diffie-Hellman (ECDH) key exchange algorithm.
 /// Currently supported __only in the browser.__
@@ -23,7 +32,7 @@ import 'web_crypto.dart';
 /// ```
 /// import 'package:cryptography/cryptography.dart';
 ///
-/// void main() async {
+/// Future<void> main() async {
 ///   final algorithm = ecdhP256;
 ///   final localKeyPair = await algorithm.keyPairGenerator.generate();
 ///   final remoteKeyPair = await algorithm.keyPairGenerator.generate();
@@ -43,7 +52,7 @@ const KeyExchangeAlgorithm ecdhP256 =
 /// ```
 /// import 'package:cryptography/cryptography.dart';
 ///
-/// void main() async {
+/// Future<void> main() async {
 ///   final algorithm = ecdhP384;
 ///   final localKeyPair = await algorithm.keyPairGenerator.generate();
 ///   final remoteKeyPair = await algorithm.keyPairGenerator.generate();
@@ -63,7 +72,7 @@ const KeyExchangeAlgorithm ecdhP384 =
 /// ```
 /// import 'package:cryptography/cryptography.dart';
 ///
-/// void main() async {
+/// Future<void> main() async {
 ///   final algorithm = ecdhP521;
 ///   final localKeyPair = await algorithm.keyPairGenerator.generate();
 ///   final remoteKeyPair = await algorithm.keyPairGenerator.generate();
@@ -81,10 +90,10 @@ const KeyExchangeAlgorithm ecdhP521 =
 ///
 /// An example:
 /// ```
-/// import 'package:cryptograhy/cryptography.dart';
+/// import 'package:cryptography/cryptography.dart';
 ///
-/// void main() async {
-///   final algorithm = ecdsaP256;
+/// Future<void> main() async {
+///   final algorithm = ecdsaP256Sha256;
 ///   final keyPair = algorithm.keyPairGenerator.generateSync();
 ///   final signature = await algorithm.sign([1,2,3], keyPair);
 ///
@@ -102,10 +111,10 @@ const SignatureAlgorithm ecdsaP256Sha256 =
 ///
 /// An example:
 /// ```
-/// import 'package:cryptograhy/cryptography.dart';
+/// import 'package:cryptography/cryptography.dart';
 ///
-/// void main() async {
-///   final algorithm = ecdsaP384;
+/// Future<void> main() async {
+///   final algorithm = ecdsaP384Sha256;
 ///   final keyPair = algorithm.keyPairGenerator.generateSync();
 ///   final signature = await algorithm.sign([1,2,3], keyPair);
 ///
@@ -121,10 +130,10 @@ const SignatureAlgorithm ecdsaP384Sha256 =
 ///
 /// An example:
 /// ```
-/// import 'package:cryptograhy/cryptography.dart';
+/// import 'package:cryptography/cryptography.dart';
 ///
-/// void main() async {
-///   final algorithm = ecdsaP511;
+/// Future<void> main() async {
+///   final algorithm = ecdsaP521Sha256;
 ///   final keyPair = algorithm.keyPairGenerator.generateSync();
 ///   final signature = await algorithm.sign([1,2,3], keyPair);
 ///

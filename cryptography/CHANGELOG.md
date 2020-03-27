@@ -1,3 +1,8 @@
+## 0.2.5
+  * Adds AES for non-browser platforms.
+  * Adds SHA3.
+  * Fixes various bugs and improves test coverage.
+
 ## 0.2.4
   * Improves documentation.
 

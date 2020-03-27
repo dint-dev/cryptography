@@ -26,6 +26,7 @@ import 'package:meta/meta.dart';
 abstract class MacAlgorithm {
   const MacAlgorithm();
 
+  /// Calculates message authentication code for the input.
   Future<Mac> calculateMac(List<int> input, {@required SecretKey secretKey}) {
     return Future<Mac>.value(calculateMacSync(
       input,
@@ -33,6 +34,7 @@ abstract class MacAlgorithm {
     ));
   }
 
+  /// Synchronous version of [calculateMac].
   Mac calculateMacSync(List<int> input, {@required SecretKey secretKey}) {
     ArgumentError.checkNotNull(input);
     ArgumentError.checkNotNull(secretKey);
@@ -41,6 +43,8 @@ abstract class MacAlgorithm {
     return sink.closeSync();
   }
 
+  /// Returns a sink that can be used for calculating Mac for byte streams
+  /// without keeping everything in the memory.
   MacSink newSink({@required SecretKey secretKey});
 }
 
@@ -51,11 +55,13 @@ abstract class MacSink implements ByteConversionSink {
     addSlice(chunk, 0, chunk.length, false);
   }
 
+  /// Closes the sink and returns the calculated [Mac].
   @override
   Future<Mac> close() {
     return Future<Mac>(() => closeSync());
   }
 
+  /// Synchronous version of [close].
   Mac closeSync();
 }
 

@@ -24,17 +24,21 @@ import 'package:meta/meta.dart';
 ///   * [x25519]
 ///
 /// An example:
-/// ```
+/// ```dart
 /// import 'package:cryptography/cryptography.dart';
 ///
-/// void main() async {
-///   final keyPair = x25519.keyPairGenerator.generateSync();
-///   final sharedKey = await ecdsaP256.sign([1,2,3], keyPair);
+/// Future<void> main() async {
+///   // Let's generate two keypairs.
+///   final localKeyPair = await x25519.newKeyPair();
+///   final remoteKeyPair = await x5519.newKeyPair();
 ///
-///   // Anyone can verify the signature
-///   final isVerified = await ecdsaP256.verify([1,2,3], signature);
+///   // We can now calculate a shared secret
+///   var sharedSecret = await x25519.sharedSecret(
+///     localPrivateKey: localKeyPair.privateKey,
+///     remotePublicKey: remoteKeyPair.publicKey,
+///   );
 /// }
-/// ```
+///```
 abstract class KeyExchangeAlgorithm {
   const KeyExchangeAlgorithm();
 

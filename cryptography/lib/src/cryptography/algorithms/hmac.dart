@@ -23,14 +23,13 @@ import 'package:meta/meta.dart';
 /// ```
 /// import 'package:cryptography/cryptography.dart';
 ///
-/// void main() {
-///   final algorithm = const Hmac(sha256);
-///   final mac = algorithm.calculateMac(
+/// Future<void> main() async {
+///   final secretKey = SecretKey([1,2,3]);
+///
+///   final mac = await Hmac(sha256).calculateMac(
 ///     [1,2,3],
-///     secretKey: SecretKey([1,2,3]),
+///     secretKey: secretKey),
 ///   );
-///   sink.add(<int>[1,2,3]);
-///   final hash = sink.closeSync();
 /// }
 /// ```
 class Hmac extends MacAlgorithm {

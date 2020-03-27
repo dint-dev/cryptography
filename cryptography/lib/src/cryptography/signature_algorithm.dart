@@ -49,13 +49,14 @@ class Signature {
 ///   * [ecdsaP256Sha256]
 ///   * [ecdsaP384Sha256]
 ///   * [ecdsaP521Sha256]
+///   * [ed25519]
 ///
 /// An example:
 /// ```
 /// import 'package:cryptography/cryptography.dart';
 ///
-/// void main() async {
-///   final keyPair = await ecdsaP256.keyPairGenerator.generate();
+/// Future<void> main() async {
+///   final keyPair = await ecdsaP256.newKeyPair();
 ///   final signature = await ecdsaP256.sign([1,2,3], keyPair);
 ///
 ///   // Anyone can verify the signature

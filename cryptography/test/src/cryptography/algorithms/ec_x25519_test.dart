@@ -19,7 +19,7 @@ import 'package:cryptography/utils.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group('X25519:', () {
+  group('x25519:', () {
     test('Test vectors from RFC 7748', () async {
       // -----------------------------------------------------------------------
       // The following constants are from RFC 7748:

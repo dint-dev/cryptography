@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import 'package:cryptography/cryptography.dart';
+import 'package:cryptography/src/utils/hex.dart';
 import 'package:test/test.dart';
 
 void main() {
