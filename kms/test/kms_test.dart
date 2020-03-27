@@ -29,8 +29,8 @@ void main() {
     });
 
     test('KmsKey.random()', () {
-      final key0 = KmsKey.random();
-      final key1 = KmsKey.random();
+      final key0 = KmsKey.random(keyRingId: 'example');
+      final key1 = KmsKey.random(keyRingId: 'example');
       expect(key0, isNot(key1));
       expect(key0.id.length, 32);
       expect(key1.id.length, 32);
@@ -49,7 +49,7 @@ void main() {
       test('simple case', () async {
         final kmsKey = await kms.createKeyPair(
           keyRingId: 'exampleKeyRingId',
-          keyExchangeType: KeyExchangeType.ecdhCurve25519,
+          keyExchangeType: KeyExchangeType.x25519,
           signatureType: null,
         );
         expect(kmsKey.keyRingId, 'exampleKeyRingId');
@@ -60,7 +60,7 @@ void main() {
       test('with predefined key', () async {
         final kmsKey = await kms.createKeyPair(
           keyRingId: 'exampleKeyRingId',
-          keyExchangeType: KeyExchangeType.ecdhCurve25519,
+          keyExchangeType: KeyExchangeType.x25519,
           signatureType: null,
           id: 'exampleId',
         );
@@ -72,7 +72,7 @@ void main() {
         final f = () {
           return kms.createKeyPair(
             keyRingId: 'keyRingId',
-            keyExchangeType: KeyExchangeType.ecdhCurve25519,
+            keyExchangeType: KeyExchangeType.x25519,
             signatureType: null,
             id: 'id',
           );
@@ -89,7 +89,7 @@ void main() {
         final f = () {
           return kms.createKeyPair(
             keyRingId: 'keyRingId',
-            keyExchangeType: KeyExchangeType.ecdhCurve25519,
+            keyExchangeType: KeyExchangeType.x25519,
             signatureType: null,
             id: 'id',
           );
@@ -107,7 +107,7 @@ void main() {
         await expectLater(
           kms.createKeyPair(
             keyRingId: null,
-            keyExchangeType: KeyExchangeType.ecdhCurve25519,
+            keyExchangeType: KeyExchangeType.x25519,
             signatureType: null,
           ),
           throwsArgumentError,
@@ -129,7 +129,7 @@ void main() {
         await expectLater(
           kms.createKeyPair(
             keyRingId: 'example',
-            keyExchangeType: KeyExchangeType.ecdhCurve25519, // Curve25519
+            keyExchangeType: KeyExchangeType.x25519, // Curve25519
             signatureType: SignatureType.ecdsaP384Sha384, // P384
           ),
           throwsArgumentError,
@@ -221,7 +221,7 @@ void main() {
       test('two keys', () async {
         final key0 = await kms.createKeyPair(
           keyRingId: 'example',
-          keyExchangeType: KeyExchangeType.ecdhCurve25519,
+          keyExchangeType: KeyExchangeType.x25519,
           signatureType: null,
         );
         final key1 = await kms.createSecretKey(
@@ -251,7 +251,7 @@ void main() {
       test('succeeds for key pairs', () async {
         final kmsKey = await kms.createKeyPair(
           keyRingId: 'example',
-          keyExchangeType: KeyExchangeType.ecdhCurve25519,
+          keyExchangeType: KeyExchangeType.x25519,
           signatureType: null,
         );
         await expectLater(kms.getPublicKey(kmsKey), isNotNull);
@@ -341,14 +341,14 @@ void main() {
         //
         final kmsKey0 = await kms.createKeyPair(
           keyRingId: 'example',
-          keyExchangeType: KeyExchangeType.ecdhCurve25519,
+          keyExchangeType: KeyExchangeType.x25519,
           signatureType: null,
         );
         expect(kmsKey0, isNotNull);
 
         final kmsKey1 = await kms.createKeyPair(
           keyRingId: 'example',
-          keyExchangeType: KeyExchangeType.ecdhCurve25519,
+          keyExchangeType: KeyExchangeType.x25519,
           signatureType: null,
         );
         expect(kmsKey1, isNotNull);
@@ -493,7 +493,7 @@ void main() {
 
         final kmsKey = await kms.createSecretKey(
           keyRingId: 'example',
-          cipherType: CipherType.aesCtr,
+          cipherType: CipherType.aesCtr32,
         );
         expect(kmsKey, isNotNull);
 

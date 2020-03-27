@@ -18,18 +18,23 @@ import 'package:meta/meta.dart';
 
 /// An in-memory implementation of [Kms].
 class MemoryKms extends KmsBase {
+  /// Key exchange algorithms supported by default.
   static const Map<KeyExchangeType, KeyExchangeAlgorithm>
       defaultKeyExchangeAlgorithms = {
     KeyExchangeType.ecdhP256: ecdhP256,
-    KeyExchangeType.ecdhCurve25519: x25519,
+    KeyExchangeType.x25519: x25519,
   };
+
+  /// Digital signature algorithms supported by default.
   static const Map<SignatureType, SignatureAlgorithm>
       defaultSignatureAlgorithms = {
     SignatureType.ecdsaP256Sha256: ecdsaP256Sha256,
   };
+
+  /// Ciphers supported by default.
   static const Map<CipherType, Cipher> defaultCiphers = {
     CipherType.aesCbc: aesCbc,
-    CipherType.aesCtr: aesCtr32,
+    CipherType.aesCtr32: aesCtr32,
     CipherType.aesGcm: aesGcm,
     CipherType.chacha20: chacha20,
   };
@@ -41,6 +46,9 @@ class MemoryKms extends KmsBase {
 
   final Map<CipherType, Cipher> ciphers;
 
+  /// Constructs a new KMS.
+  ///
+  /// You can optionally define algorithms supported by this KMS.
   MemoryKms({
     this.keyExchangeAlgorithms = defaultKeyExchangeAlgorithms,
     this.signatureAlgorithms = defaultSignatureAlgorithms,

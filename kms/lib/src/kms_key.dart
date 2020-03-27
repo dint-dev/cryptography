@@ -40,8 +40,9 @@ class KmsKey {
   @override
   String toString() => 'CryptoKey(keyRingId:"$keyRingId", id:"$id")';
 
-  static KmsKey random({String keyRingId}) {
-    keyRingId ??= 'default';
+  /// Returns a key with random [id].
+  static KmsKey random({@required String keyRingId}) {
+    ArgumentError.checkNotNull(keyRingId);
     final id = _randomString(16);
     return KmsKey(keyRingId: keyRingId, id: id);
   }
@@ -54,28 +55,4 @@ class KmsKey {
     }
     return sb.toString();
   }
-}
-
-class KmsKeyQuery {
-  final String collectionId;
-  const KmsKeyQuery({this.collectionId});
-
-  bool matches(KmsKey kmsKey) {
-    final collectionId = this.collectionId;
-    if (collectionId != null) {
-      final argumentCollectionId = kmsKey.keyRingId;
-      if (argumentCollectionId == null ||
-          argumentCollectionId != collectionId) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  @override
-  bool operator ==(other) =>
-      other is KmsKeyQuery && collectionId == other.collectionId;
-
-  @override
-  int get hashCode => collectionId.hashCode;
 }

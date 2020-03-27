@@ -15,10 +15,11 @@
 /// A vendor-agnostic API for using Key Management Service (KMS) products/APIs.
 library kms;
 
-export 'src/kms_base.dart';
-export 'src/kms.dart';
-export 'src/kms_key.dart';
-export 'src/memory_kms.dart';
-
 export 'package:cryptography/cryptography.dart'
     show PublicKey, SecretKey, Nonce;
+
+export 'src/kms.dart';
+export 'src/kms_base.dart';
+export 'src/kms_key.dart';
+export 'src/kms_key_query.dart';
+export 'src/memory_kms.dart';

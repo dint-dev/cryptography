@@ -21,7 +21,7 @@ which works in all platforms. It uses cryptographic implementations in our sibli
 In _pubspec.yaml_:
 ```yaml
 dependencies:
-  kms: ^0.1.0
+  kms: ^0.2.0
 ```
 
 ## 2.Use

@@ -21,8 +21,8 @@ enum CipherType {
   /// AES-CBC.
   aesCbc,
 
-  /// AES-CTR.
-  aesCtr,
+  /// AES-CTR with a 96-bit nonce and a 32-bit counter.
+  aesCtr32,
 
   /// AES-GCM.
   aesGcm,
@@ -42,8 +42,8 @@ enum KeyExchangeType {
   /// ECDH with P521.
   ecdhP521,
 
-  /// ECDH with Curve25519.
-  ecdhCurve25519,
+  /// X25519.
+  x25519,
 }
 
 /// A Key Management Service (KMS).
@@ -149,4 +149,7 @@ enum SignatureType {
 
   /// ECDSA with Curve25519 + SHA256.
   ecdsaCurve25519Sha256,
+
+  /// Ed25519.
+  ed25519,
 }
