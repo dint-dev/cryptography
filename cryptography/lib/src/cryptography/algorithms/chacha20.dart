@@ -85,7 +85,7 @@ class _Chacha20 extends SyncKeyStreamCipher {
     );
     final state = _Chacha20State(this);
     state.initialize(
-      key: secretKey.bytes,
+      key: secretKey.extractSync(),
       nonce: nonce.bytes,
       keyStreamIndex: keyStreamIndex,
     );

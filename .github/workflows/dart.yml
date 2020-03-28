@@ -13,6 +13,6 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: Install dependencies
-        run: ./get_dependencies.sh
+        run: ./all.sh pub get
       - name: Run tests
-        run: ./test_in_vm.sh
+        run: ./all.sh pub run test --platform=vm

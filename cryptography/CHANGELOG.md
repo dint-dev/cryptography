@@ -1,3 +1,9 @@
+## 0.2.6
+  * Fixed an issue with dependency constraints that conflict with Flutter SDK.
+  * PrivateKey / SecretKey property `bytes` is deprecated and replaced with `extract()` and
+    `extractSync()` to better support implementations that protect the underlying bytes.
+  * Improves documentation.
+
 ## 0.2.5
   * Adds AES for non-browser platforms.
   * Adds SHA3.

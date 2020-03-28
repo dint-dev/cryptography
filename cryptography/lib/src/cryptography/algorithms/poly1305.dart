@@ -41,7 +41,7 @@ class _Poly1305 extends MacAlgorithm {
   @override
   MacSink newSink({@required SecretKey secretKey}) {
     ArgumentError.checkNotNull(secretKey);
-    final secretKeyBytes = secretKey.bytes;
+    final secretKeyBytes = secretKey.extractSync();
     final r = _Poly1305Sink._bytesToBigInt(secretKeyBytes, 0, 16);
     final p = _Poly1305Sink._bytesToBigInt(secretKeyBytes, 16, 32);
     return _Poly1305Sink(r, p);

@@ -10,6 +10,10 @@ You may want to start with [MemoryKms](https://pub.dev/documentation/kms/latest/
 which works in all platforms. It uses cryptographic implementations in our sibling project,
 [package:cryptography](https://pub.dev/packages/cryptography).
 
+Copyright 2020 Gohilla Ltd. Licensed under the [Apache License 2.0](LICENSE).
+
+Issue reports and pull requests are welcome.
+
 ## Links
   * [Github repository](https://github.com/dint-dev/cryptography)
   * [Issue tracker](https://github.com/dint-dev/cryptography/issues)

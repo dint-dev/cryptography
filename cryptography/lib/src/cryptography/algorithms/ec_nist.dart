@@ -13,17 +13,8 @@
 // limitations under the License.
 
 import 'package:cryptography/cryptography.dart';
-import 'package:cryptography/src/utils/hex.dart';
 
-import 'package:pointycastle/api.dart' as pointycastle;
-import 'package:pointycastle/ecc/api.dart' as pointycastle;
-import 'package:pointycastle/digests/sha256.dart' as pointycastle;
-import 'package:pointycastle/ecc/curves/secp256r1.dart' as pointycastle;
-import 'package:pointycastle/signers/ecdsa_signer.dart' as pointycastle;
-import 'package:pointycastle/key_generators/ec_key_generator.dart'
-    as pointycastle;
 import 'web_crypto.dart';
-import 'dart:typed_data';
 
 /// _NIST P-256_ Elliptic Curve Diffie-Hellman (ECDH) key exchange algorithm.
 /// Currently supported __only in the browser.__

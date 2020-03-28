@@ -25,14 +25,14 @@ import 'package:cryptography/utils.dart';
 /// // Generates a random 256-bit key.
 /// final secretKey = SecretKey.randomBytes(32);
 /// ```
-class SecretKey {
+abstract class SecretKey {
   static final _random = Random.secure();
 
-  /// Bytes of the key. May be null.
-  final List<int> bytes;
-
   /// Constructs a secret key on the heap.
-  SecretKey(this.bytes) : assert(bytes != null);
+  const factory SecretKey(List<int> bytes) = _SecretKey;
+
+  /// Constructor for subclasses.
+  const SecretKey.constructor();
 
   /// Generates N random bytes.
   ///
@@ -46,23 +46,64 @@ class SecretKey {
     return SecretKey(data);
   }
 
+  @Deprecated('Use `extractSync()` instead')
+  List<int> get bytes => extractSync();
+
+  /// Extracts the bytes asynchronously. The returned byte list should be
+  /// treated as immutable.
+  ///
+  /// This method is recommended over [extractSync] because some underlying
+  /// implementations, such as Web Cryptography API, do not support synchronous
+  /// extraction.
+  ///
+  /// Throws [UnsupportedError] if extraction is forbidden.
+  Future<List<int>> extract() {
+    return Future<List>.value(extractSync());
+  }
+
+  /// Extracts the bytes synchronously. The returned byte list should be
+  /// treated as immutable.
+  ///
+  /// Throws [UnsupportedError] if extraction
+  /// is forbidden or synchronous extraction is not supported by the underlying
+  /// implementation.
+  List<int> extractSync();
+}
+
+class _SecretKey extends SecretKey {
+  final List<int> _bytes;
+
+  const _SecretKey(this._bytes)
+      : assert(_bytes != null),
+        super.constructor();
+
   @override
   int get hashCode {
-    /// Exposes maximum 16 bits of the key.
     var h = 0;
-    final bytes = this.bytes;
+    final bytes = _bytes;
     for (var i = 0; i < bytes.length; i++) {
       final b = bytes[i];
-      h ^= (b << (i % 16)) ^ (b >> (16 - (i % 16)));
+
+      // Exposes at most 31 bits
+      h = 0x7FFFFFFF & ((31 * h) ^ b);
     }
+
+    // For short values, expose max 15 bits.
+    if (bytes.length < 8) {
+      h = 0x7FFF & h;
+    }
+
     return h;
   }
 
   @override
   bool operator ==(other) {
-    return other is SecretKey &&
-        constantTimeBytesEquality.equals(bytes, other.bytes);
+    return other is _SecretKey &&
+        constantTimeBytesEquality.equals(_bytes, other._bytes);
   }
+
+  @override
+  List<int> extractSync() => _bytes;
 
   @override
   String toString() => 'SecretKey(...)';

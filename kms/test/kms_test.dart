@@ -319,7 +319,7 @@ void main() {
         //
         final sharedSecret0 = await kms.sharedSecret(kmsKey0, publicKey1);
         final sharedSecret1 = await kms.sharedSecret(kmsKey1, publicKey0);
-        expect(sharedSecret0.bytes, hasLength(32));
+        expect(sharedSecret0.extractSync(), hasLength(32));
         expect(sharedSecret0, sharedSecret1);
 
         //
@@ -369,7 +369,7 @@ void main() {
         //
         final sharedSecret0 = await kms.sharedSecret(kmsKey0, publicKey1);
         final sharedSecret1 = await kms.sharedSecret(kmsKey1, publicKey0);
-        expect(sharedSecret0.bytes, hasLength(32));
+        expect(sharedSecret0.extractSync(), hasLength(32));
         expect(sharedSecret0, sharedSecret1);
 
         //

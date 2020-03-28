@@ -1,0 +1,8 @@
+name: example
+dependencies:
+  kms:
+    path: '..'
+
+dependency_overrides:
+  cryptography:
+    path: '../../cryptography'

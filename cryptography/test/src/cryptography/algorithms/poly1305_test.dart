@@ -77,8 +77,8 @@ void main() {
         nonce: nonce,
       );
       expect(
-        hexFromBytes(poly1305Key.bytes),
-        hexFromBytes(expectedPoly1305Key.bytes),
+        hexFromBytes(poly1305Key.extractSync()),
+        hexFromBytes(expectedPoly1305Key.extractSync()),
       );
     });
   });

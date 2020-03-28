@@ -21,9 +21,9 @@ import 'package:test/test.dart';
 void main() {
   group('Chacha20:', () {
     test('newSecretKeySync(): two results are not equal', () {
-      final key = chacha20.newSecretKeySync();
-      expect(key.bytes, hasLength(32));
-      expect(key, isNot(chacha20.newSecretKeySync()));
+      final secretKey = chacha20.newSecretKeySync();
+      expect(secretKey.extractSync(), hasLength(32));
+      expect(secretKey, isNot(chacha20.newSecretKeySync()));
     });
 
     test('newNonce(): two results are not equal', () {

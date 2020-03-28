@@ -15,7 +15,6 @@
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/src/utils/hex.dart';
 import 'package:test/test.dart';
-import 'dart:typed_data';
 
 void main() {
   final nonce = Nonce(List<int>.filled(43, 1));
@@ -27,7 +26,7 @@ void main() {
 
     test('newSecretKey()', () async {
       final secretKey = await algorithm.newSecretKey();
-      expect(secretKey.bytes.length, 32);
+      expect(secretKey.extractSync().length, 32);
     });
 
     test('newNonce', () async {
@@ -93,7 +92,7 @@ void main() {
 
     test('newSecretKey()', () async {
       final secretKey = await algorithm.newSecretKey();
-      expect(secretKey.bytes.length, 32);
+      expect(secretKey.extractSync().length, 32);
     });
 
     test('newNonce', () async {
@@ -157,12 +156,12 @@ void main() {
 
     test('newSecretKey()', () async {
       final secretKey = await algorithm.newSecretKey();
-      expect(secretKey.bytes.length, 32);
+      expect(secretKey.extractSync().length, 32);
     }, testOn: 'chrome');
 
     test('newNonce', () async {
-      final secretKey = await algorithm.newNonce();
-      expect(secretKey.bytes.length, 16);
+      final nonce = await algorithm.newNonce();
+      expect(nonce.bytes.length, 16);
     }, testOn: 'chrome');
 
     test('encryptSync() throws UnsupportedError', () {

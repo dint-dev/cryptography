@@ -156,9 +156,10 @@ abstract class SyncKeyStreamCipher extends Cipher {
     ArgumentError.checkNotNull(secretKey, 'secretKey');
     ArgumentError.checkNotNull(keyStreamIndex, 'offset');
 
-    if (!cipher.secretKeyGenerator.isValidLength(secretKey.bytes.length)) {
+    final secretKeyBytes = secretKey.extractSync();
+    if (!cipher.secretKeyGenerator.isValidLength(secretKeyBytes.length)) {
       throw ArgumentError(
-        'Secret key length ${secretKey.bytes.length} is invalid',
+        'Secret key length ${secretKeyBytes.length} is invalid',
       );
     }
 

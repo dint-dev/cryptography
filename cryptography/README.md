@@ -14,6 +14,8 @@ using [package:crypto](https://pub.dev/packages/crypto) (BSD-style license) or
 
 Copyright 2019 Gohilla Ltd. Licensed under the [Apache License 2.0](LICENSE).
 
+Issue reports and pull requests are welcome.
+
 ## Links
   * [Github repository](https://github.com/dint-dev/cryptography)
   * [Issue tracker](https://github.com/dint-dev/cryptography/issues)

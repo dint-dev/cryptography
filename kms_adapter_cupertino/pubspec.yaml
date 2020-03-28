@@ -8,6 +8,7 @@ environment:
 
 dependencies:
   cupertino_ffi: ^0.2.1
+  cryptography: ^0.2.6
   kms: ^0.1.0
   meta: ^1.1.0
 

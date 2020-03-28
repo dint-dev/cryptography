@@ -43,7 +43,7 @@ void main() {
 
     test('toString() does not expose actual bytes', () {
       final a = SecretKey(Uint8List(3));
-      expect(a, isNot(contains('0')));
+      expect(a.toString(), isNot(contains('0')));
     });
   });
 }

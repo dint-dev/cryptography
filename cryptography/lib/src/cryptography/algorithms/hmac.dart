@@ -47,7 +47,7 @@ class Hmac extends MacAlgorithm {
     //
     // secret
     //
-    var hmacKey = secretKey.bytes;
+    var hmacKey = secretKey.extractSync();
     if (hmacKey.length > blockLength) {
       hmacKey = hashAlgorithm.hashSync(hmacKey).bytes;
     }

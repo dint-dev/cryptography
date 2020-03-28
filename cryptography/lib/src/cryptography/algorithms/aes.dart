@@ -17,11 +17,11 @@ import 'dart:typed_data';
 import 'package:cryptography/cryptography.dart';
 import 'package:meta/meta.dart';
 import 'package:pointycastle/api.dart' as pointycastle;
-import 'package:pointycastle/paddings/pkcs7.dart' as pointycastle;
-import 'package:pointycastle/padded_block_cipher/padded_block_cipher_impl.dart'
-    as pointycastle;
 import 'package:pointycastle/block/aes_fast.dart' as pointycastle;
 import 'package:pointycastle/block/modes/cbc.dart' as pointycastle;
+import 'package:pointycastle/padded_block_cipher/padded_block_cipher_impl.dart'
+    as pointycastle;
+import 'package:pointycastle/paddings/pkcs7.dart' as pointycastle;
 import 'package:pointycastle/stream/ctr.dart' as pointycastle;
 
 import 'web_crypto.dart';
@@ -152,8 +152,8 @@ class _AesCbcImplPointyCastle extends Cipher {
       ),
     );
 
-    final secretBytes = Uint8List.fromList(
-      secretKey.bytes,
+    final secretKeyUint8List = Uint8List.fromList(
+      secretKey.extractSync(),
     );
     final nonceBytes = Uint8List.fromList(
       nonce.bytes.sublist(0, 16),
@@ -162,11 +162,11 @@ class _AesCbcImplPointyCastle extends Cipher {
       false,
       pointycastle.PaddedBlockCipherParameters(
         pointycastle.ParametersWithIV(
-          pointycastle.KeyParameter(secretBytes),
+          pointycastle.KeyParameter(secretKeyUint8List),
           nonceBytes,
         ),
         pointycastle.ParametersWithIV(
-          pointycastle.KeyParameter(secretBytes),
+          pointycastle.KeyParameter(secretKeyUint8List),
           nonceBytes,
         ),
       ),
@@ -191,8 +191,8 @@ class _AesCbcImplPointyCastle extends Cipher {
       ),
     );
 
-    final secretBytes = Uint8List.fromList(
-      secretKey.bytes,
+    final secretKeyUint8List = Uint8List.fromList(
+      secretKey.extractSync(),
     );
     final nonceBytes = Uint8List.fromList(
       nonce.bytes.sublist(0, 16),
@@ -201,11 +201,11 @@ class _AesCbcImplPointyCastle extends Cipher {
       true,
       pointycastle.PaddedBlockCipherParameters(
         pointycastle.ParametersWithIV(
-          pointycastle.KeyParameter(secretBytes),
+          pointycastle.KeyParameter(secretKeyUint8List),
           nonceBytes,
         ),
         pointycastle.ParametersWithIV(
-          pointycastle.KeyParameter(secretBytes),
+          pointycastle.KeyParameter(secretKeyUint8List),
           nonceBytes,
         ),
       ),
@@ -243,8 +243,8 @@ class _AesCtr32ImplPointyCastle extends Cipher {
       pointycastle.AESFastEngine(),
     );
 
-    final secretBytes = Uint8List.fromList(
-      secretKey.bytes,
+    final secretKeyUint8List = Uint8List.fromList(
+      secretKey.extractSync(),
     );
     final counterBytes = Uint8List(16);
     counterBytes.setRange(0, 12, nonce.bytes);
@@ -253,7 +253,7 @@ class _AesCtr32ImplPointyCastle extends Cipher {
     implementation.init(
       false,
       pointycastle.ParametersWithIV(
-        pointycastle.KeyParameter(secretBytes),
+        pointycastle.KeyParameter(secretKeyUint8List),
         counterBytes,
       ),
     );
@@ -274,8 +274,8 @@ class _AesCtr32ImplPointyCastle extends Cipher {
       pointycastle.AESFastEngine(),
     );
 
-    final secretBytes = Uint8List.fromList(
-      secretKey.bytes,
+    final secretKeyUint8List = Uint8List.fromList(
+      secretKey.extractSync(),
     );
     final counterBytes = Uint8List(16);
     counterBytes.setRange(0, 12, nonce.bytes);
@@ -284,7 +284,7 @@ class _AesCtr32ImplPointyCastle extends Cipher {
     implementation.init(
       true,
       pointycastle.ParametersWithIV(
-        pointycastle.KeyParameter(secretBytes),
+        pointycastle.KeyParameter(secretKeyUint8List),
         counterBytes,
       ),
     );

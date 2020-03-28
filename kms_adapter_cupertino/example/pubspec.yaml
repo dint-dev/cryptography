@@ -1,0 +1,11 @@
+name: example
+dependencies:
+  kms_adapter_cupertino:
+    path: '..'
+
+
+dependency_overrides:
+  cryptography:
+    path: '../../cryptography'
+  kms:
+    path: '../../kms'

@@ -157,13 +157,14 @@ class _WebAesCbcCipher extends Cipher {
     if (nonce == null) {
       throw ArgumentError.notNull('nonce');
     }
+    final secretKeyBytes = secretKey.extractSync();
     final cryptoKey = await js.promiseToFuture<web_crypto.CryptoKey>(
       web_crypto.subtle.importKey(
         'raw',
-        _jsArrayBufferFrom(secretKey.bytes),
+        _jsArrayBufferFrom(secretKeyBytes),
         web_crypto.AesKeyGenParams(
           name: 'AES-CBC',
-          length: 8 * secretKey.bytes.length,
+          length: 8 * secretKeyBytes.length,
         ),
         true,
         ['decrypt'],
@@ -205,13 +206,14 @@ class _WebAesCbcCipher extends Cipher {
     if (nonce == null) {
       throw ArgumentError.notNull('nonce');
     }
+    final secretKeyBytes = secretKey.extractSync();
     final cryptoKey = await js.promiseToFuture<web_crypto.CryptoKey>(
       web_crypto.subtle.importKey(
         'raw',
-        _jsArrayBufferFrom(secretKey.bytes),
+        _jsArrayBufferFrom(secretKeyBytes),
         web_crypto.AesKeyGenParams(
           name: 'AES-CBC',
-          length: 8 * secretKey.bytes.length,
+          length: 8 * secretKeyBytes.length,
         ),
         true,
         ['encrypt'],
@@ -266,13 +268,14 @@ class _WebAesCtr32Cipher extends Cipher {
     if (nonce == null) {
       throw ArgumentError.notNull('nonce');
     }
+    final secretKeyBytes = secretKey.extractSync();
     final cryptoKey = await js.promiseToFuture<web_crypto.CryptoKey>(
       web_crypto.subtle.importKey(
         'raw',
-        _jsArrayBufferFrom(secretKey.bytes),
+        _jsArrayBufferFrom(secretKeyBytes),
         web_crypto.AesKeyGenParams(
           name: 'AES-CTR',
-          length: 8 * secretKey.bytes.length,
+          length: 8 * secretKeyBytes.length,
         ),
         true,
         ['decrypt'],
@@ -319,13 +322,14 @@ class _WebAesCtr32Cipher extends Cipher {
     if (nonce == null) {
       throw ArgumentError.notNull('nonce');
     }
+    final secretKeyBytes = secretKey.extractSync();
     final cryptoKey = await js.promiseToFuture<web_crypto.CryptoKey>(
       web_crypto.subtle.importKey(
         'raw',
-        _jsArrayBufferFrom(secretKey.bytes),
+        _jsArrayBufferFrom(secretKeyBytes),
         web_crypto.AesKeyGenParams(
           name: 'AES-CTR',
-          length: 8 * secretKey.bytes.length,
+          length: 8 * secretKeyBytes.length,
         ),
         true,
         ['encrypt'],
@@ -385,13 +389,14 @@ class _WebAesGcmCipher extends Cipher {
     if (nonce == null) {
       throw ArgumentError.notNull('nonce');
     }
+    final secretKeyBytes = secretKey.extractSync();
     final cryptoKey = await js.promiseToFuture<web_crypto.CryptoKey>(
       web_crypto.subtle.importKey(
         'raw',
-        _jsArrayBufferFrom(secretKey.bytes),
+        _jsArrayBufferFrom(secretKeyBytes),
         web_crypto.AesKeyGenParams(
           name: 'AES-GCM',
-          length: 8 * secretKey.bytes.length,
+          length: 8 * secretKeyBytes.length,
         ),
         true,
         ['decrypt'],
@@ -435,13 +440,14 @@ class _WebAesGcmCipher extends Cipher {
     if (nonce == null) {
       throw ArgumentError.notNull('nonce');
     }
+    final secretKeyBytes = secretKey.extractSync();
     final cryptoKey = await js.promiseToFuture<web_crypto.CryptoKey>(
       web_crypto.subtle.importKey(
         'raw',
-        _jsArrayBufferFrom(secretKey.bytes),
+        _jsArrayBufferFrom(secretKeyBytes),
         web_crypto.AesKeyGenParams(
           name: 'AES-GCM',
-          length: 8 * secretKey.bytes.length,
+          length: 8 * secretKeyBytes.length,
         ),
         true,
         ['encrypt'],
@@ -493,7 +499,7 @@ class _WebEcdh extends KeyExchangeAlgorithm {
     PrivateKey localPrivateKey,
     PublicKey remotePublicKey,
   }) async {
-    final privateBytes = localPrivateKey.bytes;
+    final privateBytes = localPrivateKey.extractSync();
     final n = privateBytes.length ~/ 3;
     final privateKeyJwk = web_crypto.Jwk(
       crv: webCryptoNamedCurve,
@@ -591,7 +597,7 @@ class _WebEcdsa extends SignatureAlgorithm {
 
   @override
   Future<Signature> sign(List<int> input, KeyPair keyPair) async {
-    final privateBytes = keyPair.privateKey.bytes;
+    final privateBytes = keyPair.privateKey.extractSync();
     final n = privateBytes.length ~/ 3;
     final privateKeyJwk = web_crypto.Jwk(
       crv: webCryptoNamedCurve,

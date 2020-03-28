@@ -112,7 +112,7 @@ void main() {
           );
 
           expect(
-            google_crypto.Hmac(google_crypto.sha256, secretKey.bytes)
+            google_crypto.Hmac(google_crypto.sha256, secretKey.extractSync())
                 .convert(input)
                 .bytes,
             expected,
@@ -168,7 +168,7 @@ void main() {
         final secretKey = SecretKey(Uint8List(n));
         final data = Uint8List(n);
         final expectedBytes =
-            google_crypto.Hmac(google_crypto.sha256, secretKey.bytes)
+            google_crypto.Hmac(google_crypto.sha256, secretKey.extractSync())
                 .convert(data)
                 .bytes;
 
@@ -220,7 +220,7 @@ void main() {
         final secretKey = SecretKey(Uint8List(n));
         final data = Uint8List(n);
         final expectedBytes =
-            google_crypto.Hmac(google_crypto.sha512, secretKey.bytes)
+            google_crypto.Hmac(google_crypto.sha512, secretKey.extractSync())
                 .convert(data)
                 .bytes;
 

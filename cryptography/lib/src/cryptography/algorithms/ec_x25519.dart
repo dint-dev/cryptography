@@ -83,10 +83,12 @@ class _X25519 extends KeyExchangeAlgorithm {
     @required PrivateKey localPrivateKey,
     @required PublicKey remotePublicKey,
   }) {
-    final secretKeyTransformed = Uint8List.fromList(localPrivateKey.bytes);
-    replaceSeedWithSecretKey(secretKeyTransformed);
+    final secretKeyUint8List = Uint8List.fromList(
+      localPrivateKey.extractSync(),
+    );
+    replaceSeedWithSecretKey(secretKeyUint8List);
     final result = Uint8List(32);
-    _scalarMultiply(result, secretKeyTransformed, remotePublicKey.bytes);
+    _scalarMultiply(result, secretKeyUint8List, remotePublicKey.bytes);
     return SecretKey(result);
   }
 
@@ -297,7 +299,7 @@ class _X25519KeyPairGenerator extends SeedableKeyPairGenerator {
   @override
   KeyPair generateFromSeedSync(PrivateKey seedKey) {
     ArgumentError.checkNotNull(seedKey, 'seedKey');
-    final seed = seedKey.bytes;
+    final seed = seedKey.extractSync();
     if (seed.length != 32) {
       throw ArgumentError.value(seedKey, 'seed', 'Seed length is not 32 bytes');
     }
