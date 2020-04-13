@@ -1,4 +1,4 @@
-// Copyright 2019 Gohilla Ltd (https://gohilla.com).
+// Copyright 2019-2020 Gohilla Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,47 +12,68 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:typed_data';
-
 import 'package:cryptography/cryptography.dart';
+import 'package:cryptography/src/utils/hex.dart';
 import 'package:test/test.dart';
 
 void main() {
-  test('AuthenticatedCipher', () async {
+  test('CipherWithAppendedMac', () async {
     final clearText = [1, 2, 3];
 
-    const macAlgorithm = Hmac(sha256);
-    final cipher = const AuthenticatedCipher.from(
-      cipher: chacha20,
-      macAlgorithm: macAlgorithm,
-    );
+    final cipher = const CipherWithAppendedMac(chacha20, Hmac(sha256));
 
-    final secretKey = chacha20.secretKeyGenerator.generateSync();
+    final secretKey = await chacha20.newSecretKey();
     final nonce = chacha20.newNonce();
-    final authenticatedCipherText = await cipher.encrypt(
+
+    // encrypt()
+    final cipherText = await cipher.encrypt(
       clearText,
       secretKey: secretKey,
       nonce: nonce,
     );
-    final cipherText = authenticatedCipherText.cipherText;
+
+    // encryptSync()
+    expect(
+      cipher.encryptSync(
+        clearText,
+        secretKey: secretKey,
+        nonce: nonce,
+      ),
+      cipherText,
+    );
+
+    expect(
+      hexFromBytes(cipherText),
+      hexFromBytes([
+        ...chacha20.encryptSync([1, 2, 3], secretKey: secretKey, nonce: nonce),
+        ...Hmac(sha256)
+            .calculateMacSync(
+              cipherText.sublist(0, 3),
+              secretKey: secretKey,
+            )
+            .bytes,
+      ]),
+    );
+
+    final cipherTextData = cipher.getDataInCipherText(cipherText);
+    final cipherTextMac = cipher.getMacInCipherText(cipherText);
+
+    expect(cipherTextData, cipherText.sublist(0, cipherText.length - 32));
+    expect(cipherTextMac, Mac(cipherText.sublist(cipherText.length - 32)));
 
     // Check MAC
-    final mac = authenticatedCipherText.mac;
     expect(
       await cipher.macAlgorithm.calculateMac(
-        authenticatedCipherText.cipherText,
+        cipherTextData,
         secretKey: secretKey,
       ),
-      mac,
+      cipherTextMac,
     );
 
     // Decrypt
     expect(
       await cipher.decrypt(
-        AuthenticatedCipherText(
-          cipherText: cipherText,
-          mac: mac,
-        ),
+        cipherText,
         secretKey: secretKey,
         nonce: nonce,
       ),
@@ -62,10 +83,7 @@ void main() {
     // Decrypt returns null if ciphertext is changed.
     expect(
       await cipher.decrypt(
-        AuthenticatedCipherText(
-          cipherText: [99],
-          mac: mac,
-        ),
+        [cipherText[0] + 1, ...cipherText.skip(1)],
         secretKey: secretKey,
         nonce: nonce,
       ),
@@ -74,11 +92,8 @@ void main() {
 
     // Decrypt returns null if MAC is changed.
     expect(
-      await cipher.decrypt(
-        AuthenticatedCipherText(
-          cipherText: [99],
-          mac: Mac(Uint8List(mac.bytes.length)),
-        ),
+      await cipher.decryptSync(
+        [cipherText[0] + 1, ...cipherText.skip(1)],
         secretKey: secretKey,
         nonce: nonce,
       ),

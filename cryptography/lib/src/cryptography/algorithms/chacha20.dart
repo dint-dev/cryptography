@@ -1,4 +1,4 @@
-// Copyright 2019 Gohilla Ltd (https://gohilla.com).
+// Copyright 2019-2020 Gohilla Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,13 +17,18 @@ import 'dart:typed_data';
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/utils.dart';
 import 'package:meta/meta.dart';
+import 'dart:convert';
 
 /// _Chacha20_ cipher ([RFC 7539](https://tools.ietf.org/html/rfc7539)).
 ///
-/// Remember that:
-///   * You must not use the same key/nonce combination twice.
-///   * The message is not authenticated. If you want to use chacha20 as
-///     cipher, you may want to use [chacha20Poly1305Aead].
+/// In _Chacha20_, the secret key can be any value with 256 bits and the nonce
+/// can be any (non-secret) value with 96 bits.
+///
+/// You can pass Chacha20_ block counter value with `keyStreamIndex` (index
+/// 0..63 --> counter 0, index 64..128 --> block counter 1, etc.).
+///
+/// When using Chacha20, you must not use the same key/nonce combination twice.
+/// The message is not authenticated.
 ///
 /// An example:
 /// ```dart
@@ -53,10 +58,10 @@ import 'package:meta/meta.dart';
 ///   );
 /// }
 /// ```
-const SyncKeyStreamCipher chacha20 = _Chacha20._();
+const Cipher chacha20 = _Chacha20._();
 
 /// API for [chacha20].
-class _Chacha20 extends SyncKeyStreamCipher {
+class _Chacha20 extends _SyncKeyStreamCipher {
   const _Chacha20._();
 
   @override
@@ -66,25 +71,25 @@ class _Chacha20 extends SyncKeyStreamCipher {
   int get nonceLength => 12;
 
   @override
-  SecretKeyGenerator get secretKeyGenerator => const SecretKeyGenerator(
-        validLengths: <int>{32},
-        defaultLength: 32,
-      );
+  Set<int> get secretKeyValidLengths => const {32};
+
+  @override
+  int get secretKeyLength => 32;
 
   @override
   SyncKeyStreamCipherState newState({
     @required SecretKey secretKey,
-    int keyStreamIndex = 0,
     @required Nonce nonce,
+    int keyStreamIndex = 0,
   }) {
-    SyncKeyStreamCipher.checkNewStateArguments(
+    _SyncKeyStreamCipher.checkNewStateArguments(
       this,
       secretKey: secretKey,
       keyStreamIndex: keyStreamIndex,
       nonce: nonce,
     );
     final state = _Chacha20State(this);
-    state.initialize(
+    state._initialize(
       key: secretKey.extractSync(),
       nonce: nonce.bytes,
       keyStreamIndex: keyStreamIndex,
@@ -225,8 +230,7 @@ class _Chacha20 extends SyncKeyStreamCipher {
 
   void _validateInitialState(Uint32List initialState) {
     if (initialState[0] != 0x61707865) {
-      throw StateError(
-          "Initial state is invalid. Did you forget to call 'initialize'?");
+      throw Error();
     }
   }
 }
@@ -278,7 +282,7 @@ class _Chacha20State extends SyncKeyStreamCipherState {
   /// Removes secrets from the heap.
   ///
   /// After invoking this method, encryption operations will fail unless
-  /// [initialize] is called.
+  /// [_initialize] is called.
   @override
   void close() {
     initialState.fillRange(0, initialState.length, 0);
@@ -286,7 +290,7 @@ class _Chacha20State extends SyncKeyStreamCipherState {
   }
 
   @override
-  void fillWithKeyStream(List<int> result, int start, {int length}) {
+  void fillWithKeyStream(List<int> result, {int start = 0, int length}) {
     SyncKeyStreamCipherState.checkNotClosed(this);
     if (start < 0) {
       throw ArgumentError.value(start, 'start');
@@ -401,7 +405,7 @@ class _Chacha20State extends SyncKeyStreamCipherState {
   ///   * If nonce is null, zeroes will be used.
   ///   * It's important that you never use the same (key, nonce) combination
   ///     for two different message.
-  void initialize({
+  void _initialize({
     @required List<int> key,
     @required List<int> nonce,
     int keyStreamIndex = 0,
@@ -471,6 +475,154 @@ class _Chacha20State extends SyncKeyStreamCipherState {
       for (var i = 13; i < 16; i++) {
         state[i] = stateByteData.getUint32(4 * i, Endian.little);
       }
+    }
+  }
+}
+
+/// Superclass for key stream ciphers.
+abstract class _SyncKeyStreamCipher extends Cipher {
+  const _SyncKeyStreamCipher();
+
+  @override
+  Uint8List decryptSync(
+    List<int> input, {
+    @required SecretKey secretKey,
+    @required Nonce nonce,
+    List<int> aad,
+    int keyStreamIndex = 0,
+  }) {
+    if (aad != null) {
+      throw ArgumentError.value(aad, 'aad');
+    }
+    final state = newState(
+      secretKey: secretKey,
+      nonce: nonce,
+      keyStreamIndex: keyStreamIndex,
+    );
+    return state.convert(input);
+  }
+
+  @override
+  Uint8List encryptSync(
+    List<int> input, {
+    @required SecretKey secretKey,
+    @required Nonce nonce,
+    List<int> aad,
+    int keyStreamIndex = 0,
+  }) {
+    if (aad != null) {
+      throw ArgumentError.value(aad, 'aad');
+    }
+    final state = newState(
+      secretKey: secretKey,
+      nonce: nonce,
+      keyStreamIndex: keyStreamIndex,
+    );
+    return state.convert(input);
+  }
+
+  SyncKeyStreamCipherState newState({
+    @required SecretKey secretKey,
+    @required Nonce nonce,
+    int keyStreamIndex,
+  });
+
+  static void checkNewStateArguments(_SyncKeyStreamCipher cipher,
+      {@required SecretKey secretKey,
+      @required int keyStreamIndex,
+      Nonce nonce}) {
+    ArgumentError.checkNotNull(secretKey, 'secretKey');
+    ArgumentError.checkNotNull(keyStreamIndex, 'offset');
+
+    final secretKeyBytes = secretKey.extractSync();
+    if (!cipher.isSecretKeyLengthInBytesValid(secretKeyBytes.length)) {
+      throw ArgumentError(
+        'Secret key length ${secretKeyBytes.length} is invalid',
+      );
+    }
+
+    final expectedNonceLength = cipher.nonceLength;
+    if (expectedNonceLength == null) {
+      if (nonce != null) {
+        throw ArgumentError.value(nonce, 'nonce');
+      }
+    } else {
+      ArgumentError.checkNotNull(nonce, 'nonce');
+      final nonceLength = nonce.bytes.length;
+      if (nonceLength != expectedNonceLength) {
+        throw ArgumentError(
+          'Nonce length is $nonceLength is invalid: should be $expectedNonceLength',
+        );
+      }
+    }
+  }
+}
+
+/// Constructed by [_SyncKeyStreamCipher].
+abstract class SyncKeyStreamCipherState
+    extends Converter<List<int>, Uint8List> {
+  int keyStreamIndex;
+
+  bool _isClosed = false;
+
+  SyncKeyStreamCipherState({@required this.keyStreamIndex});
+
+  bool get isClosed => _isClosed;
+
+  @mustCallSuper
+  void close() {
+    _isClosed = true;
+  }
+
+  @override
+  Uint8List convert(List<int> input) {
+    final result = Uint8List(input.length);
+    fillWithConverted(
+      output: result,
+      outputStart: 0,
+      input: input,
+      inputStart: 0,
+    );
+    return result;
+  }
+
+  /// Fills the list with converted bytes.
+  ///
+  /// Throws [StateError] if [_initialize] has not been invoked or [deleteAll] has
+  /// been invoked.
+  void fillWithConverted({
+    @required List<int> output,
+    int outputStart = 0,
+    @required List<int> input,
+    int inputStart = 0,
+    int length,
+  }) {
+    if (length == null) {
+      length = output.length - outputStart;
+      final inputLength = input.length - inputStart;
+      if (inputLength < length) {
+        length = inputLength;
+      }
+    }
+
+    // Fill result with key stream
+    fillWithKeyStream(output, start: outputStart, length: length);
+
+    // XOR
+    for (var i = 0; i < length; i++) {
+      output[outputStart + i] ^= input[inputStart + i];
+    }
+  }
+
+  /// Fills the list with key stream bytes.
+  ///
+  /// Throws [StateError] if [_initialize] has not been invoked or [deleteAll] has
+  /// been invoked.
+  void fillWithKeyStream(List<int> result, {int start = 0, int length});
+
+  static void checkNotClosed(SyncKeyStreamCipherState state) {
+    if (state.isClosed) {
+      throw StateError('Cipher state is closed');
     }
   }
 }

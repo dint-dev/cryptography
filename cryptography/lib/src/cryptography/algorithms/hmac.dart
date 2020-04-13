@@ -1,4 +1,4 @@
-// Copyright 2019 Gohilla Ltd (https://gohilla.com).
+// Copyright 2019-2020 Gohilla Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -38,11 +38,14 @@ class Hmac extends MacAlgorithm {
   const Hmac(this.hashAlgorithm);
 
   @override
+  int get macLengthInBytes => hashAlgorithm.hashLengthInBytes;
+
+  @override
   MacSink newSink({@required SecretKey secretKey}) {
     ArgumentError.checkNotNull(secretKey);
 
     final hashAlgorithm = this.hashAlgorithm;
-    final blockLength = hashAlgorithm.blockLength;
+    final blockLength = hashAlgorithm.blockLengthInBytes;
 
     //
     // secret
@@ -85,30 +88,42 @@ class _HmacSink extends MacSink {
   final HashSink _innerSink;
   final HashSink _outerSink;
   bool _isClosed = false;
+  Mac _mac;
 
   _HmacSink(this._innerSink, this._outerSink);
 
   @override
+  Mac get mac => _mac;
+
+  @override
   void add(List<int> bytes) {
+    if (_isClosed) {
+      throw StateError('Already closed.');
+    }
     _innerSink.add(bytes);
   }
 
   @override
   void addSlice(List<int> chunk, int start, int end, bool isLast) {
+    if (_isClosed) {
+      throw StateError('Already closed.');
+    }
     _innerSink.addSlice(chunk, start, end, isLast);
+    if (isLast) {
+      close();
+    }
   }
 
   @override
-  Mac closeSync() {
-    if (_isClosed) throw StateError('The sink is closed');
+  void close() {
+    if (_isClosed) {
+      return;
+    }
     _isClosed = true;
-
-    final innerHash = _innerSink.closeSync().bytes;
-
+    _innerSink.close();
     final outerSink = _outerSink;
-    outerSink.add(innerHash);
-    final outerHash = outerSink.closeSync().bytes;
-
-    return Mac(outerHash);
+    outerSink.add(_innerSink.hash.bytes);
+    outerSink.close();
+    _mac = Mac(outerSink.hash.bytes);
   }
 }

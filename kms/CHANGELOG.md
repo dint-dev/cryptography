@@ -1,3 +1,7 @@
+## 0.3.0
+  * Changes algorithm identifiers. Changes default algorithms of MemoryKms.
+  * Improves documentation.
+
 ## 0.2.0
   * Fixes various issues.
 

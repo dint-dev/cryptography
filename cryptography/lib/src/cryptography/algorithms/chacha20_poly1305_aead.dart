@@ -1,4 +1,4 @@
-// Copyright 2019 Gohilla Ltd (https://gohilla.com).
+// Copyright 2019-2020 Gohilla Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
-import 'package:cryptography/src/cryptography/authenticated_cipher.dart';
 import 'package:cryptography/utils.dart';
 import 'package:meta/meta.dart';
 
@@ -29,23 +28,22 @@ import 'package:meta/meta.dart';
 /// import 'package:cryptography/cryptography.dart';
 ///
 /// Future<void> main() async {
-///   final algorithm = chacha20Poly1305Aead;
-///
 ///   // Generate a random 256-bit secret key
-///   final secretKey = await algorithm.newSecretKey();
+///   final secretKey = await chacha20.newSecretKey();
 ///
 ///   // Generate a random 96-bit nonce.
-///   final nonce = algorithm.newNonce();
+///   final nonce = chacha20.newNonce();
 ///
-///   // Encrypt.
-///   final authenticatedCipherText = await algorithm.encrypt(
-///     [1, 2, 3],
+///   // Encrypt
+///   final clearText = [1, 2, 3];
+///   final cipherText = await chacha20Poly1305Aead.encrypt(
+///     clearText,
 ///     secretKey: secretKey,
-///     nonce: nonce, // The same secretKey/nonce combination should not be used twice
-///     aad: const <int>[], // You can authenticate additional data here
+///     nonce: nonce,
 ///   );
-///   print('Ciphertext: ${authenticatedCipherText.cipherText}');
-///   print('MAC: ${authenticatedCipherText.mac}');
+///
+///   print('Bytes: ${chacha20Poly1305Aead.getDataInCipherText(cipherText)}');
+///   print('MAC: ${chacha20Poly1305Aead.getMacInCipherText(cipherText)}');
 ///
 ///   // Decrypt.
 ///   //
@@ -53,89 +51,95 @@ import 'package:meta/meta.dart';
 ///   // the method will return null.
 ///   //
 ///   final decrypted = await algorithm.decrypt(
-///     authenticatedCipherText,
+///     cipherText,
 ///     secretKey: secretKey,
 ///     nonce: nonce,
 ///   );
 /// }
 /// ```
-const Chacha20Poly1305Aead chacha20Poly1305Aead = Chacha20Poly1305Aead._();
+const CipherWithAppendedMac chacha20Poly1305Aead = _Chacha20Poly1305Aead._();
 
-class Chacha20Poly1305Aead extends AuthenticatedCipher {
-  static final _footer = ByteData(16);
-  static final _footerUint8List = Uint8List.view(_footer.buffer);
+class _Chacha20Poly1305Aead extends CipherWithAppendedMac {
+  static final _tmpByteData = ByteData(16);
+  static final _tmpUint8List = Uint8List.view(_tmpByteData.buffer);
 
-  const Chacha20Poly1305Aead._();
-
-  @override
-  Cipher get cipher => chacha20;
+  const _Chacha20Poly1305Aead._() : super(chacha20, poly1305);
 
   @override
-  MacAlgorithm get macAlgorithm => poly1305;
+  bool get supportsAad => true;
 
   @override
-  Future<Uint8List> decrypt(
-    AuthenticatedCipherText input, {
+  List<int> encryptSync(
+    List<int> clearText, {
+    SecretKey secretKey,
+    Nonce nonce,
     List<int> aad,
-    @required SecretKey secretKey,
-    @required Nonce nonce,
-  }) async {
-    // Calculate MAC
-    final expectedMac = await _calculateMac(
-      input.cipherText,
-      aad: aad,
+    int keyStreamIndex = 0,
+  }) {
+    if (keyStreamIndex < 0) {
+      throw ArgumentError.value(keyStreamIndex, 'keyStreamIndex');
+    }
+    final cipherTextWithoutMac = chacha20.encryptSync(
+      clearText,
       secretKey: secretKey,
       nonce: nonce,
+      aad: null,
+      // Block counter 0 is used for Poly1305 key generation
+      keyStreamIndex: 64 + keyStreamIndex,
     );
+    final mac = calculateMacSync(
+      cipherTextWithoutMac,
+      secretKey: secretKey,
+      nonce: nonce,
+      aad: aad,
+    );
+    final result = Uint8List(cipherTextWithoutMac.length + 16);
+    result.setAll(0, cipherTextWithoutMac);
+    result.setAll(cipherTextWithoutMac.length, mac.bytes);
+    return result;
+  }
 
-    // Verify MAC
-    if (input.mac != expectedMac) {
+  @override
+  List<int> decryptSync(
+    List<int> cipherText, {
+    SecretKey secretKey,
+    Nonce nonce,
+    List<int> aad,
+    int keyStreamIndex = 0,
+  }) {
+    if (keyStreamIndex < 0) {
+      throw ArgumentError.value(keyStreamIndex, 'keyStreamIndex');
+    }
+    final dataInCipherText = getDataInCipherText(cipherText);
+    final calculatedMac = calculateMacSync(
+      dataInCipherText,
+      secretKey: secretKey,
+      nonce: nonce,
+      aad: aad,
+    );
+    final macInCipherText = getMacInCipherText(cipherText);
+
+    if (macInCipherText != calculatedMac) {
       return null;
     }
-
-    return chacha20.decrypt(
-      input.cipherText,
+    return chacha20.decryptSync(
+      dataInCipherText,
       secretKey: secretKey,
       nonce: nonce,
-      offset: 64, // Block counter = 1
+      aad: null,
+      // Block counter 0 is used for Poly1305 key generation
+      keyStreamIndex: 64 + keyStreamIndex,
     );
   }
 
   @override
-  Future<AuthenticatedCipherText> encrypt(
-    List<int> input, {
-    List<int> aad,
-    @required SecretKey secretKey,
-    @required Nonce nonce,
-  }) async {
-    final cipherText = await cipher.encrypt(
-      input,
-      secretKey: secretKey,
-      nonce: nonce,
-      offset: 64, // Block counter = 1
-    );
-
-    final mac = await _calculateMac(
-      cipherText,
-      aad: aad,
-      secretKey: secretKey,
-      nonce: nonce,
-    );
-
-    return AuthenticatedCipherText(
-      cipherText: cipherText,
-      mac: mac,
-    );
-  }
-
-  /// Calculates MAC.
-  Future<Mac> _calculateMac(
+  Mac calculateMacSync(
     List<int> cipherText, {
     @required SecretKey secretKey,
     @required Nonce nonce,
     @required List<int> aad,
-  }) async {
-    final secretKeyForPoly1305 = await poly1305SecretKeyFromChacha20(
+  }) {
+    final secretKeyForPoly1305 = poly1305SecretKeyFromChacha20(
       secretKey,
       nonce: nonce,
     );
@@ -152,7 +156,7 @@ class Chacha20Poly1305Aead extends AuthenticatedCipher {
       if (rem != 0) {
         // Add padding
         final paddingLength = 16 - rem;
-        sink.add(_footerUint8List.sublist(0, paddingLength));
+        sink.add(_tmpUint8List.sublist(0, paddingLength));
         length += paddingLength;
       }
     }
@@ -164,41 +168,43 @@ class Chacha20Poly1305Aead extends AuthenticatedCipher {
     if (rem != 0) {
       // Add padding
       final paddingLength = 16 - rem;
-      sink.add(_footerUint8List.sublist(0, paddingLength));
+      sink.add(_tmpUint8List.sublist(0, paddingLength));
       length += paddingLength;
     }
 
-    // Add 16-byte footer
-    final footerByteData = _footer;
-    footerByteData.setUint32(
+    // Add 16-byte footer.
+    // We can't use setUint64() because it's not supported in the browsers.
+    final tmpByteData = _tmpByteData;
+    tmpByteData.setUint32(
       0,
       uint32mask & aadLength,
       Endian.little,
     );
-    footerByteData.setUint32(
+    tmpByteData.setUint32(
       4,
-      aadLength >> 32,
+      aadLength ~/ (uint32mask + 1),
       Endian.little,
     );
-    footerByteData.setUint32(
+    tmpByteData.setUint32(
       8,
       uint32mask & cipherText.length,
       Endian.little,
     );
-    footerByteData.setUint32(
+    tmpByteData.setUint32(
       12,
-      cipherText.length >> 32,
+      cipherText.length ~/ (uint32mask + 1),
       Endian.little,
     );
-    sink.add(_footerUint8List);
+    sink.add(_tmpUint8List);
 
-    // Reset the static buffer for the footer
-    footerByteData.setUint32(0, 0);
-    footerByteData.setUint32(4, 0);
-    footerByteData.setUint32(8, 0);
-    footerByteData.setUint32(12, 0);
+    // Reset the static buffer.
+    tmpByteData.setUint32(0, 0);
+    tmpByteData.setUint32(4, 0);
+    tmpByteData.setUint32(8, 0);
+    tmpByteData.setUint32(12, 0);
 
     // Return MAC
-    return sink.close();
+    sink.close();
+    return sink.mac;
   }
 }

@@ -1,4 +1,4 @@
-// Copyright 2019 Gohilla Ltd (https://gohilla.com).
+// Copyright 2019-2020 Gohilla Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -130,7 +130,7 @@ void main() {
           kms.createKeyPair(
             keyRingId: 'example',
             keyExchangeType: KeyExchangeType.x25519, // Curve25519
-            signatureType: SignatureType.ecdsaP384Sha384, // P384
+            signatureType: SignatureType.p384Sha384, // P384
           ),
           throwsArgumentError,
         );
@@ -291,14 +291,14 @@ void main() {
         //
         final kmsKey0 = await kms.createKeyPair(
           keyRingId: 'example',
-          keyExchangeType: KeyExchangeType.ecdhP256,
+          keyExchangeType: KeyExchangeType.p256,
           signatureType: null,
         );
         expect(kmsKey0, isNotNull);
 
         final kmsKey1 = await kms.createKeyPair(
           keyRingId: 'example',
-          keyExchangeType: KeyExchangeType.ecdhP256,
+          keyExchangeType: KeyExchangeType.p256,
           signatureType: null,
         );
         expect(kmsKey1, isNotNull);
@@ -394,7 +394,7 @@ void main() {
         final kmsKey = await kms.createKeyPair(
           keyRingId: 'example',
           keyExchangeType: null,
-          signatureType: SignatureType.ecdsaP256Sha256,
+          signatureType: SignatureType.p256Sha256,
         );
         expect(kmsKey, isNotNull);
 

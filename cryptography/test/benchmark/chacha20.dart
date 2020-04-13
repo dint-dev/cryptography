@@ -1,4 +1,4 @@
-// Copyright 2019 Gohilla Ltd (https://gohilla.com).
+// Copyright 2019-2020 Gohilla Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -52,9 +52,11 @@ class Chacha20StreamBenchmark extends BenchmarkBase {
 
   @override
   void run() {
-    chacha20
-        .newState(secretKey: secretKey, nonce: nonce)
-        .fillWithConverted(result, 0, cleartext, 0);
+    chacha20.encryptSync(
+      cleartext,
+      secretKey: secretKey,
+      nonce: nonce,
+    );
   }
 
   @override
@@ -88,8 +90,11 @@ class Chacha20NumerousSmallMessagesBenchmark extends BenchmarkBase {
 
   @override
   void run() {
-    final state = chacha20.newState(secretKey: secretKey, nonce: nonce);
-    state.fillWithConverted(result, 0, cleartext, 0);
+    chacha20.encryptSync(
+      cleartext,
+      secretKey: secretKey,
+      nonce: nonce,
+    );
   }
 
   @override

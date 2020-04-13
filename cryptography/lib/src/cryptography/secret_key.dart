@@ -1,4 +1,4 @@
-// Copyright 2019 Gohilla Ltd (https://gohilla.com).
+// Copyright 2019-2020 Gohilla Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -46,9 +46,6 @@ abstract class SecretKey {
     return SecretKey(data);
   }
 
-  @Deprecated('Use `extractSync()` instead')
-  List<int> get bytes => extractSync();
-
   /// Extracts the bytes asynchronously. The returned byte list should be
   /// treated as immutable.
   ///
@@ -58,7 +55,7 @@ abstract class SecretKey {
   ///
   /// Throws [UnsupportedError] if extraction is forbidden.
   Future<List<int>> extract() {
-    return Future<List>.value(extractSync());
+    return Future<List<int>>.value(extractSync());
   }
 
   /// Extracts the bytes synchronously. The returned byte list should be

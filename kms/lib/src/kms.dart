@@ -1,4 +1,4 @@
-// Copyright 2019 Gohilla Ltd (https://gohilla.com).
+// Copyright 2019-2020 Gohilla Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,36 +15,6 @@
 import 'package:cryptography/cryptography.dart';
 import 'package:kms/kms.dart';
 import 'package:meta/meta.dart';
-
-/// Describes type of a secret key managed by some [Kms].
-enum CipherType {
-  /// AES-CBC.
-  aesCbc,
-
-  /// AES-CTR with a 96-bit nonce and a 32-bit counter.
-  aesCtr32,
-
-  /// AES-GCM.
-  aesGcm,
-
-  /// Chacha20.
-  chacha20,
-}
-
-/// Describes key exchange type of a secret key managed by some [Kms].
-enum KeyExchangeType {
-  /// ECDH with P256.
-  ecdhP256,
-
-  /// ECDH with P384.
-  ecdhP384,
-
-  /// ECDH with P521.
-  ecdhP521,
-
-  /// X25519.
-  x25519,
-}
 
 /// A Key Management Service (KMS).
 abstract class Kms {
@@ -82,8 +52,12 @@ abstract class Kms {
   ///
   /// Throws [KmsKeyDoesNotExistException] if the key does not exist.
   /// Throws [StateError] if the key is invalid type.
-  Future<List<int>> decrypt(List<int> bytes, KmsKey kmsKey,
-      {@required Nonce nonce});
+  Future<List<int>> decrypt(
+    List<int> bytes,
+    KmsKey kmsKey, {
+    @required Nonce nonce,
+    List<int> aad,
+  });
 
   /// Deletes a stored cryptographic key.
   ///
@@ -98,6 +72,7 @@ abstract class Kms {
     List<int> bytes,
     KmsKey kmsKey, {
     @required Nonce nonce,
+    List<int> aad,
   });
 
   /// Returns all keys stored by the KMS.
@@ -137,19 +112,4 @@ class KmsKeyDoesNotExistException implements Exception {
 
   @override
   String toString() => 'Key does not exist: $kmsKey';
-}
-
-/// Describes signature type of a secret key managed by some [Kms].
-enum SignatureType {
-  /// ECDSA with P256 + SHA256.
-  ecdsaP256Sha256,
-
-  /// ECDSA with P384 + SHA384.
-  ecdsaP384Sha384,
-
-  /// ECDSA with Curve25519 + SHA256.
-  ecdsaCurve25519Sha256,
-
-  /// Ed25519.
-  ed25519,
 }

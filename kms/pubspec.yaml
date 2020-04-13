@@ -1,10 +1,10 @@
 name: kms
-version: 0.2.0
+version: 0.3.0
 homepage: https://github.com/dint-dev/cryptography
 description: Key Management Service (KMS) API for managing cryptographic keys securely.
 
 environment:
-  sdk: '>=2.7.0 <3.0.0'
+  sdk: '>=2.5.0 <3.0.0'
 
 dependencies:
   cryptography: ^0.2.6

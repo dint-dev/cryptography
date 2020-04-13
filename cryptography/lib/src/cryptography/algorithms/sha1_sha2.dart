@@ -1,4 +1,4 @@
-// Copyright 2019 Gohilla Ltd (https://gohilla.com).
+// Copyright 2019-2020 Gohilla Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,10 +13,8 @@
 // limitations under the License.
 
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart' as impl;
-import 'package:crypto/src/digest_sink.dart' as impl;
 import 'package:cryptography/cryptography.dart';
 
 /// _SHA1_, an old cryptographic hash function that's not recommended for new
@@ -29,7 +27,7 @@ import 'package:cryptography/cryptography.dart';
 /// void main() {
 ///   final sink = sha1.newSink();
 ///   sink.add(<int>[1,2,3]);
-///   final hash = sink.closeSync();
+///   final hash = sink.close();
 /// }
 /// ```
 const HashAlgorithm sha1 = _Sha1();
@@ -43,7 +41,7 @@ const HashAlgorithm sha1 = _Sha1();
 /// void main() {
 ///   final sink = sha224.newSink();
 ///   sink.add(<int>[1,2,3]);
-///   final hash = sink.closeSync();
+///   final hash = sink.close();
 /// }
 /// ```
 const HashAlgorithm sha224 = _Sha224();
@@ -57,7 +55,7 @@ const HashAlgorithm sha224 = _Sha224();
 /// void main() {
 ///   final sink = sha256.newSink();
 ///   sink.add(<int>[1,2,3]);
-///   final hash = sink.closeSync();
+///   final hash = sink.close();
 /// }
 /// ```
 const HashAlgorithm sha256 = _Sha256();
@@ -71,7 +69,7 @@ const HashAlgorithm sha256 = _Sha256();
 /// void main() {
 ///   final sink = sha385.newSink();
 ///   sink.add(<int>[1,2,3]);
-///   final hash = sink.closeSync();
+///   final hash = sink.close();
 /// }
 /// ```
 const HashAlgorithm sha384 = _Sha384();
@@ -85,61 +83,94 @@ const HashAlgorithm sha384 = _Sha384();
 /// void main() {
 ///   final sink = sha512.newSink();
 ///   sink.add(<int>[1,2,3]);
-///   final hash = sink.closeSync();
+///   final hash = sink.close();
 /// }
 /// ```
 const HashAlgorithm sha512 = _Sha512();
 
-class _DigestSink implements Sink<impl.Digest> {
-  Uint8List _digest;
+abstract class _Hash extends HashAlgorithm {
+  const _Hash();
 
   @override
-  void add(impl.Digest data) {
-    _digest = data.bytes;
+  int get blockLengthInBytes => _impl.blockSize;
+
+  impl.Hash get _impl;
+
+  @override
+  HashSink newSink() {
+    final captureSink = _ImplDigestCaptureSink();
+    final implSink = _impl.startChunkedConversion(captureSink);
+    return _HashSink(
+      implSink,
+      captureSink,
+    );
   }
-
-  @override
-  void close() {}
 }
 
-class _PackageCryptoHashSink extends HashSink {
-  final _DigestSink _digestSink;
-  ByteConversionSink _sink;
+class _HashSink extends HashSink {
+  final ByteConversionSink _sink;
+  final _ImplDigestCaptureSink _captureSink;
 
-  factory _PackageCryptoHashSink(impl.Hash hash) {
-    final digestSink = _DigestSink();
-    final sink = hash.startChunkedConversion(digestSink);
-    return _PackageCryptoHashSink._(digestSink, sink);
-  }
-
-  _PackageCryptoHashSink._(this._digestSink, this._sink);
+  _HashSink(this._sink, this._captureSink);
 
   @override
-  void add(List<int> data) {
-    ArgumentError.checkNotNull(data);
-    _sink.add(data);
+  Hash get hash => _captureSink._result;
+
+  bool _isClosed = false;
+
+  @override
+  void add(List<int> chunk) {
+    ArgumentError.checkNotNull(chunk);
+    if (_isClosed) {
+      throw StateError('Already closed');
+    }
+    _sink.add(chunk);
   }
 
   @override
   void addSlice(List<int> chunk, int start, int end, bool isLast) {
-    ArgumentError.checkNotNull(chunk);
-    ArgumentError.checkNotNull(start);
-    ArgumentError.checkNotNull(end);
+    ArgumentError.checkNotNull(chunk, 'chunk');
+    ArgumentError.checkNotNull(start, 'start');
+    ArgumentError.checkNotNull(end, 'end');
+    if (_isClosed) {
+      throw StateError('Already closed');
+    }
     _sink.addSlice(chunk, start, end, isLast);
+    if (isLast) {
+      close();
+    }
   }
 
   @override
-  Hash closeSync() {
+  void close() {
+    if (_isClosed) {
+      return;
+    }
+    _isClosed = true;
     _sink.close();
-    return Hash(_digestSink._digest);
   }
 }
 
-class _Sha1 extends HashAlgorithm {
-  const _Sha1();
+class _ImplDigestCaptureSink extends Sink<impl.Digest> {
+  Hash _result;
+
+  _ImplDigestCaptureSink();
 
   @override
-  int get blockLength => 64;
+  void add(impl.Digest implDigest) {
+    assert(_result == null);
+    final hash = Hash(implDigest.bytes);
+    _result = hash;
+  }
+
+  @override
+  void close() {
+    assert(_result != null);
+  }
+}
+
+class _Sha1 extends _Hash {
+  const _Sha1();
 
   @override
   int get hashLengthInBytes => 20;
@@ -148,16 +179,11 @@ class _Sha1 extends HashAlgorithm {
   String get name => 'sha1';
 
   @override
-  HashSink newSink() {
-    return _PackageCryptoHashSink(impl.sha1);
-  }
+  impl.Hash get _impl => impl.sha1;
 }
 
-class _Sha224 extends HashAlgorithm {
+class _Sha224 extends _Hash {
   const _Sha224();
-
-  @override
-  int get blockLength => 64;
 
   @override
   int get hashLengthInBytes => 28;
@@ -166,16 +192,11 @@ class _Sha224 extends HashAlgorithm {
   String get name => 'sha224';
 
   @override
-  HashSink newSink() {
-    return _PackageCryptoHashSink(impl.sha224);
-  }
+  impl.Hash get _impl => impl.sha224;
 }
 
-class _Sha256 extends HashAlgorithm {
+class _Sha256 extends _Hash {
   const _Sha256();
-
-  @override
-  int get blockLength => 64;
 
   @override
   int get hashLengthInBytes => 32;
@@ -184,16 +205,11 @@ class _Sha256 extends HashAlgorithm {
   String get name => 'sha256';
 
   @override
-  HashSink newSink() {
-    return _PackageCryptoHashSink(impl.sha256);
-  }
+  impl.Hash get _impl => impl.sha256;
 }
 
-class _Sha384 extends HashAlgorithm {
+class _Sha384 extends _Hash {
   const _Sha384();
-
-  @override
-  int get blockLength => 128;
 
   @override
   int get hashLengthInBytes => 48;
@@ -202,16 +218,11 @@ class _Sha384 extends HashAlgorithm {
   String get name => 'sha384';
 
   @override
-  HashSink newSink() {
-    return _PackageCryptoHashSink(impl.sha384);
-  }
+  impl.Hash get _impl => impl.sha384;
 }
 
-class _Sha512 extends HashAlgorithm {
+class _Sha512 extends _Hash {
   const _Sha512();
-
-  @override
-  int get blockLength => 128;
 
   @override
   int get hashLengthInBytes => 64;
@@ -220,7 +231,5 @@ class _Sha512 extends HashAlgorithm {
   String get name => 'sha512';
 
   @override
-  HashSink newSink() {
-    return _PackageCryptoHashSink(impl.sha512);
-  }
+  impl.Hash get _impl => impl.sha512;
 }

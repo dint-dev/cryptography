@@ -1,4 +1,4 @@
-// Copyright 2019 Gohilla Ltd (https://gohilla.com).
+// Copyright 2019-2020 Gohilla Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,6 +23,14 @@ void main() {
 
   group('aesCbc:', () {
     final algorithm = aesCbc;
+
+    test('information', () {
+      expect(algorithm.name, 'aesCbc');
+      expect(algorithm.isAuthenticated, isFalse);
+      expect(algorithm.secretKeyLength, 32);
+      expect(algorithm.secretKeyValidLengths, unorderedEquals({16, 24, 32}));
+      expect(algorithm.nonceLength, 16);
+    });
 
     test('newSecretKey()', () async {
       final secretKey = await algorithm.newSecretKey();
@@ -87,8 +95,15 @@ void main() {
     });
   });
 
-  group('aesCtr:', () {
+  group('aesCtr32:', () {
     final algorithm = aesCtr32;
+
+    test('information', () {
+      expect(algorithm.name, 'aesCtr32');
+      expect(algorithm.isAuthenticated, isFalse);
+      expect(algorithm.secretKeyLength, 32);
+      expect(algorithm.secretKeyValidLengths, unorderedEquals({16, 24, 32}));
+    });
 
     test('newSecretKey()', () async {
       final secretKey = await algorithm.newSecretKey();
@@ -154,82 +169,85 @@ void main() {
   group('aesGcm', () {
     final algorithm = aesGcm;
 
-    test('newSecretKey()', () async {
-      final secretKey = await algorithm.newSecretKey();
-      expect(secretKey.extractSync().length, 32);
-    }, testOn: 'chrome');
+    test('unavailable outside browser', () {
+      expect(algorithm, isNull);
+    }, testOn: 'vm');
 
-    test('newNonce', () async {
-      final nonce = await algorithm.newNonce();
-      expect(nonce.bytes.length, 16);
-    }, testOn: 'chrome');
-
-    test('encryptSync() throws UnsupportedError', () {
-      expect(
-        () => algorithm.encryptSync(
-          const [],
-          secretKey: SecretKey.randomBytes(16),
-          nonce: Nonce.randomBytes(16),
-        ),
-        throwsUnsupportedError,
-      );
-    });
-
-    group('encrypt() works in browser:', () {
-      test('128-bit key', () async {
-        final clearText = <int>[1, 2, 3];
-        final secretKey = secretKey128;
-
-        //
-        // Encrypt
-        //
-        final encrypted = await algorithm.encrypt(
-          clearText,
-          secretKey: secretKey,
-          nonce: nonce,
-        );
-        expect(
-          hexFromBytes(encrypted),
-          'a5 32 ac 06 a2 84 7c a5 3e c9 47 b7 d5 d5 81 f8 db a1 65',
-        );
-
-        //
-        // Decrypt
-        //
-        final decrypted = await algorithm.decrypt(
-          encrypted,
-          secretKey: secretKey,
-          nonce: nonce,
-        );
-        expect(decrypted, clearText);
+    group('in browser:', () {
+      test('information', () {
+        expect(algorithm.name, 'aesGcm');
+        expect(algorithm.isAuthenticated, isTrue);
+        expect(algorithm.secretKeyLength, 32);
+        expect(algorithm.secretKeyValidLengths, unorderedEquals({16, 24, 32}));
+        expect(algorithm.nonceLength, 12);
       });
 
-      test('256-bit key', () async {
-        final clearText = <int>[1, 2, 3];
-        final secretKey = secretKey256;
+      test('newSecretKey()', () async {
+        final secretKey = await algorithm.newSecretKey();
+        expect(secretKey.extractSync().length, 32);
+      });
 
-        //
-        // Encrypt
-        //
-        final encrypted = await algorithm.encrypt(
-          clearText,
-          secretKey: secretKey,
-          nonce: nonce,
-        );
-        expect(
-          hexFromBytes(encrypted),
-          'c0 de 6d f6 2c 2c ca c3 7e 4c 11 3e 50 ab 35 c1 f6 cb 38',
-        );
+      test('newNonce', () async {
+        final nonce = await algorithm.newNonce();
+        expect(nonce.bytes.length, 12);
+      });
 
-        //
-        // Decrypt
-        //
-        final decrypted = await algorithm.decrypt(
-          encrypted,
-          secretKey: secretKey,
-          nonce: nonce,
-        );
-        expect(decrypted, clearText);
+      group('encrypt():', () {
+        test('128-bit key', () async {
+          final clearText = <int>[1, 2, 3];
+          final secretKey = secretKey128;
+
+          //
+          // Encrypt
+          //
+          final encrypted = await algorithm.encrypt(
+            clearText,
+            secretKey: secretKey,
+            nonce: nonce,
+          );
+          expect(
+            hexFromBytes(encrypted),
+            'a5 32 ac 06 a2 84 7c a5 3e c9 47 b7 d5 d5 81 f8 db a1 65',
+          );
+
+          //
+          // Decrypt
+          //
+          final decrypted = await algorithm.decrypt(
+            encrypted,
+            secretKey: secretKey,
+            nonce: nonce,
+          );
+          expect(decrypted, clearText);
+        });
+
+        test('256-bit key', () async {
+          final clearText = <int>[1, 2, 3];
+          final secretKey = secretKey256;
+
+          //
+          // Encrypt
+          //
+          final encrypted = await algorithm.encrypt(
+            clearText,
+            secretKey: secretKey,
+            nonce: nonce,
+          );
+          expect(
+            hexFromBytes(encrypted),
+            'c0 de 6d f6 2c 2c ca c3 7e 4c 11 3e 50 ab 35 c1 f6 cb 38',
+          );
+
+          //
+          // Decrypt
+          //
+          final decrypted = await algorithm.decrypt(
+            encrypted,
+            secretKey: secretKey,
+            nonce: nonce,
+          );
+          expect(decrypted, clearText);
+        });
       });
     }, testOn: 'chrome');
   });

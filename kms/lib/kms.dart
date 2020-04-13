@@ -1,4 +1,4 @@
-// Copyright 2019 Gohilla Ltd (https://gohilla.com).
+// Copyright 2019-2020 Gohilla Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ library kms;
 export 'package:cryptography/cryptography.dart'
     show PublicKey, SecretKey, Nonce;
 
+export 'src/algorithm_types.dart';
 export 'src/kms.dart';
 export 'src/kms_base.dart';
 export 'src/kms_key.dart';

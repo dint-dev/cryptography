@@ -1,12 +1,12 @@
 name: cryptography
-version: 0.2.6
+version: 0.3.0
 homepage: https://github.com/dint-dev/cryptography
 description:
   Popular cryptographic algorithms. Enables you to do key agreement, digital signature, encryption,
   message authentication, and hashing.
 
 environment:
-  sdk: '>=2.7.0 <3.0.0'
+  sdk: '>=2.5.0 <3.0.0'
 
 dependencies:
   collection: ^1.10.0

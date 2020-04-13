@@ -1,4 +1,4 @@
-// Copyright 2019 Gohilla Ltd (https://gohilla.com).
+// Copyright 2019-2020 Gohilla Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -73,10 +73,92 @@ void main() {
       expect(() => sink.add(null), throwsArgumentError);
     });
 
-    test('newSink(): closing twice fails', () {
+    test('newSink(): closing twice is ok', () {
       final sink = hmac.newSink(secretKey: SecretKey(<int>[]));
-      sink.closeSync();
-      expect(() => sink.closeSync(), throwsStateError);
+      sink.close();
+      sink.close();
+    });
+
+    test('newSink(): adding after closing fails', () {
+      final sink = hmac.newSink(secretKey: SecretKey(<int>[]));
+      sink.close();
+      expect(() => sink.add([]), throwsStateError);
+      expect(() => sink.addSlice([1], 0, 1, false), throwsStateError);
+    });
+
+    test('calculate(): different secretKey and data lengths', () async {
+      for (var n = 0; n < 1024; n++) {
+        final secretKey = SecretKey(Uint8List(n));
+        final data = Uint8List(n);
+        for (var i = 0; i < data.length; i++) {
+          data[i] = 0xFF & i;
+        }
+        final mac = await hmac.calculateMac(
+          data,
+          secretKey: secretKey,
+        );
+
+        // Use 'package:crypto' for calculating the correct answer
+        final expectedBytes =
+            google_crypto.Hmac(google_crypto.sha256, secretKey.extractSync())
+                .convert(data)
+                .bytes;
+        expect(
+          hexFromBytes(mac.bytes),
+          hexFromBytes(expectedBytes),
+        );
+      }
+    });
+
+    test('calculateSync(): different secretKey and data lengths', () {
+      for (var n = 0; n < 1024; n++) {
+        final secretKey = SecretKey(Uint8List(n));
+        final data = Uint8List(n);
+        for (var i = 0; i < data.length; i++) {
+          data[i] = 0xFF & i;
+        }
+        final mac = hmac.calculateMacSync(
+          data,
+          secretKey: secretKey,
+        );
+
+        // Use 'package:crypto' for calculating the correct answer
+        final expectedBytes =
+            google_crypto.Hmac(google_crypto.sha256, secretKey.extractSync())
+                .convert(data)
+                .bytes;
+        expect(
+          hexFromBytes(mac.bytes),
+          hexFromBytes(expectedBytes),
+        );
+      }
+    });
+
+    test('newSink(): different secretKey and data lengths', () {
+      for (var n = 2; n < 1024; n++) {
+        final secretKey = SecretKey(Uint8List(n));
+        final data = Uint8List(n);
+        for (var i = 0; i < data.length; i++) {
+          data[i] = 0xFF & i;
+        }
+        final sink = hmac.newSink(secretKey: secretKey);
+        sink.addSlice(data, 0, 0, false);
+        sink.addSlice(data, 0, 1, false);
+        sink.add(data.sublist(1, 2));
+        sink.addSlice(data, 2, data.length, true);
+        sink.close();
+        final mac = sink.mac;
+
+        // Use 'package:crypto' for calculating the correct answer
+        final expectedBytes =
+            google_crypto.Hmac(google_crypto.sha256, secretKey.extractSync())
+                .convert(data)
+                .bytes;
+        expect(
+          hexFromBytes(mac.bytes),
+          hexFromBytes(expectedBytes),
+        );
+      }
     });
 
     group('RFC 4231:', () {
@@ -110,14 +192,6 @@ void main() {
             'b0344c61d8db38535ca8afceaf0bf12b'
             '881dc200c9833da726e9376c2e32cff7',
           );
-
-          expect(
-            google_crypto.Hmac(google_crypto.sha256, secretKey.extractSync())
-                .convert(input)
-                .bytes,
-            expected,
-          );
-
           final hash = Hmac(sha256).calculateMacSync(
             input,
             secretKey: secretKey,
@@ -161,112 +235,6 @@ void main() {
           );
         });
       });
-    });
-
-    test('Hmac(sha256): different secretKey/data lengths', () async {
-      for (var n = 0; n < 130; n++) {
-        final secretKey = SecretKey(Uint8List(n));
-        final data = Uint8List(n);
-        final expectedBytes =
-            google_crypto.Hmac(google_crypto.sha256, secretKey.extractSync())
-                .convert(data)
-                .bytes;
-
-        //
-        // Sync
-        //
-        final syncMac = hmac.calculateMacSync(
-          data,
-          secretKey: secretKey,
-        );
-        expect(
-          syncMac.bytes,
-          expectedBytes,
-          reason: 'secretKey/data length is $n',
-        );
-
-        //
-        // Async
-        //
-        final asyncMac = await hmac.calculateMac(
-          data,
-          secretKey: secretKey,
-        );
-        expect(
-          asyncMac.bytes,
-          expectedBytes,
-          reason: 'secretKey/data length is $n',
-        );
-
-        //
-        // Sink
-        //
-        if (n >= 2) {
-          final sink = hmac.newSink(secretKey: secretKey);
-          sink.addSlice(data, 0, 0, false);
-          sink.addSlice(data, 0, 2, false);
-          sink.addSlice(data, 2, data.length, false);
-          expect(
-            sink.closeSync().bytes,
-            expectedBytes,
-            reason: 'secretKey/data length is $n',
-          );
-        }
-      }
-    });
-
-    test('Hmac(sha512): different secretKey/data lengths', () async {
-      for (var n = 0; n < 130; n++) {
-        final secretKey = SecretKey(Uint8List(n));
-        final data = Uint8List(n);
-        final expectedBytes =
-            google_crypto.Hmac(google_crypto.sha512, secretKey.extractSync())
-                .convert(data)
-                .bytes;
-
-        final hmac = Hmac(sha512);
-
-        //
-        // Sync
-        //
-        final syncMac = hmac.calculateMacSync(
-          data,
-          secretKey: secretKey,
-        );
-        expect(
-          syncMac.bytes,
-          expectedBytes,
-          reason: 'secretKey/data length is $n',
-        );
-
-        //
-        // Async
-        //
-        final asyncMac = await hmac.calculateMac(
-          data,
-          secretKey: secretKey,
-        );
-        expect(
-          await asyncMac.bytes,
-          expectedBytes,
-          reason: 'secretKey/data length is $n',
-        );
-
-        //
-        // Sink
-        //
-        if (n >= 2) {
-          final sink = hmac.newSink(secretKey: secretKey);
-          sink.addSlice(data, 0, 0, false);
-          sink.addSlice(data, 0, 2, false);
-          sink.addSlice(data, 2, data.length, false);
-          expect(
-            sink.closeSync().bytes,
-            expectedBytes,
-            reason: 'secretKey/data length is $n',
-          );
-        }
-      }
     });
   });
 }

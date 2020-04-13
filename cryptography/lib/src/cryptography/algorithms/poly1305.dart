@@ -1,4 +1,4 @@
-// Copyright 2019 Gohilla Ltd (https://gohilla.com).
+// Copyright 2019-2020 Gohilla Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,22 +25,25 @@ import 'package:meta/meta.dart';
 ///   * You can't use it for key derivation because the algorithm is biased.
 const MacAlgorithm poly1305 = _Poly1305();
 
-Future<SecretKey> poly1305SecretKeyFromChacha20(SecretKey secretKey,
-    {@required Nonce nonce}) async {
-  final bytes = await chacha20.encrypt(
+SecretKey poly1305SecretKeyFromChacha20(SecretKey secretKey,
+    {@required Nonce nonce}) {
+  final cipherText = chacha20.encryptSync(
     Uint8List(32),
     secretKey: secretKey,
     nonce: nonce,
   );
-  return SecretKey(bytes);
+  return SecretKey(cipherText);
 }
 
 class _Poly1305 extends MacAlgorithm {
   const _Poly1305();
 
   @override
+  int get macLengthInBytes => 16;
+
+  @override
   MacSink newSink({@required SecretKey secretKey}) {
-    ArgumentError.checkNotNull(secretKey);
+    ArgumentError.checkNotNull(secretKey, 'secretKey');
     final secretKeyBytes = secretKey.extractSync();
     final r = _Poly1305Sink._bytesToBigInt(secretKeyBytes, 0, 16);
     final p = _Poly1305Sink._bytesToBigInt(secretKeyBytes, 16, 32);
@@ -67,8 +70,12 @@ class _Poly1305Sink extends MacSink {
   final BigInt _s;
   final Uint8List _buffer = Uint8List(16);
   int _bufferLength = 0;
-
   BigInt _accumulator = BigInt.from(0);
+  bool _isClosed = false;
+  Mac _mac;
+
+  @override
+  Mac get mac => _mac;
 
   _Poly1305Sink(BigInt r, this._s)
       : _r = r & _rClamper,
@@ -77,6 +84,9 @@ class _Poly1305Sink extends MacSink {
 
   @override
   void addSlice(List<int> chunk, int start, int end, bool isLast) {
+    if (_isClosed) {
+      throw StateError('Closed already');
+    }
     ArgumentError.checkNotNull(chunk, 'chunk');
     ArgumentError.checkNotNull(start, 'start');
     ArgumentError.checkNotNull(end, 'end');
@@ -96,15 +106,17 @@ class _Poly1305Sink extends MacSink {
       bufferLength++;
     }
     _bufferLength = bufferLength;
+    if (isLast) {
+      close();
+    }
   }
 
   @override
-  Future<Mac> close() {
-    return Future<Mac>.value(closeSync());
-  }
-
-  @override
-  Mac closeSync() {
+  void close() {
+    if (_isClosed) {
+      throw StateError('Closed already');
+    }
+    _isClosed = true;
     final bigInt = (_round(
               accumulator: _accumulator,
               r: _r,
@@ -113,7 +125,7 @@ class _Poly1305Sink extends MacSink {
             ) +
             _s) %
         (BigInt.one << 128);
-    return Mac(_bytesFromBigInt(bigInt));
+    _mac = Mac(_bytesFromBigInt(bigInt));
   }
 
   static Uint8List _bytesFromBigInt(BigInt bigInt) {

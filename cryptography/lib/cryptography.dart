@@ -1,4 +1,4 @@
-// Copyright 2019 Gohilla Ltd (https://gohilla.com).
+// Copyright 2019-2020 Gohilla Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -30,20 +30,17 @@ export 'src/cryptography/algorithms/chacha20_poly1305_aead.dart';
 export 'src/cryptography/algorithms/ec_ed25519.dart';
 export 'src/cryptography/algorithms/ec_nist.dart';
 export 'src/cryptography/algorithms/ec_x25519.dart';
+export 'src/cryptography/algorithms/hkdf.dart';
 export 'src/cryptography/algorithms/hmac.dart';
 export 'src/cryptography/algorithms/poly1305.dart';
-export 'src/cryptography/algorithms/sha2_and_sha1.dart';
-export 'src/cryptography/algorithms/sha3.dart';
-export 'src/cryptography/authenticated_cipher.dart';
+export 'src/cryptography/algorithms/sha1_sha2.dart';
 export 'src/cryptography/cipher.dart';
 export 'src/cryptography/hash_algorithm.dart';
 export 'src/cryptography/key_exchange_algorithm.dart';
 export 'src/cryptography/key_pair.dart';
-export 'src/cryptography/key_pair_generator.dart';
 export 'src/cryptography/mac_algorithm.dart';
 export 'src/cryptography/nonce.dart';
 export 'src/cryptography/private_key.dart';
 export 'src/cryptography/public_key.dart';
 export 'src/cryptography/secret_key.dart';
-export 'src/cryptography/secret_key_generator.dart';
 export 'src/cryptography/signature_algorithm.dart';

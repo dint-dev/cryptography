@@ -1,4 +1,4 @@
-// Copyright 2019 Gohilla Ltd (https://gohilla.com).
+// Copyright 2019-2020 Gohilla Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -45,52 +45,45 @@ class Hash {
 ///   * [sha256] (SHA2-256)
 ///   * [sha384] (SHA2-384)
 ///   * [sha512] (SHA2-512)
-///   * [sha3V224] (SHA3-224)
-///   * [sha3V256] (SHA3-256)
-///   * [sha3V384] (SHA3-384)
-///   * [sha3V521] (SHA3-521)
 ///
 abstract class HashAlgorithm {
-  String get name;
-
-  /// Hash length in bytes.
-  int get hashLengthInBytes;
-
-  /// Block length in bytes.
-  int get blockLength;
-
   const HashAlgorithm();
 
-  /// Calculates hash for the input.
-  Future<Hash> hash(List<int> input) {
-    return Future<Hash>(() => hashSync(input));
+  /// The internal block size in bytes.
+  int get blockLengthInBytes;
+
+  /// Digest size in bytes.
+  int get hashLengthInBytes;
+
+  /// Name of the algorithm for debugging.
+  String get name;
+
+  Future<Hash> hash(List<int> input) async {
+    return Future<Hash>.value(await hashSync(input));
   }
 
-  /// Synchronous version of [hash].
-  Hash hashSync(List<int> input) {
-    ArgumentError.checkNotNull(input);
-    final sink = newSink();
-    sink.add(input);
-    return sink.closeSync();
+  Hash hashSync(List<int> data) {
+    ArgumentError.checkNotNull(data);
+    var sink = newSink();
+    sink.add(data);
+    sink.close();
+    return sink.hash;
   }
 
-  /// Constructs a new sink for synchronous hashing.
   HashSink newSink();
+
+  @override
+  String toString() => name;
 }
 
-/// A sink created by [HashAlgorithm].
-abstract class HashSink implements ByteConversionSink {
+/// Enables calculation of [Hash] for inputs larger than fit in the memory.
+abstract class HashSink extends ByteConversionSink {
+  /// Result after calling `close()`.
+  Hash get hash;
+
   @override
   void add(List<int> chunk) {
+    ArgumentError.checkNotNull(chunk);
     addSlice(chunk, 0, chunk.length, false);
   }
-
-  /// Closes the sink and calculates hash for all added bytes.
-  @override
-  Future<Hash> close() {
-    return Future<Hash>(() => closeSync());
-  }
-
-  /// Synchronous version of [close].
-  Hash closeSync();
 }

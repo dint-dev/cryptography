@@ -1,4 +1,4 @@
-// Copyright 2019 Gohilla Ltd (https://gohilla.com).
+// Copyright 2019-2020 Gohilla Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -32,30 +32,21 @@ const Cipher webAesGcm = _WebAesGcmCipher();
 const KeyExchangeAlgorithm webEcdhP256 = _WebEcdh(
   name: 'ecdhP256',
   webCryptoNamedCurve: 'P-256',
-  keyPairGenerator: _WebEcKeyPairGenerator(
-    name: 'p256',
-    webCryptoName: 'P-256',
-  ),
+  publicKeyLength: 32,
   polyfill: null,
 );
 
 const KeyExchangeAlgorithm webEcdhP384 = _WebEcdh(
   name: 'ecdhP384',
   webCryptoNamedCurve: 'P-384',
-  keyPairGenerator: _WebEcKeyPairGenerator(
-    name: 'p384',
-    webCryptoName: 'P-384',
-  ),
+  publicKeyLength: 48,
   polyfill: null,
 );
 
 const KeyExchangeAlgorithm webEcdhP521 = _WebEcdh(
   name: 'ecdhP521',
   webCryptoNamedCurve: 'P-521',
-  keyPairGenerator: _WebEcKeyPairGenerator(
-    name: 'p521',
-    webCryptoName: 'P-521',
-  ),
+  publicKeyLength: 66,
   polyfill: null,
 );
 
@@ -63,10 +54,7 @@ const SignatureAlgorithm webEcdsaP256Sha256 = _WebEcdsa(
   name: 'ecdsaP256Sha256',
   webCryptoNamedCurve: 'P-256',
   webCryptoHashName: 'SHA-256',
-  keyPairGenerator: _WebEcKeyPairGenerator(
-    name: 'p256',
-    webCryptoName: 'P-256',
-  ),
+  publicKeyLength: 32,
   polyfill: null,
 );
 
@@ -74,10 +62,7 @@ const SignatureAlgorithm webEcdsaP384Sha256 = _WebEcdsa(
   name: 'ecdsaP384Sha256',
   webCryptoNamedCurve: 'P-384',
   webCryptoHashName: 'SHA-256',
-  keyPairGenerator: _WebEcKeyPairGenerator(
-    name: 'p384',
-    webCryptoName: 'P-384',
-  ),
+  publicKeyLength: 48,
   polyfill: null,
 );
 
@@ -85,55 +70,72 @@ const SignatureAlgorithm webEcdsaP521Sha256 = _WebEcdsa(
   name: 'ecdsaP521Sha256',
   webCryptoNamedCurve: 'P-521',
   webCryptoHashName: 'SHA-256',
-  keyPairGenerator: _WebEcKeyPairGenerator(
-    name: 'p521',
-    webCryptoName: 'P-521',
-  ),
+  publicKeyLength: 66,
   polyfill: null,
 );
 
-const _aesKeyGenerator = SecretKeyGenerator(
-  validLengths: <int>{16, 24, 32},
-  defaultLength: 32,
-);
+List<int> _base64UriDecode(String s) {
+  switch (s.length % 4) {
+    case 1:
+      return base64Url.decode(s + '===');
+    case 2:
+      return base64Url.decode(s + '==');
+    case 3:
+      return base64Url.decode(s + '=');
+    default:
+      return base64Url.decode(s);
+  }
+}
 
 ByteBuffer _jsArrayBufferFrom(List<int> data) {
   return Uint8List.fromList(data).buffer;
 }
 
-class WebHashAlgorithm extends HashAlgorithm {
-  @override
-  final String name;
+Future<KeyPair> _newWebEcKeyPair(String curve) {
+  // Generate key
+  final promise = web_crypto.subtle.generateKey(
+    web_crypto.EcdhParams(
+      name: 'ECDH',
+      namedCurve: curve,
+    ),
+    true,
+    ['deriveBits'],
+  );
+  return js
+      .promiseToFuture<web_crypto.CryptoKeyPair>(promise)
+      .then((cryptoKeyPair) async {
+    final privateKeyJwk = await js.promiseToFuture<web_crypto.Jwk>(
+      web_crypto.subtle.exportKey('jwk', cryptoKeyPair.privateKey),
+    );
 
-  @override
-  final hashLengthInBytes;
+    // Get private key.
+    // There is no standard for raw private keys,
+    // so we simply choose:
+    //   d + x + y
+    final privateKeyBytes = <int>[
+      ..._base64UriDecode(privateKeyJwk.d),
+      ..._base64UriDecode(privateKeyJwk.x),
+      ..._base64UriDecode(privateKeyJwk.y),
+    ];
 
-  @override
-  final int blockLength;
+    // Get public key.
+    final publicByteBuffer = await js.promiseToFuture<ByteBuffer>(
+      web_crypto.subtle.exportKey('raw', cryptoKeyPair.publicKey),
+    );
+    final publicKeyBytes = Uint8List.view(publicByteBuffer);
 
-  final String webCryptoName;
-
-  final HashAlgorithm polyfill;
-
-  const WebHashAlgorithm({
-    @required this.name,
-    @required this.hashLengthInBytes,
-    @required this.blockLength,
-    @required this.webCryptoName,
-    @required this.polyfill,
-  })  : assert(name != null),
-        assert(hashLengthInBytes != null),
-        assert(blockLength != null),
-        assert(webCryptoName != null);
-
-  @override
-  HashSink newSink() {
-    return polyfill.newSink();
-  }
+    return KeyPair(
+      privateKey: PrivateKey(privateKeyBytes),
+      publicKey: PublicKey(publicKeyBytes),
+    );
+  });
 }
 
 class _WebAesCbcCipher extends Cipher {
   const _WebAesCbcCipher();
+
+  @override
+  int get secretKeyLength => 32;
 
   @override
   String get name => 'aesCbc';
@@ -142,17 +144,19 @@ class _WebAesCbcCipher extends Cipher {
   int get nonceLength => 16;
 
   @override
-  SecretKeyGenerator get secretKeyGenerator => _aesKeyGenerator;
+  Set<int> get secretKeyValidLengths => const <int>{16, 24, 32};
 
   @override
   Future<Uint8List> decrypt(
     List<int> input, {
     @required SecretKey secretKey,
-    int offset = 0,
-    Nonce nonce,
+    @required Nonce nonce,
+    List<int> aad,
+    int keyStreamIndex = 0,
   }) async {
-    if (offset != 0) {
-      throw ArgumentError.value(offset, 'offset', 'Should be 0');
+    if (keyStreamIndex != 0) {
+      throw ArgumentError.value(
+          keyStreamIndex, 'keyStreamIndex', 'Should be 0');
     }
     if (nonce == null) {
       throw ArgumentError.notNull('nonce');
@@ -187,24 +191,33 @@ class _WebAesCbcCipher extends Cipher {
   Uint8List decryptSync(
     List<int> input, {
     @required SecretKey secretKey,
-    int offset = 0,
-    Nonce nonce,
+    @required Nonce nonce,
+    List<int> aad,
+    int keyStreamIndex = 0,
   }) {
     throw UnsupportedError('decryptSync() is unsupported');
   }
 
   @override
-  Future<Uint8List> encrypt(
+  Future<List<int>> encrypt(
     List<int> input, {
     @required SecretKey secretKey,
-    int offset = 0,
-    Nonce nonce,
+    @required Nonce nonce,
+    List<int> aad,
+    int keyStreamIndex = 0,
   }) async {
-    if (offset != 0) {
-      throw ArgumentError.value(offset, 'offset', 'Should be 0');
-    }
     if (nonce == null) {
       throw ArgumentError.notNull('nonce');
+    }
+    if (aad != null) {
+      throw ArgumentError.value(aad, 'aad');
+    }
+    if (keyStreamIndex != 0) {
+      throw ArgumentError.value(
+        keyStreamIndex,
+        'keyStreamIndex',
+        'Should be 0',
+      );
     }
     final secretKeyBytes = secretKey.extractSync();
     final cryptoKey = await js.promiseToFuture<web_crypto.CryptoKey>(
@@ -233,11 +246,12 @@ class _WebAesCbcCipher extends Cipher {
   }
 
   @override
-  Uint8List encryptSync(
+  List<int> encryptSync(
     List<int> input, {
     @required SecretKey secretKey,
-    int offset = 0,
-    Nonce nonce,
+    @required Nonce nonce,
+    List<int> aad,
+    int keyStreamIndex = 0,
   }) {
     throw UnsupportedError('encryptSync() is unsupported');
   }
@@ -247,23 +261,28 @@ class _WebAesCtr32Cipher extends Cipher {
   const _WebAesCtr32Cipher();
 
   @override
+  int get secretKeyLength => 32;
+
+  @override
   String get name => 'aesCtr32';
 
   @override
   int get nonceLength => 12;
 
   @override
-  SecretKeyGenerator get secretKeyGenerator => _aesKeyGenerator;
+  Set<int> get secretKeyValidLengths => const <int>{16, 24, 32};
 
   @override
   Future<Uint8List> decrypt(
     List<int> input, {
     @required SecretKey secretKey,
-    int offset = 0,
-    Nonce nonce,
+    @required Nonce nonce,
+    List<int> aad,
+    int keyStreamIndex = 0,
   }) async {
-    if (offset != 0) {
-      throw ArgumentError.value(offset, 'offset', 'Should be 0');
+    if (keyStreamIndex != 0) {
+      throw ArgumentError.value(
+          keyStreamIndex, 'keyStreamIndex', 'Should be 0');
     }
     if (nonce == null) {
       throw ArgumentError.notNull('nonce');
@@ -284,7 +303,7 @@ class _WebAesCtr32Cipher extends Cipher {
     final counterBytes = Uint8List.fromList(nonce.bytes.sublist(0, 16));
     counterBytes.setRange(0, 12, nonce.bytes);
     final counterByteData = ByteData.view(counterBytes.buffer);
-    counterByteData.setUint32(12, offset, Endian.big);
+    counterByteData.setUint32(12, keyStreamIndex, Endian.big);
     final byteBuffer = await js.promiseToFuture<ByteBuffer>(
       web_crypto.subtle.decrypt(
         web_crypto.AesCtrParams(
@@ -303,21 +322,24 @@ class _WebAesCtr32Cipher extends Cipher {
   Uint8List decryptSync(
     List<int> input, {
     @required SecretKey secretKey,
-    int offset = 0,
-    Nonce nonce,
+    @required Nonce nonce,
+    List<int> aad,
+    int keyStreamIndex = 0,
   }) {
     throw UnsupportedError('decryptSync() is unsupported');
   }
 
   @override
-  Future<Uint8List> encrypt(
+  Future<List<int>> encrypt(
     List<int> input, {
     @required SecretKey secretKey,
-    int offset = 0,
-    Nonce nonce,
+    @required Nonce nonce,
+    List<int> aad,
+    int keyStreamIndex = 0,
   }) async {
-    if (offset != 0) {
-      throw ArgumentError.value(offset, 'offset', 'Should be 0');
+    if (keyStreamIndex != 0) {
+      throw ArgumentError.value(
+          keyStreamIndex, 'keyStreamIndex', 'Should be 0');
     }
     if (nonce == null) {
       throw ArgumentError.notNull('nonce');
@@ -338,7 +360,7 @@ class _WebAesCtr32Cipher extends Cipher {
     final counterBytes = Uint8List.fromList(nonce.bytes.sublist(0, 16));
     counterBytes.setRange(0, 12, nonce.bytes);
     final counterByteData = ByteData.view(counterBytes.buffer);
-    counterByteData.setUint32(12, offset, Endian.big);
+    counterByteData.setUint32(12, keyStreamIndex, Endian.big);
     final byteBuffer = await js.promiseToFuture<ByteBuffer>(
       web_crypto.subtle.encrypt(
         web_crypto.AesCtrParams(
@@ -354,11 +376,12 @@ class _WebAesCtr32Cipher extends Cipher {
   }
 
   @override
-  Uint8List encryptSync(
+  List<int> encryptSync(
     List<int> input, {
     @required SecretKey secretKey,
-    int offset = 0,
-    Nonce nonce,
+    @required Nonce nonce,
+    List<int> aad,
+    int keyStreamIndex = 0,
   }) {
     throw UnsupportedError('encryptSync() is unsupported');
   }
@@ -368,23 +391,31 @@ class _WebAesGcmCipher extends Cipher {
   const _WebAesGcmCipher();
 
   @override
+  int get secretKeyLength => 32;
+
+  @override
   String get name => 'aesGcm';
 
   @override
-  int get nonceLength => 16;
+  int get nonceLength => 12;
 
   @override
-  SecretKeyGenerator get secretKeyGenerator => _aesKeyGenerator;
+  bool get isAuthenticated => true;
+
+  @override
+  Set<int> get secretKeyValidLengths => const <int>{16, 24, 32};
 
   @override
   Future<Uint8List> decrypt(
     List<int> input, {
     @required SecretKey secretKey,
-    int offset = 0,
-    Nonce nonce,
+    @required Nonce nonce,
+    List<int> aad,
+    int keyStreamIndex = 0,
   }) async {
-    if (offset != 0) {
-      throw ArgumentError.value(offset, 'offset', 'Should be 0');
+    if (keyStreamIndex != 0) {
+      throw ArgumentError.value(
+          keyStreamIndex, 'keyStreamIndex', 'Should be 0');
     }
     if (nonce == null) {
       throw ArgumentError.notNull('nonce');
@@ -421,21 +452,24 @@ class _WebAesGcmCipher extends Cipher {
   Uint8List decryptSync(
     List<int> input, {
     @required SecretKey secretKey,
-    int offset = 0,
     Nonce nonce,
+    List<int> aad,
+    int keyStreamIndex = 0,
   }) {
     throw UnsupportedError('decryptSync() is unsupported');
   }
 
   @override
-  Future<Uint8List> encrypt(
+  Future<List<int>> encrypt(
     List<int> input, {
     @required SecretKey secretKey,
-    int offset = 0,
-    Nonce nonce,
+    @required Nonce nonce,
+    List<int> aad,
+    int keyStreamIndex = 0,
   }) async {
-    if (offset != 0) {
-      throw ArgumentError.value(offset, 'offset', 'Should be 0');
+    if (keyStreamIndex != 0) {
+      throw ArgumentError.value(
+          keyStreamIndex, 'keyStreamIndex', 'Should be 0');
     }
     if (nonce == null) {
       throw ArgumentError.notNull('nonce');
@@ -469,11 +503,12 @@ class _WebAesGcmCipher extends Cipher {
   }
 
   @override
-  Uint8List encryptSync(
+  List<int> encryptSync(
     List<int> input, {
     @required SecretKey secretKey,
-    int offset = 0,
     Nonce nonce,
+    List<int> aad,
+    int keyStreamIndex = 0,
   }) {
     throw UnsupportedError('encryptSync() is unsupported');
   }
@@ -484,15 +519,25 @@ class _WebEcdh extends KeyExchangeAlgorithm {
   final String name;
   final String webCryptoNamedCurve;
   @override
-  final KeyPairGenerator keyPairGenerator;
+  final int publicKeyLength;
   final KeyExchangeAlgorithm polyfill;
 
   const _WebEcdh({
     @required this.name,
     @required this.webCryptoNamedCurve,
-    @required this.keyPairGenerator,
+    @required this.publicKeyLength,
     @required this.polyfill,
   });
+
+  @override
+  Future<KeyPair> newKeyPair() {
+    return _newWebEcKeyPair(webCryptoNamedCurve);
+  }
+
+  @override
+  KeyPair newKeyPairSync() {
+    throw UnsupportedError('This implementation only support newKeyPair()');
+  }
 
   @override
   Future<SecretKey> sharedSecret({
@@ -584,16 +629,26 @@ class _WebEcdsa extends SignatureAlgorithm {
   final String webCryptoNamedCurve;
   final String webCryptoHashName;
   @override
-  final KeyPairGenerator keyPairGenerator;
+  final int publicKeyLength;
   final SignatureAlgorithm polyfill;
 
   const _WebEcdsa({
     @required this.name,
     @required this.webCryptoNamedCurve,
     @required this.webCryptoHashName,
-    @required this.keyPairGenerator,
+    @required this.publicKeyLength,
     @required this.polyfill,
   });
+
+  @override
+  Future<KeyPair> newKeyPair() {
+    return _newWebEcKeyPair(webCryptoNamedCurve);
+  }
+
+  @override
+  KeyPair newKeyPairSync() {
+    throw UnsupportedError('This implementation only support newKeyPair()');
+  }
 
   @override
   Future<Signature> sign(List<int> input, KeyPair keyPair) async {
@@ -683,76 +738,5 @@ class _WebEcdsa extends SignatureAlgorithm {
     }
 
     return s.substring(0, length);
-  }
-}
-
-class _WebEcKeyPairGenerator extends KeyPairGenerator {
-  @override
-  final String name;
-  final String webCryptoName;
-
-  const _WebEcKeyPairGenerator({
-    @required this.name,
-    @required this.webCryptoName,
-  })  : assert(name != null),
-        assert(webCryptoName != null);
-
-  @override
-  Future<KeyPair> generate() {
-    // Generate key
-    final promise = web_crypto.subtle.generateKey(
-      web_crypto.EcdhParams(
-        name: 'ECDH',
-        namedCurve: webCryptoName,
-      ),
-      true,
-      ['deriveBits'],
-    );
-    return js
-        .promiseToFuture<web_crypto.CryptoKeyPair>(promise)
-        .then((cryptoKeyPair) async {
-      final privateKeyJwk = await js.promiseToFuture<web_crypto.Jwk>(
-        web_crypto.subtle.exportKey('jwk', cryptoKeyPair.privateKey),
-      );
-
-      // Get private key.
-      // There is no standard for raw private keys,
-      // so we simply choose:
-      //   d + x + y
-      final privateKeyBytes = <int>[
-        ..._base64UriDecode(privateKeyJwk.d),
-        ..._base64UriDecode(privateKeyJwk.x),
-        ..._base64UriDecode(privateKeyJwk.y),
-      ];
-
-      // Get public key.
-      final publicByteBuffer = await js.promiseToFuture<ByteBuffer>(
-        web_crypto.subtle.exportKey('raw', cryptoKeyPair.publicKey),
-      );
-      final publicKeyBytes = Uint8List.view(publicByteBuffer);
-
-      return KeyPair(
-        privateKey: PrivateKey(privateKeyBytes),
-        publicKey: PublicKey(publicKeyBytes),
-      );
-    });
-  }
-
-  @override
-  KeyPair generateSync() {
-    throw UnsupportedError('newKeyPairSync() is unsupported');
-  }
-
-  static List<int> _base64UriDecode(String s) {
-    switch (s.length % 4) {
-      case 1:
-        return base64Url.decode(s + '===');
-      case 2:
-        return base64Url.decode(s + '==');
-      case 3:
-        return base64Url.decode(s + '=');
-      default:
-        return base64Url.decode(s);
-    }
   }
 }

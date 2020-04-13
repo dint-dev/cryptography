@@ -1,4 +1,4 @@
-// Copyright 2019 Gohilla Ltd (https://gohilla.com).
+// Copyright 2019-2020 Gohilla Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,11 +24,10 @@ import 'package:collection/collection.dart';
 ///
 const Equality<List<int>> constantTimeBytesEquality =
     // ignore: deprecated_member_use_from_same_package
-    ConstantTimeBytesEquality();
+    _ConstantTimeBytesEquality();
 
-@Deprecated('Use `constantTimeBytesEquality` instead')
-class ConstantTimeBytesEquality implements Equality<List<int>> {
-  const ConstantTimeBytesEquality();
+class _ConstantTimeBytesEquality implements Equality<List<int>> {
+  const _ConstantTimeBytesEquality();
 
   @override
   int hash(List<int> e) {

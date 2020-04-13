@@ -1,4 +1,4 @@
-// Copyright 2019 Gohilla Ltd (https://gohilla.com).
+// Copyright 2019-2020 Gohilla Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -42,11 +42,38 @@ import 'package:meta/meta.dart';
 abstract class KeyExchangeAlgorithm {
   const KeyExchangeAlgorithm();
 
-  /// A keypair generator for this algorithm.
-  KeyPairGenerator get keyPairGenerator;
-
   /// Name of this algorithm.
   String get name;
+
+  /// Public key length (in bytes).
+  int get publicKeyLength;
+
+  /// Whether [newKeyPairFromSeed] can be used.
+  bool get isSeedSupported => false;
+
+  /// Generates a random key pair.
+  Future<KeyPair> newKeyPair() => Future<KeyPair>.value(newKeyPairSync());
+
+  /// Generates a random key pair.
+  ///
+  /// If synchronous computation is not supported, throws [UnsupportedError].
+  KeyPair newKeyPairSync();
+
+  /// Generates a key pair from the seed.
+  /// If the algorithm doesn't support seeds, throws [UnsupportedError].
+  Future<KeyPair> newKeyPairFromSeed(PrivateKey seed) {
+    return Future<KeyPair>.value(newKeyPairFromSeedSync(seed));
+  }
+
+  /// Generates a key pair from the seed.
+  /// If the algorithm doesn't support seeds, throws [UnsupportedError].
+  ///
+  /// If synchronous computation is not supported, throws [UnsupportedError].
+  KeyPair newKeyPairFromSeedSync(PrivateKey seed) {
+    throw UnsupportedError(
+      '$name does not support newKeyPairFromSeedSync(seed)',
+    );
+  }
 
   /// Calculates a shared secret.
   ///

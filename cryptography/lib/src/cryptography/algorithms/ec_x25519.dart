@@ -1,4 +1,4 @@
-// Copyright 2019 Gohilla Ltd (https://gohilla.com).
+// Copyright 2019-2020 Gohilla Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -39,20 +39,6 @@ import 'package:meta/meta.dart';
 ///```
 const KeyExchangeAlgorithm x25519 = _X25519();
 
-void _pack256(Uint8List result, Int32List unpacked) {
-  final byteData = ByteData.view(result.buffer, result.offsetInBytes, 32);
-  for (var i = 0; i < 16; i++) {
-    byteData.setUint16(2 * i, unpacked[i], Endian.little);
-  }
-}
-
-void _unpack256(Int32List result, Uint8List packed) {
-  final byteData = ByteData.view(packed.buffer, packed.offsetInBytes, 32);
-  for (var i = 0; i < 16; i++) {
-    result[i] = byteData.getUint16(2 * i, Endian.little);
-  }
-}
-
 class _X25519 extends KeyExchangeAlgorithm {
   /// Constant [9, 0, ..., 0] is used when calculating shared secret.
   static final Uint8List _constant9 = () {
@@ -72,11 +58,40 @@ class _X25519 extends KeyExchangeAlgorithm {
   const _X25519();
 
   @override
-  SeedableKeyPairGenerator get keyPairGenerator =>
-      const _X25519KeyPairGenerator();
+  String get name => 'x25519';
 
   @override
-  String get name => 'x25519';
+  int get publicKeyLength => 32;
+
+  @override
+  KeyPair newKeyPairFromSeedSync(PrivateKey seed) {
+    ArgumentError.checkNotNull(seed, 'privateKey');
+    final seedBytes = seed.extractSync();
+    if (seedBytes.length != 32) {
+      throw ArgumentError(
+        'Seed has invalid length: ${seedBytes.length}',
+      );
+    }
+
+    // Create a secret key
+    _X25519.replaceSeedWithSecretKey(seedBytes);
+    final privateKey = PrivateKey(seedBytes);
+
+    // Calculate public key
+    final publicKeyBytes = Uint8List(32);
+    _X25519._calculate(publicKeyBytes, seedBytes, _X25519._constant9);
+
+    // Return a keypair
+    final publicKey = PublicKey(publicKeyBytes);
+    return KeyPair(privateKey: privateKey, publicKey: publicKey);
+  }
+
+  @override
+  KeyPair newKeyPairSync() {
+    return newKeyPairFromSeedSync(
+      PrivateKey.randomBytes(32),
+    );
+  }
 
   @override
   SecretKey sharedSecretSync({
@@ -88,55 +103,37 @@ class _X25519 extends KeyExchangeAlgorithm {
     );
     replaceSeedWithSecretKey(secretKeyUint8List);
     final result = Uint8List(32);
-    _scalarMultiply(result, secretKeyUint8List, remotePublicKey.bytes);
+    _calculate(
+      result,
+      secretKeyUint8List,
+      Uint8List.fromList(remotePublicKey.bytes),
+    );
     return SecretKey(result);
   }
 
   /// Modifies certain bits of seed so that the result is a valid secret key.
   static void replaceSeedWithSecretKey(Uint8List seed) {
-    // First 3 bits should be 0
+    // First 3 bits must be 0
     seed[0] &= 0xf8;
 
-    // Bit 254 should be 1
+    // Bit 254 must be 1
     seed[31] |= 0x40;
 
-    // Bit 255 should be 0
+    // Bit 255 must be 0
     seed[31] &= 0x7f;
   }
 
-  /// Constant-time conditional swap.
-  ///
-  /// If b is 0, the function does nothing.
-  /// If b is 1, elements of the arrays will be swapped.
-  static void _conditionalSwap(Int32List p, Int32List q, int b) {
-    final c = ~(b - 1);
-    for (var i = 0; i < 16; i++) {
-      final t = c & (p[i] ^ q[i]);
-      p[i] ^= t;
-      q[i] ^= t;
-    }
-  }
-
-  /// X25519 multiplication of two 32-octet scalar.
-  ///
-  /// Used by [generateKeyPairSync] and [calculateSharedSecretSync].
-  static void _scalarMultiply(
+  static void _calculate(
     Uint8List result,
     Uint8List secretKey,
     Uint8List publicKey,
   ) {
-    // -------------------------------------------------------------------------
     // Unpack public key into the internal Int32List
-    // -------------------------------------------------------------------------
     final unpackedPublicKey = Int32List(16);
     _unpack256(unpackedPublicKey, publicKey);
 
     // Clear the last bit
     unpackedPublicKey[15] &= 0x7FFF;
-
-    // -------------------------------------------------------------------------
-    // Calculate
-    // -------------------------------------------------------------------------
 
     // Allocate temporary arrays
     final a = Int32List(16),
@@ -280,40 +277,34 @@ class _X25519 extends KeyExchangeAlgorithm {
       _conditionalSwap(a, b, isSwap);
     }
 
-    // -------------------------------------------------------------------------
     // Pack the internal Int32List into result bytes
-    // -------------------------------------------------------------------------
     _pack256(result, a);
   }
-}
 
-class _X25519KeyPairGenerator extends SeedableKeyPairGenerator {
-  const _X25519KeyPairGenerator();
-
-  @override
-  int get defaultSeedLength => 32;
-
-  @override
-  String get name => 'x25519';
-
-  @override
-  KeyPair generateFromSeedSync(PrivateKey seedKey) {
-    ArgumentError.checkNotNull(seedKey, 'seedKey');
-    final seed = seedKey.extractSync();
-    if (seed.length != 32) {
-      throw ArgumentError.value(seedKey, 'seed', 'Seed length is not 32 bytes');
+  // Constant-time conditional swap.
+  //
+  // If b is 0, the function does nothing.
+  // If b is 1, elements of the arrays will be swapped.
+  static void _conditionalSwap(Int32List p, Int32List q, int b) {
+    final c = ~(b - 1);
+    for (var i = 0; i < 16; i++) {
+      final t = c & (p[i] ^ q[i]);
+      p[i] ^= t;
+      q[i] ^= t;
     }
+  }
 
-    // Create a secret key
-    _X25519.replaceSeedWithSecretKey(seed);
-    final privateKey = PrivateKey(seed);
+  static void _pack256(Uint8List result, Int32List unpacked) {
+    final byteData = ByteData.view(result.buffer, result.offsetInBytes, 32);
+    for (var i = 0; i < 16; i++) {
+      byteData.setUint16(2 * i, unpacked[i], Endian.little);
+    }
+  }
 
-    // Calculate public key
-    final publicKeyBytes = Uint8List(32);
-    _X25519._scalarMultiply(publicKeyBytes, seed, _X25519._constant9);
-
-    // Return a keypair
-    final publicKey = PublicKey(publicKeyBytes);
-    return KeyPair(privateKey: privateKey, publicKey: publicKey);
+  static void _unpack256(Int32List result, Uint8List packed) {
+    final byteData = ByteData.view(packed.buffer, packed.offsetInBytes, 32);
+    for (var i = 0; i < 16; i++) {
+      result[i] = byteData.getUint16(2 * i, Endian.little);
+    }
   }
 }

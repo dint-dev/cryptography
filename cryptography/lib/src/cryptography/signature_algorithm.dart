@@ -1,4 +1,4 @@
-// Copyright 2019 Gohilla Ltd (https://gohilla.com).
+// Copyright 2019-2020 Gohilla Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -66,11 +66,30 @@ class Signature {
 abstract class SignatureAlgorithm {
   const SignatureAlgorithm();
 
-  /// A keypair generator for this algorithm.
-  KeyPairGenerator get keyPairGenerator;
-
   /// Name of this algorithm.
   String get name;
+
+  /// Whether [newKeyPairFromSeed] is supported.
+  bool get isSeedSupported => false;
+
+  /// Public key length (in bytes).
+  int get publicKeyLength;
+
+  Future<KeyPair> newKeyPair() => Future<KeyPair>.value(newKeyPairSync());
+
+  KeyPair newKeyPairSync();
+
+  Future<KeyPair> newKeyPairFromSeed(PrivateKey seed) {
+    throw UnsupportedError(
+      '$name does not support newKeyPairFromSeed(seed)',
+    );
+  }
+
+  KeyPair newKeyPairFromSeedSync(PrivateKey seed) {
+    throw UnsupportedError(
+      '$name does not support newKeyPairFromSeedSync(seed)',
+    );
+  }
 
   /// Signs bytes.
   Future<Signature> sign(List<int> input, KeyPair keyPair) {

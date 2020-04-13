@@ -1,4 +1,4 @@
-// Copyright 2019 Gohilla Ltd (https://gohilla.com).
+// Copyright 2019-2020 Gohilla Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,20 +12,66 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:typed_data';
-
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/utils.dart';
 import 'package:test/test.dart';
 
 void main() {
   group('ed25519:', () {
+    test('generate 10 random keyPairs, sign/verify random message', () {
+      for (var i = 0; i < 10; i++) {
+        final keyPair = ed25519.newKeyPairSync();
+
+        final message = Nonce.randomBytes(1 + (i % 128)).bytes;
+
+        final signature = ed25519.signSync(
+          message,
+          keyPair,
+        );
+        expect(signature.publicKey, keyPair.publicKey);
+
+        expect(
+          ed25519.verifySync(message, signature),
+          isTrue,
+        );
+
+        final otherMessage = <int>[
+          // Change first byte of message
+          (message[0] + 1) % 256,
+          ...message.skip(1),
+        ];
+
+        expect(
+          ed25519.verifySync(
+            otherMessage,
+            signature,
+          ),
+          isFalse,
+        );
+
+        final otherSignature = Signature(
+          <int>[
+            // Change first byte of signature bytes
+            (signature.bytes[0] + 1) % 256,
+            ...signature.bytes.skip(1),
+          ],
+          publicKey: keyPair.publicKey,
+        );
+
+        expect(
+          ed25519.verifySync(
+            message,
+            otherSignature,
+          ),
+          isFalse,
+        );
+      }
+    });
     group('Test vectors from RFC 8032:', () {
-      test('vector #1', () {
-        // ---------------------------------------------------------------------
+      group('test vector #1:', () {
         // The following constants are test vectors from RFC 8032:
         // https://tools.ietf.org/html/rfc8032
-        // ---------------------------------------------------------------------
+
         final privateKey = PrivateKey(hexToBytes(
           '9d61b19deffd5a60ba844af492ec2cc4'
           '4449c5697b326919703bac031cae7f60',
@@ -41,75 +87,209 @@ void main() {
           '5fb8821590a33bacc61e39701cf9b46b'
           'd25bf5f0595bbe24655141438e7a100b',
         );
-        // ---------------------------------------------------------------------
-        // End of constants from RFC 8032
-        // ---------------------------------------------------------------------
 
-        final keyPair = KeyPair(privateKey: privateKey, publicKey: publicKey);
-        final actualSignature = ed25519.signSync(message, keyPair);
-        expect(actualSignature.bytes, signatureBytes);
-        expect(actualSignature.publicKey, publicKey);
-
-        // Correct signature
-        expect(
-          ed25519.verifySync(message, actualSignature),
-          isTrue,
+        final keyPair = KeyPair(
+          privateKey: privateKey,
+          publicKey: publicKey,
         );
 
-        // Wrong signature
-        final otherSignature = Signature(
-          actualSignature.bytes,
-          publicKey: PublicKey(Uint8List(publicKey.bytes.length)),
+        final signature = Signature(
+          signatureBytes,
+          publicKey: publicKey,
         );
-        expect(
-          ed25519.verifySync(message, otherSignature),
-          isFalse,
-        );
+
+        test('signing', () {
+          final actualSignature = ed25519.signSync(
+            message,
+            keyPair,
+          );
+          expect(
+            hexFromBytes(actualSignature.bytes),
+            hexFromBytes(signature.bytes),
+          );
+          expect(
+            actualSignature.publicKey.bytes,
+            publicKey.bytes,
+          );
+        });
+
+        test('verifying (ok)', () {
+          // Correct signature
+          expect(
+            ed25519.verifySync(
+              message,
+              signature,
+            ),
+            isTrue,
+          );
+        });
+
+        test('verifying fails when we use other message', () {
+          expect(
+            ed25519.verifySync(
+              [1, 2, 3],
+              signature,
+            ),
+            isFalse,
+          );
+        });
+
+        test('verifying fails when we use other signature bytes', () {
+          expect(
+            ed25519.verifySync(
+              message,
+              Signature(
+                // From example #2
+                hexToBytes(
+                  '92a009a9f0d4cab8720e820b5f642540'
+                  'a2b27b5416503f8fb3762223ebdb69da'
+                  '085ac1e43e15996e458f3613d0f11d8c'
+                  '387b2eaeb4302aeeb00d291612bb0c00',
+                ),
+                publicKey: signature.publicKey,
+              ),
+            ),
+            isFalse,
+          );
+        });
+
+        test('verifying fails when we use other public key', () {
+          expect(
+            ed25519.verifySync(
+              message,
+              Signature(
+                signature.bytes,
+                publicKey: PublicKey(hexToBytes(
+                  // From example #2
+                  '3d4017c3e843895a92b70aa74d1b7ebc'
+                  '9c982ccf2ec4968cc0cd55f12af4660c',
+                )),
+              ),
+            ),
+            isFalse,
+          );
+        });
       });
 
-      test('vector #2', () {
-        // ---------------------------------------------------------------------
+      group('test vector #2', () {
         // The following constants are test vectors from RFC 8032:
         // https://tools.ietf.org/html/rfc8032
-        // ---------------------------------------------------------------------
 
         final privateKey = PrivateKey(hexToBytes(
           '4ccd089b28ff96da9db6c346ec114e0f'
           '5b8a319f35aba624da8cf6ed4fb8a6fb',
         ));
+
         final publicKey = PublicKey(hexToBytes(
           '3d4017c3e843895a92b70aa74d1b7ebc'
           '9c982ccf2ec4968cc0cd55f12af4660c',
         ));
+
         final message = const <int>[0x72];
+
         final signatureBytes = hexToBytes(
           '92a009a9f0d4cab8720e820b5f642540'
           'a2b27b5416503f8fb3762223ebdb69da'
           '085ac1e43e15996e458f3613d0f11d8c'
           '387b2eaeb4302aeeb00d291612bb0c00',
         );
-        // ---------------------------------------------------------------------
-        // End of constants from RFC 8032
-        // ---------------------------------------------------------------------
 
-        final keyPair = KeyPair(privateKey: privateKey, publicKey: publicKey);
-        final actualSignature = ed25519.signSync(message, keyPair);
-        expect(actualSignature.bytes, signatureBytes);
-        expect(actualSignature.publicKey, publicKey);
-
-        // Correct signature
-        expect(ed25519.verifySync(message, actualSignature), isTrue);
-
-        // Wrong signature
-        final otherSignature = Signature(
-          actualSignature.bytes,
-          publicKey: PublicKey(Uint8List(publicKey.bytes.length)),
+        final keyPair = KeyPair(
+          privateKey: privateKey,
+          publicKey: publicKey,
         );
-        expect(
-          ed25519.verifySync(message, otherSignature),
-          isFalse,
+
+        final signature = Signature(
+          signatureBytes,
+          publicKey: publicKey,
         );
+
+        test('signing', () {
+          final actualSignature = ed25519.signSync(
+            message,
+            keyPair,
+          );
+          expect(
+            hexFromBytes(actualSignature.bytes),
+            hexFromBytes(signature.bytes),
+          );
+          expect(
+            actualSignature.publicKey.bytes,
+            keyPair.publicKey.bytes,
+          );
+        });
+
+        test('verifying (ok)', () {
+          // Correct signature
+          expect(
+            ed25519.verifySync(
+              message,
+              signature,
+            ),
+            isTrue,
+          );
+        });
+      });
+
+      group('test vector #3', () {
+        // The following constants are test vectors from RFC 8032:
+        // https://tools.ietf.org/html/rfc8032
+
+        final privateKey = PrivateKey(hexToBytes(
+          'c5aa8df43f9f837bedb7442f31dcb7b1'
+          '66d38535076f094b85ce3a2e0b4458f7',
+        ));
+
+        final publicKey = PublicKey(hexToBytes(
+          'fc51cd8e6218a1a38da47ed00230f058'
+          '0816ed13ba3303ac5deb911548908025',
+        ));
+
+        final message = const <int>[0xaf, 0x82];
+
+        final signatureBytes = hexToBytes(
+          '6291d657deec24024827e69c3abe01a3'
+          '0ce548a284743a445e3680d7db5ac3ac'
+          '18ff9b538d16f290ae67f760984dc659'
+          '4a7c15e9716ed28dc027beceea1ec40a',
+        );
+
+        final keyPair = KeyPair(
+          privateKey: privateKey,
+          publicKey: publicKey,
+        );
+
+        final signature = Signature(
+          signatureBytes,
+          publicKey: publicKey,
+        );
+
+        test('signing', () {
+          final actualSignature = ed25519.signSync(
+            message,
+            keyPair,
+          );
+          expect(
+            hexFromBytes(actualSignature.bytes),
+            hexFromBytes(signature.bytes),
+          );
+          expect(
+            actualSignature.publicKey.bytes,
+            keyPair.publicKey.bytes,
+          );
+        });
+
+        test('verifying (ok)', () {
+          // Correct signature
+          expect(
+            ed25519.verifySync(
+              message,
+              signature,
+            ),
+            isTrue,
+          );
+        });
       });
     });
-  }, skip: 'ed25519 tests do not pass yet');
+  });
 }

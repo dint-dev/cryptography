@@ -1,4 +1,4 @@
-// Copyright 2019 Gohilla Ltd (https://gohilla.com).
+// Copyright 2019-2020 Gohilla Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -11,6 +11,8 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
+import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart' as google_crypto;
 import 'package:cryptography/cryptography.dart';
@@ -36,7 +38,7 @@ void main() {
     });
 
     test('blockLength', () {
-      expect(algorithm.blockLength, 64);
+      expect(algorithm.blockLengthInBytes, 64);
     });
 
     test('hashLengthInBytes', () {
@@ -86,7 +88,7 @@ void main() {
     });
 
     test('blockLength', () {
-      expect(algorithm.blockLength, 64);
+      expect(algorithm.blockLengthInBytes, 64);
     });
 
     test('hashLengthInBytes', () {
@@ -136,14 +138,45 @@ void main() {
     });
 
     test('blockLength', () {
-      expect(algorithm.blockLength, 64);
+      expect(algorithm.blockLengthInBytes, 64);
     });
 
     test('hashLengthInBytes', () {
       expect(algorithm.hashLengthInBytes, 32);
     });
 
-    test('newSink(), ..., closeSync(): input0', () {
+    test('newSink(): try different lengths', () {
+      final data = Uint8List(500);
+      for (var i = 0; i < data.length; i++) {
+        data[i] = 0xFF & i;
+      }
+
+      // Try different lengths
+      for (var n = 0; n < 500; n++) {
+        final input = Uint8List.view(data.buffer, 0, n);
+        final expectedOutput = google_crypto.sha256.convert(input).bytes;
+
+        // We split the input into two slices.
+        // We try various slices.
+        for (var i in [0, 1, 31, 32, 33, 63, 64, 65]) {
+          if (i > n) {
+            break;
+          }
+          final sink = sha256.newSink();
+          sink.add(input.sublist(0, i));
+          sink.add(input.sublist(i));
+          sink.close();
+          final output = sink.hash.bytes;
+          expect(
+            hexFromBytes(output),
+            hexFromBytes(expectedOutput),
+            reason: 'n=$n, i=$i',
+          );
+        }
+      }
+    });
+
+    test('newSink(): input0', () {
       // Test that the expected value is correct by using another implementation
       expect(
         hexFromBytes(google_crypto.sha256.convert(input0).bytes),
@@ -156,14 +189,15 @@ void main() {
       sink.add(input0.sublist(0, 0));
       sink.add(input0.sublist(0, 2));
       sink.add(input0.sublist(2));
-      final hash = sink.closeSync();
+      sink.close();
+      final hash = sink.hash;
       expect(
         hexFromBytes(hash.bytes),
         hexFromBytes(expectedHash0),
       );
     });
 
-    test('newSink(), ..., closeSync(): input1', () {
+    test('newSink(): input1', () {
       // Test that the expected value is correct by using another implementation
       expect(
         hexFromBytes(google_crypto.sha256.convert(input1).bytes),
@@ -176,7 +210,8 @@ void main() {
       sink.add(input1.sublist(0, 0));
       sink.add(input1.sublist(0, 2));
       sink.add(input1.sublist(2));
-      final hash = sink.closeSync();
+      sink.close();
+      final hash = sink.hash;
       expect(
         hexFromBytes(hash.bytes),
         hexFromBytes(expectedHash1),
@@ -212,21 +247,6 @@ void main() {
         hexFromBytes(expectedHash0),
       );
     });
-
-    test('hashSync(_): input1', () {
-      // Test that the expected value is correct by using another implementation
-      expect(
-        hexFromBytes(google_crypto.sha256.convert(input1).bytes),
-        hexFromBytes(expectedHash1),
-      );
-
-      expect(() => algorithm.hashSync(null), throwsArgumentError);
-      final hash = algorithm.hashSync(input1);
-      expect(
-        hexFromBytes(hash.bytes),
-        hexFromBytes(expectedHash1),
-      );
-    });
   });
 
   group('sha384:', () {
@@ -240,7 +260,7 @@ void main() {
     });
 
     test('blockLength', () {
-      expect(algorithm.blockLength, 128);
+      expect(algorithm.blockLengthInBytes, 128);
     });
 
     test('hashLengthInBytes', () {
@@ -267,16 +287,13 @@ void main() {
     final expectedHash0 = hexToBytes(
       '9b 71 d2 24 bd 62 f3 78 5d 96 d4 6a d3 ea 3d 73 31 9b fb c2 89 0c aa da e2 df f7 25 19 67 3c a7 23 23 c3 d9 9b a5 c1 1d 7c 7a cc 6e 14 b8 c5 da 0c 46 63 47 5c 2e 5c 3a de f4 6f 73 bc de c0 43',
     );
-    final expectedHash1 = hexToBytes(
-      'b8 30 86 cd 84 94 e5 57 08 ad 7e cd 82 df b4 bc a1 bd a6 1e cb b7 ca f0 c6 89 67 90 2e 70 93 45 e5 d8 30 5e b7 ac 0d 58 8a fc 6c bb 75 16 1a a9 c8 c7 e0 ea 98 6b d8 33 da fe 5e 1c cd 37 34 5a',
-    );
 
     test('name', () {
       expect(algorithm.name, 'sha512');
     });
 
     test('blockLength', () {
-      expect(algorithm.blockLength, 128);
+      expect(algorithm.blockLengthInBytes, 128);
     });
 
     test('hashLengthInBytes', () {
@@ -294,20 +311,6 @@ void main() {
       expect(
         hexFromBytes(hash.bytes),
         hexFromBytes(expectedHash0),
-      );
-    });
-
-    test('hashSync(_): input1', () {
-      // Test that the expected value is correct by using another implementation
-      expect(
-        hexFromBytes(google_crypto.sha512.convert(input1).bytes),
-        hexFromBytes(expectedHash1),
-      );
-
-      final hash = algorithm.hashSync(input1);
-      expect(
-        hexFromBytes(hash.bytes),
-        hexFromBytes(expectedHash1),
       );
     });
   });

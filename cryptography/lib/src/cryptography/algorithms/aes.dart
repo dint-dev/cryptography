@@ -1,4 +1,4 @@
-// Copyright 2019 Gohilla Ltd (https://gohilla.com).
+// Copyright 2019-2020 Gohilla Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -27,6 +27,9 @@ import 'package:pointycastle/stream/ctr.dart' as pointycastle;
 import 'web_crypto.dart';
 
 /// _AES-CBC_ cipher.
+///
+/// The secret key can be any value with 128, 192, or 256 bits. By default, the
+/// key generator returns 256 bit keys.
 ///
 /// An example:
 /// ```dart
@@ -57,6 +60,9 @@ import 'web_crypto.dart';
 const Cipher aesCbc = webAesCbc ?? _AesCbcImplPointyCastle();
 
 /// _AES-CTR_ cipher with a 96-bit nonce and a 32-bit counter.
+///
+/// The secret key can be any value with 128, 192, or 256 bits. By default, the
+/// key generator returns 256 bit keys.
 ///
 /// AES-CTR takes a 16-byte initialization vector and allows you to specify how
 /// many right-most bits are taken by the counter.
@@ -92,6 +98,9 @@ const Cipher aesCtr32 = webAesCtr32 ?? _AesCtr32ImplPointyCastle();
 /// _AES-GCM_ (Galois/Counter Mode) cipher.
 /// Currently supported __only in the browser.__
 ///
+/// The secret key can be any value with 128, 192, or 256 bits. By default, the
+/// key generator returns 256 bit keys.
+///
 /// An example:
 /// ```dart
 /// import 'package:cryptography/cryptography.dart';
@@ -118,7 +127,7 @@ const Cipher aesCtr32 = webAesCtr32 ?? _AesCtr32ImplPointyCastle();
 ///   );
 /// }
 /// ```
-const Cipher aesGcm = webAesGcm ?? _UnsupportedCipher('aesGcm');
+const Cipher aesGcm = webAesGcm;
 
 class _AesCbcImplPointyCastle extends Cipher {
   const _AesCbcImplPointyCastle();
@@ -127,23 +136,27 @@ class _AesCbcImplPointyCastle extends Cipher {
   String get name => 'aesCbc';
 
   @override
+  Set<int> get secretKeyValidLengths => const {16, 24, 32};
+
+  @override
+  int get secretKeyLength => 32;
+
+  @override
   int get nonceLength => 16;
 
   @override
-  SecretKeyGenerator get secretKeyGenerator => const SecretKeyGenerator(
-        validLengths: {16, 24, 32},
-        defaultLength: 32,
-      );
-
-  @override
-  Uint8List decryptSync(
+  List<int> decryptSync(
     List<int> input, {
     @required SecretKey secretKey,
     @required Nonce nonce,
-    int offset = 0,
+    List<int> aad,
+    int keyStreamIndex = 0,
   }) {
-    if (offset != 0) {
-      throw ArgumentError.value(offset, 'offset');
+    if (aad != null) {
+      throw ArgumentError.value(aad, 'aad');
+    }
+    if (keyStreamIndex != 0) {
+      throw ArgumentError.value(keyStreamIndex, 'offset');
     }
     final implementation = pointycastle.PaddedBlockCipherImpl(
       pointycastle.PKCS7Padding(),
@@ -175,14 +188,18 @@ class _AesCbcImplPointyCastle extends Cipher {
   }
 
   @override
-  Uint8List encryptSync(
+  List<int> encryptSync(
     List<int> input, {
     @required SecretKey secretKey,
     @required Nonce nonce,
-    int offset = 0,
+    List<int> aad,
+    int keyStreamIndex = 0,
   }) {
-    if (offset != 0) {
-      throw ArgumentError.value(offset, 'offset');
+    if (aad != null) {
+      throw ArgumentError.value(aad, 'aad');
+    }
+    if (keyStreamIndex != 0) {
+      throw ArgumentError.value(keyStreamIndex, 'offset');
     }
     final implementation = pointycastle.PaddedBlockCipherImpl(
       pointycastle.PKCS7Padding(),
@@ -218,26 +235,30 @@ class _AesCtr32ImplPointyCastle extends Cipher {
   const _AesCtr32ImplPointyCastle();
 
   @override
-  String get name => 'aesCbc';
+  String get name => 'aesCtr32';
 
   @override
   int get nonceLength => 12;
 
   @override
-  SecretKeyGenerator get secretKeyGenerator => const SecretKeyGenerator(
-        validLengths: {16, 24, 32},
-        defaultLength: 32,
-      );
+  Set<int> get secretKeyValidLengths => const {16, 24, 32};
 
   @override
-  Uint8List decryptSync(
+  int get secretKeyLength => 32;
+
+  @override
+  List<int> decryptSync(
     List<int> input, {
     @required SecretKey secretKey,
     @required Nonce nonce,
-    int offset = 0,
+    List<int> aad,
+    int keyStreamIndex = 0,
   }) {
-    if (offset != 0) {
-      throw ArgumentError.value(offset, 'offset');
+    if (aad != null) {
+      throw ArgumentError.value(aad, 'aad');
+    }
+    if (keyStreamIndex != 0) {
+      throw ArgumentError.value(keyStreamIndex, 'offset');
     }
     final implementation = pointycastle.CTRStreamCipher(
       pointycastle.AESFastEngine(),
@@ -249,7 +270,7 @@ class _AesCtr32ImplPointyCastle extends Cipher {
     final counterBytes = Uint8List(16);
     counterBytes.setRange(0, 12, nonce.bytes);
     final counterByteData = ByteData.view(counterBytes.buffer);
-    counterByteData.setUint32(12, offset, Endian.big);
+    counterByteData.setUint32(12, keyStreamIndex, Endian.big);
     implementation.init(
       false,
       pointycastle.ParametersWithIV(
@@ -261,14 +282,18 @@ class _AesCtr32ImplPointyCastle extends Cipher {
   }
 
   @override
-  Uint8List encryptSync(
+  List<int> encryptSync(
     List<int> input, {
     @required SecretKey secretKey,
     @required Nonce nonce,
-    int offset = 0,
+    List<int> aad,
+    int keyStreamIndex = 0,
   }) {
-    if (offset != 0) {
-      throw ArgumentError.value(offset, 'offset');
+    if (aad != null) {
+      throw ArgumentError.value(aad, 'aad');
+    }
+    if (keyStreamIndex != 0) {
+      throw ArgumentError.value(keyStreamIndex, 'offset');
     }
     final implementation = pointycastle.CTRStreamCipher(
       pointycastle.AESFastEngine(),
@@ -280,7 +305,7 @@ class _AesCtr32ImplPointyCastle extends Cipher {
     final counterBytes = Uint8List(16);
     counterBytes.setRange(0, 12, nonce.bytes);
     final counterByteData = ByteData.view(counterBytes.buffer);
-    counterByteData.setUint32(12, offset, Endian.big);
+    counterByteData.setUint32(12, keyStreamIndex, Endian.big);
     implementation.init(
       true,
       pointycastle.ParametersWithIV(
@@ -289,35 +314,5 @@ class _AesCtr32ImplPointyCastle extends Cipher {
       ),
     );
     return implementation.process(Uint8List.fromList(input));
-  }
-}
-
-class _UnsupportedCipher extends Cipher {
-  @override
-  final String name;
-
-  const _UnsupportedCipher(this.name);
-
-  @override
-  SecretKeyGenerator get secretKeyGenerator => null;
-
-  @override
-  Uint8List decryptSync(
-    List<int> input, {
-    @required SecretKey secretKey,
-    @required Nonce nonce,
-    int offset = 0,
-  }) {
-    throw UnsupportedError('Only supported in the browser');
-  }
-
-  @override
-  Uint8List encryptSync(
-    List<int> input, {
-    @required SecretKey secretKey,
-    @required Nonce nonce,
-    int offset = 0,
-  }) {
-    throw UnsupportedError('Only supported in the browser');
   }
 }

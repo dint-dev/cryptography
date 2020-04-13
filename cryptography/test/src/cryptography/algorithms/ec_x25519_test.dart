@@ -1,4 +1,4 @@
-// Copyright 2019 Gohilla Ltd (https://gohilla.com).
+// Copyright 2019-2020 Gohilla Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,11 +20,38 @@ import 'package:test/test.dart';
 
 void main() {
   group('x25519:', () {
+    test('information', () {
+      final algorithm = x25519;
+      expect(algorithm.name, 'x25519');
+      expect(algorithm.publicKeyLength, 32);
+    });
+
+    test('1000 random key exchanges', () async {
+      for (var i = 0; i < 1000; i++) {
+        // Bob and Alice choose a random key pairs
+        final alice = x25519.newKeyPairSync();
+        final bob = x25519.newKeyPairSync();
+
+        // Both calculate the secret
+        final aliceShared = x25519.sharedSecretSync(
+          localPrivateKey: alice.privateKey,
+          remotePublicKey: bob.publicKey,
+        );
+        final bobShared = x25519.sharedSecretSync(
+          localPrivateKey: bob.privateKey,
+          remotePublicKey: alice.publicKey,
+        );
+
+        // The secrets must be the same
+        expect(aliceShared, bobShared);
+      }
+
+      // This takes long time so skip the test in browsers.
+    }, testOn: 'vm', timeout: Timeout(const Duration(seconds: 120)));
+
     test('Test vectors from RFC 7748', () async {
-      // -----------------------------------------------------------------------
       // The following constants are from RFC 7748:
       // https://tools.ietf.org/html/rfc7748
-      // -----------------------------------------------------------------------
 
       final alicePrivateKey = PrivateKey(hexToBytes(
         '77076d0a7318a57d3c16c17251b26645df4c2f87ebc0992ab177fba51db92c2a',
@@ -46,21 +73,15 @@ void main() {
         '4a5d9d5ba4ce2de1728e3bf480350f25e07e21c947d19e3376f09b3c1e161742',
       ));
 
-      // -----------------------------------------------------------------------
-      // End of constants from RFC 7748
-      // -----------------------------------------------------------------------
-
       // Test generating a public key (for Alice)
       expect(
-        (await x25519.keyPairGenerator.generateFromSeed(alicePrivateKey))
-            .publicKey,
+        (await x25519.newKeyPairFromSeed(alicePrivateKey)).publicKey,
         alicePublicKey,
       );
 
       // Test generating a public key (for Bob)
       expect(
-        (await x25519.keyPairGenerator.generateFromSeed(bobPrivateKey))
-            .publicKey,
+        (await x25519.newKeyPairFromSeed(bobPrivateKey)).publicKey,
         bobPublicKey,
       );
 
@@ -83,17 +104,17 @@ void main() {
       );
     });
 
-    test('Test public key generation with 10 000 cycles', () async {
+    test('public key generation from seed with 10 000 cycles', () async {
       const n = 10000;
 
       // Initial secret key
       var input = Uint8List(32);
       input[0] = 1;
 
-      // 'n' times
+      // 10 000 times
       for (var i = 0; i < n; i++) {
         // Generate a public key
-        final keyPair = await x25519.keyPairGenerator.generateFromSeed(
+        final keyPair = await x25519.newKeyPairFromSeed(
           PrivateKey(input),
         );
 
@@ -101,9 +122,8 @@ void main() {
         input = keyPair.publicKey.bytes;
       }
 
-      // Public key after 'n' cycles
       final expected = Uint8List.fromList([
-        // Generated from a correct implementation.
+        // Calculated with another implementation.
         138, 8, 200, 47, 95, 126, 210, 241,
         240, 215, 22, 64, 139, 230, 175, 228,
         225, 187, 38, 220, 231, 7, 114, 132,
@@ -111,6 +131,8 @@ void main() {
       ]);
 
       expect(input, equals(expected));
+
+      // This takes long time so skip the test in browsers.
     }, testOn: 'vm', timeout: Timeout(const Duration(seconds: 120)));
   });
 }

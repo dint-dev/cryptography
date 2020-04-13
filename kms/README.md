@@ -7,18 +7,20 @@ Many operating systems and major cloud platforms (AWS, Azure, Google) offer such
 KMS adapters are subclasses of [Kms](https://pub.dev/documentation/kms/latest/kms/Kms-class.html).
 
 You may want to start with [MemoryKms](https://pub.dev/documentation/kms/latest/kms/MemoryKms-class.html),
-which works in all platforms. It uses cryptographic implementations in our sibling project,
+which works in all platforms. It uses cryptography from our sibling project,
 [package:cryptography](https://pub.dev/packages/cryptography).
 
 Copyright 2020 Gohilla Ltd. Licensed under the [Apache License 2.0](LICENSE).
-
-Issue reports and pull requests are welcome.
 
 ## Links
   * [Github repository](https://github.com/dint-dev/cryptography)
   * [Issue tracker](https://github.com/dint-dev/cryptography/issues)
   * [Pub package](https://pub.dev/packages/kms)
   * [API reference](https://pub.dev/documentation/kms/latest/)
+
+# Want to contribute?
+  * We recommend that you start by creating an issue in the
+    [issue tracker](https://github.com/dint-dev/cryptography/issues).
 
 # Getting started
 ## 1.Add dependency

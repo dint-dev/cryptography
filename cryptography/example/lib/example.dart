@@ -8,11 +8,13 @@ Future<void> main() async {
   final nonce = chacha20.newNonce();
 
   // Encrypt
-  final result = await chacha20Poly1305Aead.encrypt(
-    [1, 2, 3],
+  final clearText = [1, 2, 3];
+  final cipherText = await chacha20Poly1305Aead.encrypt(
+    clearText,
     secretKey: secretKey,
     nonce: nonce,
   );
-  print('Bytes: ${result.cipherText}');
-  print('MAC: ${result.mac}');
+
+  print('Bytes: ${chacha20Poly1305Aead.getDataInCipherText(cipherText)}');
+  print('MAC: ${chacha20Poly1305Aead.getMacInCipherText(cipherText)}');
 }

@@ -1,12 +1,19 @@
+## 0.3.0
+  * Breaking changes: Removes separate key generator classes. Many API changes designed to reduce
+    chances of developers using the API incorrectly.
+  * Adds HKDF and ED25519 support.
+  * Adds more assertions and tests.
+  * Improves documentation.
+
 ## 0.2.6
   * Fixed an issue with dependency constraints that conflict with Flutter SDK.
   * PrivateKey / SecretKey property `bytes` is deprecated and replaced with `extract()` and
-    `extractSync()` to better support implementations that protect the underlying bytes.
+    `extractSync()` to better support implementations that protect the underlying bytes such as
+    Web Cryptography API.
   * Improves documentation.
 
 ## 0.2.5
   * Adds AES for non-browser platforms.
-  * Adds SHA3.
   * Fixes various bugs and improves test coverage.
 
 ## 0.2.4

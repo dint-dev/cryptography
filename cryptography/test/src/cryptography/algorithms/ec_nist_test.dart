@@ -1,4 +1,4 @@
-// Copyright 2019 Gohilla Ltd (https://gohilla.com).
+// Copyright 2019-2020 Gohilla Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,79 +19,91 @@ void main() {
   group('ecdhP256:', () {
     const algorithm = ecdhP256;
 
-    test('name', () {
-      expect(algorithm.name, 'ecdhP256');
-    });
+    group('in browser:', () {
+      test('name', () {
+        expect(algorithm.name, 'ecdhP256');
+      });
 
-    test('in browser', () async {
-      await _testKeyExchange(algorithm);
+      test('in browser', () async {
+        await _testKeyExchange(algorithm);
+      });
     }, testOn: 'chrome');
   });
 
   group('ecdhP384:', () {
     const algorithm = ecdhP384;
 
-    test('name', () {
-      expect(algorithm.name, 'ecdhP384');
-    });
+    group('in browser:', () {
+      test('name', () {
+        expect(algorithm.name, 'ecdhP384');
+      });
 
-    test('in browser', () async {
-      await _testKeyExchange(algorithm);
+      test('in browser', () async {
+        await _testKeyExchange(algorithm);
+      });
     }, testOn: 'chrome');
   });
 
   group('ecdhP521:', () {
     const algorithm = ecdhP521;
 
-    test('name', () {
-      expect(algorithm.name, 'ecdhP521');
-    });
+    group('in browser:', () {
+      test('name', () {
+        expect(algorithm.name, 'ecdhP521');
+      });
 
-    test('in browser', () async {
-      await _testKeyExchange(algorithm);
+      test('in browser', () async {
+        await _testKeyExchange(algorithm);
+      });
     }, testOn: 'chrome');
   });
 
   group('ecdsaP256Sha256:', () {
     const algorithm = ecdsaP256Sha256;
 
-    test('name', () {
-      expect(algorithm.name, 'ecdsaP256Sha256');
-    });
+    group('in browser:', () {
+      test('name', () {
+        expect(algorithm.name, 'ecdsaP256Sha256');
+      });
 
-    test('in browser', () async {
-      await _testSignature(algorithm);
+      test('in browser', () async {
+        await _testSignature(algorithm);
+      });
     }, testOn: 'chrome');
   });
 
   group('ecdsaP384Sha256:', () {
     const algorithm = ecdsaP384Sha256;
 
-    test('name', () {
-      expect(algorithm.name, 'ecdsaP384Sha256');
-    });
+    group('in browser:', () {
+      test('name', () {
+        expect(algorithm.name, 'ecdsaP384Sha256');
+      });
 
-    test('in browser', () async {
-      await _testSignature(algorithm);
+      test('in browser', () async {
+        await _testSignature(algorithm);
+      });
     }, testOn: 'chrome');
   });
 
   group('ecdsaP521Sha256:', () {
     const algorithm = ecdsaP521Sha256;
 
-    test('name', () {
-      expect(algorithm.name, 'ecdsaP521Sha256');
-    });
+    group('in browser:', () {
+      test('name', () {
+        expect(algorithm.name, 'ecdsaP521Sha256');
+      });
 
-    test('in browser', () async {
-      await _testSignature(algorithm);
+      test('in browser', () async {
+        await _testSignature(algorithm);
+      });
     }, testOn: 'chrome');
   });
 }
 
 Future<void> _testKeyExchange(KeyExchangeAlgorithm algorithm) async {
-  final keypair0 = await algorithm.keyPairGenerator.generate();
-  final keypair1 = await algorithm.keyPairGenerator.generate();
+  final keypair0 = await algorithm.newKeyPair();
+  final keypair1 = await algorithm.newKeyPair();
   expect(
     keypair0.privateKey,
     isNot(keypair1.privateKey),
@@ -115,8 +127,8 @@ Future<void> _testKeyExchange(KeyExchangeAlgorithm algorithm) async {
 }
 
 Future<void> _testSignature(SignatureAlgorithm algorithm) async {
-  final keypair = await algorithm.keyPairGenerator.generate();
-  final otherKeyPair = await algorithm.keyPairGenerator.generate();
+  final keypair = await algorithm.newKeyPair();
+  final otherKeyPair = await algorithm.newKeyPair();
   expect(
     keypair.privateKey,
     isNot(otherKeyPair.privateKey),

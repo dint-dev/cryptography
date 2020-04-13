@@ -25,8 +25,8 @@ visit() {
   # Run the command
   $ARGS
 
-  cd ..
   echo ""
+  cd ..
 }
 
 visit cryptography

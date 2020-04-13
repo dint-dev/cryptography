@@ -1,4 +1,4 @@
-// Copyright 2019 Gohilla Ltd (https://gohilla.com).
+// Copyright 2019-2020 Gohilla Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -75,13 +75,18 @@ abstract class KmsBase implements Kms {
   }
 
   @override
-  Future<List<int>> decrypt(List<int> bytes, KmsKey kmsKey, {Nonce nonce}) {
+  Future<List<int>> decrypt(
+    List<int> cipherText,
+    KmsKey kmsKey, {
+    Nonce nonce,
+    List<int> aad,
+  }) {
     if (_kms == null) {
       return Future<List<int>>.error(
         UnsupportedError('Operation is unsupported'),
       );
     }
-    return _kms.decrypt(bytes, kmsKey, nonce: nonce);
+    return _kms.decrypt(cipherText, kmsKey, nonce: nonce, aad: aad);
   }
 
   @override
@@ -95,13 +100,18 @@ abstract class KmsBase implements Kms {
   }
 
   @override
-  Future<List<int>> encrypt(List<int> bytes, KmsKey kmsKey, {Nonce nonce}) {
+  Future<List<int>> encrypt(
+    List<int> bytes,
+    KmsKey kmsKey, {
+    Nonce nonce,
+    List<int> aad,
+  }) {
     if (_kms == null) {
       return Future<List<int>>.error(
         UnsupportedError('Operation is unsupported'),
       );
     }
-    return _kms.encrypt(bytes, kmsKey, nonce: nonce);
+    return _kms.encrypt(bytes, kmsKey, nonce: nonce, aad: aad);
   }
 
   @override

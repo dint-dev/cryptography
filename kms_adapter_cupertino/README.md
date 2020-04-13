@@ -1,3 +1,3 @@
 [![Github Actions CI](https://github.com/dint-dev/cryptography/workflows/Dart%20CI/badge.svg)](https://github.com/dint-dev/cryptography/actions?query=workflow%3A%22Dart+CI%22)
 
-Issue reports and pull requests are welcome.
+This package hasn't been implemented yet.

@@ -1,4 +1,4 @@
-// Copyright 2019 Gohilla Ltd (https://gohilla.com).
+// Copyright 2019-2020 Gohilla Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ import 'dart:typed_data';
 
 import 'package:collection/collection.dart';
 
-/// A nonce. Sometimes known as Initialization Vector (IV).
+/// A nonce. Sometimes known as Initialization Vector (IV) or salt.
 ///
 /// ```
 /// // Generate a random 512 bit nonce
@@ -55,8 +55,7 @@ class Nonce {
         const ListEquality<int>().equals(bytes, other.bytes);
   }
 
-  /// Increments the secret key bits by 1. This can be used to generate
-  /// sequential nonce values.
+  /// Returns a nonce incremented by 1.
   Nonce increment() {
     final bytes = this.bytes;
     final result = Uint8List.fromList(bytes);
