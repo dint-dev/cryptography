@@ -70,7 +70,7 @@ Copyright 2020 Gohilla Ltd. Licensed under the [Apache License 2.0](LICENSE).
 In _pubspec.yaml_:
 ```yaml
 dependencies:
-  kms: ^0.2.0
+  kms: ^0.3.0
 ```
 
 ## 2.Use

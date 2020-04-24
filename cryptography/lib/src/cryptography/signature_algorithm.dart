@@ -51,16 +51,26 @@ class Signature {
 ///   * [ecdsaP521Sha256]
 ///   * [ed25519]
 ///
-/// An example:
+/// An example of using [ed25519]:
 /// ```
 /// import 'package:cryptography/cryptography.dart';
 ///
 /// Future<void> main() async {
-///   final keyPair = await ecdsaP256.newKeyPair();
-///   final signature = await ecdsaP256.sign([1,2,3], keyPair);
+///   // Sign
+///   final keyPair = await ed25519.newKeyPair();
+///   final signature = await ed25519.sign(
+///     [1,2,3],
+///     keyPair,
+///   );
+///
+///   print('Signature bytes: ${signature.bytes}');
+///   print('Public key: ${signature.publicKey.bytes}');
 ///
 ///   // Anyone can verify the signature
-///   final isVerified = await ecdsaP256.verify([1,2,3], signature);
+///   final isVerified = await ed25519.verify(
+///     [1,2,3],
+///     signature,
+///   );
 /// }
 /// ```
 abstract class SignatureAlgorithm {

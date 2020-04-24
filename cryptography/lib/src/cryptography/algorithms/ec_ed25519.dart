@@ -24,18 +24,19 @@ import 'package:cryptography/cryptography.dart';
 /// import 'package:cryptography/cryptography.dart';
 ///
 /// Future<void> main() async {
-///   final message = <int>[1,2,3];
-///
-///   // Only the private key holder can sign
-///   final keyPair = await algorithm.newKeyPair();
+///   // Sign
+///   final keyPair = await ed25519.newKeyPair();
 ///   final signature = await ed25519.sign(
-///     message,
+///     [1,2,3],
 ///     keyPair,
 ///   );
 ///
+///   print('Signature bytes: ${signature.bytes}');
+///   print('Public key: ${signature.publicKey.bytes}');
+///
 ///   // Anyone can verify the signature
 ///   final isVerified = await ed25519.verify(
-///     message,
+///     [1,2,3],
 ///     signature,
 ///   );
 /// }

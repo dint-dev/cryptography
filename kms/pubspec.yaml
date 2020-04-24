@@ -1,5 +1,5 @@
 name: kms
-version: 0.3.0
+version: 0.3.1
 homepage: https://github.com/dint-dev/cryptography
 description: Key Management Service (KMS) API for managing cryptographic keys securely.
 

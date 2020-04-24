@@ -25,9 +25,18 @@ import 'package:cryptography/cryptography.dart';
 /// import 'package:cryptography/cryptography.dart';
 ///
 /// void main() {
+///   // Create a sink
 ///   final sink = sha1.newSink();
+///
+///   // Add all parts
 ///   sink.add(<int>[1,2,3]);
-///   final hash = sink.close();
+///   sink.add(<int>[4,5]);
+///
+///   // Calculate hash
+///   sink.close();
+///   final hash = sink.hash;
+///
+///   print('Hash: ${hash.bytes}');
 /// }
 /// ```
 const HashAlgorithm sha1 = _Sha1();
@@ -39,9 +48,18 @@ const HashAlgorithm sha1 = _Sha1();
 /// import 'package:cryptography/cryptography.dart';
 ///
 /// void main() {
+///   // Create a sink
 ///   final sink = sha224.newSink();
+///
+///   // Add all parts
 ///   sink.add(<int>[1,2,3]);
-///   final hash = sink.close();
+///   sink.add(<int>[4,5]);
+///
+///   // Calculate hash
+///   sink.close();
+///   final hash = sink.hash;
+///
+///   print('Hash: ${hash.bytes}');
 /// }
 /// ```
 const HashAlgorithm sha224 = _Sha224();
@@ -53,9 +71,18 @@ const HashAlgorithm sha224 = _Sha224();
 /// import 'package:cryptography/cryptography.dart';
 ///
 /// void main() {
+///   // Create a sink
 ///   final sink = sha256.newSink();
+///
+///   // Add all parts
 ///   sink.add(<int>[1,2,3]);
-///   final hash = sink.close();
+///   sink.add(<int>[4,5]);
+///
+///   // Calculate hash
+///   sink.close();
+///   final hash = sink.hash;
+///
+///   print('Hash: ${hash.bytes}');
 /// }
 /// ```
 const HashAlgorithm sha256 = _Sha256();
@@ -67,9 +94,18 @@ const HashAlgorithm sha256 = _Sha256();
 /// import 'package:cryptography/cryptography.dart';
 ///
 /// void main() {
-///   final sink = sha385.newSink();
+///   // Create a sink
+///   final sink = sha384.newSink();
+///
+///   // Add all parts
 ///   sink.add(<int>[1,2,3]);
-///   final hash = sink.close();
+///   sink.add(<int>[4,5]);
+///
+///   // Calculate hash
+///   sink.close();
+///   final hash = sink.hash;
+///
+///   print('Hash: ${hash.bytes}');
 /// }
 /// ```
 const HashAlgorithm sha384 = _Sha384();
@@ -81,9 +117,18 @@ const HashAlgorithm sha384 = _Sha384();
 /// import 'package:cryptography/cryptography.dart';
 ///
 /// void main() {
+///   // Create a sink
 ///   final sink = sha512.newSink();
+///
+///   // Add all parts
 ///   sink.add(<int>[1,2,3]);
-///   final hash = sink.close();
+///   sink.add(<int>[4,5]);
+///
+///   // Calculate hash
+///   sink.close();
+///   final hash = sink.hash;
+///
+///   print('Hash: ${hash.bytes}');
 /// }
 /// ```
 const HashAlgorithm sha512 = _Sha512();

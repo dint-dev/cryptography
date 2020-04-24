@@ -26,7 +26,42 @@ import 'package:meta/meta.dart';
 ///   * [chacha20]
 ///   * [chacha20Poly1305Aead]
 ///   * [CipherWithAppendedMac]
+///     * Appends any message authentication code to the end.
 ///
+/// An example of using [chacha20Poly1305Aead]:
+/// ```dart
+/// import 'package:cryptography/cryptography.dart';
+///
+/// Future<void> main() async {
+///   // Generate a random 256-bit secret key
+///   final secretKey = SecretKey.randomBytes(32);
+///
+///   // Generate a random 96-bit nonce.
+///   final nonce = Nonce.randomBytes(12);
+///
+///   // Encrypt
+///   final clearText = <int>[1, 2, 3];
+///   final encrypted = await chacha20Poly1305Aead.encrypt(
+///     clearText,
+///     secretKey: secretKey,
+///     nonce: nonce,
+///   );
+///
+///   print('Bytes: ${chacha20Poly1305Aead.getDataInCipherText(encrypted)}');
+///   print('MAC: ${chacha20Poly1305Aead.getMacInCipherText(encrypted)}');
+///
+///   // Decrypt.
+///   //
+///   // If the message authentication code is incorrect,
+///   // the method will return null.
+///   //
+///   final decrypted = await algorithm.decrypt(
+///     cipherText,
+///     secretKey: secretKey,
+///     nonce: nonce,
+///   );
+/// }
+/// ```
 abstract class Cipher {
   const Cipher();
 

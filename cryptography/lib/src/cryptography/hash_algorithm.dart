@@ -17,7 +17,7 @@ import 'dart:convert';
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/utils.dart';
 
-/// A result of [HashAlgorithm].
+/// An output produced by [HashAlgorithm].
 class Hash {
   /// Bytes of the hash.
   final List<int> bytes;
@@ -47,6 +47,25 @@ class Hash {
 ///   * [sha384] (SHA2-384)
 ///   * [sha512] (SHA2-512)
 ///
+/// An example of using [blake2s]:
+/// ```
+/// import 'package:cryptography/cryptography.dart';
+///
+/// void main() {
+///   // Create a sink
+///   final sink = blake2s.newSink();
+///
+///   // Add all parts
+///   sink.add(<int>[1,2,3]);
+///   sink.add(<int>[4,5]);
+///
+///   // Calculate hash
+///   sink.close();
+///   final hash = sink.hash;
+///
+///   print('Hash: ${hash.bytes}');
+/// }
+/// ```
 abstract class HashAlgorithm {
   const HashAlgorithm();
 

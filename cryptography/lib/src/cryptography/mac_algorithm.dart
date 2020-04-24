@@ -18,7 +18,7 @@ import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/utils.dart';
 import 'package:meta/meta.dart';
 
-/// A Message Authentication Code (MAC) calculated by [MacAlgorithm].
+/// A Message Authentication Code (MAC) produced by [MacAlgorithm].
 class Mac {
   /// Bytes of the MAC.
   final List<int> bytes;
@@ -43,6 +43,28 @@ class Mac {
 /// Examples:
 ///   * [Hmac]
 ///   * [poly1305]
+///
+/// An example of using [Hmac] with [sha256]:
+/// ```
+/// import 'package:cryptography/cryptography.dart';
+///
+/// Future<void> main() {
+///   final secretKey = SecretKey([1,2,3]);
+///
+///   // Create a sink
+///   final sink = Hmac(sha256).newSink(
+///     secretKey: secretKey,
+///   );
+///
+///   // Add parts
+///   sink.add([1,2,3]);
+///   sink.add([4,5]);
+///
+///   // Calculate MAC
+///   sink.close();
+///   final mac = sink.mac;
+/// }
+/// ```
 abstract class MacAlgorithm {
   const MacAlgorithm();
 
@@ -85,7 +107,7 @@ abstract class MacSink extends ByteConversionSink {
   }
 }
 
-/// Thrown when calculated [Mac] doesn't equal the correct digest.
+/// Thrown by [Cipher] when decrypted bytes have invalid [Mac].
 class MacValidationException implements Exception {
   @override
   String toString() => 'Message authentication code (MAC) is invalid';

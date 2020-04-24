@@ -36,14 +36,14 @@ import 'package:meta/meta.dart';
 ///
 ///   // Encrypt
 ///   final clearText = <int>[1, 2, 3];
-///   final cipherText = await chacha20Poly1305Aead.encrypt(
+///   final encrypted = await chacha20Poly1305Aead.encrypt(
 ///     clearText,
 ///     secretKey: secretKey,
 ///     nonce: nonce,
 ///   );
 ///
-///   print('Bytes: ${chacha20Poly1305Aead.getDataInCipherText(cipherText)}');
-///   print('MAC: ${chacha20Poly1305Aead.getMacInCipherText(cipherText)}');
+///   print('Bytes: ${chacha20Poly1305Aead.getDataInCipherText(encrypted)}');
+///   print('MAC: ${chacha20Poly1305Aead.getMacInCipherText(encrypted)}');
 ///
 ///   // Decrypt.
 ///   //

@@ -1,3 +1,6 @@
+## 0.3.2
+  * Improves documentation.
+
 ## 0.3.1
   * Improves documentation.
   * Eliminates AES-CBC and AES-CTR dependencies.

@@ -17,7 +17,7 @@ import 'dart:typed_data';
 
 import 'package:collection/collection.dart';
 
-/// A nonce. Sometimes known as Initialization Vector (IV) or salt.
+/// A nonce. A nonce is sometimes called Initialization Vector (IV) or salt.
 ///
 /// ```
 /// // Generate a random 512 bit nonce

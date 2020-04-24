@@ -59,8 +59,8 @@ For more more documentation, see [KeyExchangeAlgorithm](https://pub.dev/document
 
 For more more documentation, see [SignatureAlgorithm](https://pub.dev/documentation/cryptography/latest/cryptography/SignatureAlgorithm-class.html).
 
-### Ciphers
-  * AES
+### Symmetric encryption
+  * NIST AES
     * [aesCbc](https://pub.dev/documentation/cryptography/latest/cryptography/aesCbc-constant.html) (AES-CBC)
     * [aesCtr](https://pub.dev/documentation/cryptography/latest/cryptography/aesCtr-constant.html) (AES-CTR)
     * [aesGcm](https://pub.dev/documentation/cryptography/latest/cryptography/aesGcm-constant.html) (AES-GCM)
@@ -68,8 +68,6 @@ For more more documentation, see [SignatureAlgorithm](https://pub.dev/documentat
   * Chacha20 family
     * [chacha20](https://pub.dev/documentation/cryptography/latest/cryptography/chacha20-constant.html)
     * [chacha20Poly1305Aead](https://pub.dev/documentation/cryptography/latest/cryptography/chacha20Poly1305Aead-constant.html) (AEAD_CHACHA20_POLY1305)
-    * [xchacha20](https://pub.dev/documentation/cryptography/latest/cryptography/xchacha20-constant.html)
-    * [xchacha20Poly1305Aead](https://pub.dev/documentation/cryptography/latest/cryptography/xchacha20Poly1305Aead-constant.html) (AEAD_XCHACHA20_POLY1305)
     * Chacha20 (AEAD) is our recommendation for new applications. It's used in technologies such as
       TLS, SSH, Signal, and Wireguard. Performance of our Dart implementation is about 50-100MB/s
       on a Macbook Pro.
@@ -100,7 +98,7 @@ For more more documentation, see [HashAlgorithm](https://pub.dev/documentation/c
 In _pubspec.yaml_:
 ```yaml
 dependencies:
-  cryptography: ^0.3.1
+  cryptography: ^0.3.2
 ```
 
 

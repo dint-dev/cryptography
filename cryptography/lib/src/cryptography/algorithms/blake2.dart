@@ -24,9 +24,18 @@ import 'package:cryptography/utils.dart';
 /// import 'package:cryptography/cryptography.dart';
 ///
 /// void main() {
+///   // Create a sink
 ///   final sink = blake2s.newSink();
+///
+///   // Add all parts
 ///   sink.add(<int>[1,2,3]);
-///   final hash = sink.close();
+///   sink.add(<int>[4,5]);
+///
+///   // Calculate hash
+///   sink.close();
+///   final hash = sink.hash;
+///
+///   print('Hash: ${hash.bytes}');
 /// }
 /// ```
 const HashAlgorithm blake2s = _Blake2s();
