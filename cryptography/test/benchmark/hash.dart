@@ -15,31 +15,29 @@
 import 'package:cryptography/cryptography.dart';
 
 import 'common.dart';
+import 'dart:typed_data';
 
 void main() {
-  X25519Benchmark().report();
+  HashBenchmark(sha256).report();
+  HashBenchmark(sha512).report();
+  HashBenchmark(blake2s).report();
 }
 
-class X25519Benchmark extends ThroughputBenchmarkBase {
-  final KeyExchangeAlgorithm implementation;
+class HashBenchmark extends ThroughputBenchmarkBase {
+  final HashAlgorithm implementation;
 
-  X25519Benchmark({this.implementation = x25519})
-      : super('Calculating shared secret');
+  HashBenchmark(this.implementation)
+      : super('${implementation.name.padRight(12)}');
 
-  KeyPair keypair1;
-  KeyPair keypair2;
+  List<int> message;
 
   @override
   void setup() {
-    keypair1 = x25519.newKeyPairSync();
-    keypair2 = x25519.newKeyPairSync();
+    message = Uint8List(1024);
   }
 
   @override
   void run() {
-    implementation.sharedSecretSync(
-      localPrivateKey: keypair1.privateKey,
-      remotePublicKey: keypair2.publicKey,
-    );
+    implementation.hash(message);
   }
 }

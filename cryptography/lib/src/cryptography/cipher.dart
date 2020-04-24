@@ -319,7 +319,7 @@ class CipherWithAppendedMac implements Cipher {
   bool get isAuthenticated => true;
 
   @override
-  String get name => cipher.name;
+  String get name => '${cipher.name}-${macAlgorithm.name}';
 
   @override
   int get nonceLength => cipher.nonceLength;

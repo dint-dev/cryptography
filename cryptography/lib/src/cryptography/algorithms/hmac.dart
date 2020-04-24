@@ -50,6 +50,9 @@ class Hmac extends MacAlgorithm {
   int get macLengthInBytes => hashAlgorithm.hashLengthInBytes;
 
   @override
+  String get name => 'Hmac(${hashAlgorithm.name})';
+
+  @override
   MacSink newSink({@required SecretKey secretKey}) {
     ArgumentError.checkNotNull(secretKey);
 

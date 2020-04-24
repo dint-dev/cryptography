@@ -71,6 +71,9 @@ abstract class MacAlgorithm {
   /// Number of bytes in the message authentication code.
   int get macLengthInBytes;
 
+  /// Name of the algorithm.
+  String get name;
+
   /// Asynchronously calculates message authentication code for the input.
   Future<Mac> calculateMac(List<int> input,
       {@required SecretKey secretKey}) async {

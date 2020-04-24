@@ -43,6 +43,9 @@ class _Poly1305 extends MacAlgorithm {
   int get macLengthInBytes => 16;
 
   @override
+  String get name => 'poly1305';
+
+  @override
   MacSink newSink({@required SecretKey secretKey}) {
     ArgumentError.checkNotNull(secretKey, 'secretKey');
     final secretKeyBytes = secretKey.extractSync();
@@ -75,13 +78,13 @@ class _Poly1305Sink extends MacSink {
   bool _isClosed = false;
   Mac _mac;
 
-  @override
-  Mac get mac => _mac;
-
   _Poly1305Sink(BigInt r, this._s)
       : _r = r & _rClamper,
         assert(r != null),
         assert(_s != null);
+
+  @override
+  Mac get mac => _mac;
 
   @override
   void addSlice(List<int> chunk, int start, int end, bool isLast) {

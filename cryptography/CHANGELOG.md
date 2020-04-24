@@ -1,3 +1,6 @@
+## 0.3.3
+  * Improves documentation.
+
 ## 0.3.2
   * Improves documentation.
 

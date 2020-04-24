@@ -4,6 +4,15 @@
 # Overview
 Popular cryptographic algorithms implemented in Dart.
 
+Key features:
+  * __Supports modern algorithms__. The package supports new popular algorithms such as Curve25519
+    and ChaCha20 as well as old NIST standards such as AES.
+  * __Enterprise-friendly__. This package uses Apache 2.0 License and is supported by a commercial
+    company. Whenever possible (currently SHA1, SHA2), we use implementations by Google. We wrote
+    decent tests for algorithms we had to implement ourselves.
+  * __Easy-to-use__. To make the world a safer place, we wrote an API that pushes non-expert
+    developers to use cryptography correctly.
+
 Copyright 2020 Gohilla Ltd. Licensed under the [Apache License 2.0](LICENSE).
 
 ## Links
@@ -20,12 +29,13 @@ Copyright 2020 Gohilla Ltd. Licensed under the [Apache License 2.0](LICENSE).
 # Want to contribute?
   * Any help is appreciated! We recommend that you start by creating an issue in the
     [issue tracker](https://github.com/dint-dev/cryptography/issues).
+  * Show love by starring the package [in Github](https://github.com/dint-dev/cryptography). ;)
 
 ## Some things to know
   * SHA1 and SHA2 implementations use [package:crypto](https://pub.dev/packages/crypto), which is
     maintained by Google. It's very limited so we decided to write this package.
-  * We wrote pure Dart implementations for X25519, Chacha20 family, AES-CBC, AES-CTR, HKDF, HMAC,
-    Poly1305, and Blake2s. We also added support for use of [Web Cryptography API](https://www.w3.org/TR/WebCryptoAPI/)
+  * We wrote pure Dart implementations for X25519, ChaCha20 family, AES-CBC, AES-CTR, HKDF, HMAC,
+    Poly1305, and BLAKE2S. We also added support for use of [Web Cryptography API](https://www.w3.org/TR/WebCryptoAPI/)
     (NIST elliptic curves, AES) in browsers.
   * The APIs generally include both _asynchronous_ and _synchronous_ methods (for instance,
     `sharedSecret(...)` and `sharedSecretSync(...)`). We recommend that you use asynchronous
@@ -38,9 +48,9 @@ Copyright 2020 Gohilla Ltd. Licensed under the [Apache License 2.0](LICENSE).
     * [ecdhP256](https://pub.dev/documentation/cryptography/latest/cryptography/ecdhP256-constant.html) (ECDH P256 / secp256r1)
     * [ecdhP384](https://pub.dev/documentation/cryptography/latest/cryptography/ecdhP384-constant.html) (ECDH P384 / secp384r1)
     * [ecdhP521](https://pub.dev/documentation/cryptography/latest/cryptography/ecdhP521-constant.html) (ECDH P521 / secp521r1)
-    * Currently only supported in browsers (_Web Cryptography API_).
-  * [x25519](https://pub.dev/documentation/cryptography/latest/cryptography/x25519-constant.html)
-    * X25519 (curve25519-based Diffie-Hellman) is our recommendation for new applications. It's
+    * Currently NIST elliptic curves are only supported in browsers (_Web Cryptography API_).
+  * [x25519](https://pub.dev/documentation/cryptography/latest/cryptography/x25519-constant.html) ([read about the algorithm](https://en.wikipedia.org/wiki/Curve25519))
+    * X25519 (curve25519 Diffie-Hellman) is our recommendation for new applications. It's
       used in technologies such as SSH, TLS, Signal, WhatsApp, and Wireguard. Performance of our
       Dart implementation is about 1k exchanges per second on a Macbook Pro.
 
@@ -51,21 +61,19 @@ For more more documentation, see [KeyExchangeAlgorithm](https://pub.dev/document
     * [ecdsaP256Sha256](https://pub.dev/documentation/cryptography/latest/cryptography/ecdsaP256Sha256-constant.html) (ECDSA P256 / secp256r1 with SHA256)
     * [ecdsaP384Sha256](https://pub.dev/documentation/cryptography/latest/cryptography/ecdsaP384Sha256-constant.html) (ECDSA P384 / secp384r1 with SHA256)
     * [ecdsaP521Sha256](https://pub.dev/documentation/cryptography/latest/cryptography/ecdsaP521Sha256-constant.html) (ECDSA P521 / secp521r1 with SHA256)
-    * Currently only supported in browsers (_Web Cryptography API_).
-  * [ed25519](https://pub.dev/documentation/cryptography/latest/cryptography/ed25519-constant.html)
-    * ED25519 (curve25519-based EdDSA) is our recommendation for new applications. Performance of our
-      Dart implementation is about 10 verifications per second. It has a lot low-hanging fruits for
-      optimization.
+    * Currently NIST elliptic curves are only supported in browsers (_Web Cryptography API_).
+  * [ed25519](https://pub.dev/documentation/cryptography/latest/cryptography/ed25519-constant.html) ([read about the algorithm](https://en.wikipedia.org/wiki/EdDSA))
+    * ED25519 (curve25519 EdDSA) is our recommendation for new applications. Performance of our
+      Dart implementation is about 200 signatures or verifications per second.
 
 For more more documentation, see [SignatureAlgorithm](https://pub.dev/documentation/cryptography/latest/cryptography/SignatureAlgorithm-class.html).
 
 ### Symmetric encryption
-  * NIST AES
+  * NIST AES ([read about the algorithm](https://en.wikipedia.org/wiki/Advanced_Encryption_Standard))
     * [aesCbc](https://pub.dev/documentation/cryptography/latest/cryptography/aesCbc-constant.html) (AES-CBC)
     * [aesCtr](https://pub.dev/documentation/cryptography/latest/cryptography/aesCtr-constant.html) (AES-CTR)
-    * [aesGcm](https://pub.dev/documentation/cryptography/latest/cryptography/aesGcm-constant.html) (AES-GCM)
-      * Currently only supported in browsers (_Web Cryptography API_).
-  * Chacha20 family
+    * [aesGcm](https://pub.dev/documentation/cryptography/latest/cryptography/aesGcm-constant.html) (AES-GCM, browsers-only at the moment)
+  * Chacha20 family ([read about the algorithm](https://en.wikipedia.org/wiki/Salsa20))
     * [chacha20](https://pub.dev/documentation/cryptography/latest/cryptography/chacha20-constant.html)
     * [chacha20Poly1305Aead](https://pub.dev/documentation/cryptography/latest/cryptography/chacha20Poly1305Aead-constant.html) (AEAD_CHACHA20_POLY1305)
     * Chacha20 (AEAD) is our recommendation for new applications. It's used in technologies such as
@@ -159,7 +167,8 @@ Future<void> main() async {
 
 
 ## Authenticated encryption with Chacha20 + Poly1305
-In this example, we use [chacha20Poly1305Aead](https://pub.dev/documentation/cryptography/latest/cryptography/chacha20Poly1305Aead-constant.html).
+In this example, we use [chacha20Poly1305Aead](https://pub.dev/documentation/cryptography/latest/cryptography/chacha20Poly1305Aead-constant.html),
+a standard that uses ChaCha20 and Poly1305.
 
 ```dart
 import 'package:cryptography/cryptography.dart';
@@ -200,8 +209,9 @@ Future<void> main() async {
 
 
 ## Authenticated encryption with AES-CTR + HMAC-SHA256
-In this example, we use [aesCtr](https://pub.dev/documentation/cryptography/latest/cryptography/aesCtr-constant.html)
-and [Hmac](https://pub.dev/documentation/cryptography/latest/cryptography/Hmac-class.html).
+In this example, we encrypt with [aesCtr](https://pub.dev/documentation/cryptography/latest/cryptography/aesCtr-constant.html)
+and use [Hmac](https://pub.dev/documentation/cryptography/latest/cryptography/Hmac-class.html)
+message authentication code.
 
 ```dart
 import 'package:cryptography/cryptography.dart';

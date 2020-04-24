@@ -17,6 +17,7 @@ Copyright 2020 Gohilla Ltd. Licensed under the [Apache License 2.0](LICENSE).
 ## Want to contribute?
   * Any help is appreciated! We recommend that you start by creating an issue in the
     [issue tracker](https://github.com/dint-dev/cryptography/issues).
+  * Show love by starring the package [in Github](https://github.com/dint-dev/cryptography). ;)
 
 ## Available adapters
   * [MemoryKms](https://pub.dev/documentation/kms/latest/kms/MemoryKms-class.html)

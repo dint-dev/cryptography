@@ -1,9 +1,9 @@
 name: cryptography
-version: 0.3.2
+version: 0.3.3
 homepage: https://github.com/dint-dev/cryptography
 description:
-  Popular cryptographic algorithms. Enables you to do key agreement, digital signature, encryption,
-  message authentication, and hashing.
+  Cryptographic algorithms for digital signature, key agreement, encryption, message authentication,
+  and hashing. X25519, ED25519, AES, Chacha20, and many more.
 
 environment:
   sdk: '>=2.5.0 <3.0.0'

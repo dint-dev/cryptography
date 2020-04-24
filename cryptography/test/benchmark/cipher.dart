@@ -21,22 +21,44 @@ const million = 1000000;
 
 void main() {
   print('Benchmarks:');
-  print('--');
-  Chacha20StreamBenchmark(million).report();
-  print('--');
-  Chacha20NumerousSmallMessagesBenchmark(million, 100).report();
-  print('--');
+  print('');
+  Chacha20StreamBenchmark(chacha20, million).report();
+  Chacha20StreamBenchmark(chacha20Poly1305Aead, million).report();
+
+  Chacha20StreamBenchmark(aesCbc, million).report();
+  Chacha20StreamBenchmark(CipherWithAppendedMac(aesCbc, Hmac(sha256)), million)
+      .report();
+
+  Chacha20StreamBenchmark(aesCtr, million).report();
+  Chacha20StreamBenchmark(CipherWithAppendedMac(aesCtr, Hmac(sha256)), million)
+      .report();
+  print('');
+
+  Chacha20NumerousSmallMessagesBenchmark(chacha20, million, 100).report();
+  Chacha20NumerousSmallMessagesBenchmark(chacha20Poly1305Aead, million, 100)
+      .report();
+  Chacha20NumerousSmallMessagesBenchmark(aesCbc, million, 100).report();
+  Chacha20NumerousSmallMessagesBenchmark(
+          CipherWithAppendedMac(aesCbc, Hmac(sha256)), million, 100)
+      .report();
+  Chacha20NumerousSmallMessagesBenchmark(aesCtr, million, 100).report();
+  Chacha20NumerousSmallMessagesBenchmark(
+          CipherWithAppendedMac(aesCtr, Hmac(sha256)), million, 100)
+      .report();
+  print('');
 }
 
 class Chacha20StreamBenchmark extends BenchmarkBase {
+  final Cipher cipher;
   final int totalLength;
   SecretKey secretKey;
   Nonce nonce;
   Uint8List cleartext;
   Uint8List result;
 
-  Chacha20StreamBenchmark(this.totalLength)
-      : super('${totalLength ~/ million} MB stream');
+  Chacha20StreamBenchmark(this.cipher, this.totalLength)
+      : super(
+            '${(cipher.name + ':').padRight(20)} ${totalLength ~/ million} MB stream');
 
   @override
   void setup() {
@@ -45,14 +67,14 @@ class Chacha20StreamBenchmark extends BenchmarkBase {
     for (var i = 0; i < cleartext.lengthInBytes; i++) {
       cleartext[i] = 0xFF & i;
     }
-    secretKey = chacha20.newSecretKeySync();
-    nonce = chacha20.newNonce();
+    secretKey = cipher.newSecretKeySync();
+    nonce = cipher.newNonce();
     result = Uint8List(cleartext.length);
   }
 
   @override
   void run() {
-    chacha20.encryptSync(
+    cipher.encryptSync(
       cleartext,
       secretKey: secretKey,
       nonce: nonce,
@@ -66,6 +88,7 @@ class Chacha20StreamBenchmark extends BenchmarkBase {
 }
 
 class Chacha20NumerousSmallMessagesBenchmark extends BenchmarkBase {
+  final Cipher cipher;
   final int totalLength;
   final int messageLength;
   SecretKey secretKey;
@@ -73,9 +96,10 @@ class Chacha20NumerousSmallMessagesBenchmark extends BenchmarkBase {
   Uint8List cleartext;
   Uint8List result;
 
-  Chacha20NumerousSmallMessagesBenchmark(this.totalLength, this.messageLength)
+  Chacha20NumerousSmallMessagesBenchmark(
+      this.cipher, this.totalLength, this.messageLength)
       : super(
-            '${totalLength ~/ million} MB in ${messageLength} byte long messages');
+            '${(cipher.name + ':').padRight(20)} ${totalLength ~/ million} MB in ${messageLength} byte long messages');
 
   @override
   void setup() {
@@ -83,14 +107,14 @@ class Chacha20NumerousSmallMessagesBenchmark extends BenchmarkBase {
     for (var i = 0; i < cleartext.lengthInBytes; i++) {
       cleartext[i] = 0xFF & i;
     }
-    secretKey = chacha20.newSecretKeySync();
-    nonce = chacha20.newNonce();
+    secretKey = cipher.newSecretKeySync();
+    nonce = cipher.newNonce();
     result = Uint8List(cleartext.lengthInBytes);
   }
 
   @override
   void run() {
-    chacha20.encryptSync(
+    cipher.encryptSync(
       cleartext,
       secretKey: secretKey,
       nonce: nonce,
