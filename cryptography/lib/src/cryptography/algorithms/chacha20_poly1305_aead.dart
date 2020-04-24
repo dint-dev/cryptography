@@ -18,7 +18,7 @@ import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/utils.dart';
 import 'package:meta/meta.dart';
 
-/// _Chacha20_ ([https://tools.ietf.org/html/rfc7539](RFC 7539) cipher.
+/// _ChaCha20_ ([https://tools.ietf.org/html/rfc7539](RFC 7539) cipher.
 ///
 /// Remember that:
 ///   * You must not use the same key/nonce combination twice.
@@ -29,13 +29,13 @@ import 'package:meta/meta.dart';
 ///
 /// Future<void> main() async {
 ///   // Generate a random 256-bit secret key
-///   final secretKey = await chacha20.newSecretKey();
+///   final secretKey = SecretKey.randomBytes(32);
 ///
 ///   // Generate a random 96-bit nonce.
-///   final nonce = chacha20.newNonce();
+///   final nonce = Nonce.randomBytes(12);
 ///
 ///   // Encrypt
-///   final clearText = [1, 2, 3];
+///   final clearText = <int>[1, 2, 3];
 ///   final cipherText = await chacha20Poly1305Aead.encrypt(
 ///     clearText,
 ///     secretKey: secretKey,
@@ -57,13 +57,18 @@ import 'package:meta/meta.dart';
 ///   );
 /// }
 /// ```
-const CipherWithAppendedMac chacha20Poly1305Aead = _Chacha20Poly1305Aead._();
+const CipherWithAppendedMac chacha20Poly1305Aead = Chacha20Poly1305Aead();
 
-class _Chacha20Poly1305Aead extends CipherWithAppendedMac {
+/// {@nodoc}
+@visibleForTesting
+class Chacha20Poly1305Aead extends CipherWithAppendedMac {
   static final _tmpByteData = ByteData(16);
   static final _tmpUint8List = Uint8List.view(_tmpByteData.buffer);
 
-  const _Chacha20Poly1305Aead._() : super(chacha20, poly1305);
+  const Chacha20Poly1305Aead({
+    Cipher cipher = chacha20,
+    MacAlgorithm macAlgorithm = poly1305,
+  }) : super(cipher, macAlgorithm);
 
   @override
   bool get supportsAad => true;
@@ -76,10 +81,7 @@ class _Chacha20Poly1305Aead extends CipherWithAppendedMac {
     List<int> aad,
     int keyStreamIndex = 0,
   }) {
-    if (keyStreamIndex < 0) {
-      throw ArgumentError.value(keyStreamIndex, 'keyStreamIndex');
-    }
-    final cipherTextWithoutMac = chacha20.encryptSync(
+    final cipherTextWithoutMac = cipher.encryptSync(
       clearText,
       secretKey: secretKey,
       nonce: nonce,
@@ -107,9 +109,6 @@ class _Chacha20Poly1305Aead extends CipherWithAppendedMac {
     List<int> aad,
     int keyStreamIndex = 0,
   }) {
-    if (keyStreamIndex < 0) {
-      throw ArgumentError.value(keyStreamIndex, 'keyStreamIndex');
-    }
     final dataInCipherText = getDataInCipherText(cipherText);
     final calculatedMac = calculateMacSync(
       dataInCipherText,
@@ -122,7 +121,7 @@ class _Chacha20Poly1305Aead extends CipherWithAppendedMac {
     if (macInCipherText != calculatedMac) {
       return null;
     }
-    return chacha20.decryptSync(
+    return cipher.decryptSync(
       dataInCipherText,
       secretKey: secretKey,
       nonce: nonce,

@@ -14,31 +14,23 @@
 
 /// Describes type of a secret key managed by some [Kms].
 enum CipherType {
-  any,
+  /// AES-CBC + HMAC-SHA256.
+  aesCbcHmacSha256,
 
-  /// AES-CBC.
-  aesCbc,
-
-  /// AES-CTR with a 96-bit nonce and a 32-bit counter.
-  aesCtr32,
+  /// AES-CTR + HMAC-SHA256.
+  aesCtrHmacSha256,
 
   /// AES-GCM.
   aesGcm,
 
-  /// Chacha20.
-  chacha20,
+  /// Chacha20 + Poly1305.
+  chacha20Poly1305,
 }
 
 /// Describes key exchange type of a secret key managed by some [Kms].
 enum KeyExchangeType {
-  /// P256 (secp256r1).
+  /// ECDH NIST P-256 (secp256r1).
   p256,
-
-  /// P384 (secp384r1).
-  p384,
-
-  /// P521 (secp521r1).
-  p521,
 
   /// X25519.
   x25519,
@@ -46,11 +38,8 @@ enum KeyExchangeType {
 
 /// Signature algorithms.
 enum SignatureType {
-  /// P256 (secp256r1) with SHA256 hash.
-  p256Sha256,
-
-  /// P384 (secp384r1) with SHA384 hash.
-  p384Sha384,
+  /// ECDSA NIST P-256 (secp256r1) with SHA256 hash.
+  p256,
 
   /// Ed25519.
   ed25519,

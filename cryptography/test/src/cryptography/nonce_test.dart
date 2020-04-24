@@ -30,9 +30,9 @@ void main() {
       var bytes = Uint8List(12);
       bytes[11] = 2;
       bytes = Nonce(bytes).increment().bytes;
-      expect(bytes[11], equals(3));
-      expect(bytes[10], equals(0));
       expect(bytes[9], equals(0));
+      expect(bytes[10], equals(0));
+      expect(bytes[11], equals(3));
     });
 
     test('increment(): [..., 0,2,255] --> [...0,3,0]', () {
@@ -40,9 +40,10 @@ void main() {
       bytes[11] = 255;
       bytes[10] = 2;
       bytes = Nonce(bytes).increment().bytes;
-      expect(bytes[11], equals(0));
-      expect(bytes[10], equals(3));
+      expect(bytes[8], equals(0));
       expect(bytes[9], equals(0));
+      expect(bytes[10], equals(3));
+      expect(bytes[11], equals(0));
     });
 
     test('increment(): [..., 2,255,255] --> [...3,0,0]', () {
@@ -51,9 +52,22 @@ void main() {
       bytes[10] = 255;
       bytes[9] = 2;
       bytes = Nonce(bytes).increment().bytes;
-      expect(bytes[11], equals(0));
-      expect(bytes[10], equals(0));
+      expect(bytes[8], equals(0));
       expect(bytes[9], equals(3));
+      expect(bytes[10], equals(0));
+      expect(bytes[11], equals(0));
+    });
+
+    test('increment(5): [..., 2,255,255] --> [...3,0,4]', () {
+      var bytes = Uint8List(12);
+      bytes[11] = 255;
+      bytes[10] = 255;
+      bytes[9] = 2;
+      bytes = Nonce(bytes).increment(5).bytes;
+      expect(bytes[8], equals(0));
+      expect(bytes[9], equals(3));
+      expect(bytes[10], equals(0));
+      expect(bytes[11], equals(4));
     });
 
     test('"==" / hashCode', () {

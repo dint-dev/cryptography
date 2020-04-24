@@ -26,6 +26,7 @@ import 'package:collection/collection.dart';
 class Nonce {
   static final _random = Random.secure();
 
+  /// Bytes of the nonce.
   final List<int> bytes;
 
   Nonce(this.bytes) {
@@ -56,14 +57,22 @@ class Nonce {
   }
 
   /// Returns a nonce incremented by 1.
-  Nonce increment() {
-    final bytes = this.bytes;
+  Nonce increment([int n = 1]) {
+    if (n < 0 || n > 0xFF) {
+      throw ArgumentError.value(n, 'n');
+    }
     final result = Uint8List.fromList(bytes);
     for (var i = result.length - 1; i >= 0; i--) {
-      result[i]++;
-      if (result[i] != 0) {
+      final newByte = result[i] + n;
+      result[i] = 0xFF & newByte;
+
+      // No carry?
+      if (newByte <= 0xFF) {
         break;
       }
+
+      // Carry (1)
+      n = 1;
     }
     return Nonce(result);
   }

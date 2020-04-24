@@ -6,9 +6,13 @@ Future<void> main() async {
   final kmsKey = await kms.createKeyPair(
     keyRingId: 'example',
     keyExchangeType: null,
-    signatureType: SignatureType.p256Sha256,
+    signatureType: SignatureType.p256,
   );
-  final signature = await kms.sign([1, 2, 3], kmsKey);
+  final signature = await kms.sign(
+    [1, 2, 3],
+    kmsKey: kmsKey,
+    signatureType: SignatureType.p256,
+  );
   print('Signature: ${signature.bytes}');
   print('Public key: ${signature.publicKey}');
 }

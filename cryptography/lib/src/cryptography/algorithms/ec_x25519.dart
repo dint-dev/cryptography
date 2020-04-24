@@ -66,7 +66,7 @@ class _X25519 extends KeyExchangeAlgorithm {
   @override
   KeyPair newKeyPairFromSeedSync(PrivateKey seed) {
     ArgumentError.checkNotNull(seed, 'privateKey');
-    final seedBytes = seed.extractSync();
+    final seedBytes = Uint8List.fromList(seed.extractSync());
     if (seedBytes.length != 32) {
       throw ArgumentError(
         'Seed has invalid length: ${seedBytes.length}',
@@ -112,7 +112,7 @@ class _X25519 extends KeyExchangeAlgorithm {
   }
 
   /// Modifies certain bits of seed so that the result is a valid secret key.
-  static void replaceSeedWithSecretKey(Uint8List seed) {
+  static void replaceSeedWithSecretKey(List<int> seed) {
     // First 3 bits must be 0
     seed[0] &= 0xf8;
 

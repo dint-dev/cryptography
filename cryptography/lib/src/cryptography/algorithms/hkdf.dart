@@ -30,10 +30,12 @@ import 'package:meta/meta.dart';
 /// }
 /// ```
 class Hkdf {
+  /// HMAC used by this HKDF instance.
   final Hmac hmac;
 
   const Hkdf(this.hmac);
 
+  /// Generates a secret key of the specified length.
   Future<SecretKey> deriveKey(
     SecretKey input, {
     @required int outputLength,

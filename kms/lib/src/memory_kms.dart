@@ -21,7 +21,6 @@ class MemoryKms extends KmsBase {
   /// Key exchange algorithms supported by default.
   static const Map<KeyExchangeType, KeyExchangeAlgorithm>
       defaultKeyExchangeAlgorithms = {
-    KeyExchangeType.p256: ecdhP256,
     KeyExchangeType.x25519: x25519,
   };
 
@@ -33,7 +32,7 @@ class MemoryKms extends KmsBase {
 
   /// Ciphers supported by default.
   static const Map<CipherType, Cipher> defaultCiphers = {
-    CipherType.chacha20: chacha20,
+    CipherType.chacha20Poly1305: CipherWithAppendedMac(chacha20, poly1305),
   };
 
   final Map<KmsKey, _MemoryKmsValue> _values = <KmsKey, _MemoryKmsValue>{};
@@ -86,12 +85,7 @@ class MemoryKms extends KmsBase {
       if (signatureType != null) {
         switch (keyExchangeType) {
           case KeyExchangeType.p256:
-            if (signatureType != SignatureType.p256Sha256) {
-              throw ArgumentError.value(keyExchangeType);
-            }
-            break;
-          case KeyExchangeType.p384:
-            if (signatureType != SignatureType.p384Sha384) {
+            if (signatureType != SignatureType.p256) {
               throw ArgumentError.value(keyExchangeType);
             }
             break;
@@ -167,9 +161,10 @@ class MemoryKms extends KmsBase {
 
   @override
   Future<List<int>> decrypt(
-    List<int> cipherText,
-    KmsKey kmsKey, {
+    List<int> cipherText, {
+    @required KmsKey kmsKey,
     @required Nonce nonce,
+    @required CipherType cipherType,
     List<int> aad,
   }) {
     ArgumentError.checkNotNull(kmsKey);
@@ -202,9 +197,10 @@ class MemoryKms extends KmsBase {
 
   @override
   Future<List<int>> encrypt(
-    List<int> bytes,
-    KmsKey kmsKey, {
+    List<int> bytes, {
+    @required KmsKey kmsKey,
     @required Nonce nonce,
+    @required CipherType cipherType,
     List<int> aad,
   }) async {
     ArgumentError.checkNotNull(kmsKey);
@@ -249,9 +245,13 @@ class MemoryKms extends KmsBase {
   }
 
   @override
-  Future<SecretKey> sharedSecret(KmsKey kmsKey, PublicKey publicKey) async {
+  Future<SecretKey> sharedSecret({
+    KmsKey kmsKey,
+    @required PublicKey remotePublicKey,
+    @required KeyExchangeType keyExchangeType,
+  }) async {
     ArgumentError.checkNotNull(kmsKey);
-    ArgumentError.checkNotNull(publicKey);
+    ArgumentError.checkNotNull(remotePublicKey);
     final value = _values[kmsKey];
     if (value == null) {
       throw KmsKeyDoesNotExistException(kmsKey);
@@ -262,16 +262,17 @@ class MemoryKms extends KmsBase {
     }
     final secretKey = algorithm.sharedSecret(
       localPrivateKey: value.keyPair.privateKey,
-      remotePublicKey: publicKey,
+      remotePublicKey: remotePublicKey,
     );
     return secretKey;
   }
 
   @override
   Future<Signature> sign(
-    List<int> bytes,
-    KmsKey kmsKey,
-  ) {
+    List<int> bytes, {
+    @required KmsKey kmsKey,
+    @required SignatureType signatureType,
+  }) {
     ArgumentError.checkNotNull(bytes);
     ArgumentError.checkNotNull(kmsKey);
     final value = _values[kmsKey];
@@ -287,7 +288,11 @@ class MemoryKms extends KmsBase {
 
   @override
   Future<bool> verifySignature(
-      List<int> bytes, Signature signature, KmsKey kmsKey) async {
+    List<int> bytes, {
+    @required Signature signature,
+    @required KmsKey kmsKey,
+    @required SignatureType signatureType,
+  }) async {
     ArgumentError.checkNotNull(bytes);
     ArgumentError.checkNotNull(signature);
     final value = _values[kmsKey];

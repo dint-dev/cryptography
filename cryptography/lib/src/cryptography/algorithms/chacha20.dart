@@ -12,22 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/utils.dart';
 import 'package:meta/meta.dart';
-import 'dart:convert';
 
-/// _Chacha20_ cipher ([RFC 7539](https://tools.ietf.org/html/rfc7539)).
+/// _ChaCha20_ cipher ([RFC 7539](https://tools.ietf.org/html/rfc7539)).
 ///
-/// In _Chacha20_, the secret key can be any value with 256 bits and the nonce
+/// In _ChaCha20_, the secret key can be any value with 256 bits and the nonce
 /// can be any (non-secret) value with 96 bits.
 ///
-/// You can pass Chacha20_ block counter value with `keyStreamIndex` (index
+/// You can pass ChaCha20_ block counter value with `keyStreamIndex` (index
 /// 0..63 --> counter 0, index 64..128 --> block counter 1, etc.).
 ///
-/// When using Chacha20, you must not use the same key/nonce combination twice.
+/// When using ChaCha20, you must not use the same key/nonce combination twice.
 /// The message is not authenticated.
 ///
 /// An example:
@@ -60,7 +60,6 @@ import 'dart:convert';
 /// ```
 const Cipher chacha20 = _Chacha20._();
 
-/// API for [chacha20].
 class _Chacha20 extends _SyncKeyStreamCipher {
   const _Chacha20._();
 
@@ -236,9 +235,6 @@ class _Chacha20 extends _SyncKeyStreamCipher {
 }
 
 class _Chacha20State extends SyncKeyStreamCipherState {
-  // ---------------------------------------------------------------------------
-  // Some constants
-  // ---------------------------------------------------------------------------
   static const int _keyLengthInBytes = 32;
   static const int _nonceLengthInBytes = 12;
   static const int _stateLength = 16;
@@ -260,9 +256,6 @@ class _Chacha20State extends SyncKeyStreamCipherState {
 
   final Uint32List initialState = Uint32List(_stateLength);
 
-  // ---------------------------------------------------------------------------
-  // Initialization
-  // ---------------------------------------------------------------------------
   int _keyStreamIndex = 0;
 
   _Chacha20State(this._chacha);
@@ -279,10 +272,6 @@ class _Chacha20State extends SyncKeyStreamCipherState {
     initialState[12] = value ~/ 64;
   }
 
-  /// Removes secrets from the heap.
-  ///
-  /// After invoking this method, encryption operations will fail unless
-  /// [_initialize] is called.
   @override
   void close() {
     initialState.fillRange(0, initialState.length, 0);
@@ -393,18 +382,6 @@ class _Chacha20State extends SyncKeyStreamCipherState {
     }
   }
 
-  // ---------------------------------------------------------------------------
-  // Other methods
-  // ---------------------------------------------------------------------------
-
-  /// Sets initial state using the key, nonce, and counter.
-  ///
-  /// A few rules:
-  ///   * You must define key. You can generate a random key with
-  ///     [Chacha20.randomKey].
-  ///   * If nonce is null, zeroes will be used.
-  ///   * It's important that you never use the same (key, nonce) combination
-  ///     for two different message.
   void _initialize({
     @required List<int> key,
     @required List<int> nonce,
@@ -416,14 +393,14 @@ class _Chacha20State extends SyncKeyStreamCipherState {
       throw ArgumentError.value(
         key,
         'key',
-        'Key length ${key.length} is invalid: should be ${_keyLengthInBytes}',
+        'Must ${_keyLengthInBytes} bytes',
       );
     }
     if (nonce != null && nonce.length != _nonceLengthInBytes) {
       throw ArgumentError.value(
         nonce,
         'nonce',
-        'Nonce length ${nonce.length} is invalid: should be ${_nonceLengthInBytes}',
+        'Must be ${_nonceLengthInBytes} bytes',
       );
     }
 

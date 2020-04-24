@@ -22,8 +22,12 @@ import 'package:cryptography/utils.dart';
 /// Equality operator for keys uses [constantTimeBytesEquality].
 ///
 /// ```
-/// // Generates a random 256-bit key.
-/// final secretKey = SecretKey.randomBytes(32);
+/// import 'package:cryptography/cryptography.dart';
+///
+/// void main() {
+///   // Generates a random 256-bit key.
+///   final secretKey = SecretKey.randomBytes(32);
+/// }
 /// ```
 abstract class SecretKey {
   static final _random = Random.secure();

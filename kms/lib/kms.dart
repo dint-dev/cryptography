@@ -16,7 +16,7 @@
 library kms;
 
 export 'package:cryptography/cryptography.dart'
-    show PublicKey, SecretKey, Nonce;
+    show Signature, PrivateKey, PublicKey, SecretKey, Nonce;
 
 export 'src/algorithm_types.dart';
 export 'src/kms.dart';

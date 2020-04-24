@@ -20,6 +20,7 @@ import 'package:meta/meta.dart';
 
 /// A Message Authentication Code (MAC) calculated by [MacAlgorithm].
 class Mac {
+  /// Bytes of the MAC.
   final List<int> bytes;
 
   Mac(this.bytes) {

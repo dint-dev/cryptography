@@ -15,7 +15,7 @@
 import 'package:cryptography/cryptography.dart';
 
 const Cipher webAesCbc = null;
-const Cipher webAesCtr32 = null;
+const Cipher webAesCtr = null;
 const Cipher webAesGcm = null;
 
 const KeyExchangeAlgorithm webEcdhP256 = null;

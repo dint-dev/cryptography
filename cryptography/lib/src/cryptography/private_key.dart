@@ -20,11 +20,16 @@ import 'package:cryptography/utils.dart';
 
 /// Private key part of [KeyPair].
 ///
-/// Equality operator for private keys uses [constantTimeBytesE
+/// Equality operator for private keys uses [constantTimeBytesEquality].
 ///
+/// An example of obtaining a private key:
 /// ```
-/// final keyPair = x25519.keyPairGenerator.generateSync();
-/// final privateKey = keyPair.privateKey;
+/// import 'package:cryptography/cryptography.dart';
+///
+/// void main() {
+///   final keyPair = x25519.newKeyPairSync();
+///   final privateKey = keyPair.privateKey;
+/// }
 /// ```
 abstract class PrivateKey {
   static final _random = Random.secure();

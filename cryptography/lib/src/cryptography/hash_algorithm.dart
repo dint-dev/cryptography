@@ -19,6 +19,7 @@ import 'package:cryptography/utils.dart';
 
 /// A result of [HashAlgorithm].
 class Hash {
+  /// Bytes of the hash.
   final List<int> bytes;
 
   Hash(this.bytes) {
@@ -58,10 +59,12 @@ abstract class HashAlgorithm {
   /// Name of the algorithm for debugging.
   String get name;
 
+  /// Calculates hash for the argument.
   Future<Hash> hash(List<int> input) async {
     return Future<Hash>.value(await hashSync(input));
   }
 
+  /// Calculates hash for the argument.
   Hash hashSync(List<int> data) {
     ArgumentError.checkNotNull(data);
     var sink = newSink();
@@ -70,6 +73,20 @@ abstract class HashAlgorithm {
     return sink.hash;
   }
 
+  /// Creates a new sink for calculating hash from many parts.
+  ///
+  /// Example:
+  /// ```
+  /// import 'package:cryptography/cryptography.dart';
+  ///
+  /// void main() {
+  ///   final sink = sha256.newSink();
+  ///   sink.add([1,2]);
+  ///   sink.add([3]);
+  ///   sink.close();
+  ///   print('Hash of [1,2,3]: ${sink.hash.bytes}');
+  /// }
+  /// ```
   HashSink newSink();
 
   @override

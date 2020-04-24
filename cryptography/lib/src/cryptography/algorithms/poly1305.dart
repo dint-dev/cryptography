@@ -25,6 +25,7 @@ import 'package:meta/meta.dart';
 ///   * You can't use it for key derivation because the algorithm is biased.
 const MacAlgorithm poly1305 = _Poly1305();
 
+/// Calculates a Poly1305 secret key by using Chacha20.
 SecretKey poly1305SecretKeyFromChacha20(SecretKey secretKey,
     {@required Nonce nonce}) {
   final cipherText = chacha20.encryptSync(

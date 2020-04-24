@@ -24,7 +24,10 @@ import 'package:meta/meta.dart';
 /// print('public key: ${keyPair.publicKey.bytes}');
 /// ```
 class KeyPair {
+  /// Private key.
   final PrivateKey privateKey;
+
+  /// Public key.
   final PublicKey publicKey;
 
   @override

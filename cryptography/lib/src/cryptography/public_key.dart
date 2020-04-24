@@ -17,12 +17,17 @@ import 'package:cryptography/cryptography.dart';
 
 /// Public key part of [KeyPair].
 ///
-/// An example of generating a public key:
+/// An example of obtaining a public key:
 /// ```
-/// final keyPair = x25519.keyPairGenerator.generateSync();
-/// final publicKey = keyPair.publicKey;
+/// import 'package:cryptography/cryptography.dart';
+///
+/// void main() {
+///   final keyPair = x25519.newKeyPairSync();
+///   final publicKey = keyPair.privateKey;
+/// }
 /// ```
 class PublicKey {
+  /// Bytes of the public key.
   final List<int> bytes;
 
   const PublicKey(this.bytes) : assert(bytes != null);

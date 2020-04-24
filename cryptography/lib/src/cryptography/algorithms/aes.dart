@@ -12,18 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:typed_data';
-
 import 'package:cryptography/cryptography.dart';
-import 'package:meta/meta.dart';
-import 'package:pointycastle/api.dart' as pointycastle;
-import 'package:pointycastle/block/aes_fast.dart' as pointycastle;
-import 'package:pointycastle/block/modes/cbc.dart' as pointycastle;
-import 'package:pointycastle/padded_block_cipher/padded_block_cipher_impl.dart'
-    as pointycastle;
-import 'package:pointycastle/paddings/pkcs7.dart' as pointycastle;
-import 'package:pointycastle/stream/ctr.dart' as pointycastle;
-
+import 'aes_impl.dart' as dart;
 import 'web_crypto.dart';
 
 /// _AES-CBC_ cipher.
@@ -57,7 +47,7 @@ import 'web_crypto.dart';
 ///   );
 /// }
 /// ```
-const Cipher aesCbc = webAesCbc ?? _AesCbcImplPointyCastle();
+const Cipher aesCbc = webAesCbc ?? dart.aesCbc;
 
 /// _AES-CTR_ cipher with a 96-bit nonce and a 32-bit counter.
 ///
@@ -93,7 +83,7 @@ const Cipher aesCbc = webAesCbc ?? _AesCbcImplPointyCastle();
 ///   );
 /// }
 /// ```
-const Cipher aesCtr32 = webAesCtr32 ?? _AesCtr32ImplPointyCastle();
+const Cipher aesCtr = webAesCtr ?? dart.aesCtr;
 
 /// _AES-GCM_ (Galois/Counter Mode) cipher.
 /// Currently supported __only in the browser.__
@@ -128,191 +118,3 @@ const Cipher aesCtr32 = webAesCtr32 ?? _AesCtr32ImplPointyCastle();
 /// }
 /// ```
 const Cipher aesGcm = webAesGcm;
-
-class _AesCbcImplPointyCastle extends Cipher {
-  const _AesCbcImplPointyCastle();
-
-  @override
-  String get name => 'aesCbc';
-
-  @override
-  Set<int> get secretKeyValidLengths => const {16, 24, 32};
-
-  @override
-  int get secretKeyLength => 32;
-
-  @override
-  int get nonceLength => 16;
-
-  @override
-  List<int> decryptSync(
-    List<int> input, {
-    @required SecretKey secretKey,
-    @required Nonce nonce,
-    List<int> aad,
-    int keyStreamIndex = 0,
-  }) {
-    if (aad != null) {
-      throw ArgumentError.value(aad, 'aad');
-    }
-    if (keyStreamIndex != 0) {
-      throw ArgumentError.value(keyStreamIndex, 'offset');
-    }
-    final implementation = pointycastle.PaddedBlockCipherImpl(
-      pointycastle.PKCS7Padding(),
-      pointycastle.CBCBlockCipher(
-        pointycastle.AESFastEngine(),
-      ),
-    );
-
-    final secretKeyUint8List = Uint8List.fromList(
-      secretKey.extractSync(),
-    );
-    final nonceBytes = Uint8List.fromList(
-      nonce.bytes.sublist(0, 16),
-    );
-    implementation.init(
-      false,
-      pointycastle.PaddedBlockCipherParameters(
-        pointycastle.ParametersWithIV(
-          pointycastle.KeyParameter(secretKeyUint8List),
-          nonceBytes,
-        ),
-        pointycastle.ParametersWithIV(
-          pointycastle.KeyParameter(secretKeyUint8List),
-          nonceBytes,
-        ),
-      ),
-    );
-    return implementation.process(Uint8List.fromList(input));
-  }
-
-  @override
-  List<int> encryptSync(
-    List<int> input, {
-    @required SecretKey secretKey,
-    @required Nonce nonce,
-    List<int> aad,
-    int keyStreamIndex = 0,
-  }) {
-    if (aad != null) {
-      throw ArgumentError.value(aad, 'aad');
-    }
-    if (keyStreamIndex != 0) {
-      throw ArgumentError.value(keyStreamIndex, 'offset');
-    }
-    final implementation = pointycastle.PaddedBlockCipherImpl(
-      pointycastle.PKCS7Padding(),
-      pointycastle.CBCBlockCipher(
-        pointycastle.AESFastEngine(),
-      ),
-    );
-
-    final secretKeyUint8List = Uint8List.fromList(
-      secretKey.extractSync(),
-    );
-    final nonceBytes = Uint8List.fromList(
-      nonce.bytes.sublist(0, 16),
-    );
-    implementation.init(
-      true,
-      pointycastle.PaddedBlockCipherParameters(
-        pointycastle.ParametersWithIV(
-          pointycastle.KeyParameter(secretKeyUint8List),
-          nonceBytes,
-        ),
-        pointycastle.ParametersWithIV(
-          pointycastle.KeyParameter(secretKeyUint8List),
-          nonceBytes,
-        ),
-      ),
-    );
-    return implementation.process(Uint8List.fromList(input));
-  }
-}
-
-class _AesCtr32ImplPointyCastle extends Cipher {
-  const _AesCtr32ImplPointyCastle();
-
-  @override
-  String get name => 'aesCtr32';
-
-  @override
-  int get nonceLength => 12;
-
-  @override
-  Set<int> get secretKeyValidLengths => const {16, 24, 32};
-
-  @override
-  int get secretKeyLength => 32;
-
-  @override
-  List<int> decryptSync(
-    List<int> input, {
-    @required SecretKey secretKey,
-    @required Nonce nonce,
-    List<int> aad,
-    int keyStreamIndex = 0,
-  }) {
-    if (aad != null) {
-      throw ArgumentError.value(aad, 'aad');
-    }
-    if (keyStreamIndex != 0) {
-      throw ArgumentError.value(keyStreamIndex, 'offset');
-    }
-    final implementation = pointycastle.CTRStreamCipher(
-      pointycastle.AESFastEngine(),
-    );
-
-    final secretKeyUint8List = Uint8List.fromList(
-      secretKey.extractSync(),
-    );
-    final counterBytes = Uint8List(16);
-    counterBytes.setRange(0, 12, nonce.bytes);
-    final counterByteData = ByteData.view(counterBytes.buffer);
-    counterByteData.setUint32(12, keyStreamIndex, Endian.big);
-    implementation.init(
-      false,
-      pointycastle.ParametersWithIV(
-        pointycastle.KeyParameter(secretKeyUint8List),
-        counterBytes,
-      ),
-    );
-    return implementation.process(Uint8List.fromList(input));
-  }
-
-  @override
-  List<int> encryptSync(
-    List<int> input, {
-    @required SecretKey secretKey,
-    @required Nonce nonce,
-    List<int> aad,
-    int keyStreamIndex = 0,
-  }) {
-    if (aad != null) {
-      throw ArgumentError.value(aad, 'aad');
-    }
-    if (keyStreamIndex != 0) {
-      throw ArgumentError.value(keyStreamIndex, 'offset');
-    }
-    final implementation = pointycastle.CTRStreamCipher(
-      pointycastle.AESFastEngine(),
-    );
-
-    final secretKeyUint8List = Uint8List.fromList(
-      secretKey.extractSync(),
-    );
-    final counterBytes = Uint8List(16);
-    counterBytes.setRange(0, 12, nonce.bytes);
-    final counterByteData = ByteData.view(counterBytes.buffer);
-    counterByteData.setUint32(12, keyStreamIndex, Endian.big);
-    implementation.init(
-      true,
-      pointycastle.ParametersWithIV(
-        pointycastle.KeyParameter(secretKeyUint8List),
-        counterBytes,
-      ),
-    );
-    return implementation.process(Uint8List.fromList(input));
-  }
-}

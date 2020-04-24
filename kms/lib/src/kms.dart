@@ -53,9 +53,10 @@ abstract class Kms {
   /// Throws [KmsKeyDoesNotExistException] if the key does not exist.
   /// Throws [StateError] if the key is invalid type.
   Future<List<int>> decrypt(
-    List<int> bytes,
-    KmsKey kmsKey, {
+    List<int> message, {
+    @required KmsKey kmsKey,
     @required Nonce nonce,
+    @required CipherType cipherType,
     List<int> aad,
   });
 
@@ -69,9 +70,10 @@ abstract class Kms {
   /// Throws [KmsKeyDoesNotExistException] if the key does not exist.
   /// Throws [StateError] if the key is invalid type.
   Future<List<int>> encrypt(
-    List<int> bytes,
-    KmsKey kmsKey, {
+    List<int> bytes, {
+    @required KmsKey kmsKey,
     @required Nonce nonce,
+    @required CipherType cipherType,
     List<int> aad,
   });
 
@@ -88,20 +90,29 @@ abstract class Kms {
   ///
   /// Throws [KmsKeyDoesNotExistException] if the key does not exist.
   /// Throws [StateError] if the key is invalid type.
-  Future<SecretKey> sharedSecret(KmsKey kmsKey, PublicKey publicKey);
+  Future<SecretKey> sharedSecret({
+    @required KmsKey kmsKey,
+    @required PublicKey remotePublicKey,
+    @required KeyExchangeType keyExchangeType,
+  });
 
   /// Calculates [Signature] for the bytes.
   ///
   /// Throws [KmsKeyDoesNotExistException] if the key does not exist.
   /// Throws [StateError] if the key is invalid type.
-  Future<Signature> sign(List<int> bytes, KmsKey kmsKey);
+  Future<Signature> sign(
+    List<int> message, {
+    @required KmsKey kmsKey,
+    @required SignatureType signatureType,
+  });
 
   /// Verifies a [Signature].
   Future<bool> verifySignature(
-    List<int> bytes,
-    Signature signature,
-    KmsKey kmsKey,
-  );
+    List<int> message, {
+    @required Signature signature,
+    @required KmsKey kmsKey,
+    @required SignatureType signatureType,
+  });
 }
 
 /// Thrown by [Kms] when a non-existing key is used.

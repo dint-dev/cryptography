@@ -33,6 +33,7 @@ import 'package:meta/meta.dart';
 /// }
 /// ```
 class Hmac extends MacAlgorithm {
+  /// Hash algorithm used by this HMAC.
   final HashAlgorithm hashAlgorithm;
 
   const Hmac(this.hashAlgorithm);

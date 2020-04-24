@@ -20,12 +20,13 @@ import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
 import 'package:meta/meta.dart';
+import 'aes_impl.dart' as dart;
 
 import 'web_crypto_bindings.dart' as web_crypto;
 
 const Cipher webAesCbc = _WebAesCbcCipher();
 
-const Cipher webAesCtr32 = _WebAesCtr32Cipher();
+const Cipher webAesCtr = _WebAesCtrCipher();
 
 const Cipher webAesGcm = _WebAesGcmCipher();
 
@@ -154,12 +155,27 @@ class _WebAesCbcCipher extends Cipher {
     List<int> aad,
     int keyStreamIndex = 0,
   }) async {
+    if (aad != null) {
+      throw ArgumentError.value(
+        aad,
+        'aad',
+        'Must be null',
+      );
+    }
+    ArgumentError.checkNotNull(nonce, 'nonce');
+    if (nonce.bytes.length != 16) {
+      throw ArgumentError.value(
+        nonce,
+        'nonce',
+        'Must be 16 bytes',
+      );
+    }
     if (keyStreamIndex != 0) {
       throw ArgumentError.value(
-          keyStreamIndex, 'keyStreamIndex', 'Should be 0');
-    }
-    if (nonce == null) {
-      throw ArgumentError.notNull('nonce');
+        keyStreamIndex,
+        'keyStreamIndex',
+        'Must be 0',
+      );
     }
     final secretKeyBytes = secretKey.extractSync();
     final cryptoKey = await js.promiseToFuture<web_crypto.CryptoKey>(
@@ -195,7 +211,13 @@ class _WebAesCbcCipher extends Cipher {
     List<int> aad,
     int keyStreamIndex = 0,
   }) {
-    throw UnsupportedError('decryptSync() is unsupported');
+    return dart.aesCbc.decryptSync(
+      input,
+      secretKey: secretKey,
+      nonce: nonce,
+      aad: aad,
+      keyStreamIndex: keyStreamIndex,
+    );
   }
 
   @override
@@ -206,17 +228,26 @@ class _WebAesCbcCipher extends Cipher {
     List<int> aad,
     int keyStreamIndex = 0,
   }) async {
-    if (nonce == null) {
-      throw ArgumentError.notNull('nonce');
-    }
     if (aad != null) {
-      throw ArgumentError.value(aad, 'aad');
+      throw ArgumentError.value(
+        aad,
+        'aad',
+        'Must be null',
+      );
+    }
+    ArgumentError.checkNotNull(nonce, 'nonce');
+    if (nonce.bytes.length != 16) {
+      throw ArgumentError.value(
+        nonce,
+        'nonce',
+        'Must be 16 bytes',
+      );
     }
     if (keyStreamIndex != 0) {
       throw ArgumentError.value(
         keyStreamIndex,
         'keyStreamIndex',
-        'Should be 0',
+        'Must be 0',
       );
     }
     final secretKeyBytes = secretKey.extractSync();
@@ -253,18 +284,24 @@ class _WebAesCbcCipher extends Cipher {
     List<int> aad,
     int keyStreamIndex = 0,
   }) {
-    throw UnsupportedError('encryptSync() is unsupported');
+    return dart.aesCbc.encryptSync(
+      input,
+      secretKey: secretKey,
+      nonce: nonce,
+      aad: aad,
+      keyStreamIndex: keyStreamIndex,
+    );
   }
 }
 
-class _WebAesCtr32Cipher extends Cipher {
-  const _WebAesCtr32Cipher();
+class _WebAesCtrCipher extends Cipher {
+  const _WebAesCtrCipher();
 
   @override
   int get secretKeyLength => 32;
 
   @override
-  String get name => 'aesCtr32';
+  String get name => 'aesCtr';
 
   @override
   int get nonceLength => 12;
@@ -280,12 +317,20 @@ class _WebAesCtr32Cipher extends Cipher {
     List<int> aad,
     int keyStreamIndex = 0,
   }) async {
-    if (keyStreamIndex != 0) {
+    ArgumentError.checkNotNull(nonce, 'nonce');
+    if (nonce.bytes.length > 16) {
       throw ArgumentError.value(
-          keyStreamIndex, 'keyStreamIndex', 'Should be 0');
+        nonce,
+        'nonce',
+        'Must be at most 16 bytes',
+      );
     }
-    if (nonce == null) {
-      throw ArgumentError.notNull('nonce');
+    if (keyStreamIndex % 16 != 0) {
+      throw ArgumentError.value(
+        keyStreamIndex,
+        'keyStreamIndex',
+        'Must be a multiple of 16',
+      );
     }
     final secretKeyBytes = secretKey.extractSync();
     final cryptoKey = await js.promiseToFuture<web_crypto.CryptoKey>(
@@ -300,16 +345,17 @@ class _WebAesCtr32Cipher extends Cipher {
         ['decrypt'],
       ),
     );
-    final counterBytes = Uint8List.fromList(nonce.bytes.sublist(0, 16));
-    counterBytes.setRange(0, 12, nonce.bytes);
-    final counterByteData = ByteData.view(counterBytes.buffer);
-    counterByteData.setUint32(12, keyStreamIndex, Endian.big);
+    var counterBytes = Uint8List(16);
+    counterBytes.setAll(0, nonce.bytes);
+    if (keyStreamIndex != 0) {
+      counterBytes = Nonce(counterBytes).increment(keyStreamIndex ~/ 16).bytes;
+    }
     final byteBuffer = await js.promiseToFuture<ByteBuffer>(
       web_crypto.subtle.decrypt(
         web_crypto.AesCtrParams(
           name: 'AES-CTR',
           counter: counterBytes.buffer,
-          length: 32,
+          length: 64,
         ),
         cryptoKey,
         _jsArrayBufferFrom(input),
@@ -326,7 +372,13 @@ class _WebAesCtr32Cipher extends Cipher {
     List<int> aad,
     int keyStreamIndex = 0,
   }) {
-    throw UnsupportedError('decryptSync() is unsupported');
+    return dart.aesCtr.decryptSync(
+      input,
+      secretKey: secretKey,
+      nonce: nonce,
+      aad: aad,
+      keyStreamIndex: keyStreamIndex,
+    );
   }
 
   @override
@@ -337,12 +389,20 @@ class _WebAesCtr32Cipher extends Cipher {
     List<int> aad,
     int keyStreamIndex = 0,
   }) async {
-    if (keyStreamIndex != 0) {
+    ArgumentError.checkNotNull(nonce, 'nonce');
+    if (nonce.bytes.length > 16) {
       throw ArgumentError.value(
-          keyStreamIndex, 'keyStreamIndex', 'Should be 0');
+        nonce,
+        'nonce',
+        'Must be at most 16 bytes',
+      );
     }
-    if (nonce == null) {
-      throw ArgumentError.notNull('nonce');
+    if (keyStreamIndex % 16 != 0) {
+      throw ArgumentError.value(
+        keyStreamIndex,
+        'keyStreamIndex',
+        'Must be a multiple of 16',
+      );
     }
     final secretKeyBytes = secretKey.extractSync();
     final cryptoKey = await js.promiseToFuture<web_crypto.CryptoKey>(
@@ -357,16 +417,17 @@ class _WebAesCtr32Cipher extends Cipher {
         ['encrypt'],
       ),
     );
-    final counterBytes = Uint8List.fromList(nonce.bytes.sublist(0, 16));
-    counterBytes.setRange(0, 12, nonce.bytes);
-    final counterByteData = ByteData.view(counterBytes.buffer);
-    counterByteData.setUint32(12, keyStreamIndex, Endian.big);
+    var counterBytes = Uint8List(16);
+    counterBytes.setAll(0, nonce.bytes);
+    if (keyStreamIndex != 0) {
+      counterBytes = Nonce(counterBytes).increment(keyStreamIndex ~/ 16).bytes;
+    }
     final byteBuffer = await js.promiseToFuture<ByteBuffer>(
       web_crypto.subtle.encrypt(
         web_crypto.AesCtrParams(
           name: 'AES-CTR',
           counter: counterBytes.buffer,
-          length: 32,
+          length: 64,
         ),
         cryptoKey,
         _jsArrayBufferFrom(input),
@@ -383,7 +444,13 @@ class _WebAesCtr32Cipher extends Cipher {
     List<int> aad,
     int keyStreamIndex = 0,
   }) {
-    throw UnsupportedError('encryptSync() is unsupported');
+    return dart.aesCtr.encryptSync(
+      input,
+      secretKey: secretKey,
+      nonce: nonce,
+      aad: aad,
+      keyStreamIndex: keyStreamIndex,
+    );
   }
 }
 

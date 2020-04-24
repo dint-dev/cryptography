@@ -18,7 +18,7 @@ import 'package:meta/meta.dart';
 
 /// A cryptographic signature. Bytes can be signed with [SignatureAlgorithm].
 class Signature {
-  /// Signature bytes.
+  /// Signature (without public key).
   final List<int> bytes;
 
   /// Signer's public key.
@@ -75,16 +75,22 @@ abstract class SignatureAlgorithm {
   /// Public key length (in bytes).
   int get publicKeyLength;
 
+  /// Generates a new keypair.
   Future<KeyPair> newKeyPair() => Future<KeyPair>.value(newKeyPairSync());
 
+  /// Generates a new keypair.
   KeyPair newKeyPairSync();
 
+  /// Generates a new keypair from seed. Throws [UnsupportedError] if seeds are
+  /// unsupported.
   Future<KeyPair> newKeyPairFromSeed(PrivateKey seed) {
     throw UnsupportedError(
       '$name does not support newKeyPairFromSeed(seed)',
     );
   }
 
+  /// Generates a new keypair from seed. Throws [UnsupportedError] if seeds are
+  /// unsupported.
   KeyPair newKeyPairFromSeedSync(PrivateKey seed) {
     throw UnsupportedError(
       '$name does not support newKeyPairFromSeedSync(seed)',
@@ -96,8 +102,8 @@ abstract class SignatureAlgorithm {
     return Future<Signature>(() => signSync(input, keyPair));
   }
 
-  /// Signs bytes synchronously. Throws [UnsupportedError] if the operation can
-  /// not be performed synchronously.
+  /// Signs bytes. Unlike [sign], this method is synchronous. Throws
+  /// [UnsupportedError] if the operation can not be performed synchronously.
   Signature signSync(List<int> input, KeyPair keyPair);
 
   /// Verifies a signature.
@@ -105,7 +111,7 @@ abstract class SignatureAlgorithm {
     return Future<bool>(() => verifySync(input, signature));
   }
 
-  /// Verifies a signature synchronously. Throws [UnsupportedError] if the\
-  /// operation can not be performed synchronously.
+  /// Verifies a signature. Unlike [verify], this method is synchronous. Throws
+  /// [UnsupportedError] if the operation can not be performed synchronously.
   bool verifySync(List<int> input, Signature signature);
 }

@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
@@ -22,7 +21,7 @@ import 'package:meta/meta.dart';
 ///
 /// Examples:
 ///   * [aesCbc] (AES-CBC)
-///   * [aesCtr32] (AES-CTR)
+///   * [aesCtr] (AES-CTR)
 ///   * [aesGcm] (AES-GCM)
 ///   * [chacha20]
 ///   * [chacha20Poly1305Aead]
@@ -54,6 +53,21 @@ abstract class Cipher {
   bool get supportsAad => false;
 
   /// Decrypts a message.
+  ///
+  /// You must give a non-null [secretKey] that has a valid length
+  /// ([secretKeyValidLengths]).
+  ///
+  /// Some algorithms require you to define a [nonce] (also known as
+  /// "initialization vector", "IV", or "salt"), which is some non-secret
+  /// unique sequence of bytes.
+  ///
+  /// Parameter [aad] can be used to pass Associated Authenticated Data (AAD).
+  /// If you give a non-null value and [supportsAad] is `false`, this method
+  /// will throw [UnsupportedError].
+  ///
+  /// Parameter [keyStreamIndex] can be used to define key stream index.
+  /// If you give a non-zero value, non-stream algorithms will throw
+  /// [UnsupportedError].
   Future<List<int>> decrypt(
     List<int> input, {
     @required SecretKey secretKey,
@@ -69,9 +83,11 @@ abstract class Cipher {
     );
   }
 
-  /// Decrypts a message.
+  /// Decrypts a message. Unlike [decrypt], this method is synchronous.
+  /// If the operation can not be performed synchronously, the method throws
+  /// [UnsupportedError].
   ///
-  /// If synchronous computation is not supported, throws [UnsupportedError].
+  /// For more information, see [decrypt].
   List<int> decryptSync(
     List<int> input, {
     @required SecretKey secretKey,
@@ -80,7 +96,11 @@ abstract class Cipher {
     int keyStreamIndex = 0,
   });
 
-  Future<void> decryptToBuffer(
+  /// Decrypts a message. The output is written into the buffer.
+  /// Returns the number of written bytes.
+  ///
+  /// For more information, see [decrypt].
+  Future<int> decryptToBuffer(
     List<int> input, {
     @required List<int> buffer,
     int bufferStart = 0,
@@ -89,8 +109,8 @@ abstract class Cipher {
     List<int> aad,
     int keyStreamIndex = 0,
   }) async {
-    ArgumentError.checkNotNull(buffer, 'output');
-    ArgumentError.checkNotNull(bufferStart, 'outputStart');
+    ArgumentError.checkNotNull(buffer, 'buffer');
+    ArgumentError.checkNotNull(bufferStart, 'bufferStart');
     final tmp = await decrypt(
       input,
       secretKey: secretKey,
@@ -99,9 +119,25 @@ abstract class Cipher {
       keyStreamIndex: keyStreamIndex,
     );
     buffer.setAll(bufferStart, tmp);
+    return tmp.length;
   }
 
   /// Encrypts a message.
+  ///
+  /// You must give a non-null [secretKey] that has a valid length
+  /// ([secretKeyValidLengths]).
+  ///
+  /// Some algorithms require you to define a [nonce] (also known as
+  /// "initialization vector", "IV", or "salt"), which is some non-secret
+  /// unique sequence of bytes.
+  ///
+  /// Parameter [aad] can be used to pass Associated Authenticated Data (AAD).
+  /// If you give a non-null value and [supportsAad] is `false`, this method
+  /// will throw [UnsupportedError].
+  ///
+  /// Parameter [keyStreamIndex] can be used to define key stream index.
+  /// If you give a non-zero value, non-stream algorithms will throw
+  /// [UnsupportedError].
   Future<List<int>> encrypt(
     List<int> input, {
     @required SecretKey secretKey,
@@ -118,9 +154,11 @@ abstract class Cipher {
     );
   }
 
-  /// Encrypts a message.
+  /// Encrypts a message. Unlike [encrypt], this method is synchronous.
+  /// If the operation can not be performed synchronously, the method throws
+  /// [UnsupportedError].
   ///
-  /// If synchronous computation is not supported, throws [UnsupportedError].
+  /// For more information, see [encrypt].
   List<int> encryptSync(
     List<int> input, {
     @required SecretKey secretKey,
@@ -129,7 +167,11 @@ abstract class Cipher {
     int keyStreamIndex = 0,
   });
 
-  Future<void> encryptToBuffer(
+  /// Encrypts a message. The output is written into the buffer.
+  /// Returns the number of written bytes.
+  ///
+  /// For more information, see [encrypt].
+  Future<int> encryptToBuffer(
     List<int> input, {
     @required List<int> buffer,
     int bufferStart = 0,
@@ -138,8 +180,8 @@ abstract class Cipher {
     List<int> aad,
     int keyStreamIndex = 0,
   }) async {
-    ArgumentError.checkNotNull(buffer, 'output');
-    ArgumentError.checkNotNull(bufferStart, 'outputStart');
+    ArgumentError.checkNotNull(buffer, 'buffer');
+    ArgumentError.checkNotNull(bufferStart, 'bufferStart');
     final tmp = await encrypt(
       input,
       secretKey: secretKey,
@@ -148,6 +190,7 @@ abstract class Cipher {
       keyStreamIndex: keyStreamIndex,
     );
     buffer.setAll(bufferStart, tmp);
+    return tmp.length;
   }
 
   /// If cipherTexts of this cipher contain MACs, returns the non-MAC bytes.
@@ -179,7 +222,9 @@ abstract class Cipher {
     return secretKeyValidLengths.contains(length);
   }
 
-  /// Generates a random [Nonce]. The length is equal to [nonceLength].
+  /// Generates a random [Nonce].
+  ///
+  /// he length is equal to [nonceLength].
   Nonce newNonce() {
     final nonceLength = this.nonceLength;
     if (nonceLength == null) {
@@ -188,18 +233,23 @@ abstract class Cipher {
     return Nonce.randomBytes(nonceLength);
   }
 
-  /// Generates a random [SecretKey]. The length is equal to [secretKeyLength].
+  /// Generates a random [SecretKey].
   ///
-  /// Some algorithms allow you specify key length with `length` (in bytes).
-  /// Others will throw [ArgumentError].
+  /// The length is equal to [secretKeyLength].
+  ///
+  /// Some algorithms (such as AES) allow you specify key length with `length`
+  /// (in bytes). Others will throw [ArgumentError].
   Future<SecretKey> newSecretKey({int length}) async {
     return Future<SecretKey>(() => newSecretKeySync(length: length));
   }
 
-  /// Generates a random [SecretKey]. The length is equal to [secretKeyLength].
+  /// Generates a random [SecretKey]. Unlike [newSecretKey], this method is
+  /// synchronous.
   ///
-  /// Some algorithms allow you specify key length with `length` (in bytes).
-  /// Others will throw [ArgumentError].
+  /// The length is equal to [secretKeyLength].
+  ///
+  /// Some algorithms (such as AES) allow you specify key length with `length`
+  /// (in bytes). Others will throw [ArgumentError].
   SecretKey newSecretKeySync({int length}) {
     length ??= secretKeyLength;
     if (secretKeyValidLengths != null &&
@@ -219,8 +269,10 @@ abstract class Cipher {
 
 /// Cipher + MAC code appended in the end.
 class CipherWithAppendedMac implements Cipher {
+  /// Cipher.
   final Cipher cipher;
 
+  /// MAC algorithm.
   final MacAlgorithm macAlgorithm;
 
   const CipherWithAppendedMac(
@@ -245,50 +297,6 @@ class CipherWithAppendedMac implements Cipher {
 
   @override
   bool get supportsAad => cipher.supportsAad;
-
-  @override
-  Future<void> decryptToBuffer(
-    List<int> input, {
-    @required List<int> buffer,
-    int bufferStart = 0,
-    @required SecretKey secretKey,
-    @required Nonce nonce,
-    List<int> aad,
-    int keyStreamIndex = 0,
-  }) async {
-    ArgumentError.checkNotNull(buffer, 'output');
-    ArgumentError.checkNotNull(bufferStart, 'outputStart');
-    final tmp = await decrypt(
-      input,
-      secretKey: secretKey,
-      nonce: nonce,
-      aad: aad,
-      keyStreamIndex: keyStreamIndex,
-    );
-    buffer.setAll(bufferStart, tmp);
-  }
-
-  @override
-  Future<void> encryptToBuffer(
-    List<int> input, {
-    @required List<int> buffer,
-    int bufferStart = 0,
-    @required SecretKey secretKey,
-    @required Nonce nonce,
-    List<int> aad,
-    int keyStreamIndex = 0,
-  }) async {
-    ArgumentError.checkNotNull(buffer, 'output');
-    ArgumentError.checkNotNull(bufferStart, 'outputStart');
-    final tmp = await encrypt(
-      input,
-      secretKey: secretKey,
-      nonce: nonce,
-      aad: aad,
-      keyStreamIndex: keyStreamIndex,
-    );
-    buffer.setAll(bufferStart, tmp);
-  }
 
   /// Calculates [Mac] for the cipher text.
   Mac calculateMacSync(
@@ -351,6 +359,29 @@ class CipherWithAppendedMac implements Cipher {
   }
 
   @override
+  Future<int> decryptToBuffer(
+    List<int> input, {
+    @required List<int> buffer,
+    int bufferStart = 0,
+    @required SecretKey secretKey,
+    @required Nonce nonce,
+    List<int> aad,
+    int keyStreamIndex = 0,
+  }) async {
+    ArgumentError.checkNotNull(buffer, 'buffer');
+    ArgumentError.checkNotNull(bufferStart, 'bufferStart');
+    final tmp = await decrypt(
+      input,
+      secretKey: secretKey,
+      nonce: nonce,
+      aad: aad,
+      keyStreamIndex: keyStreamIndex,
+    );
+    buffer.setAll(bufferStart, tmp);
+    return tmp.length;
+  }
+
+  @override
   Future<List<int>> encrypt(
     List<int> clearText, {
     @required SecretKey secretKey,
@@ -394,6 +425,29 @@ class CipherWithAppendedMac implements Cipher {
     output.setAll(0, cipherText);
     output.setAll(cipherText.length, mac.bytes);
     return output;
+  }
+
+  @override
+  Future<int> encryptToBuffer(
+    List<int> input, {
+    @required List<int> buffer,
+    int bufferStart = 0,
+    @required SecretKey secretKey,
+    @required Nonce nonce,
+    List<int> aad,
+    int keyStreamIndex = 0,
+  }) async {
+    ArgumentError.checkNotNull(buffer, 'buffer');
+    ArgumentError.checkNotNull(bufferStart, 'bufferStart');
+    final tmp = await encrypt(
+      input,
+      secretKey: secretKey,
+      nonce: nonce,
+      aad: aad,
+      keyStreamIndex: keyStreamIndex,
+    );
+    buffer.setAll(bufferStart, tmp);
+    return tmp.length;
   }
 
   @override

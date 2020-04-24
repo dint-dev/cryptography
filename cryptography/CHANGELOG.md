@@ -1,3 +1,7 @@
+## 0.3.1
+  * Improves documentation.
+  * Eliminates AES-CBC and AES-CTR dependencies.
+
 ## 0.3.0
   * Breaking changes: Removes separate key generator classes. Many API changes designed to reduce
     chances of developers using the API incorrectly.

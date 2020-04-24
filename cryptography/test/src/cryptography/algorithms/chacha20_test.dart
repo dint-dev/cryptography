@@ -27,6 +27,7 @@ void main() {
       expect(algorithm.isAuthenticated, isFalse);
       expect(algorithm.secretKeyLength, 32);
       expect(algorithm.secretKeyValidLengths, unorderedEquals({32}));
+      expect(algorithm.nonceLength, 12);
     });
 
     test('10 000 random inputs encrypted and decrypted', () {
@@ -195,7 +196,7 @@ void main() {
 
   group('RFC 7539: encryption example', () {
     // -----------------------------------------------------------------------
-    // The following input/output constants are copied from the RFC 7539:
+    // The following constants are from RFC 7539:
     // https://tools.ietf.org/html/rfc7539
     // -----------------------------------------------------------------------
 

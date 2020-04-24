@@ -14,6 +14,7 @@
 
 import 'package:cryptography/cryptography.dart';
 import 'package:kms/kms.dart';
+import 'package:meta/meta.dart';
 
 /// A base class for [Kms] implementations.
 abstract class KmsBase implements Kms {
@@ -76,9 +77,10 @@ abstract class KmsBase implements Kms {
 
   @override
   Future<List<int>> decrypt(
-    List<int> cipherText,
-    KmsKey kmsKey, {
-    Nonce nonce,
+    List<int> cipherText, {
+    @required KmsKey kmsKey,
+    @required Nonce nonce,
+    @required CipherType cipherType,
     List<int> aad,
   }) {
     if (_kms == null) {
@@ -86,7 +88,13 @@ abstract class KmsBase implements Kms {
         UnsupportedError('Operation is unsupported'),
       );
     }
-    return _kms.decrypt(cipherText, kmsKey, nonce: nonce, aad: aad);
+    return _kms.decrypt(
+      cipherText,
+      kmsKey: kmsKey,
+      nonce: nonce,
+      cipherType: cipherType,
+      aad: aad,
+    );
   }
 
   @override
@@ -101,9 +109,10 @@ abstract class KmsBase implements Kms {
 
   @override
   Future<List<int>> encrypt(
-    List<int> bytes,
-    KmsKey kmsKey, {
-    Nonce nonce,
+    List<int> bytes, {
+    @required KmsKey kmsKey,
+    @required Nonce nonce,
+    @required CipherType cipherType,
     List<int> aad,
   }) {
     if (_kms == null) {
@@ -111,7 +120,13 @@ abstract class KmsBase implements Kms {
         UnsupportedError('Operation is unsupported'),
       );
     }
-    return _kms.encrypt(bytes, kmsKey, nonce: nonce, aad: aad);
+    return _kms.encrypt(
+      bytes,
+      kmsKey: kmsKey,
+      nonce: nonce,
+      cipherType: cipherType,
+      aad: aad,
+    );
   }
 
   @override
@@ -135,33 +150,58 @@ abstract class KmsBase implements Kms {
   }
 
   @override
-  Future<SecretKey> sharedSecret(KmsKey kmsKey, PublicKey publicKey) {
+  Future<SecretKey> sharedSecret({
+    @required KmsKey kmsKey,
+    @required PublicKey remotePublicKey,
+    @required KeyExchangeType keyExchangeType,
+  }) {
     if (_kms == null) {
       return Future<SecretKey>.error(
         UnsupportedError('Operation is unsupported'),
       );
     }
-    return _kms.sharedSecret(kmsKey, publicKey);
+    return _kms.sharedSecret(
+      kmsKey: kmsKey,
+      remotePublicKey: remotePublicKey,
+      keyExchangeType: keyExchangeType,
+    );
   }
 
   @override
-  Future<Signature> sign(List<int> bytes, KmsKey kmsKey) {
+  Future<Signature> sign(
+    List<int> bytes, {
+    @required KmsKey kmsKey,
+    @required SignatureType signatureType,
+  }) {
     if (_kms == null) {
       return Future<Signature>.error(
         UnsupportedError('Operation is unsupported'),
       );
     }
-    return _kms.sign(bytes, kmsKey);
+    return _kms.sign(
+      bytes,
+      kmsKey: kmsKey,
+      signatureType: signatureType,
+    );
   }
 
   @override
   Future<bool> verifySignature(
-      List<int> bytes, Signature signature, KmsKey kmsKey) {
+    List<int> bytes, {
+    @required Signature signature,
+    @required KmsKey kmsKey,
+    @required SignatureType signatureType,
+  }) {
     if (_kms == null) {
       return Future<bool>.error(
         UnsupportedError('Operation is unsupported'),
       );
     }
-    return _kms.verifySignature(bytes, signature, kmsKey);
+    return _kms.verifySignature(
+      bytes,
+      signature: signature,
+      kmsKey: kmsKey,
+      signatureType: signatureType,
+    );
   }
 }

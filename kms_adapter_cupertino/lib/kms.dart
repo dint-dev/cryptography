@@ -36,7 +36,20 @@ class CupertinoKms extends KmsBase {
   }
 
   @override
-  Future<SecretKey> sharedSecret(KmsKey kmsKey, PublicKey publicKey) {
+  Future<SecretKey> sharedSecret({
+    @required KmsKey kmsKey,
+    @required PublicKey remotePublicKey,
+    @required KeyExchangeType keyExchangeType,
+  }) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Signature> sign(
+    List<int> bytes, {
+    @required KmsKey kmsKey,
+    @required SignatureType signatureType,
+  }) {
     throw UnimplementedError();
   }
 }
