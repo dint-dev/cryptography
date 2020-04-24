@@ -76,7 +76,10 @@ class Signature {
 abstract class SignatureAlgorithm {
   const SignatureAlgorithm();
 
-  /// Name of this algorithm.
+  /// A descriptive algorithm name for debugging purposes.
+  ///
+  /// Examples:
+  ///   * "ed25519"
   String get name;
 
   /// Whether [newKeyPairFromSeed] is supported.

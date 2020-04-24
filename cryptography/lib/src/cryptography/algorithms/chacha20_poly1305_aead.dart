@@ -74,6 +74,9 @@ class Chacha20Poly1305Aead extends CipherWithAppendedMac {
   bool get supportsAad => true;
 
   @override
+  String get name => 'chacha20Poly1305Aead';
+
+  @override
   List<int> encryptSync(
     List<int> clearText, {
     SecretKey secretKey,

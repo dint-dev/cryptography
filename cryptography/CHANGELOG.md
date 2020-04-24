@@ -1,5 +1,9 @@
+## 0.3.4
+  * Fixes a `cipher.name` issue and improves documentation.
+
 ## 0.3.3
   * Improves documentation.
+  * Improves outputs of `cipher.name`.
 
 ## 0.3.2
   * Improves documentation.

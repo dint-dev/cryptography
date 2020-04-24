@@ -42,22 +42,20 @@ import 'package:meta/meta.dart';
 abstract class KeyExchangeAlgorithm {
   const KeyExchangeAlgorithm();
 
-  /// Name of this algorithm.
+  /// Whether [newKeyPairFromSeed] can be used.
+  bool get isSeedSupported => false;
+
+  /// A descriptive algorithm name for debugging purposes.
+  ///
+  /// Examples:
+  ///   * "x25519"
   String get name;
 
   /// Public key length (in bytes).
   int get publicKeyLength;
 
-  /// Whether [newKeyPairFromSeed] can be used.
-  bool get isSeedSupported => false;
-
   /// Generates a random key pair.
   Future<KeyPair> newKeyPair() => Future<KeyPair>.value(newKeyPairSync());
-
-  /// Generates a random key pair.
-  ///
-  /// If synchronous computation is not supported, throws [UnsupportedError].
-  KeyPair newKeyPairSync();
 
   /// Generates a key pair from the seed.
   /// If the algorithm doesn't support seeds, throws [UnsupportedError].
@@ -74,6 +72,11 @@ abstract class KeyExchangeAlgorithm {
       '$name does not support newKeyPairFromSeedSync(seed)',
     );
   }
+
+  /// Generates a random key pair.
+  ///
+  /// If synchronous computation is not supported, throws [UnsupportedError].
+  KeyPair newKeyPairSync();
 
   /// Calculates a shared secret.
   ///

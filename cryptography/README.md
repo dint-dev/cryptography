@@ -2,21 +2,16 @@
 [![Github Actions CI](https://github.com/dint-dev/cryptography/workflows/Dart%20CI/badge.svg)](https://github.com/dint-dev/cryptography/actions?query=workflow%3A%22Dart+CI%22)
 
 # Overview
-Popular cryptographic algorithms implemented in Dart.
+Popular cryptographic algorithms for [Dart](https://dart.dev) / [Flutter](https://flutter.dev)
+developers. The package is used in commercial production systems. We made the API comparatively
+easy to use correctly by non-experts.
 
-Key features:
-  * __Supports modern algorithms__. The package supports new popular algorithms such as Curve25519
-    and ChaCha20 as well as old NIST standards such as AES.
-  * __Enterprise-friendly__. This package uses Apache 2.0 License and is supported by a commercial
-    company. Whenever possible (currently SHA1, SHA2), we use implementations by Google. We wrote
-    decent tests for algorithms we had to implement ourselves.
-  * __Easy-to-use__. To make the world a safer place, we wrote an API that pushes non-expert
-    developers to use cryptography correctly.
+Using the package? Please star [our Github project](https://github.com/dint-dev/cryptography). :)
 
 Copyright 2020 Gohilla Ltd. Licensed under the [Apache License 2.0](LICENSE).
 
 ## Links
-  * [Github repository](https://github.com/dint-dev/cryptography)
+  * [Github project](https://github.com/dint-dev/cryptography)
   * [Issue tracker](https://github.com/dint-dev/cryptography/issues)
   * [Pub package](https://pub.dev/packages/cryptography)
   * [API reference](https://pub.dev/documentation/cryptography/latest/)
@@ -26,10 +21,9 @@ Copyright 2020 Gohilla Ltd. Licensed under the [Apache License 2.0](LICENSE).
     * A Dart package for hardware-based or cloud-based key management solutions.
   * _Add your project here?_
 
-# Want to contribute?
-  * Any help is appreciated! We recommend that you start by creating an issue in the
+## Contributing?
+  * We recommend that you start by creating an issue in the
     [issue tracker](https://github.com/dint-dev/cryptography/issues).
-  * Show love by starring the package [in Github](https://github.com/dint-dev/cryptography). ;)
 
 ## Some things to know
   * SHA1 and SHA2 implementations use [package:crypto](https://pub.dev/packages/crypto), which is
@@ -44,7 +38,7 @@ Copyright 2020 Gohilla Ltd. Licensed under the [Apache License 2.0](LICENSE).
 
 ## Available algorithms
 ### Key exchange algorithms
-  * NIST elliptic curves
+  * NIST elliptic curves ([read about them](https://en.wikipedia.org/wiki/Elliptic-curve_cryptography))
     * [ecdhP256](https://pub.dev/documentation/cryptography/latest/cryptography/ecdhP256-constant.html) (ECDH P256 / secp256r1)
     * [ecdhP384](https://pub.dev/documentation/cryptography/latest/cryptography/ecdhP384-constant.html) (ECDH P384 / secp384r1)
     * [ecdhP521](https://pub.dev/documentation/cryptography/latest/cryptography/ecdhP521-constant.html) (ECDH P521 / secp521r1)
@@ -57,7 +51,7 @@ Copyright 2020 Gohilla Ltd. Licensed under the [Apache License 2.0](LICENSE).
 For more more documentation, see [KeyExchangeAlgorithm](https://pub.dev/documentation/cryptography/latest/cryptography/KeyExchangeAlgorithm-class.html).
 
 ### Digital signature algorithms
-  * NIST elliptic curves
+  * NIST elliptic curves ([read about them](https://en.wikipedia.org/wiki/Elliptic-curve_cryptography))
     * [ecdsaP256Sha256](https://pub.dev/documentation/cryptography/latest/cryptography/ecdsaP256Sha256-constant.html) (ECDSA P256 / secp256r1 with SHA256)
     * [ecdsaP384Sha256](https://pub.dev/documentation/cryptography/latest/cryptography/ecdsaP384Sha256-constant.html) (ECDSA P384 / secp384r1 with SHA256)
     * [ecdsaP521Sha256](https://pub.dev/documentation/cryptography/latest/cryptography/ecdsaP521Sha256-constant.html) (ECDSA P521 / secp521r1 with SHA256)
@@ -106,7 +100,7 @@ For more more documentation, see [HashAlgorithm](https://pub.dev/documentation/c
 In _pubspec.yaml_:
 ```yaml
 dependencies:
-  cryptography: ^0.3.2
+  cryptography: ^0.3.4
 ```
 
 

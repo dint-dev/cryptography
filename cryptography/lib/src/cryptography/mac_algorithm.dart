@@ -71,7 +71,11 @@ abstract class MacAlgorithm {
   /// Number of bytes in the message authentication code.
   int get macLengthInBytes;
 
-  /// Name of the algorithm.
+  /// A descriptive algorithm name for debugging purposes.
+  ///
+  /// Examples:
+  ///   * "Hmac(sha256)"
+  ///   * "poly1305"
   String get name;
 
   /// Asynchronously calculates message authentication code for the input.

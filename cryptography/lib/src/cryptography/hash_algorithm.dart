@@ -75,7 +75,11 @@ abstract class HashAlgorithm {
   /// Digest size in bytes.
   int get hashLengthInBytes;
 
-  /// Name of the algorithm for debugging.
+  /// A descriptive algorithm name for debugging purposes.
+  ///
+  /// Examples:
+  ///   * "blake2s"
+  ///   * "sha256"
   String get name;
 
   /// Calculates hash for the argument.
@@ -94,16 +98,23 @@ abstract class HashAlgorithm {
 
   /// Creates a new sink for calculating hash from many parts.
   ///
-  /// Example:
+  /// An example with [sha256]:
   /// ```
   /// import 'package:cryptography/cryptography.dart';
   ///
   /// void main() {
+  ///   // Create a sink
   ///   final sink = sha256.newSink();
-  ///   sink.add([1,2]);
-  ///   sink.add([3]);
+  ///
+  ///   // Add all parts
+  ///   sink.add([1,2,3]);
+  ///   sink.add([4,5]);
+  ///
+  ///   // Calculate hash
   ///   sink.close();
-  ///   print('Hash of [1,2,3]: ${sink.hash.bytes}');
+  ///   final hash = sink.hash;
+  ///
+  ///   print('Hash: ${hash.bytes}');
   /// }
   /// ```
   HashSink newSink();

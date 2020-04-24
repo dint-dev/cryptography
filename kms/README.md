@@ -6,18 +6,19 @@ This package gives you a vendor-agnostic API for accessing Key Management Servic
 Many operating systems and major cloud platforms (AWS, Azure, Google) offer such APIs.
 KMS adapters are subclasses of [Kms](https://pub.dev/documentation/kms/latest/kms/Kms-class.html).
 
+Using the package? Please star [our Github project](https://github.com/dint-dev/cryptography). :)
+
 Copyright 2020 Gohilla Ltd. Licensed under the [Apache License 2.0](LICENSE).
 
 ## Links
-  * [Github repository](https://github.com/dint-dev/cryptography)
+  * [Github project](https://github.com/dint-dev/cryptography)
   * [Issue tracker](https://github.com/dint-dev/cryptography/issues)
   * [Pub package](https://pub.dev/packages/kms)
   * [API reference](https://pub.dev/documentation/kms/latest/)
 
-## Want to contribute?
-  * Any help is appreciated! We recommend that you start by creating an issue in the
+## Contributing?
+  * We recommend that you start by creating an issue in the
     [issue tracker](https://github.com/dint-dev/cryptography/issues).
-  * Show love by starring the package [in Github](https://github.com/dint-dev/cryptography). ;)
 
 ## Available adapters
   * [MemoryKms](https://pub.dev/documentation/kms/latest/kms/MemoryKms-class.html)

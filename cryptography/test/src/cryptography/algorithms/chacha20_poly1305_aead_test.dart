@@ -21,7 +21,7 @@ void main() {
     const algorithm = chacha20Poly1305Aead;
 
     test('information', () {
-      expect(algorithm.name, 'chacha20');
+      expect(algorithm.name, 'chacha20Poly1305Aead');
       expect(algorithm.isAuthenticated, isTrue);
       expect(algorithm.secretKeyLength, 32);
       expect(algorithm.secretKeyValidLengths, unorderedEquals({32}));
