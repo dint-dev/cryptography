@@ -15,89 +15,103 @@
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/src/utils/hex.dart';
 import 'package:test/test.dart';
+import 'dart:typed_data';
 
 void main() {
-  test('CipherWithAppendedMac', () async {
-    final clearText = [1, 2, 3];
-
-    final cipher = const CipherWithAppendedMac(chacha20, Hmac(sha256));
-
-    final secretKey = await chacha20.newSecretKey();
+  group('CipherWithAppendedMac:', () {
+    const clearText = <int>[1, 2, 3];
+    final secretKey = chacha20.newSecretKeySync();
     final nonce = chacha20.newNonce();
-
-    // encrypt()
-    final cipherText = await cipher.encrypt(
+    const hmac = Hmac(sha256);
+    const cipher = CipherWithAppendedMac(chacha20, hmac);
+    final cipherTextWithoutMac = chacha20.encryptSync(
       clearText,
       secretKey: secretKey,
       nonce: nonce,
     );
+    final mac = hmac.calculateMacSync(
+      cipherTextWithoutMac,
+      secretKey: secretKey,
+    );
+    final cipherText = [
+      ...cipherTextWithoutMac,
+      ...mac.bytes,
+    ];
 
-    // encryptSync()
-    expect(
-      cipher.encryptSync(
+    test('encrypt', () async {
+      final actual = await cipher.encrypt(
         clearText,
         secretKey: secretKey,
         nonce: nonce,
-      ),
-      cipherText,
-    );
+      );
+      expect(
+        hexFromBytes(actual),
+        hexFromBytes(cipherText),
+      );
+    });
 
-    expect(
-      hexFromBytes(cipherText),
-      hexFromBytes([
-        ...chacha20.encryptSync([1, 2, 3], secretKey: secretKey, nonce: nonce),
-        ...Hmac(sha256)
-            .calculateMacSync(
-              cipherText.sublist(0, 3),
-              secretKey: secretKey,
-            )
-            .bytes,
-      ]),
-    );
-
-    final cipherTextData = cipher.getDataInCipherText(cipherText);
-    final cipherTextMac = cipher.getMacInCipherText(cipherText);
-
-    expect(cipherTextData, cipherText.sublist(0, cipherText.length - 32));
-    expect(cipherTextMac, Mac(cipherText.sublist(cipherText.length - 32)));
-
-    // Check MAC
-    expect(
-      await cipher.macAlgorithm.calculateMac(
-        cipherTextData,
+    test('encryptSync', () {
+      final actual = cipher.encryptSync(
+        clearText,
         secretKey: secretKey,
-      ),
-      cipherTextMac,
-    );
+        nonce: nonce,
+      );
+      expect(
+        hexFromBytes(actual),
+        hexFromBytes(cipherText),
+      );
+    });
 
-    // Decrypt
-    expect(
-      await cipher.decrypt(
+    test('decrypt', () async {
+      final actual = await cipher.decrypt(
         cipherText,
         secretKey: secretKey,
         nonce: nonce,
-      ),
-      clearText,
-    );
+      );
+      expect(
+        hexFromBytes(actual),
+        hexFromBytes(clearText),
+      );
+    });
 
-    // Decrypt returns null if ciphertext is changed.
-    expect(
-      await cipher.decrypt(
-        [cipherText[0] + 1, ...cipherText.skip(1)],
+    test('decryptSync', () {
+      final actual = cipher.decryptSync(
+        cipherText,
         secretKey: secretKey,
         nonce: nonce,
-      ),
-      isNull,
-    );
+      );
+      expect(
+        hexFromBytes(actual),
+        hexFromBytes(clearText),
+      );
+    });
 
-    // Decrypt returns null if MAC is changed.
-    expect(
-      await cipher.decryptSync(
-        [cipherText[0] + 1, ...cipherText.skip(1)],
-        secretKey: secretKey,
-        nonce: nonce,
-      ),
-      isNull,
-    );
+    test('decrypt throws when MAC is incorrect', () async {
+      final newCipherText = Uint8List.fromList(cipherText);
+      newCipherText[newCipherText.length - 1] ^= 0xFF;
+
+      await expectLater(
+        cipher.decrypt(
+          newCipherText,
+          secretKey: secretKey,
+          nonce: nonce,
+        ),
+        throwsA(isA<MacValidationException>()),
+      );
+    });
+
+    test('decryptSync throws when MAC is incorrect', () {
+      final newCipherText = Uint8List.fromList(cipherText);
+      newCipherText[newCipherText.length - 1] ^= 0xFF;
+
+      expect(
+        () => cipher.decryptSync(
+          newCipherText,
+          secretKey: secretKey,
+          nonce: nonce,
+        ),
+        throwsA(isA<MacValidationException>()),
+      );
+    });
   });
 }

@@ -3,12 +3,18 @@
 
 # Overview
 Popular cryptographic algorithms for [Dart](https://dart.dev) / [Flutter](https://flutter.dev)
-developers. The package is used in commercial production systems. We made the API comparatively
-easy to use correctly by non-experts.
+developers.
 
-Using the package? Please star [our Github project](https://github.com/dint-dev/cryptography). :)
+Key features:
+  * __Lots of algorithms__. This package implements a wider set of standards than otherwise
+    recommendable, hashes-only [package:crypto](https://pub.dev/packages/crypto).
+  * __Enterprise-friendly.__ No license risks (that we spotted in some other Dart packages).
+    Well-tested for correctness. Maintained by a company that uses the package in its products.
+  * __Easy to use.__ We did our best to prevent people from using the APIs in unsafe ways.
 
-Copyright 2020 Gohilla Ltd. Licensed under the [Apache License 2.0](LICENSE).
+If you like the package, let us know by starring [the project in Github](https://github.com/dint-dev/cryptography).
+
+Copyright 2019-2020 Gohilla Ltd. Licensed under the [Apache License 2.0](LICENSE).
 
 ## Links
   * [Github project](https://github.com/dint-dev/cryptography)
@@ -26,8 +32,8 @@ Copyright 2020 Gohilla Ltd. Licensed under the [Apache License 2.0](LICENSE).
     [issue tracker](https://github.com/dint-dev/cryptography/issues).
 
 ## Some things to know
-  * SHA1 and SHA2 implementations use [package:crypto](https://pub.dev/packages/crypto), which is
-    maintained by Google. It's very limited so we decided to write this package.
+  * SHA1 and SHA2 implementations use _package:crypto_, which is maintained by Google and limited
+    to hash functions.
   * We wrote pure Dart implementations for X25519, ChaCha20 family, AES-CBC, AES-CTR, HKDF, HMAC,
     Poly1305, and BLAKE2S. We also added support for use of [Web Cryptography API](https://www.w3.org/TR/WebCryptoAPI/)
     (NIST elliptic curves, AES) in browsers.
@@ -38,10 +44,10 @@ Copyright 2020 Gohilla Ltd. Licensed under the [Apache License 2.0](LICENSE).
 
 ## Available algorithms
 ### Key exchange algorithms
-  * NIST elliptic curves ([read about them](https://en.wikipedia.org/wiki/Elliptic-curve_cryptography))
-    * [ecdhP256](https://pub.dev/documentation/cryptography/latest/cryptography/ecdhP256-constant.html) (ECDH P256 / secp256r1)
-    * [ecdhP384](https://pub.dev/documentation/cryptography/latest/cryptography/ecdhP384-constant.html) (ECDH P384 / secp384r1)
-    * [ecdhP521](https://pub.dev/documentation/cryptography/latest/cryptography/ecdhP521-constant.html) (ECDH P521 / secp521r1)
+  * NIST elliptic curves ([read about the algorithm](https://en.wikipedia.org/wiki/Elliptic-curve_cryptography))
+    * [ecdhP256](https://pub.dev/documentation/cryptography/latest/cryptography/ecdhP256-constant.html) (ECDH P256 / secp256r1 / prime256v1)
+    * [ecdhP384](https://pub.dev/documentation/cryptography/latest/cryptography/ecdhP384-constant.html) (ECDH P384 / secp384r1 / prime384v1)
+    * [ecdhP521](https://pub.dev/documentation/cryptography/latest/cryptography/ecdhP521-constant.html) (ECDH P521 / secp521r1 / prime521v1)
     * Currently NIST elliptic curves are only supported in browsers (_Web Cryptography API_).
   * [x25519](https://pub.dev/documentation/cryptography/latest/cryptography/x25519-constant.html) ([read about the algorithm](https://en.wikipedia.org/wiki/Curve25519))
     * X25519 (curve25519 Diffie-Hellman) is our recommendation for new applications. It's
@@ -51,10 +57,10 @@ Copyright 2020 Gohilla Ltd. Licensed under the [Apache License 2.0](LICENSE).
 For more more documentation, see [KeyExchangeAlgorithm](https://pub.dev/documentation/cryptography/latest/cryptography/KeyExchangeAlgorithm-class.html).
 
 ### Digital signature algorithms
-  * NIST elliptic curves ([read about them](https://en.wikipedia.org/wiki/Elliptic-curve_cryptography))
-    * [ecdsaP256Sha256](https://pub.dev/documentation/cryptography/latest/cryptography/ecdsaP256Sha256-constant.html) (ECDSA P256 / secp256r1 with SHA256)
-    * [ecdsaP384Sha256](https://pub.dev/documentation/cryptography/latest/cryptography/ecdsaP384Sha256-constant.html) (ECDSA P384 / secp384r1 with SHA256)
-    * [ecdsaP521Sha256](https://pub.dev/documentation/cryptography/latest/cryptography/ecdsaP521Sha256-constant.html) (ECDSA P521 / secp521r1 with SHA256)
+  * NIST elliptic curves ([read about the algorithm](https://en.wikipedia.org/wiki/Elliptic-curve_cryptography))
+    * [ecdsaP256Sha256](https://pub.dev/documentation/cryptography/latest/cryptography/ecdsaP256Sha256-constant.html) (ECDSA P256 / secp256r1 / prime256v1)
+    * [ecdsaP384Sha256](https://pub.dev/documentation/cryptography/latest/cryptography/ecdsaP384Sha256-constant.html) (ECDSA P384 / secp384r1 / prime384v1)
+    * [ecdsaP521Sha256](https://pub.dev/documentation/cryptography/latest/cryptography/ecdsaP521Sha256-constant.html) (ECDSA P521 / secp521r1 / prime521v1)
     * Currently NIST elliptic curves are only supported in browsers (_Web Cryptography API_).
   * [ed25519](https://pub.dev/documentation/cryptography/latest/cryptography/ed25519-constant.html) ([read about the algorithm](https://en.wikipedia.org/wiki/EdDSA))
     * ED25519 (curve25519 EdDSA) is our recommendation for new applications. Performance of our
@@ -70,6 +76,8 @@ For more more documentation, see [SignatureAlgorithm](https://pub.dev/documentat
   * Chacha20 family ([read about the algorithm](https://en.wikipedia.org/wiki/Salsa20))
     * [chacha20](https://pub.dev/documentation/cryptography/latest/cryptography/chacha20-constant.html)
     * [chacha20Poly1305Aead](https://pub.dev/documentation/cryptography/latest/cryptography/chacha20Poly1305Aead-constant.html) (AEAD_CHACHA20_POLY1305)
+    * [xchacha20](https://pub.dev/documentation/cryptography/latest/cryptography/xchacha20-constant.html)
+    * [xchacha20Poly1305Aead](https://pub.dev/documentation/cryptography/latest/cryptography/xchacha20Poly1305Aead-constant.html) (AEAD_XCHACHA20_POLY1305)
     * Chacha20 (AEAD) is our recommendation for new applications. It's used in technologies such as
       TLS, SSH, Signal, and Wireguard. Performance of our Dart implementation is about 50-100MB/s
       on a Macbook Pro.
@@ -77,6 +85,7 @@ For more more documentation, see [SignatureAlgorithm](https://pub.dev/documentat
 For more more documentation, see [Cipher](https://pub.dev/documentation/cryptography/latest/cryptography/Cipher-class.html).
 
 ### Key derivation algorithms
+  * [HChacha20](https://pub.dev/documentation/cryptography/latest/cryptography/HChacha20-class.html)
   * [Hkdf](https://pub.dev/documentation/cryptography/latest/cryptography/Hkdf-class.html)
 
 ### Message authentication codes
@@ -179,7 +188,7 @@ Future<void> main() async {
   final nonce = Nonce.randomBytes(12);
 
   // Our message
-  final message = <int>[1, 2, 3];
+  final message = utf8.encode('encrypted message');
 
   // Encrypt
   final encrypted = await cipher.encrypt(
@@ -203,8 +212,8 @@ Future<void> main() async {
 
 
 ## Authenticated encryption with AES-CTR + HMAC-SHA256
-In this example, we encrypt with [aesCtr](https://pub.dev/documentation/cryptography/latest/cryptography/aesCtr-constant.html)
-and use [Hmac](https://pub.dev/documentation/cryptography/latest/cryptography/Hmac-class.html)
+In this example, we encrypt a message with [aesCtr](https://pub.dev/documentation/cryptography/latest/cryptography/aesCtr-constant.html)
+and append a [Hmac](https://pub.dev/documentation/cryptography/latest/cryptography/Hmac-class.html)
 message authentication code.
 
 ```dart
@@ -222,7 +231,7 @@ Future<void> main() async {
   final nonce = Nonce.randomBytes(12);
 
   // Our message
-  final message = <int>[1, 2, 3];
+  final message = utf8.encode('encrypted message');
 
   // Encrypt
   final encrypted = await cipher.encrypt(
@@ -255,15 +264,15 @@ import 'dart:convert';
 
 Future<void> main() {
   // Choose a secret key
-  final secretKey = SecretKey(utf8.encode('qwerty'));
+  final secretKey = SecretKey(utf8.encode('authentication secret'));
 
   // Create a HMAC-BLAKE2S sink
   final macAlgorithm = const Hmac(blake2s);
   final sink = macAlgorithm.newSink(secretKey: secretKey);
 
   // Add all parts of the authenticated message
-  sink.add([1,2]);
-  sink.add([3]);
+  sink.add([1,2,3]);
+  sink.add([4,5]);
 
   // Calculate MAC
   sink.close();

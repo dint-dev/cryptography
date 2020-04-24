@@ -18,10 +18,15 @@ import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/utils.dart';
 import 'package:meta/meta.dart';
 
-/// _ChaCha20_ ([https://tools.ietf.org/html/rfc7539](RFC 7539) cipher.
+/// _AEAD_CHACHA20_POLY1305_ ([https://tools.ietf.org/html/rfc7539](RFC 7539)) cipher.
 ///
-/// Remember that:
-///   * You must not use the same key/nonce combination twice.
+/// About the algorithm:
+///   * Secret key is 32 bytes.
+///   * Nonce is 12 bytes.  You must not use the same (key, nonce) combination
+///     twice.
+///   * This cipher is authenticated and decrypting will throw [MacValidationException]
+///     if the MAC is invalid.
+///   * Associated Authenticated Data (AAD) is supported.
 ///
 /// An example:
 /// ```dart
@@ -57,82 +62,36 @@ import 'package:meta/meta.dart';
 ///   );
 /// }
 /// ```
-const CipherWithAppendedMac chacha20Poly1305Aead = Chacha20Poly1305Aead();
+const CipherWithAppendedMac chacha20Poly1305Aead = _Chacha20Poly1305Aead();
 
-/// {@nodoc}
-@visibleForTesting
-class Chacha20Poly1305Aead extends CipherWithAppendedMac {
+/// _XAEAD_CHACHA20_POLY1305_ ([draft-irtf-cfrg-xchacha](https://tools.ietf.org/html/draft-arciszewski-xchacha-03)) cipher.
+///
+/// XChaCha20 uses 192-bit nonces whereas ChaCha20 uses 96-bit nonces.
+///
+/// About the algorithm:
+///   * Secret key is 32 bytes.
+///   * Nonce is 24 bytes.  You must not use the same (key, nonce) combination
+///     twice.
+///   * This cipher is authenticated and decrypting will throw [MacValidationException]
+///     if the MAC is invalid.
+///   * Associated Authenticated Data (AAD) is supported.
+const CipherWithAppendedMac xchacha20Poly1305Aead =
+    _Chacha20Poly1305Aead(cipher: xchacha20);
+
+class _Chacha20Poly1305Aead extends CipherWithAppendedMac {
   static final _tmpByteData = ByteData(16);
   static final _tmpUint8List = Uint8List.view(_tmpByteData.buffer);
 
-  const Chacha20Poly1305Aead({
+  const _Chacha20Poly1305Aead({
     Cipher cipher = chacha20,
     MacAlgorithm macAlgorithm = poly1305,
   }) : super(cipher, macAlgorithm);
 
   @override
-  bool get supportsAad => true;
-
-  @override
   String get name => 'chacha20Poly1305Aead';
 
   @override
-  List<int> encryptSync(
-    List<int> clearText, {
-    SecretKey secretKey,
-    Nonce nonce,
-    List<int> aad,
-    int keyStreamIndex = 0,
-  }) {
-    final cipherTextWithoutMac = cipher.encryptSync(
-      clearText,
-      secretKey: secretKey,
-      nonce: nonce,
-      aad: null,
-      // Block counter 0 is used for Poly1305 key generation
-      keyStreamIndex: 64 + keyStreamIndex,
-    );
-    final mac = calculateMacSync(
-      cipherTextWithoutMac,
-      secretKey: secretKey,
-      nonce: nonce,
-      aad: aad,
-    );
-    final result = Uint8List(cipherTextWithoutMac.length + 16);
-    result.setAll(0, cipherTextWithoutMac);
-    result.setAll(cipherTextWithoutMac.length, mac.bytes);
-    return result;
-  }
-
-  @override
-  List<int> decryptSync(
-    List<int> cipherText, {
-    SecretKey secretKey,
-    Nonce nonce,
-    List<int> aad,
-    int keyStreamIndex = 0,
-  }) {
-    final dataInCipherText = getDataInCipherText(cipherText);
-    final calculatedMac = calculateMacSync(
-      dataInCipherText,
-      secretKey: secretKey,
-      nonce: nonce,
-      aad: aad,
-    );
-    final macInCipherText = getMacInCipherText(cipherText);
-
-    if (macInCipherText != calculatedMac) {
-      return null;
-    }
-    return cipher.decryptSync(
-      dataInCipherText,
-      secretKey: secretKey,
-      nonce: nonce,
-      aad: null,
-      // Block counter 0 is used for Poly1305 key generation
-      keyStreamIndex: 64 + keyStreamIndex,
-    );
-  }
+  bool get supportsAad => true;
 
   @override
   Mac calculateMacSync(
@@ -208,5 +167,63 @@ class Chacha20Poly1305Aead extends CipherWithAppendedMac {
     // Return MAC
     sink.close();
     return sink.mac;
+  }
+
+  @override
+  List<int> decryptSync(
+    List<int> cipherText, {
+    SecretKey secretKey,
+    Nonce nonce,
+    List<int> aad,
+    int keyStreamIndex = 0,
+  }) {
+    final dataInCipherText = getDataInCipherText(cipherText);
+    final calculatedMac = calculateMacSync(
+      dataInCipherText,
+      secretKey: secretKey,
+      nonce: nonce,
+      aad: aad,
+    );
+    final macInCipherText = getMacInCipherText(cipherText);
+
+    if (macInCipherText != calculatedMac) {
+      throw MacValidationException();
+    }
+    return cipher.decryptSync(
+      dataInCipherText,
+      secretKey: secretKey,
+      nonce: nonce,
+      aad: null,
+      // Block counter 0 is used for Poly1305 key generation
+      keyStreamIndex: 64 + keyStreamIndex,
+    );
+  }
+
+  @override
+  List<int> encryptSync(
+    List<int> clearText, {
+    SecretKey secretKey,
+    Nonce nonce,
+    List<int> aad,
+    int keyStreamIndex = 0,
+  }) {
+    final cipherTextWithoutMac = cipher.encryptSync(
+      clearText,
+      secretKey: secretKey,
+      nonce: nonce,
+      aad: null,
+      // Block counter 0 is used for Poly1305 key generation
+      keyStreamIndex: 64 + keyStreamIndex,
+    );
+    final mac = calculateMacSync(
+      cipherTextWithoutMac,
+      secretKey: secretKey,
+      nonce: nonce,
+      aad: aad,
+    );
+    final result = Uint8List(cipherTextWithoutMac.length + 16);
+    result.setAll(0, cipherTextWithoutMac);
+    result.setAll(cipherTextWithoutMac.length, mac.bytes);
+    return result;
   }
 }

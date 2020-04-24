@@ -53,7 +53,40 @@ void main() {
       expect(cipherText, hasLength(3 + 16));
     });
 
-    test('example', () async {
+    test('decrypt() throws if the MAC is invalid', () async {
+      final secretKey = algorithm.newSecretKeySync();
+      final nonce = algorithm.newNonce();
+      final clearText = [1, 2, 3];
+      final cipherText = algorithm.encryptSync(
+        clearText,
+        secretKey: secretKey,
+        nonce: nonce,
+      );
+      cipherText[cipherText.length - 1] ^= 0xFF;
+      await expectLater(
+        algorithm.decrypt(cipherText, secretKey: secretKey, nonce: nonce),
+        throwsA(isA<MacValidationException>()),
+      );
+    });
+
+    test('decryptSync() throws if the MAC is invalid', () {
+      final secretKey = algorithm.newSecretKeySync();
+      final nonce = algorithm.newNonce();
+      final clearText = [1, 2, 3];
+      final cipherText = algorithm.encryptSync(
+        clearText,
+        secretKey: secretKey,
+        nonce: nonce,
+      );
+      cipherText[cipherText.length - 1] ^= 0xFF;
+      expect(
+        () => algorithm.decryptSync(cipherText,
+            secretKey: secretKey, nonce: nonce),
+        throwsA(isA<MacValidationException>()),
+      );
+    });
+
+    group('example:', () {
       // -------------------------------------------------------------------------
       // The following input/output constants are copied from the RFC 7539:
       // https://tools.ietf.org/html/rfc7539
@@ -91,6 +124,17 @@ fa b3 24 e4 fa d6 75 94 55 85 80 8b 48 31 d7 bc
         '1a:e1:0b:59:4f:09:e2:6a:7e:90:2e:cb:d0:60:06:91',
       ));
 
+      List<int> expectedOutput;
+
+      setUp(() {
+        expectedOutput = chacha20Poly1305Aead.encryptSync(
+          clearText,
+          secretKey: secretKey,
+          nonce: nonce,
+          aad: aad,
+        );
+      });
+
       // -----------------------------------------------------------------------
       // End of constants from RFC 7539
       // -----------------------------------------------------------------------
@@ -98,30 +142,30 @@ fa b3 24 e4 fa d6 75 94 55 85 80 8b 48 31 d7 bc
       //
       // Encrypt.
       //
-      final encrypted = await chacha20Poly1305Aead.encrypt(
-        clearText,
-        secretKey: secretKey,
-        nonce: nonce,
-        aad: aad,
-      );
-      expect(
-        hexFromBytes(encrypted),
-        hexFromBytes([...expectedCipherText, ...expectedMac.bytes]),
-      );
-      expect(
-        hexFromBytes(algorithm.getDataInCipherText(encrypted)),
-        hexFromBytes(expectedCipherText),
-      );
-      expect(
-        hexFromBytes(algorithm.getMacInCipherText(encrypted).bytes),
-        hexFromBytes(expectedMac.bytes),
-      );
+      test('encrypt(...)', () async {
+        final encrypted = await chacha20Poly1305Aead.encrypt(
+          clearText,
+          secretKey: secretKey,
+          nonce: nonce,
+          aad: aad,
+        );
+        expect(
+          hexFromBytes(encrypted),
+          hexFromBytes([...expectedCipherText, ...expectedMac.bytes]),
+        );
+        expect(
+          hexFromBytes(algorithm.getDataInCipherText(encrypted)),
+          hexFromBytes(expectedCipherText),
+        );
+        expect(
+          hexFromBytes(algorithm.getMacInCipherText(encrypted).bytes),
+          hexFromBytes(expectedMac.bytes),
+        );
+        expect(encrypted, expectedOutput);
+      });
 
-      //
-      // Encrypt synchronously.
-      //
-      {
-        final encrypted = await algorithm.encryptSync(
+      test('encryptSync(...)', () {
+        final encrypted = algorithm.encryptSync(
           clearText,
           aad: aad,
           secretKey: secretKey,
@@ -135,14 +179,12 @@ fa b3 24 e4 fa d6 75 94 55 85 80 8b 48 31 d7 bc
           hexFromBytes(algorithm.getMacInCipherText(encrypted).bytes),
           hexFromBytes(expectedMac.bytes),
         );
-      }
+        expect(encrypted, expectedOutput);
+      });
 
-      //
-      // Decrypt.
-      //
-      {
+      test('decrypt(...)', () async {
         final decrypted = await algorithm.decrypt(
-          encrypted,
+          expectedOutput,
           aad: aad,
           secretKey: secretKey,
           nonce: nonce,
@@ -151,25 +193,11 @@ fa b3 24 e4 fa d6 75 94 55 85 80 8b 48 31 d7 bc
           hexFromBytes(decrypted),
           hexFromBytes(clearText),
         );
+      });
 
-        // Change the data so that MAC validation fails
-        expect(
-          await algorithm.decrypt(
-            [99, ...encrypted.skip(1)],
-            aad: aad,
-            secretKey: secretKey,
-            nonce: nonce,
-          ),
-          isNull,
-        );
-      }
-
-      //
-      // Decrypt synchronously.
-      //
-      {
+      test('decryptSync(...)', () {
         final decrypted = algorithm.decryptSync(
-          encrypted,
+          expectedOutput,
           aad: aad,
           secretKey: secretKey,
           nonce: nonce,
@@ -178,18 +206,7 @@ fa b3 24 e4 fa d6 75 94 55 85 80 8b 48 31 d7 bc
           hexFromBytes(decrypted),
           hexFromBytes(clearText),
         );
-
-        // Change the data so that MAC validation fails
-        expect(
-          algorithm.decryptSync(
-            [99, ...encrypted.skip(1)],
-            aad: aad,
-            secretKey: secretKey,
-            nonce: nonce,
-          ),
-          isNull,
-        );
-      }
+      });
     });
   });
 }

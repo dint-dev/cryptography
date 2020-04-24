@@ -375,19 +375,22 @@ class CipherWithAppendedMac implements Cipher {
     List<int> aad,
     int keyStreamIndex = 0,
   }) {
+    if (aad != null && aad.isNotEmpty) {
+      throw ArgumentError.value(aad, 'aad');
+    }
     final n = cipherText.length - macAlgorithm.macLengthInBytes;
     final dataSection = cipherText.take(n).toList(growable: false);
     final macSection = cipherText.skip(n).toList(growable: false);
 
-    final calculatedMac = calculateMacSync(
+    // Verify mac
+    final calculatedMac = macAlgorithm.calculateMacSync(
       dataSection,
       secretKey: secretKey,
-      nonce: nonce,
-      aad: aad,
     );
     if (Mac(macSection) != calculatedMac) {
-      return null;
+      throw MacValidationException();
     }
+
     return cipher.decryptSync(
       dataSection,
       secretKey: secretKey,
@@ -409,6 +412,9 @@ class CipherWithAppendedMac implements Cipher {
   }) async {
     ArgumentError.checkNotNull(buffer, 'buffer');
     ArgumentError.checkNotNull(bufferStart, 'bufferStart');
+    if (aad != null && aad.isNotEmpty) {
+      throw ArgumentError.value(aad, 'aad');
+    }
     final tmp = await decrypt(
       input,
       secretKey: secretKey,
@@ -445,6 +451,9 @@ class CipherWithAppendedMac implements Cipher {
     List<int> aad,
     int keyStreamIndex = 0,
   }) {
+    if (aad != null && aad.isNotEmpty) {
+      throw ArgumentError.value(aad, 'aad');
+    }
     final cipherText = cipher.encryptSync(
       clearText,
       secretKey: secretKey,
@@ -453,16 +462,14 @@ class CipherWithAppendedMac implements Cipher {
       keyStreamIndex: keyStreamIndex,
     );
 
-    final mac = calculateMacSync(
+    final calculatedMac = macAlgorithm.calculateMacSync(
       cipherText,
       secretKey: secretKey,
-      nonce: nonce,
-      aad: aad,
     );
 
-    final output = Uint8List(cipherText.length + mac.bytes.length);
+    final output = Uint8List(cipherText.length + calculatedMac.bytes.length);
     output.setAll(0, cipherText);
-    output.setAll(cipherText.length, mac.bytes);
+    output.setAll(cipherText.length, calculatedMac.bytes);
     return output;
   }
 
