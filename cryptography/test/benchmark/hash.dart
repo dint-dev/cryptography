@@ -12,10 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:typed_data';
+
 import 'package:cryptography/cryptography.dart';
 
 import 'common.dart';
-import 'dart:typed_data';
 
 void main() {
   HashBenchmark(sha256).report();

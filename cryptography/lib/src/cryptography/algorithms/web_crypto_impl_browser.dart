@@ -20,8 +20,8 @@ import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
 import 'package:meta/meta.dart';
-import 'aes_impl.dart' as dart;
 
+import 'aes_impl.dart' as dart;
 import 'web_crypto_bindings.dart' as web_crypto;
 
 const Cipher webAesCbc = _WebAesCbcCipher();

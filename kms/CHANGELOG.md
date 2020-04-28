@@ -1,3 +1,6 @@
+## 0.4.0
+  * A better API.
+
 ## 0.3.1
   * Improves documentation.
 

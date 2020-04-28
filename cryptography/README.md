@@ -5,16 +5,14 @@
 Popular cryptographic algorithms for [Dart](https://dart.dev) / [Flutter](https://flutter.dev)
 developers.
 
-Key features:
-  * __Lots of algorithms__. This package implements a wider set of standards than otherwise
-    recommendable, hashes-only [package:crypto](https://pub.dev/packages/crypto).
-  * __Enterprise-friendly.__ No license risks (that we spotted in some other Dart packages).
-    Well-tested for correctness. Maintained by a company that uses the package in its products.
-  * __Easy to use.__ We did our best to prevent people from using the APIs in unsafe ways.
-
 If you like the package, let us know by starring [the project in Github](https://github.com/dint-dev/cryptography).
 
-Copyright 2019-2020 Gohilla Ltd. Licensed under the [Apache License 2.0](LICENSE).
+## Why?
+  * __Available algorithms__. This package implements a wider set of popular standards
+    than otherwise recommendable, hashes-only [package:crypto](https://pub.dev/packages/crypto).
+  * __Enterprise-friendly.__ No license risks that our legal review spotted in some other Dart
+    packages. Used in production systems.
+  * __Easy to use.__ We did our best to prevent people from using the APIs in unsafe ways.
 
 ## Links
   * [Github project](https://github.com/dint-dev/cryptography)
@@ -25,6 +23,10 @@ Copyright 2019-2020 Gohilla Ltd. Licensed under the [Apache License 2.0](LICENSE
 ## Used by
   * [kms](https://pub.dev/packages/kms)
     * A Dart package for hardware-based or cloud-based key management solutions.
+  * [kms_flutter](https://pub.dev/packages/kms)
+    * Uses native APIs for storing cryptographic keys in Android and iOS.
+  * [noise](https://pub.dev/packages/kms)
+    * An implementation of Noise protocol, which can be used for E2EE encryption.
   * _Add your project here?_
 
 ## Contributing?

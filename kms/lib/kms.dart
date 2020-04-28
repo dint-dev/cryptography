@@ -19,8 +19,9 @@ export 'package:cryptography/cryptography.dart'
     show Signature, PrivateKey, PublicKey, SecretKey, Nonce;
 
 export 'src/algorithm_types.dart';
+export 'src/browser_kms.dart';
+export 'src/key_collection.dart';
+export 'src/key_document.dart';
+export 'src/key_document_security.dart';
 export 'src/kms.dart';
-export 'src/kms_base.dart';
-export 'src/kms_key.dart';
-export 'src/kms_key_query.dart';
 export 'src/memory_kms.dart';

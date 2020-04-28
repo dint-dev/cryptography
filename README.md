@@ -5,7 +5,8 @@
 
 Cryptographic packages for [Dart](https://dart.dev) / [Flutter](https://flutter.dev) developers.
 
-Copyright 2020 Gohilla Ltd. Licensed under the [Apache License 2.0](LICENSE).
+Want to contribute? Please share feedback / issue reports in the
+[issue tracker](https://github.com/dint-dev/cryptography/issues). Pull requests are welcome.
 
 ## Packages
   * [cryptography](cryptography)
@@ -21,9 +22,7 @@ Copyright 2020 Gohilla Ltd. Licensed under the [Apache License 2.0](LICENSE).
     * A framework for Key Management Service (KMS) solutions.
     * [Pub package](https://pub.dev/packages/kms)
     * [API reference](https://pub.dev/documentation/kms/latest/)
-  * [kms_adapter_cupertino](kms_adapter_cupertino)
-    * An adapter for using iOS / Mac OS X key management APIs.
-
-## Contributing?
-  * We recommend that you start by creating an issue in the
-    [issue tracker](https://github.com/dint-dev/cryptography/issues).
+  * [kms_flutter](kms_flutter)
+    * KMS for Flutter applications.
+  * [noise](noise)
+    * Noise protocol implementation.

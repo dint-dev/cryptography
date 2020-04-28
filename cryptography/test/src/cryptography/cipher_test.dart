@@ -12,10 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:typed_data';
+
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/src/utils/hex.dart';
 import 'package:test/test.dart';
-import 'dart:typed_data';
 
 void main() {
   group('CipherWithAppendedMac:', () {

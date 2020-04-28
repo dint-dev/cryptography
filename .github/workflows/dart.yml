@@ -12,7 +12,19 @@ jobs:
 
     steps:
       - uses: actions/checkout@v1
-      - name: Install dependencies
-        run: ./all.sh pub get
-      - name: Run tests
-        run: ./all.sh pub run test --platform=vm
+
+      - name: Install dependencies (cryptography)
+        working-directory: cryptography
+        run: pub get
+
+      - name: Install dependencies (kms)
+        working-directory: kms
+        run: pub get
+
+      - name: Run tests (cryptography)
+        working-directory: cryptography
+        run: pub run test --platform=vm
+
+      - name: Run tests (kms)
+        working-directory: kms
+        run: pub run test --platform=vm

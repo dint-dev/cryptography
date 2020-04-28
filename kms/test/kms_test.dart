@@ -18,470 +18,328 @@ import 'package:test/test.dart';
 
 void main() {
   group('KmsKey:', () {
+    final Kms kms = MemoryKms();
+
     test('== / hashCode', () {
-      final value = KmsKey(keyRingId: 'a', id: 'b');
-      final clone = KmsKey(keyRingId: 'a', id: 'b');
-      final other0 = KmsKey(keyRingId: 'OTHER', id: 'b');
-      final other1 = KmsKey(keyRingId: 'a', id: 'OTHER');
+      final value = kms.collection('c').document('d');
+      final clone = kms.collection('c').document('d');
+      final other0 = kms.collection('c').document('other');
+      final other1 = kms.collection('other').document('d');
       expect(value, clone);
       expect(value, isNot(other0));
       expect(value, isNot(other1));
-    });
 
-    test('KmsKey.random()', () {
-      final key0 = KmsKey.random(keyRingId: 'example');
-      final key1 = KmsKey.random(keyRingId: 'example');
-      expect(key0, isNot(key1));
-      expect(key0.id.length, 32);
-      expect(key1.id.length, 32);
-      expect(key0.id, matches(RegExp(r'^[0-9a-f]{32}$')));
+      expect(value.hashCode, clone.hashCode);
+      expect(value.hashCode, isNot(other0.hashCode));
+      expect(value.hashCode, isNot(other1.hashCode));
     });
   });
 
+  test('BrowserKms (VM):', () {
+    expect(BrowserKms.get(), isNull);
+  }, testOn: 'vm');
+
+  group('BrowserKms (Chrome):', () {
+    _testKms(() => BrowserKms.get());
+  }, testOn: 'chrome');
+
   group('MemoryKms:', () {
-    Kms kms;
+    _testKms(() => MemoryKms());
+  });
+}
 
-    setUp(() {
-      kms = MemoryKms();
-    });
+void _testKms(Kms Function() newKms) {
+  Kms kms;
+  KeyCollection collection;
 
-    group('createKeyPair():', () {
-      test('simple case', () async {
-        final kmsKey = await kms.createKeyPair(
-          keyRingId: 'exampleKeyRingId',
-          keyExchangeType: KeyExchangeType.x25519,
-          signatureType: null,
-        );
-        expect(kmsKey.keyRingId, 'exampleKeyRingId');
-        expect(kmsKey.id, hasLength(32));
-        expect(kmsKey.id, matches(RegExp(r'^[0-9a-f]{32}$')));
-      });
+  setUp(() {
+    kms = newKms();
+    collection = kms.collection('example_collection');
+  });
 
-      test('with predefined key', () async {
-        final kmsKey = await kms.createKeyPair(
-          keyRingId: 'exampleKeyRingId',
-          keyExchangeType: KeyExchangeType.x25519,
-          signatureType: null,
-          id: 'exampleId',
-        );
-        expect(kmsKey.keyRingId, 'exampleKeyRingId');
-        expect(kmsKey.id, 'exampleId');
-      });
-
-      test('with predefined key, throws StateError if exists', () async {
-        final f = () {
-          return kms.createKeyPair(
-            keyRingId: 'keyRingId',
+  group('collection:', () {
+    test('createKeyPair():simple case', () async {
+      final key = await kms.collection('default').createKeyPair(
             keyExchangeType: KeyExchangeType.x25519,
             signatureType: null,
-            id: 'id',
           );
-        };
-
-        await f();
-        await expectLater(
-          f(),
-          throwsStateError,
-        );
-      });
-
-      test('with predefined key, throws StateError if deleted', () async {
-        final f = () {
-          return kms.createKeyPair(
-            keyRingId: 'keyRingId',
-            keyExchangeType: KeyExchangeType.x25519,
-            signatureType: null,
-            id: 'id',
-          );
-        };
-
-        final key = await f();
-        await kms.delete(key);
-        await expectLater(
-          f(),
-          throwsStateError,
-        );
-      });
-
-      test('throws ArgumentError if keyRingId is null', () async {
-        await expectLater(
-          kms.createKeyPair(
-            keyRingId: null,
-            keyExchangeType: KeyExchangeType.x25519,
-            signatureType: null,
-          ),
-          throwsArgumentError,
-        );
-      });
-
-      test('throws ArgumentError if algorithms are all null', () async {
-        await expectLater(
-          kms.createKeyPair(
-            keyRingId: 'example',
-            keyExchangeType: null,
-            signatureType: null,
-          ),
-          throwsArgumentError,
-        );
-      });
-
-      test('throws ArgumentError if algorithms are incompatible', () async {
-        await expectLater(
-          kms.createKeyPair(
-            keyRingId: 'example',
-            keyExchangeType: KeyExchangeType.x25519,
-            signatureType: SignatureType.p256,
-          ),
-          throwsArgumentError,
-        );
-      });
+      expect(key.collection.kms, kms);
+      expect(key.collection.collectionId, 'default');
+      expect(key.documentId, hasLength(32));
+      expect(key.documentId, matches(RegExp(r'^[0-9a-f]{32}$')));
     });
 
-    group('createSecretKey():', () {
-      test('simple case', () async {
-        final kmsKey = await kms.createSecretKey(
-          keyRingId: 'keyRingId',
-          cipherType: CipherType.chacha20Poly1305,
-        );
-        expect(kmsKey.keyRingId, 'keyRingId');
-        expect(kmsKey.id, hasLength(32));
-        expect(kmsKey.id, matches(RegExp(r'^[0-9a-f]{32}$')));
-      });
-
-      test('with predefined key', () async {
-        final kmsKey = await kms.createSecretKey(
-          keyRingId: 'keyRingId',
-          cipherType: CipherType.chacha20Poly1305,
-          id: 'id',
-        );
-        expect(kmsKey.keyRingId, 'keyRingId');
-        expect(kmsKey.id, 'id');
-      });
-
-      test('with predefined key, throws StateError if exists', () async {
-        final f = () async {
-          return kms.createSecretKey(
-            keyRingId: 'keyRingId',
-            cipherType: CipherType.chacha20Poly1305,
-            id: 'id',
-          );
-        };
-
-        await f();
-        await expectLater(
-          f(),
-          throwsStateError,
-        );
-      });
-
-      test('with predefined key, throws StateError if deleted', () async {
-        final f = () async {
-          return kms.createSecretKey(
-            keyRingId: 'keyRingId',
-            cipherType: CipherType.chacha20Poly1305,
-            id: 'id',
-          );
-        };
-
-        final key = await f();
-        await kms.delete(key);
-        await expectLater(
-          f(),
-          throwsStateError,
-        );
-      });
-
-      test('throws ArgumentError if keyRingId is null', () async {
-        await expectLater(
-          kms.createSecretKey(
-            keyRingId: null,
-            cipherType: CipherType.chacha20Poly1305,
-          ),
-          throwsArgumentError,
-        );
-      });
-
-      test('throws ArgumentError if algorithm is null', () async {
-        await expectLater(
-          kms.createSecretKey(
-            keyRingId: 'example',
-            cipherType: null,
-          ),
-          throwsArgumentError,
-        );
-      });
+    test('createKeyPair():with fixed documentId', () async {
+      final document = await collection.createKeyPair(
+        keyExchangeType: KeyExchangeType.x25519,
+        signatureType: null,
+        documentId: 'exampleId',
+      );
+      expect(document.collection, same(collection));
+      expect(document.documentId, 'exampleId');
     });
 
-    group('findAll():', () {
-      test('no keys', () async {
-        final list = await kms.findAll().toList();
-        expect(list, isEmpty);
-      });
-
-      test('two keys', () async {
-        final key0 = await kms.createKeyPair(
-          keyRingId: 'example',
+    test('createKeyPair():with fixed documentId, throws StateError if exists',
+        () async {
+      final f = () {
+        return collection.createKeyPair(
           keyExchangeType: KeyExchangeType.x25519,
           signatureType: null,
+          documentId: 'id',
         );
-        final key1 = await kms.createSecretKey(
-          keyRingId: 'example',
-          cipherType: CipherType.chacha20Poly1305,
-        );
-        final list = await kms.findAll().toList();
-        expect(list, unorderedEquals([key0, key1]));
-      });
+      };
 
-      test('two keys, one deleted', () async {
-        final key0 = await kms.createSecretKey(
-          keyRingId: 'example',
-          cipherType: CipherType.chacha20Poly1305,
-        );
-        final key1 = await kms.createSecretKey(
-          keyRingId: 'example',
-          cipherType: CipherType.chacha20Poly1305,
-        );
-        await kms.delete(key0);
-        final list = await kms.findAll().toList();
-        expect(list, [key1]);
-      });
+      await f();
+      await expectLater(
+        f(),
+        throwsStateError,
+      );
     });
 
-    group('delete():', () {
-      test('succeeds for key pairs', () async {
-        final kmsKey = await kms.createKeyPair(
-          keyRingId: 'example',
-          keyExchangeType: KeyExchangeType.x25519,
-          signatureType: null,
-        );
-        await expectLater(kms.getPublicKey(kmsKey), isNotNull);
-        await kms.delete(kmsKey);
-        await expectLater(
-          kms.getPublicKey(kmsKey),
-          throwsA(isA<KmsKeyDoesNotExistException>()),
-        );
-      });
-
-      test('succeeds for secret keys', () async {
-        final kmsKey = await kms.createSecretKey(
-          keyRingId: 'example',
-          cipherType: CipherType.chacha20Poly1305,
-        );
-        final nonce = Nonce.randomBytes(12);
-        await expectLater(
-          kms.encrypt(
-            [1, 2, 3],
-            kmsKey: kmsKey,
-            nonce: nonce,
-            cipherType: CipherType.chacha20Poly1305,
-          ),
-          isNotNull,
-        );
-        await kms.delete(kmsKey);
-        await expectLater(
-          kms.getPublicKey(kmsKey),
-          throwsA(isA<KmsKeyDoesNotExistException>()),
-        );
-      });
-
-      test('succeeds even if key doesn\'t exist', () async {
-        await kms.delete(KmsKey(keyRingId: 'a', id: 'b'));
-      });
-    });
-
-    group('key exchange algorithms:', () {
-      test('x25519', () async {
-        //
-        // Create two key pairs
-        //
-        final kmsKey0 = await kms.createKeyPair(
-          keyRingId: 'example',
-          keyExchangeType: KeyExchangeType.x25519,
-          signatureType: null,
-        );
-        expect(kmsKey0, isNotNull);
-
-        final kmsKey1 = await kms.createKeyPair(
-          keyRingId: 'example',
-          keyExchangeType: KeyExchangeType.x25519,
-          signatureType: null,
-        );
-        expect(kmsKey1, isNotNull);
-
-        //
-        // Get public keys
-        //
-
-        final publicKey0 = await kms.getPublicKey(kmsKey0);
-        expect(publicKey0.bytes, hasLength(32));
-
-        final publicKey1 = await kms.getPublicKey(kmsKey1);
-        expect(publicKey1, isNot(publicKey0));
-        expect(publicKey1.bytes, hasLength(32));
-
-        //
-        // Generate shared secrets
-        //
-        final sharedSecret0 = await kms.sharedSecret(
-          kmsKey: kmsKey0,
-          remotePublicKey: publicKey1,
-          keyExchangeType: KeyExchangeType.x25519,
-        );
-        final sharedSecret1 = await kms.sharedSecret(
-          kmsKey: kmsKey1,
-          remotePublicKey: publicKey0,
-          keyExchangeType: KeyExchangeType.x25519,
-        );
-        expect(sharedSecret0.extractSync(), hasLength(32));
-        expect(sharedSecret0, sharedSecret1);
-
-        //
-        // Delete the two key pairs
-        //
-        await kms.delete(kmsKey0);
-        await kms.delete(kmsKey1);
-
-        // Using the key should fail
-        await expectLater(
-          kms.sharedSecret(
-            kmsKey: kmsKey0,
-            remotePublicKey: publicKey1,
-            keyExchangeType: KeyExchangeType.x25519,
-          ),
-          throwsA(isA<KmsKeyDoesNotExistException>()),
-        );
-      });
-    });
-
-    group('signature algorithms:', () {
-      test('ed25519', () async {
-        //
-        // Create a key pair
-        //
-        final kmsKey = await kms.createKeyPair(
-          keyRingId: 'example',
+    test('createKeyPair():throws ArgumentError if algorithms are all null',
+        () async {
+      await expectLater(
+        collection.createKeyPair(
           keyExchangeType: null,
-          signatureType: SignatureType.ed25519,
+          signatureType: null,
+        ),
+        throwsArgumentError,
+      );
+    });
+
+    test('createKeyPair(): throws ArgumentError if algorithms are incompatible',
+        () async {
+      await expectLater(
+        collection.createKeyPair(
+          keyExchangeType: KeyExchangeType.x25519,
+          signatureType: SignatureType.ecdsaP256sha256,
+        ),
+        throwsArgumentError,
+      );
+    });
+  });
+
+  group('createSecretKey():', () {
+    test('createSecretKey(): simple case', () async {
+      final document = await collection.createSecretKey(
+        cipherType: CipherType.chacha20Poly1305Aead,
+      );
+      expect(document.collection, same(collection));
+      expect(document.documentId, hasLength(32));
+      expect(document.documentId, matches(RegExp(r'^[0-9a-f]{32}$')));
+    });
+
+    test('createSecretKey(): with fixed key', () async {
+      final document = await collection.createSecretKey(
+        cipherType: CipherType.chacha20Poly1305Aead,
+        documentId: 'id',
+      );
+      expect(document.collection, same(collection));
+      expect(document.documentId, 'id');
+    });
+
+    test('createSecretKey(): with fixed key, throws StateError if exists',
+        () async {
+      final f = () async {
+        return collection.createSecretKey(
+          cipherType: CipherType.chacha20Poly1305Aead,
+          documentId: 'id',
         );
-        expect(kmsKey, isNotNull);
+      };
 
-        //
-        // Get public key
-        //
+      await f();
+      await expectLater(
+        f(),
+        throwsStateError,
+      );
+    });
 
-        final publicKey = await kms.getPublicKey(kmsKey);
-        expect(publicKey.bytes, hasLength(32));
+    test('createSecretKey(): throws ArgumentError if algorithm is null',
+        () async {
+      await expectLater(
+        collection.createSecretKey(
+          cipherType: null,
+        ),
+        throwsArgumentError,
+      );
+    });
+  });
 
-        //
-        // Sign
-        //
-
-        final data = [1, 2, 3];
-        final signature = await kms.sign(
-          data,
-          kmsKey: kmsKey,
-          signatureType: SignatureType.ed25519,
-        );
-        expect(signature.bytes, hasLength(64));
-        expect(signature.publicKey, publicKey);
-
-        //
-        // Verify signature
-        //
-
-        expect(
-          await kms.verifySignature(
-            data,
-            signature: signature,
-            kmsKey: kmsKey,
-            signatureType: SignatureType.ed25519,
-          ),
-          isTrue,
-        );
-        expect(
-          await kms.verifySignature(
-            [99, 99, 99],
-            signature: signature,
-            kmsKey: kmsKey,
-            signatureType: SignatureType.ed25519,
-          ),
-          isFalse,
-        );
-
-        //
-        // Delete the key pair
-        //
-        await kms.delete(kmsKey);
-
-        // Using the key should fail
-        await expectLater(
-          kms.verifySignature(
-            [1, 2, 3],
-            signature: signature,
-            kmsKey: kmsKey,
-            signatureType: SignatureType.ed25519,
-          ),
-          throwsA(isA<KmsKeyDoesNotExistException>()),
-        );
+  group('document:', () {
+    KeyDocument document;
+    setUp(() async {
+      document = await collection.createKeyPair(
+        keyExchangeType: KeyExchangeType.x25519,
+        signatureType: null,
+      );
+      addTearDown(() {
+        document.delete();
       });
     });
 
-    group('ciphers:', () {
-      test('chacha20Poly1305', () async {
-        //
-        // Create key
-        //
+    test('delete() succeeds for key pairs', () async {
+      final document = await collection.createKeyPair(
+        keyExchangeType: KeyExchangeType.x25519,
+        signatureType: null,
+      );
+      await expectLater(document.getPublicKey(), isNotNull);
+      await document.delete();
+      await expectLater(
+        document.getPublicKey(),
+        throwsA(isA<KeyDocumentDoesNotExistException>()),
+      );
+    });
 
-        final kmsKey = await kms.createSecretKey(
-          keyRingId: 'example',
-          cipherType: CipherType.chacha20Poly1305,
-        );
-        expect(kmsKey, isNotNull);
+    test('delete() succeeds for secret keys', () async {
+      final document = await collection.createSecretKey(
+        cipherType: CipherType.chacha20Poly1305Aead,
+      );
+      await expectLater(
+        document.encrypt([1, 2, 3], nonce: Nonce.randomBytes(12)),
+        isNotNull,
+      );
+      await document.delete();
+      await expectLater(
+        document.encrypt([1, 2, 3], nonce: Nonce.randomBytes(12)),
+        throwsA(isA<KeyDocumentDoesNotExistException>()),
+      );
+    });
 
-        //
-        // Encrypt
-        //
+    test('x25519', () async {
+      //
+      // Create two key pairs
+      //
+      final document = await collection.createKeyPair(
+        keyExchangeType: KeyExchangeType.x25519,
+        signatureType: null,
+      );
+      expect(document, isNotNull);
 
-        final data = [1, 2, 3];
-        final nonce = Nonce.randomBytes(12);
-        final encrypted = await kms.encrypt(
-          data,
-          kmsKey: kmsKey,
+      final otherDocument = await collection.createKeyPair(
+        keyExchangeType: KeyExchangeType.x25519,
+        signatureType: null,
+      );
+      expect(otherDocument, isNotNull);
+
+      //
+      // Get public keys
+      //
+
+      final publicKey = await document.getPublicKey();
+      expect(publicKey.bytes, hasLength(32));
+
+      final otherPublicKey = await otherDocument.getPublicKey();
+      expect(otherPublicKey, isNot(publicKey));
+      expect(otherPublicKey.bytes, hasLength(32));
+
+      //
+      // Generate shared secrets
+      //
+      final sharedSecret = await document.sharedSecret(
+        remotePublicKey: otherPublicKey,
+      );
+      final otherSharedSecret = await otherDocument.sharedSecret(
+        remotePublicKey: publicKey,
+      );
+      expect(sharedSecret.extractSync(), hasLength(32));
+      expect(sharedSecret, otherSharedSecret);
+
+      //
+      // Delete the two key pairs
+      //
+      await document.delete();
+      await otherDocument.delete();
+
+      // Using the key should fail
+      await expectLater(
+        document.sharedSecret(
+          remotePublicKey: otherPublicKey,
+        ),
+        throwsA(isA<KeyDocumentDoesNotExistException>()),
+      );
+    });
+
+    test('ed25519', () async {
+      //
+      // Create a key pair
+      //
+      final document = await collection.createKeyPair(
+        keyExchangeType: null,
+        signatureType: SignatureType.ed25519,
+      );
+      expect(document, isNotNull);
+
+      //
+      // Get the public key
+      //
+
+      final publicKey = await document.getPublicKey();
+      expect(publicKey.bytes, hasLength(32));
+
+      //
+      // Sign
+      //
+
+      final data = [1, 2, 3];
+      final signature = await document.sign(
+        data,
+      );
+      expect(signature.bytes, hasLength(64));
+      expect(signature.publicKey, publicKey);
+
+      //
+      // Delete the key pair
+      //
+      await document.delete();
+    });
+
+    test('chacha20Poly1305', () async {
+      //
+      // Create a key
+      //
+
+      final document = await collection.createSecretKey(
+        cipherType: CipherType.chacha20Poly1305Aead,
+      );
+      expect(document, isNotNull);
+
+      //
+      // Encrypt
+      //
+
+      final data = [1, 2, 3];
+      final nonce = Nonce.randomBytes(12);
+      final encrypted = await document.encrypt(
+        data,
+        nonce: nonce,
+      );
+      expect(encrypted, hasLength(3 + 16));
+      expect(encrypted, isNot(data));
+
+      //
+      // Decrypt
+      //
+
+      final decrypted = await document.decrypt(
+        encrypted,
+        nonce: nonce,
+      );
+      expect(decrypted, data);
+
+      //
+      // Delete key
+      //
+
+      await document.delete();
+
+      // Using the key should fail
+      await expectLater(
+        () => document.encrypt(
+          [1, 2, 3],
           nonce: nonce,
-          cipherType: CipherType.chacha20Poly1305,
-        );
-        expect(encrypted, hasLength(3 + 16));
-        expect(encrypted, isNot(data));
-
-        //
-        // Decrypt
-        //
-
-        final decrypted = await kms.decrypt(
-          encrypted,
-          kmsKey: kmsKey,
-          nonce: nonce,
-          cipherType: CipherType.chacha20Poly1305,
-        );
-        expect(decrypted, data);
-
-        //
-        // Delete key
-        //
-
-        await kms.delete(kmsKey);
-
-        // Using the key should fail
-        await expectLater(
-          () => kms.encrypt(
-            [1, 2, 3],
-            kmsKey: kmsKey,
-            nonce: nonce,
-            cipherType: CipherType.chacha20Poly1305,
-          ),
-          throwsA(isA<KmsKeyDoesNotExistException>()),
-        );
-      });
+        ),
+        throwsA(isA<KeyDocumentDoesNotExistException>()),
+      );
     });
   });
 }

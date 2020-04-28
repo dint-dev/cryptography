@@ -12,12 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:typed_data';
+
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/src/cryptography/algorithms/aes_impl_block_function.dart'
     as block;
 import 'package:cryptography/src/utils/hex.dart';
 import 'package:test/test.dart';
-import 'dart:typed_data';
 
 void main() {
   final secretKey128 = SecretKey(List<int>.filled(16, 2));

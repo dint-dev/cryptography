@@ -12,6 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'package:cryptography/cryptography.dart';
+
+const Map<CipherType, Cipher> defaultCipherImplementations = {
+  CipherType.aesCbcHmacSha256: CipherWithAppendedMac(aesCbc, Hmac(sha256)),
+  CipherType.aesCtrHmacSha256: CipherWithAppendedMac(aesCtr, Hmac(sha256)),
+  CipherType.aesGcm: aesGcm,
+  CipherType.chacha20Poly1305Aead: chacha20Poly1305Aead,
+};
+
+const Map<KeyExchangeType, KeyExchangeAlgorithm>
+    defaultKeyExchangeImplementations = {
+  KeyExchangeType.ecdhP256: ecdhP256,
+  KeyExchangeType.x25519: x25519,
+};
+
+const Map<SignatureType, SignatureAlgorithm> defaultSignatureImplementations = {
+  SignatureType.ed25519: ed25519,
+  SignatureType.ecdsaP256sha256: ecdsaP256Sha256,
+};
+
 /// Describes type of a secret key managed by some [Kms].
 enum CipherType {
   /// AES-CBC + HMAC-SHA256.
@@ -24,13 +44,13 @@ enum CipherType {
   aesGcm,
 
   /// Chacha20 + Poly1305.
-  chacha20Poly1305,
+  chacha20Poly1305Aead,
 }
 
 /// Describes key exchange type of a secret key managed by some [Kms].
 enum KeyExchangeType {
   /// ECDH NIST P-256 (secp256r1).
-  p256,
+  ecdhP256,
 
   /// X25519.
   x25519,
@@ -39,7 +59,7 @@ enum KeyExchangeType {
 /// Signature algorithms.
 enum SignatureType {
   /// ECDSA NIST P-256 (secp256r1) with SHA256 hash.
-  p256,
+  ecdsaP256sha256,
 
   /// Ed25519.
   ed25519,

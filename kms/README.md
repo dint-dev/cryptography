@@ -2,13 +2,12 @@
 [![Github Actions CI](https://github.com/dint-dev/cryptography/workflows/Dart%20CI/badge.svg)](https://github.com/dint-dev/cryptography/actions?query=workflow%3A%22Dart+CI%22)
 
 # Overview
-This package gives you a vendor-agnostic API for accessing Key Management Service (KMS) products.
-Many operating systems and major cloud platforms (AWS, Azure, Google) offer such APIs.
-KMS adapters are subclasses of [Kms](https://pub.dev/documentation/kms/latest/kms/Kms-class.html).
+A vendor-agnostic API for storing and using cryptographic keys in Flutter / Dart.
 
-Using the package? Please star [our Github project](https://github.com/dint-dev/cryptography). :)
-
-Copyright 2020 Gohilla Ltd. Licensed under the [Apache License 2.0](LICENSE).
+The package can be used for accessing Key Management Service (KMS) APIs such as:
+  * Keystore in Android
+  * Keychain in iOS and Mac OS X
+  * We may add support for services by cloud vendors (AWS KMS, Azure Vault, Google Cloud KMS).
 
 ## Links
   * [Github project](https://github.com/dint-dev/cryptography)
@@ -16,21 +15,128 @@ Copyright 2020 Gohilla Ltd. Licensed under the [Apache License 2.0](LICENSE).
   * [Pub package](https://pub.dev/packages/kms)
   * [API reference](https://pub.dev/documentation/kms/latest/)
 
-## Contributing?
-  * We recommend that you start by creating an issue in the
-    [issue tracker](https://github.com/dint-dev/cryptography/issues).
-
 ## Available adapters
-  * [MemoryKms](https://pub.dev/documentation/kms/latest/kms/MemoryKms-class.html)
-    * Works in all platforms. It uses cryptographic algorithm implementations from our sibling
-      project, [package:cryptography](https://pub.dev/packages/cryptography).
-  * `CupertinoKms` (work-in-progress)
-    * Uses Apple Security Framework. Uses Secure Enclave (a hardware-based key manager) when
-      possible.
-  * _Have an adapter? Let us know so we will add a link here._
+  * In this package:
+    * [BrowserKms](https://pub.dev/documentation/kms/latest/kms/BrowserKms-class.html)
+    * [MemoryKms](https://pub.dev/documentation/kms/latest/kms/MemoryKms-class.html)
+  * [kms_flutter](https://pub.dev/packages/kms_flutter)
+    * Uses operating system APIs for storing cryptographic keys. Supports Android Keystore and iOS
+      Keychain.
 
-## Supported algorithms
-### Key agreement
+## Related packages
+  * [cryptography](https://pub.dev/packages/cryptography)
+    * We use cryptography from this package.
+  * [noise](https://pub.dev/packages/noise)
+    * A Dart implementation of Noise protocol, which can be used for E2EE encryption.
+
+
+# Getting started
+## 1.Add dependency
+In _pubspec.yaml_:
+```yaml
+dependencies:
+  kms: ^0.4.0
+```
+
+## 2.Use
+### For digital signature
+```dart
+import 'package:kms/kms.dart';
+import 'package:kms_flutter/kms_flutter';
+
+final kms = flutterKms();
+
+Future<void> main() async {
+  final collection = kms.collection('examples');
+
+  // Create the key pair
+  final document = await collection.createKeyPair(
+    documentId: 'My key pair',
+    keyExchangeType: null, // We will not do key exchange.
+    signatureType: SignatureType.ed25519,
+  );
+
+  // Signed message
+  final message = <int>[1,2,3];
+
+  // Request a signature from the KMS
+  final signature = await document.sign(message);
+  print('Signature: ${signature.bytes}');
+  print('Public key: ${signature.publicKey}');
+
+  // Delete the key pair.
+  // In real applications, you would store keys for longer time.
+  await document.delete();
+}
+```
+
+### For key agreement
+```dart
+import 'package:cryptography/cryptography.dart';
+import 'package:kms/kms.dart';
+import 'package:kms_flutter/kms_flutter';
+
+final kms = flutterKms();
+
+Future<void> main() async {
+  final collection = kms.collection('examples');
+
+  // Create a key pair
+  final kmsKey = await collection.createKeyPair(
+    documentId: 'My key pair',
+    keyExchangeType: KeyExchangeType.x25519,
+    signatureType: null, // We will not do signing.
+  );
+
+  // In this example, our counter-party has some random public key.
+  final remotePublicKey = x25519.newKeyPairSync().publicKey;
+
+  // Request a shared secret from the KMS.
+  final secretKey = await document.sharedSecret(
+    remotePublicKey: remotePublicKey,
+  );
+
+  print('Secret key: ${secretKey.extractSync()}');
+
+  // Delete the key pair
+  await document.delete(kmsKey);
+}
+```
+
+### For encryption
+```dart
+import 'package:cryptography/cryptography.dart';
+import 'package:kms/kms.dart';
+import 'package:kms_flutter/kms_flutter';
+
+final kms = flutterKms();
+
+Future<void> main() async {
+  // Create a cryptographic key with ID 'my signing key'
+  final document = kms.collection('example').createSecretKey(
+    documentId: 'my signing key',
+    cipherType: CipherType.aesGcm,
+  );
+
+  // Choose some unique nonce (initialization vector, IV)
+  final nonce = aesGcm.newNonce();
+
+  // Encrypt
+  final encrypted = await document.encrypt(
+    'Encrypted data'.codePoints,
+    nonce: nonce,
+  );
+
+  // Decrypt
+  final decrypted = await document.decrypt(
+    encrypted,
+    nonce: nonce,
+  );
+}
+```
+
+# Supported algorithms
+## Key agreement
   * X25519
     * Supported by:
       * Apple APIs
@@ -41,7 +147,7 @@ Copyright 2020 Gohilla Ltd. Licensed under the [Apache License 2.0](LICENSE).
       * Azure Vault
       * Google Cloud KMS
 
-### Digital signature
+## Digital signature
   * ED25519
     * Supported by:
       * Apple APIs
@@ -54,7 +160,7 @@ Copyright 2020 Gohilla Ltd. Licensed under the [Apache License 2.0](LICENSE).
       * Google Cloud KMS
       * Hashcorp Vault
 
-### Authenticated ciphers
+## Authenticated ciphers
   * AES-GCM
     * Supported by:
       * Apple APIs
@@ -66,76 +172,3 @@ Copyright 2020 Gohilla Ltd. Licensed under the [Apache License 2.0](LICENSE).
     * Supported by:
       * Apple APIs
       * Hashcorp Vault
-
-# Getting started
-## 1.Add dependency
-In _pubspec.yaml_:
-```yaml
-dependencies:
-  kms: ^0.3.0
-```
-
-## 2.Use
-### For digital signature
-```dart
-import 'package:kms/kms.dart';
-
-Future<void> main() async {
-  final kms = MemoryKms();
-
-  // Create the key pair
-  final kmsKey = await kms.createKeyPair(
-    keyRingId: 'example',
-    keyExchangeType: null, // We will not do key exchange.
-    signatureType: SignatureType.ed25519,
-  );
-
-  // Signed message
-  final message = <int>[1,2,3];
-
-  // Request a signature from the KMS
-  final signature = await kms.sign(
-    message: message,
-    kmsKey: kmsKey,
-    signatureType: SignatureType.ed25519,
-  );
-
-  print('Signature: ${signature.bytes}');
-  print('Public key: ${signature.publicKey}');
-
-  // Delete the key pair
-  await kms.delete(kmsKey);
-}
-```
-
-### For key exchange
-```dart
-import 'package:cryptography/cryptography.dart';
-import 'package:kms/kms.dart';
-
-Future<void> main() async {
-  final kms = MemoryKms();
-
-  // Create a key pair
-  final kmsKey = await kms.createKeyPair(
-    keyRingId: 'example',
-    keyExchangeType: KeyExchangeType.x25519,
-    signatureType: null, // We will not do signing.
-  );
-
-  // A random public key for the peer.
-  final remotePublicKey = x25519.newKeyPairSync().publicKey;
-
-  // Request a shared secret from the KMS.
-  final secretKey = await kms.sharedSecret(
-    kmsKey: kmsKey,
-    remotePublicKey: remotePublicKey,
-    keyExchangeType: KeyExchangeType.x25519,
-  );
-
-  print('Secret key: ${secretKey.bytes}');
-
-  // Delete the key pair
-  await kms.delete(kmsKey);
-}
-```
