@@ -1,8 +1,11 @@
+## 1.0.0
+  * A stable API.
+
 ## 0.3.6
   * Documentation fixes.
 
 ## 0.3.5
-  * Adds _HChacha20_ key derivation algorithm and _XChaCha20_ cipher.
+  * Adds _XChaCha20_ cipher.
   * When authenticated ciphers encounter incorrect MACs, they now throw `MacValidationException`
     (instead of returning null, which developers may ignore in some situations).
 

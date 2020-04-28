@@ -1,5 +1,5 @@
 name: kms_flutter
-version: 0.1.0
+version: 0.1.1
 homepage: https://github.com/dint-dev/cryptography
 description:
   Key Management Service for Flutter applications. Supports Keystore (Android), Keychain (iOS / Mac
@@ -10,7 +10,7 @@ environment:
 
 dependencies:
   collection: ^1.10.0
-  cryptography: ^0.3.5
+  cryptography: ^1.0.0
   flutter:
     sdk: flutter
   flutter_secure_storage: ^3.3.3

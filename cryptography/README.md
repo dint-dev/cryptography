@@ -3,16 +3,10 @@
 
 # Overview
 Popular cryptographic algorithms for [Dart](https://dart.dev) / [Flutter](https://flutter.dev)
-developers.
+developers. Licensed under the [Apache License 2.0](LICENSE).
 
-If you like the package, let us know by starring [the project in Github](https://github.com/dint-dev/cryptography).
-
-## Why?
-  * __Available algorithms__. This package implements a wider set of popular standards
-    than otherwise recommendable, hashes-only [package:crypto](https://pub.dev/packages/crypto).
-  * __Enterprise-friendly.__ No license risks that our legal review spotted in some other Dart
-    packages. Used in production systems.
-  * __Easy to use.__ We did our best to prevent people from using the APIs in unsafe ways.
+Any feedback, issue reports, or pull requests are appreciated!
+See [our Github project](https://github.com/dint-dev/cryptography).
 
 ## Links
   * [Github project](https://github.com/dint-dev/cryptography)
@@ -26,12 +20,8 @@ If you like the package, let us know by starring [the project in Github](https:/
   * [kms_flutter](https://pub.dev/packages/kms)
     * Uses native APIs for storing cryptographic keys in Android and iOS.
   * [noise_protocol](https://pub.dev/packages/noise_protocol)
-    * An implementation of Noise protocol, which can be used for E2EE encryption.
+    * An implementation of Noise protocol, which can be used for secure communications.
   * _Add your project here?_
-
-## Contributing?
-  * We recommend that you start by creating an issue in the
-    [issue tracker](https://github.com/dint-dev/cryptography/issues).
 
 ## Some things to know
   * SHA1 and SHA2 implementations use _package:crypto_, which is maintained by Google and limited
@@ -87,7 +77,6 @@ For more more documentation, see [SignatureAlgorithm](https://pub.dev/documentat
 For more more documentation, see [Cipher](https://pub.dev/documentation/cryptography/latest/cryptography/Cipher-class.html).
 
 ### Key derivation algorithms
-  * [HChacha20](https://pub.dev/documentation/cryptography/latest/cryptography/HChacha20-class.html)
   * [Hkdf](https://pub.dev/documentation/cryptography/latest/cryptography/Hkdf-class.html)
 
 ### Message authentication codes
@@ -111,7 +100,7 @@ For more more documentation, see [HashAlgorithm](https://pub.dev/documentation/c
 In _pubspec.yaml_:
 ```yaml
 dependencies:
-  cryptography: ^0.3.4
+  cryptography: ^1.0.0
 ```
 
 

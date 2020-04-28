@@ -8,7 +8,7 @@ environment:
 
 dependencies:
   collection: ^1.10.0
-  cryptography: ^0.3.5
+  cryptography: ^1.0.0
   meta: ^1.1.0
 
 dev_dependencies:

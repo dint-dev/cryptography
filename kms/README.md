@@ -9,6 +9,10 @@ The package can be used for accessing Key Management Service (KMS) APIs such as:
   * Keychain in iOS and Mac OS X
   * We may add support for services by cloud vendors (AWS KMS, Azure Vault, Google Cloud KMS).
 
+The package uses algorithm implementations from
+[package:cryptography](https://pub.dev/packages/cryptography).
+
+
 ## Links
   * [Github project](https://github.com/dint-dev/cryptography)
   * [Issue tracker](https://github.com/dint-dev/cryptography/issues)
@@ -22,12 +26,6 @@ The package can be used for accessing Key Management Service (KMS) APIs such as:
   * [kms_flutter](https://pub.dev/packages/kms_flutter)
     * Uses operating system APIs for storing cryptographic keys. Supports Android Keystore and iOS
       Keychain.
-
-## Related packages
-  * [cryptography](https://pub.dev/packages/cryptography)
-    * We use cryptography from this package.
-  * [noise_protocol](https://pub.dev/packages/noise_protocol)
-    * A Dart implementation of Noise protocol, which can be used for E2EE encryption.
 
 
 # Getting started

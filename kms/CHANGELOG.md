@@ -1,3 +1,6 @@
+## 0.4.1
+  * Fixes version constraints.
+
 ## 0.4.0
   * A better API.
 

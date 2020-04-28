@@ -77,6 +77,7 @@ const Cipher xchacha20 = _XChaCha20();
 /// _HChaCha20_ ([draft-irtf-cfrg-xchacha](https://tools.ietf.org/html/draft-arciszewski-xchacha-03))
 /// key derivation algorithm, which produces a 256-bit secret key from 256-bit
 /// secret key and 96-bit nonce.
+@visibleForTesting
 class HChacha20 {
   const HChacha20();
 

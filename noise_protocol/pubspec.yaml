@@ -1,5 +1,5 @@
 name: noise_protocol
-version: 0.1.0
+version: 0.1.1
 homepage: https://github.com/dint-dev/cryptography
 description:
   A Dart implementation of Noise protocol, which can be used for securing communications (E2EE,
@@ -10,7 +10,7 @@ environment:
 
 dependencies:
   collection: ^1.14.0
-  cryptography: ^0.3.5
+  cryptography: ^1.0.0
   meta: ^1.1.0
   kms: ^0.4.0
   typed_data: ^1.1.0
