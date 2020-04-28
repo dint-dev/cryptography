@@ -13,9 +13,8 @@
 // limitations under the License.
 
 /// A Dart implementation of
-/// [Noise framework](https://noiseprotocol.org/noise.html#the-cipherstate-object),
-/// a handshake protocol.
-library noise;
+/// [Noise protocol](https://noiseprotocol.org/noise.html#the-cipherstate-object).
+library noise_protocol;
 
 import 'dart:async';
 import 'dart:collection';

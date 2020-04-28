@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-part of noise;
+part of noise_protocol;
 
 /// _SymmetricState_ in the [specification](https://noiseprotocol.org/noise.html).
 @visibleForTesting

@@ -2,10 +2,8 @@
 [![Github Actions CI](https://github.com/dint-dev/cryptography/workflows/Dart%20CI/badge.svg)](https://github.com/dint-dev/cryptography/actions?query=workflow%3A%22Dart+CI%22)
 
 # Overview
-This is a Dart implementation of [Noise framework](https://noiseprotocol.org/noise.html), a secure
-handshake protocol.
-
-The Noise protocol has been analyzed by professional cryptographers and it has been adopted by products/companies
+[Noise framework](https://noiseprotocol.org/noise.html) is a secure handshake protocol, which has
+been analyzed by professional cryptographers. It has been adopted by products/companies
 such as _WhatsApp_ ([whitepaper](https://www.whatsapp.com/security/WhatsApp-Security-Whitepaper.pdf))
 and Slack ([blog post](https://slack.engineering/introducing-nebula-the-open-source-global-overlay-network-from-slack-884110a5579)).
 

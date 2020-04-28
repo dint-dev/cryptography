@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import 'package:cryptography/utils.dart';
-import 'package:noise/noise.dart';
+import 'package:noise_protocol/noise_protocol.dart';
 
 Future<void> main() async {
   final protocol = NoiseProtocol(

@@ -24,5 +24,5 @@ Want to contribute? Please share feedback / issue reports in the
     * [API reference](https://pub.dev/documentation/kms/latest/)
   * [kms_flutter](kms_flutter)
     * KMS for Flutter applications.
-  * [noise](noise)
-    * Noise protocol implementation.
+  * [noise_protocol](noise_protocol)
+    * A Dart implementation of Noise protocol.

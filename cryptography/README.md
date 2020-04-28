@@ -25,7 +25,7 @@ If you like the package, let us know by starring [the project in Github](https:/
     * A Dart package for hardware-based or cloud-based key management solutions.
   * [kms_flutter](https://pub.dev/packages/kms)
     * Uses native APIs for storing cryptographic keys in Android and iOS.
-  * [noise](https://pub.dev/packages/kms)
+  * [noise_protocol](https://pub.dev/packages/noise_protocol)
     * An implementation of Noise protocol, which can be used for E2EE encryption.
   * _Add your project here?_
 

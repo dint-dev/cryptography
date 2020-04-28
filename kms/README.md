@@ -26,7 +26,7 @@ The package can be used for accessing Key Management Service (KMS) APIs such as:
 ## Related packages
   * [cryptography](https://pub.dev/packages/cryptography)
     * We use cryptography from this package.
-  * [noise](https://pub.dev/packages/noise)
+  * [noise_protocol](https://pub.dev/packages/noise_protocol)
     * A Dart implementation of Noise protocol, which can be used for E2EE encryption.
 
 

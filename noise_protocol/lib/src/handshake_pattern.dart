@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-part of noise;
+part of noise_protocol;
 
 /// A handshake pattern defines pre-existing knowledge and instructions for
 /// performing the handshake.

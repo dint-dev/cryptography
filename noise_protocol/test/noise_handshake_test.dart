@@ -14,7 +14,7 @@
 
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/utils.dart';
-import 'package:noise/noise.dart';
+import 'package:noise_protocol/noise_protocol.dart';
 import 'package:test/test.dart';
 
 Future<void> main() async {
