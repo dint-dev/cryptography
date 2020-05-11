@@ -18,29 +18,55 @@ import 'package:test/test.dart';
 
 void main() {
   group('ed25519:', () {
-    test('generate 100 random keyPairs, sign/verify a random message', () {
+    test('generate 100 random keyPairs, sign/verify a random message',
+        () async {
       for (var i = 0; i < 100; i++) {
+        // Generate a random key pair
         final keyPair = ed25519.newKeyPairSync();
+        expect(keyPair.publicKey.bytes.length, 32);
 
+        // Generate a random message
         final message = Nonce.randomBytes(1 + (i % 128)).bytes;
 
-        final signature = ed25519.signSync(
+        // sign()
+        final signature = await ed25519.sign(
           message,
           keyPair,
         );
         expect(signature.publicKey, keyPair.publicKey);
 
+        // signSync()
+        expect(
+          ed25519.signSync(
+            message,
+            keyPair,
+          ),
+          signature,
+        );
+
+        // Verify the signed message.
+        expect(
+          await ed25519.verify(message, signature),
+          isTrue,
+        );
         expect(
           ed25519.verifySync(message, signature),
           isTrue,
         );
 
+        // Try verify a slightly different message, the same signature.
         final otherMessage = <int>[
           // Change first byte of message
           (message[0] + 1) % 256,
           ...message.skip(1),
         ];
-
+        expect(
+          await ed25519.verify(
+            otherMessage,
+            signature,
+          ),
+          isFalse,
+        );
         expect(
           ed25519.verifySync(
             otherMessage,
@@ -49,6 +75,7 @@ void main() {
           isFalse,
         );
 
+        // Try verify the same message, slightly different signature.
         final otherSignature = Signature(
           <int>[
             // Change first byte of signature bytes
@@ -58,6 +85,13 @@ void main() {
           publicKey: keyPair.publicKey,
         );
 
+        expect(
+          await ed25519.verify(
+            message,
+            otherSignature,
+          ),
+          isFalse,
+        );
         expect(
           ed25519.verifySync(
             message,
@@ -98,7 +132,22 @@ void main() {
           publicKey: publicKey,
         );
 
-        test('signing', () {
+        test('sign(...)', () async {
+          final actualSignature = await ed25519.sign(
+            message,
+            keyPair,
+          );
+          expect(
+            hexFromBytes(actualSignature.bytes),
+            hexFromBytes(signature.bytes),
+          );
+          expect(
+            actualSignature.publicKey.bytes,
+            publicKey.bytes,
+          );
+        });
+
+        test('signSync(...)', () {
           final actualSignature = ed25519.signSync(
             message,
             keyPair,
@@ -113,13 +162,24 @@ void main() {
           );
         });
 
-        test('verifying (ok)', () {
-          // Correct signature
+        test('verify(...)', () async {
+          final isOk = ed25519.verifySync(
+            message,
+            signature,
+          );
           expect(
-            ed25519.verifySync(
-              message,
-              signature,
-            ),
+            isOk,
+            isTrue,
+          );
+        });
+
+        test('verifySync(...)', () {
+          final isOk = ed25519.verifySync(
+            message,
+            signature,
+          );
+          expect(
+            isOk,
             isTrue,
           );
         });
@@ -204,7 +264,22 @@ void main() {
           publicKey: publicKey,
         );
 
-        test('signing', () {
+        test('sign(...)', () async {
+          final actualSignature = await ed25519.sign(
+            message,
+            keyPair,
+          );
+          expect(
+            hexFromBytes(actualSignature.bytes),
+            hexFromBytes(signature.bytes),
+          );
+          expect(
+            actualSignature.publicKey.bytes,
+            keyPair.publicKey.bytes,
+          );
+        });
+
+        test('signSync(...)', () {
           final actualSignature = ed25519.signSync(
             message,
             keyPair,
@@ -219,13 +294,24 @@ void main() {
           );
         });
 
-        test('verifying (ok)', () {
-          // Correct signature
+        test('verify(...)', () async {
+          final isOk = await ed25519.verify(
+            message,
+            signature,
+          );
           expect(
-            ed25519.verifySync(
-              message,
-              signature,
-            ),
+            isOk,
+            isTrue,
+          );
+        });
+
+        test('verifySync(...)', () {
+          final isOk = ed25519.verifySync(
+            message,
+            signature,
+          );
+          expect(
+            isOk,
             isTrue,
           );
         });
@@ -264,7 +350,22 @@ void main() {
           publicKey: publicKey,
         );
 
-        test('signing', () {
+        test('signSync()', () async {
+          final actualSignature = await ed25519.sign(
+            message,
+            keyPair,
+          );
+          expect(
+            hexFromBytes(actualSignature.bytes),
+            hexFromBytes(signature.bytes),
+          );
+          expect(
+            actualSignature.publicKey.bytes,
+            keyPair.publicKey.bytes,
+          );
+        });
+
+        test('signSync(...)', () {
           final actualSignature = ed25519.signSync(
             message,
             keyPair,
@@ -279,13 +380,24 @@ void main() {
           );
         });
 
-        test('verifying (ok)', () {
-          // Correct signature
+        test('verify(...)', () async {
+          final isOk = await ed25519.verify(
+            message,
+            signature,
+          );
           expect(
-            ed25519.verifySync(
-              message,
-              signature,
-            ),
+            isOk,
+            isTrue,
+          );
+        });
+
+        test('verifySync(...)', () {
+          final isOk = ed25519.verifySync(
+            message,
+            signature,
+          );
+          expect(
+            isOk,
             isTrue,
           );
         });

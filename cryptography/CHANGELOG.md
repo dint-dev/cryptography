@@ -1,3 +1,9 @@
+## 1.0.2
+  * Implements automatic use of Web Cryptography API when SHA1 or SHA2 is used in browsers.
+    SHA2-512 becomes up to 100 times faster in browsers. ED25519 becomes approximately 30 times
+    faster in browsers by using Web Cryptography API.
+  * Better documentation and benchmarks.
+
 ## 1.0.1
   * Implements `ed25519.newKeyPairFromSeed(seed)`.
   * Significantly improves ED25519 performance.

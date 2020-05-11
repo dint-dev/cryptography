@@ -172,12 +172,13 @@ void main() {
           '0b0b0b0b',
         ));
 
-        test('sha224', () {
+        test('sha224', () async {
+          final hmac = Hmac(sha224);
           final expected = hexToBytes(
             '896fb1128abbdf196832107cd49df33f'
             '47b4b1169912ba4f53684b22',
           );
-          final hash = Hmac(sha224).calculateMacSync(
+          final hash = await hmac.calculateMac(
             input,
             secretKey: secretKey,
           );
@@ -185,20 +186,29 @@ void main() {
             hexFromBytes(hash.bytes),
             hexFromBytes(expected),
           );
+          expect(
+            hmac.calculateMacSync(input, secretKey: secretKey),
+            hash,
+          );
         });
 
-        test('sha256', () {
+        test('sha256', () async {
+          final hmac = Hmac(sha256);
           final expected = hexToBytes(
             'b0344c61d8db38535ca8afceaf0bf12b'
             '881dc200c9833da726e9376c2e32cff7',
           );
-          final hash = Hmac(sha256).calculateMacSync(
+          final hash = await hmac.calculateMac(
             input,
             secretKey: secretKey,
           );
           expect(
             hexFromBytes(hash.bytes),
             hexFromBytes(expected),
+          );
+          expect(
+            hmac.calculateMacSync(input, secretKey: secretKey),
+            hash,
           );
         });
 

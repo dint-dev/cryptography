@@ -87,11 +87,6 @@ class CryptoKeyPair {
 }
 
 @JS()
-class Digest {
-  external factory Digest._();
-}
-
-@JS()
 @anonymous
 class EcdhKeyDeriveParams {
   external factory EcdhKeyDeriveParams({
@@ -197,7 +192,7 @@ class Subtle {
     List<String> keyUsages,
   );
 
-  external Promise<Digest> digest(
+  external Promise<ByteBuffer> digest(
     String name,
     ByteBuffer data,
   );

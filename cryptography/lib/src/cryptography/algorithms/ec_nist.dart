@@ -19,6 +19,8 @@ import 'web_crypto.dart';
 /// _NIST P-256_ Elliptic Curve Diffie-Hellman (ECDH) key exchange algorithm.
 /// Currently supported __only in the browser.__
 ///
+/// Private key export format is `[...d, ...x, ...y]`.
+///
 /// An example:
 /// ```
 /// import 'package:cryptography/cryptography.dart';
@@ -37,6 +39,8 @@ const KeyExchangeAlgorithm ecdhP256 = webEcdhP256;
 
 /// _NIST P-384_ Elliptic Curve Diffie-Hellman (ECDH) key exchange algorithm.
 /// Currently supported __only in the browser.__
+///
+/// Private key export format is `[...d, ...x, ...y]`.
 ///
 /// An example:
 /// ```
@@ -57,6 +61,8 @@ const KeyExchangeAlgorithm ecdhP384 = webEcdhP384;
 /// _NIST P-521_ Elliptic Curve Diffie-Hellman (ECDH) key exchange algorithm.
 /// Currently supported __only in the browser.__
 ///
+/// Private key export format is `[...d, ...x, ...y]`.
+///
 /// An example:
 /// ```
 /// import 'package:cryptography/cryptography.dart';
@@ -75,6 +81,8 @@ const KeyExchangeAlgorithm ecdhP521 = webEcdhP521;
 
 /// _NIST P-256_ Elliptic Curve Digital Signature Algorithm (ECDSA).
 /// Currently supported __only in the browser.__
+///
+/// Private key export format is `[...d, ...x, ...y]`.
 ///
 /// An example:
 /// ```
@@ -96,6 +104,8 @@ const SignatureAlgorithm ecdsaP256Sha256 = webEcdsaP256Sha256;
 /// _NIST P-384_ Elliptic Curve Digital Signature Algorithm (ECDSA).
 /// Currently supported __only in the browser.__
 ///
+/// Private key export format is `[...d, ...x, ...y]`.
+///
 /// An example:
 /// ```
 /// import 'package:cryptography/cryptography.dart';
@@ -113,6 +123,8 @@ const SignatureAlgorithm ecdsaP384Sha256 = webEcdsaP384Sha256;
 
 /// _NIST P-521_ Elliptic Curve Digital Signature Algorithm (ECDSA).
 /// Currently supported __only in the browser.__
+///
+/// Private key export format is `[...d, ...x, ...y]`.
 ///
 /// An example:
 /// ```

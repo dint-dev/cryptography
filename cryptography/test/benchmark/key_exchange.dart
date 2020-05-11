@@ -16,15 +16,14 @@ import 'package:cryptography/cryptography.dart';
 
 import 'benchmark_helpers.dart';
 
-void main() {
-  SharedSecretBenchmark(x25519).report();
+Future<void> main() async {
+  await SharedSecretBenchmark(x25519).report();
 }
 
-class SharedSecretBenchmark extends ThroughputBenchmarkBase {
+class SharedSecretBenchmark extends SimpleBenchmark {
   final KeyExchangeAlgorithm implementation;
 
-  SharedSecretBenchmark(this.implementation)
-      : super('Shared secret with ${implementation.name}');
+  SharedSecretBenchmark(this.implementation) : super(implementation.name);
 
   KeyPair keypair1;
   KeyPair keypair2;

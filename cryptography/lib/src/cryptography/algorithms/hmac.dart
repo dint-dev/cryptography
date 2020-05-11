@@ -53,6 +53,39 @@ class Hmac extends MacAlgorithm {
   String get name => 'Hmac(${hashAlgorithm.name})';
 
   @override
+  Future<Mac> calculateMac(
+    List<int> input, {
+    @required SecretKey secretKey,
+  }) async {
+    ArgumentError.checkNotNull(input);
+    ArgumentError.checkNotNull(secretKey);
+    final hashAlgorithm = this.hashAlgorithm;
+    final blockLength = hashAlgorithm.blockLengthInBytes;
+    var hmacKey = await secretKey.extract();
+    if (hmacKey.length > blockLength) {
+      hmacKey = hashAlgorithm.hashSync(hmacKey).bytes;
+    }
+
+    // Inner hash
+    final innerPadding = Uint8List(blockLength);
+    _preparePadding(innerPadding, hmacKey, 0x36);
+    final innerInput = Uint8List(innerPadding.length + input.length);
+    innerInput.setAll(0, innerPadding);
+    innerInput.setAll(innerPadding.length, input);
+    final innerHash = await hashAlgorithm.hash(innerInput);
+
+    // Outer hash
+    final outerPadding = Uint8List(blockLength);
+    _preparePadding(outerPadding, hmacKey, 0x5c);
+    final outerInput = Uint8List(outerPadding.length + innerHash.bytes.length);
+    outerInput.setAll(0, outerPadding);
+    outerInput.setAll(outerPadding.length, innerHash.bytes);
+    final outerHash = await hashAlgorithm.hash(outerInput);
+
+    return Mac(outerHash.bytes);
+  }
+
+  @override
   MacSink newSink({@required SecretKey secretKey}) {
     ArgumentError.checkNotNull(secretKey);
 
@@ -109,6 +142,7 @@ class _HmacSink extends MacSink {
 
   @override
   void add(List<int> bytes) {
+    ArgumentError.checkNotNull(bytes);
     if (_isClosed) {
       throw StateError('Already closed.');
     }
@@ -117,6 +151,7 @@ class _HmacSink extends MacSink {
 
   @override
   void addSlice(List<int> chunk, int start, int end, bool isLast) {
+    ArgumentError.checkNotNull(chunk);
     if (_isClosed) {
       throw StateError('Already closed.');
     }

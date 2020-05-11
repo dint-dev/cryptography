@@ -31,9 +31,9 @@ void _xorBlock(
   }
 }
 
-const Cipher aesCbc = _AesCbc();
+const Cipher dartAesCbc = _AesCbc();
 
-const Cipher aesCtr = _AesCtr();
+const Cipher dartAesCtr = _AesCtr();
 
 class _AesCbc extends Cipher {
   const _AesCbc();

@@ -18,27 +18,79 @@ import 'package:cryptography/cryptography.dart';
 
 import 'benchmark_helpers.dart';
 
-void main() {
-  HashBenchmark(sha256).report();
-  HashBenchmark(sha512).report();
-  HashBenchmark(blake2s).report();
+Future<void> main() async {
+  {
+    print('64 byte messages:');
+    const size = 64;
+    await HashBenchmark(sha256, size).report();
+    await HashSyncBenchmark(sha256, size).report();
+    await HashBenchmark(sha512, size).report();
+    await HashSyncBenchmark(sha512, size).report();
+    await HashBenchmark(blake2s, size).report();
+    await HashSyncBenchmark(blake2s, size).report();
+    print('');
+  }
+
+  {
+    const size = 1000;
+    print('1 kB messages:');
+    await HashBenchmark(sha256, size).report();
+    await HashSyncBenchmark(sha256, size).report();
+    await HashBenchmark(sha512, size).report();
+    await HashSyncBenchmark(sha512, size).report();
+    await HashBenchmark(blake2s, size).report();
+    await HashSyncBenchmark(blake2s, size).report();
+    print('');
+  }
+
+  {
+    const size = 1000000;
+    print('1 MB messages:');
+    await HashBenchmark(sha256, size).report();
+    await HashSyncBenchmark(sha256, size).report();
+    await HashBenchmark(sha512, size).report();
+    await HashSyncBenchmark(sha512, size).report();
+    await HashBenchmark(blake2s, size).report();
+    await HashSyncBenchmark(blake2s, size).report();
+  }
 }
 
-class HashBenchmark extends ThroughputBenchmarkBase {
+class HashBenchmark extends SimpleBenchmark {
   final HashAlgorithm implementation;
-
-  HashBenchmark(this.implementation)
-      : super('${implementation.name.padRight(12)}');
+  final int length;
 
   List<int> message;
 
+  HashBenchmark(this.implementation, this.length)
+      : super('${implementation.name}'.padRight(20));
+
   @override
-  void setup() {
-    message = Uint8List(1024);
+  Future<void> run() {
+    return implementation.hash(message);
   }
 
   @override
+  void setup() {
+    message = Uint8List(length);
+  }
+}
+
+class HashSyncBenchmark extends SimpleBenchmark {
+  final HashAlgorithm implementation;
+  final int length;
+
+  List<int> message;
+
+  HashSyncBenchmark(this.implementation, this.length)
+      : super('${implementation.name} (sync)'.padRight(20));
+
+  @override
   void run() {
-    implementation.hash(message);
+    implementation.hashSync(message);
+  }
+
+  @override
+  void setup() {
+    message = Uint8List(length);
   }
 }

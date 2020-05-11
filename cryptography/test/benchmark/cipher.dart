@@ -14,80 +14,51 @@
 
 import 'dart:typed_data';
 
-import 'package:benchmark_harness/benchmark_harness.dart';
 import 'package:cryptography/cryptography.dart';
 
-const million = 1000000;
+import 'benchmark_helpers.dart';
 
-void main() {
-  print('Benchmarks:');
-  print('');
-  Chacha20StreamBenchmark(chacha20, million).report();
-  Chacha20StreamBenchmark(chacha20Poly1305Aead, million).report();
+Future<void> main() async {
+  const MB = 1000000;
+  {
+    const messageLength = 100;
 
-  Chacha20StreamBenchmark(aesCbc, million).report();
-  Chacha20StreamBenchmark(CipherWithAppendedMac(aesCbc, Hmac(sha256)), million)
+    print('10k x 100b messages:');
+    await CipherEncryptBenchmark(chacha20, MB, messageLength).report();
+    await CipherEncryptSyncBenchmark(chacha20, MB, messageLength).report();
+    await CipherEncryptBenchmark(chacha20Poly1305Aead, MB, messageLength)
+        .report();
+    await CipherEncryptBenchmark(aesCbc, MB, messageLength).report();
+    await CipherEncryptSyncBenchmark(aesCbc, MB, messageLength).report();
+    await CipherEncryptBenchmark(
+            CipherWithAppendedMac(aesCbc, Hmac(sha256)), MB, messageLength)
+        .report();
+    await CipherEncryptBenchmark(aesCtr, MB, messageLength).report();
+    await CipherEncryptSyncBenchmark(aesCtr, MB, messageLength).report();
+    await CipherEncryptBenchmark(
+            CipherWithAppendedMac(aesCtr, Hmac(sha256)), MB, messageLength)
+        .report();
+    print('');
+  }
+
+  print('1 MB messages:');
+  await CipherEncryptBenchmark(chacha20, MB).report();
+  await CipherEncryptSyncBenchmark(chacha20, MB).report();
+  await CipherEncryptBenchmark(chacha20Poly1305Aead, MB).report();
+
+  await CipherEncryptBenchmark(aesCbc, MB).report();
+  await CipherEncryptSyncBenchmark(aesCbc, MB).report();
+  await CipherEncryptBenchmark(CipherWithAppendedMac(aesCbc, Hmac(sha256)), MB)
       .report();
 
-  Chacha20StreamBenchmark(aesCtr, million).report();
-  Chacha20StreamBenchmark(CipherWithAppendedMac(aesCtr, Hmac(sha256)), million)
-      .report();
-  print('');
-
-  Chacha20NumerousSmallMessagesBenchmark(chacha20, million, 100).report();
-  Chacha20NumerousSmallMessagesBenchmark(chacha20Poly1305Aead, million, 100)
-      .report();
-  Chacha20NumerousSmallMessagesBenchmark(aesCbc, million, 100).report();
-  Chacha20NumerousSmallMessagesBenchmark(
-          CipherWithAppendedMac(aesCbc, Hmac(sha256)), million, 100)
-      .report();
-  Chacha20NumerousSmallMessagesBenchmark(aesCtr, million, 100).report();
-  Chacha20NumerousSmallMessagesBenchmark(
-          CipherWithAppendedMac(aesCtr, Hmac(sha256)), million, 100)
+  await CipherEncryptBenchmark(aesCtr, MB).report();
+  await CipherEncryptSyncBenchmark(aesCtr, MB).report();
+  await CipherEncryptBenchmark(CipherWithAppendedMac(aesCtr, Hmac(sha256)), MB)
       .report();
   print('');
 }
 
-class Chacha20StreamBenchmark extends BenchmarkBase {
-  final Cipher cipher;
-  final int totalLength;
-  SecretKey secretKey;
-  Nonce nonce;
-  Uint8List cleartext;
-  Uint8List result;
-
-  Chacha20StreamBenchmark(this.cipher, this.totalLength)
-      : super(
-            '${(cipher.name + ':').padRight(20)} ${totalLength ~/ million} MB stream');
-
-  @override
-  void setup() {
-    // 100 MB cleartext
-    cleartext = Uint8List(totalLength);
-    for (var i = 0; i < cleartext.lengthInBytes; i++) {
-      cleartext[i] = 0xFF & i;
-    }
-    secretKey = cipher.newSecretKeySync();
-    nonce = cipher.newNonce();
-    result = Uint8List(cleartext.length);
-  }
-
-  @override
-  void run() {
-    cipher.encryptSync(
-      cleartext,
-      secretKey: secretKey,
-      nonce: nonce,
-    );
-  }
-
-  @override
-  void exercise() {
-    run();
-  }
-}
-
-class Chacha20NumerousSmallMessagesBenchmark extends BenchmarkBase {
+class CipherEncryptBenchmark extends SimpleBenchmark {
   final Cipher cipher;
   final int totalLength;
   final int messageLength;
@@ -96,10 +67,20 @@ class Chacha20NumerousSmallMessagesBenchmark extends BenchmarkBase {
   Uint8List cleartext;
   Uint8List result;
 
-  Chacha20NumerousSmallMessagesBenchmark(
-      this.cipher, this.totalLength, this.messageLength)
-      : super(
-            '${(cipher.name + ':').padRight(20)} ${totalLength ~/ million} MB in ${messageLength} byte long messages');
+  CipherEncryptBenchmark(this.cipher, this.totalLength, [int messageLength])
+      : messageLength = messageLength ?? totalLength,
+        super('${cipher.name}.encrypt()');
+
+  @override
+  Future<void> run() async {
+    for (var i = 0; i < totalLength ~/ messageLength; i++) {
+      await cipher.encrypt(
+        cleartext,
+        secretKey: secretKey,
+        nonce: nonce,
+      );
+    }
+  }
 
   @override
   void setup() {
@@ -111,20 +92,40 @@ class Chacha20NumerousSmallMessagesBenchmark extends BenchmarkBase {
     nonce = cipher.newNonce();
     result = Uint8List(cleartext.lengthInBytes);
   }
+}
+
+class CipherEncryptSyncBenchmark extends SimpleBenchmark {
+  final Cipher cipher;
+  final int totalLength;
+  final int messageLength;
+  SecretKey secretKey;
+  Nonce nonce;
+  Uint8List cleartext;
+  Uint8List result;
+
+  CipherEncryptSyncBenchmark(this.cipher, this.totalLength, [int messageLength])
+      : messageLength = messageLength ?? totalLength,
+        super('${cipher.name}.encryptSync()');
 
   @override
-  void run() {
-    cipher.encryptSync(
-      cleartext,
-      secretKey: secretKey,
-      nonce: nonce,
-    );
+  Future<void> run() async {
+    for (var i = 0; i < totalLength ~/ messageLength; i++) {
+      await cipher.encryptSync(
+        cleartext,
+        secretKey: secretKey,
+        nonce: nonce,
+      );
+    }
   }
 
   @override
-  void exercise() {
-    for (var i = 0; i < totalLength ~/ messageLength; i++) {
-      run();
+  void setup() {
+    cleartext = Uint8List(messageLength);
+    for (var i = 0; i < cleartext.lengthInBytes; i++) {
+      cleartext[i] = 0xFF & i;
     }
+    secretKey = cipher.newSecretKeySync();
+    nonce = cipher.newNonce();
+    result = Uint8List(cleartext.lengthInBytes);
   }
 }

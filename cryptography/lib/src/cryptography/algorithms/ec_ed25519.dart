@@ -65,9 +65,24 @@ class _Ed25519 extends SignatureAlgorithm {
 
   @override
   Future<KeyPair> newKeyPairFromSeed(PrivateKey seed) async {
-    // Call synchronous version
-    return newKeyPairFromSeedSync(
-      PrivateKey(await seed.extract()),
+    // Read private key bytes
+    final privateKeyBytes = await seed.extract();
+    _validatePrivateKeyBytes(privateKeyBytes);
+
+    // Take SHA512 hash of the private key.
+    final h = await sha512.hash(privateKeyBytes);
+    final hf = h.bytes.sublist(0, 32);
+    _setPrivateKeyFixedBits(hf);
+
+    // We get public key by multiplying the modified private key hash with G.
+    final publicKeyBytes = _pointCompress(_pointMul(
+      Register25519()..setBytes(hf),
+      Ed25519Point.base,
+    ));
+
+    return KeyPair(
+      privateKey: seed,
+      publicKey: PublicKey(publicKeyBytes),
     );
   }
 
@@ -75,28 +90,16 @@ class _Ed25519 extends SignatureAlgorithm {
   KeyPair newKeyPairFromSeedSync(PrivateKey seed) {
     // Read private key bytes
     final privateKeyBytes = seed.extractSync();
-    if (privateKeyBytes.length != 32) {
-      throw ArgumentError(
-        'Private key length must be 32. Got ${privateKeyBytes.length} bytes.',
-      );
-    }
+    _validatePrivateKeyBytes(privateKeyBytes);
 
     // Take SHA512 hash of the private key.
-    final privateKeyHash =
-        sha512.hashSync(privateKeyBytes).bytes.sublist(0, 32);
-
-    // The lowest three bits must be 0
-    privateKeyHash[0] &= 0xF8;
-
-    // The highest bit must be 0
-    privateKeyHash[31] &= 0x7F;
-
-    // The second highest bit must be 1
-    privateKeyHash[31] |= 0x40;
+    final h = sha512.hashSync(privateKeyBytes);
+    final hf = h.bytes.sublist(0, 32);
+    _setPrivateKeyFixedBits(hf);
 
     // We get public key by multiplying the modified private key hash with G.
     final publicKeyBytes = _pointCompress(_pointMul(
-      Register25519()..setBytes(privateKeyHash),
+      Register25519()..setBytes(hf),
       Ed25519Point.base,
     ));
 
@@ -111,28 +114,67 @@ class _Ed25519 extends SignatureAlgorithm {
     return newKeyPairFromSeedSync(PrivateKey.randomBytes(32));
   }
 
-  // Compresses a point
+  @override
+  Future<Signature> sign(List<int> message, KeyPair keyPair) async {
+    final privateKeyBytes = await keyPair.privateKey.extract();
+    _validatePrivateKeyBytes(privateKeyBytes);
+
+    // Take SHA512 hash of the private key.
+    final privateKeyHash = await sha512.hash(privateKeyBytes);
+    final privateKeyHashFixed = privateKeyHash.bytes.sublist(0, 32);
+    _setPrivateKeyFixedBits(privateKeyHashFixed);
+
+    // We get public key by multiplying the modified private key hash with G.
+    final publicKeyBytes = _pointCompress(_pointMul(
+      Register25519()..setBytes(privateKeyHashFixed),
+      Ed25519Point.base,
+    ));
+    final publicKey = PublicKey(publicKeyBytes);
+
+    // Calculate hash of the input.
+    // The second half of the seed hash is used as the salt.
+    final mhSalt = privateKeyHash.bytes.sublist(32);
+    final mhBytes = _join([mhSalt, message]);
+    final mh = await sha512.hash(mhBytes);
+    final mhL = RegisterL()..readBytes(mh.bytes);
+
+    // Calculate point R.
+    final pointR = _pointMul(mhL.toRegister25519(), Ed25519Point.base);
+    final pointRCompressed = _pointCompress(pointR);
+
+    // Calculate s
+    final shBytes = _join([
+      pointRCompressed,
+      publicKey.bytes,
+      message,
+    ]);
+    final sh = await sha512.hash(shBytes);
+    final s = RegisterL()..readBytes(sh.bytes);
+    s.mul(s, RegisterL()..readBytes(privateKeyHashFixed));
+    s.add(s, mhL);
+    final sBytes = s.toBytes();
+
+    // The signature bytes are ready
+    final result = Uint8List.fromList(<int>[
+      ...pointRCompressed,
+      ...sBytes,
+    ]);
+
+    return Signature(
+      result,
+      publicKey: keyPair.publicKey,
+    );
+  }
+
   @override
   Signature signSync(List<int> message, KeyPair keyPair) {
     final privateKeyBytes = keyPair.privateKey.extractSync();
-    if (privateKeyBytes.length != 32) {
-      throw ArgumentError(
-        'Private key has invalid length ${privateKeyBytes.length}',
-      );
-    }
+    _validatePrivateKeyBytes(privateKeyBytes);
 
     // Take SHA512 hash of the private key.
     final privateKeyHash = sha512.hashSync(privateKeyBytes);
     final privateKeyHashFixed = privateKeyHash.bytes.sublist(0, 32);
-
-    // The lowest three bits must be 0
-    privateKeyHashFixed[0] &= 0xF8;
-
-    // The highest bit must be 0
-    privateKeyHashFixed[31] &= 0x7F;
-
-    // The second highest bit must be 1
-    privateKeyHashFixed[31] |= 0x40;
+    _setPrivateKeyFixedBits(privateKeyHashFixed);
 
     // We get public key by multiplying the modified private key hash with G.
     final publicKeyBytes = _pointCompress(_pointMul(
@@ -175,6 +217,59 @@ class _Ed25519 extends SignatureAlgorithm {
     );
   }
 
+  @override
+  Future<bool> verify(List<int> input, Signature signature) async {
+    // Validate public key bytes
+    final publicKeyBytes = signature.publicKey.bytes;
+    if (publicKeyBytes.length != 32) {
+      throw ArgumentError('Invalid signature length');
+    }
+
+    // Validate signature bytes
+    final signatureBytes = signature.bytes;
+    if (signatureBytes.length != 64) {
+      throw ArgumentError('Invalid signature length');
+    }
+
+    // Decompress point of the public key
+    final a = _pointDecompress(publicKeyBytes);
+    if (a == null) {
+      return false;
+    }
+
+    // Decompress point of the signature
+    final rBytes = signatureBytes.sublist(0, 32);
+    final r = _pointDecompress(rBytes);
+    if (r == null) {
+      return false;
+    }
+
+    // Read bytes 32..64
+    final s = bigIntFromBytes(signatureBytes.sublist(32));
+    if (s >= RegisterL.LBigInt) {
+      return false;
+    }
+
+    // Calculate hash
+    final hh = await sha512.hash(_join([rBytes, publicKeyBytes, input]));
+    final h = RegisterL()..readBytes(hh.bytes);
+
+    // Calculate: s * basePoint
+    final sB = _pointMul(Register25519()..setBigInt(s), Ed25519Point.base);
+
+    // Calculate: h * a + r
+    final rhA = Ed25519Point.zero();
+    _pointAdd(
+      rhA,
+      _pointMul(h.toRegister25519(), a),
+      r,
+    );
+
+    // Compare
+    return sB.equals(rhA);
+  }
+
+  // Compresses a point
   @override
   bool verifySync(List<int> input, Signature signature) {
     // Validate public key bytes
@@ -225,6 +320,18 @@ class _Ed25519 extends SignatureAlgorithm {
 
     // Compare
     return sB.equals(rhA);
+  }
+
+  // Compresses a point
+  static Uint8List _join(List<List<int>> parts) {
+    final totalLength = parts.fold(0, (a, b) => a + b.length);
+    final buffer = Uint8List(totalLength);
+    var i = 0;
+    for (var part in parts) {
+      buffer.setAll(i, part);
+      i += part.length;
+    }
+    return buffer;
   }
 
   static void _pointAdd(
@@ -436,5 +543,24 @@ class _Ed25519 extends SignatureAlgorithm {
       tmp0 = oldP;
     }
     return q;
+  }
+
+  static void _setPrivateKeyFixedBits(List<int> list) {
+    // The lowest three bits must be 0
+    list[0] &= 0xF8;
+
+    // The highest bit must be 0
+    list[31] &= 0x7F;
+
+    // The second highest bit must be 1
+    list[31] |= 0x40;
+  }
+
+  static void _validatePrivateKeyBytes(List<int> bytes) {
+    if (bytes.length != 32) {
+      throw ArgumentError(
+        'Private key length must be 32. Got ${bytes.length} bytes.',
+      );
+    }
   }
 }

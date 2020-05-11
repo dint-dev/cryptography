@@ -39,7 +39,7 @@ void main() {
       ...mac.bytes,
     ];
 
-    test('encrypt', () async {
+    test('encrypt(...)', () async {
       final actual = await cipher.encrypt(
         clearText,
         secretKey: secretKey,
@@ -51,7 +51,7 @@ void main() {
       );
     });
 
-    test('encryptSync', () {
+    test('encryptSync(...)', () {
       final actual = cipher.encryptSync(
         clearText,
         secretKey: secretKey,
@@ -63,7 +63,7 @@ void main() {
       );
     });
 
-    test('decrypt', () async {
+    test('decrypt(...)', () async {
       final actual = await cipher.decrypt(
         cipherText,
         secretKey: secretKey,
@@ -75,7 +75,7 @@ void main() {
       );
     });
 
-    test('decryptSync', () {
+    test('decryptSync(...)', () {
       final actual = cipher.decryptSync(
         cipherText,
         secretKey: secretKey,
@@ -87,7 +87,7 @@ void main() {
       );
     });
 
-    test('decrypt throws when MAC is incorrect', () async {
+    test('decrypt(...) throws when MAC is incorrect', () async {
       final newCipherText = Uint8List.fromList(cipherText);
       newCipherText[newCipherText.length - 1] ^= 0xFF;
 
@@ -101,7 +101,7 @@ void main() {
       );
     });
 
-    test('decryptSync throws when MAC is incorrect', () {
+    test('decryptSync(...) throws when MAC is incorrect', () {
       final newCipherText = Uint8List.fromList(cipherText);
       newCipherText[newCipherText.length - 1] ^= 0xFF;
 

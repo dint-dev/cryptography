@@ -15,17 +15,36 @@
 import 'package:cryptography/cryptography.dart';
 
 import 'benchmark_helpers.dart';
+import 'dart:typed_data';
 
-void main() {
-  SignBenchmark(ed25519).report();
-  VerifyBenchmark(ed25519).report();
+Future<void> main() async {
+  {
+    const size = 64;
+    print('64-byte message:');
+    await SignBenchmark(ed25519, size).report();
+    await SignSyncBenchmark(ed25519, size).report();
+    await VerifyBenchmark(ed25519, size).report();
+    await VerifySyncBenchmark(ed25519, size).report();
+    print('');
+  }
+
+  {
+    const size = 1000000;
+    print('1 MB message:');
+    await SignBenchmark(ed25519, size).report();
+    await SignSyncBenchmark(ed25519, size).report();
+    await VerifyBenchmark(ed25519, size).report();
+    await VerifySyncBenchmark(ed25519, size).report();
+    print('');
+  }
 }
 
-class SignBenchmark extends ThroughputBenchmarkBase {
+class SignBenchmark extends SimpleBenchmark {
   final SignatureAlgorithm implementation;
+  final int length;
 
-  SignBenchmark(this.implementation)
-      : super('Signing with ${implementation.name}');
+  SignBenchmark(this.implementation, this.length)
+      : super('${implementation.name}.sign()');
 
   List<int> message;
   KeyPair keyPair;
@@ -33,7 +52,30 @@ class SignBenchmark extends ThroughputBenchmarkBase {
   @override
   void setup() {
     keyPair = implementation.newKeyPairSync();
-    message = [1, 2, 3];
+    message = Uint8List(length);
+  }
+
+  @override
+  Future<void> run() async {
+    final result = await implementation.sign(message, keyPair);
+    assert(result != null);
+  }
+}
+
+class SignSyncBenchmark extends SimpleBenchmark {
+  final SignatureAlgorithm implementation;
+  final int length;
+
+  SignSyncBenchmark(this.implementation, this.length)
+      : super('${implementation.name}.signSync()');
+
+  List<int> message;
+  KeyPair keyPair;
+
+  @override
+  void setup() {
+    keyPair = implementation.newKeyPairSync();
+    message = Uint8List(length);
   }
 
   @override
@@ -43,11 +85,12 @@ class SignBenchmark extends ThroughputBenchmarkBase {
   }
 }
 
-class VerifyBenchmark extends ThroughputBenchmarkBase {
+class VerifyBenchmark extends SimpleBenchmark {
   final SignatureAlgorithm implementation;
+  final int length;
 
-  VerifyBenchmark(this.implementation)
-      : super('Verifying signature with ${implementation.name}');
+  VerifyBenchmark(this.implementation, this.length)
+      : super('${implementation.name}.verify()');
 
   List<int> message;
   KeyPair keyPair;
@@ -56,7 +99,35 @@ class VerifyBenchmark extends ThroughputBenchmarkBase {
   @override
   void setup() {
     keyPair = implementation.newKeyPairSync();
-    message = [1, 2, 3];
+    message = Uint8List(length);
+    signature = implementation.signSync(message, keyPair);
+  }
+
+  @override
+  Future<void> run() async {
+    final result = await implementation.verify(
+      message,
+      signature,
+    );
+    assert(result != null);
+  }
+}
+
+class VerifySyncBenchmark extends SimpleBenchmark {
+  final SignatureAlgorithm implementation;
+  final int length;
+
+  VerifySyncBenchmark(this.implementation, this.length)
+      : super('${implementation.name}.verifySync()');
+
+  List<int> message;
+  KeyPair keyPair;
+  Signature signature;
+
+  @override
+  void setup() {
+    keyPair = implementation.newKeyPairSync();
+    message = Uint8List(length);
     signature = implementation.signSync(message, keyPair);
   }
 

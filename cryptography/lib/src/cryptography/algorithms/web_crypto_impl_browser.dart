@@ -22,6 +22,7 @@ import 'package:cryptography/cryptography.dart';
 import 'package:meta/meta.dart';
 
 import 'aes_impl.dart' as dart;
+import 'sha1_sha2_impl.dart' as dart;
 import 'web_crypto_bindings.dart' as web_crypto;
 
 const Cipher webAesCbc = _WebAesCbcCipher();
@@ -75,6 +76,27 @@ const SignatureAlgorithm webEcdsaP521Sha256 = _WebEcdsa(
   polyfill: null,
 );
 
+const HashAlgorithm webSha1 = _WebHash(
+  'SHA-1',
+  dart.dartSha1,
+);
+
+const HashAlgorithm webSha256 = _WebHash(
+  'SHA-256',
+  dart.dartSha256,
+  minLength: 0,
+);
+
+const HashAlgorithm webSha384 = _WebHash(
+  'SHA-384',
+  dart.dartSha384,
+);
+
+const HashAlgorithm webSha512 = _WebHash(
+  'SHA-512',
+  dart.dartSha512,
+);
+
 List<int> _base64UriDecode(String s) {
   switch (s.length % 4) {
     case 1:
@@ -89,6 +111,13 @@ List<int> _base64UriDecode(String s) {
 }
 
 ByteBuffer _jsArrayBufferFrom(List<int> data) {
+  // Avoid copying if possible
+  if (data is Uint8List &&
+      data.offsetInBytes == 0 &&
+      data.lengthInBytes == data.buffer.lengthInBytes) {
+    return data.buffer;
+  }
+  // Copy
   return Uint8List.fromList(data).buffer;
 }
 
@@ -136,13 +165,13 @@ class _WebAesCbcCipher extends Cipher {
   const _WebAesCbcCipher();
 
   @override
-  int get secretKeyLength => 32;
-
-  @override
   String get name => 'aesCbc';
 
   @override
   int get nonceLength => 16;
+
+  @override
+  int get secretKeyLength => 32;
 
   @override
   Set<int> get secretKeyValidLengths => const <int>{16, 24, 32};
@@ -194,7 +223,7 @@ class _WebAesCbcCipher extends Cipher {
       web_crypto.subtle.decrypt(
         web_crypto.AesCbcParams(
           name: 'AES-CBC',
-          iv: Uint8List.fromList(nonce.bytes.sublist(0, 16)).buffer,
+          iv: _jsArrayBufferFrom(nonce.bytes.sublist(0, 16)),
         ),
         cryptoKey,
         _jsArrayBufferFrom(input),
@@ -211,7 +240,7 @@ class _WebAesCbcCipher extends Cipher {
     List<int> aad,
     int keyStreamIndex = 0,
   }) {
-    return dart.aesCbc.decryptSync(
+    return dart.dartAesCbc.decryptSync(
       input,
       secretKey: secretKey,
       nonce: nonce,
@@ -267,7 +296,7 @@ class _WebAesCbcCipher extends Cipher {
       web_crypto.subtle.encrypt(
         web_crypto.AesCbcParams(
           name: 'AES-CBC',
-          iv: Uint8List.fromList(nonce.bytes.sublist(0, 16)).buffer,
+          iv: _jsArrayBufferFrom(nonce.bytes.sublist(0, 16)),
         ),
         cryptoKey,
         _jsArrayBufferFrom(input),
@@ -284,7 +313,7 @@ class _WebAesCbcCipher extends Cipher {
     List<int> aad,
     int keyStreamIndex = 0,
   }) {
-    return dart.aesCbc.encryptSync(
+    return dart.dartAesCbc.encryptSync(
       input,
       secretKey: secretKey,
       nonce: nonce,
@@ -298,13 +327,13 @@ class _WebAesCtrCipher extends Cipher {
   const _WebAesCtrCipher();
 
   @override
-  int get secretKeyLength => 32;
-
-  @override
   String get name => 'aesCtr';
 
   @override
   int get nonceLength => 12;
+
+  @override
+  int get secretKeyLength => 32;
 
   @override
   Set<int> get secretKeyValidLengths => const <int>{16, 24, 32};
@@ -372,7 +401,7 @@ class _WebAesCtrCipher extends Cipher {
     List<int> aad,
     int keyStreamIndex = 0,
   }) {
-    return dart.aesCtr.decryptSync(
+    return dart.dartAesCtr.decryptSync(
       input,
       secretKey: secretKey,
       nonce: nonce,
@@ -444,7 +473,7 @@ class _WebAesCtrCipher extends Cipher {
     List<int> aad,
     int keyStreamIndex = 0,
   }) {
-    return dart.aesCtr.encryptSync(
+    return dart.dartAesCtr.encryptSync(
       input,
       secretKey: secretKey,
       nonce: nonce,
@@ -458,7 +487,7 @@ class _WebAesGcmCipher extends Cipher {
   const _WebAesGcmCipher();
 
   @override
-  int get secretKeyLength => 32;
+  bool get isAuthenticated => true;
 
   @override
   String get name => 'aesGcm';
@@ -467,7 +496,7 @@ class _WebAesGcmCipher extends Cipher {
   int get nonceLength => 12;
 
   @override
-  bool get isAuthenticated => true;
+  int get secretKeyLength => 32;
 
   @override
   Set<int> get secretKeyValidLengths => const <int>{16, 24, 32};
@@ -506,7 +535,7 @@ class _WebAesGcmCipher extends Cipher {
           name: 'AES-GCM',
           arrayBuffer: null,
           tagLength: 128,
-          iv: Uint8List.fromList(nonce.bytes).buffer,
+          iv: _jsArrayBufferFrom(nonce.bytes),
         ),
         cryptoKey,
         _jsArrayBufferFrom(input),
@@ -523,7 +552,7 @@ class _WebAesGcmCipher extends Cipher {
     List<int> aad,
     int keyStreamIndex = 0,
   }) {
-    throw UnsupportedError('decryptSync() is unsupported');
+    throw UnimplementedError();
   }
 
   @override
@@ -560,7 +589,7 @@ class _WebAesGcmCipher extends Cipher {
           name: 'AES-GCM',
           arrayBuffer: null,
           tagLength: 128,
-          iv: Uint8List.fromList(nonce.bytes).buffer,
+          iv: _jsArrayBufferFrom(nonce.bytes),
         ),
         cryptoKey,
         _jsArrayBufferFrom(input),
@@ -577,7 +606,7 @@ class _WebAesGcmCipher extends Cipher {
     List<int> aad,
     int keyStreamIndex = 0,
   }) {
-    throw UnsupportedError('encryptSync() is unsupported');
+    throw UnimplementedError();
   }
 }
 
@@ -603,7 +632,10 @@ class _WebEcdh extends KeyExchangeAlgorithm {
 
   @override
   KeyPair newKeyPairSync() {
-    throw UnsupportedError('This implementation only support newKeyPair()');
+    if (polyfill == null) {
+      throw UnimplementedError();
+    }
+    return polyfill.newKeyPairSync();
   }
 
   @override
@@ -611,6 +643,17 @@ class _WebEcdh extends KeyExchangeAlgorithm {
     PrivateKey localPrivateKey,
     PublicKey remotePublicKey,
   }) async {
+    final subtle = web_crypto.subtle;
+    if (subtle == null) {
+      // Very old browser
+      if (polyfill == null) {
+        throw UnimplementedError('Browser is missing Web Cryptography API');
+      }
+      return polyfill.sharedSecret(
+        localPrivateKey: localPrivateKey,
+        remotePublicKey: remotePublicKey,
+      );
+    }
     final privateBytes = localPrivateKey.extractSync();
     final n = privateBytes.length ~/ 3;
     final privateKeyJwk = web_crypto.Jwk(
@@ -623,7 +666,7 @@ class _WebEcdh extends KeyExchangeAlgorithm {
       y: _base64UrlEncode(privateBytes.sublist(2 * n)),
     );
     final privateKeyJs = await js.promiseToFuture<web_crypto.CryptoKey>(
-      web_crypto.subtle.importKey(
+      subtle.importKey(
         'jwk',
         privateKeyJwk,
         web_crypto.EcdhParams(
@@ -669,7 +712,7 @@ class _WebEcdh extends KeyExchangeAlgorithm {
     PublicKey remotePublicKey,
   }) {
     if (polyfill == null) {
-      throw UnsupportedError('sharedSecretSync() is unsupported');
+      throw UnimplementedError('Browser is missing Web Cryptography API');
     }
     return polyfill.sharedSecretSync(
       localPrivateKey: localPrivateKey,
@@ -719,6 +762,14 @@ class _WebEcdsa extends SignatureAlgorithm {
 
   @override
   Future<Signature> sign(List<int> input, KeyPair keyPair) async {
+    final subtle = web_crypto.subtle;
+    if (subtle == null) {
+      // Very old browser
+      if (polyfill == null) {
+        throw UnimplementedError('Browser is missing Web Cryptography API');
+      }
+      return polyfill.sign(input, keyPair);
+    }
     final privateBytes = keyPair.privateKey.extractSync();
     final n = privateBytes.length ~/ 3;
     final privateKeyJwk = web_crypto.Jwk(
@@ -731,7 +782,7 @@ class _WebEcdsa extends SignatureAlgorithm {
       y: _base64UrlEncode(privateBytes.sublist(2 * n)),
     );
     final privateKeyJs = await js.promiseToFuture<web_crypto.CryptoKey>(
-      web_crypto.subtle.importKey(
+      subtle.importKey(
         'jwk',
         privateKeyJwk,
         web_crypto.EcKeyImportParams(
@@ -766,9 +817,17 @@ class _WebEcdsa extends SignatureAlgorithm {
 
   @override
   Future<bool> verify(List<int> input, Signature signature) async {
+    final subtle = web_crypto.subtle;
+    if (subtle == null) {
+      // Very old browser
+      if (polyfill == null) {
+        throw UnimplementedError('Browser is missing Web Cryptography API');
+      }
+      return polyfill.verify(input, signature);
+    }
     final publicKeyBytes = signature.publicKey.bytes;
     final publicKeyJs = await js.promiseToFuture<web_crypto.CryptoKey>(
-      web_crypto.subtle.importKey(
+      subtle.importKey(
         'raw',
         _jsArrayBufferFrom(publicKeyBytes),
         web_crypto.EcKeyImportParams(
@@ -806,4 +865,48 @@ class _WebEcdsa extends SignatureAlgorithm {
 
     return s.substring(0, length);
   }
+}
+
+class _WebHash extends HashAlgorithm {
+  final String webName;
+  final HashAlgorithm polyfill;
+  final int minLength;
+
+  const _WebHash(this.webName, this.polyfill, {this.minLength = 0})
+      : assert(webName != null),
+        assert(polyfill != null);
+
+  @override
+  int get blockLengthInBytes => polyfill.blockLengthInBytes;
+
+  @override
+  int get hashLengthInBytes => polyfill.hashLengthInBytes;
+
+  @override
+  String get name => polyfill.name;
+
+  @override
+  Future<Hash> hash(List<int> bytes) async {
+    ArgumentError.checkNotNull(bytes);
+    if (bytes.length < minLength) {
+      return polyfill.hash(bytes);
+    }
+    final subtle = web_crypto.subtle;
+    if (subtle == null) {
+      // Very old browser
+      return polyfill.hash(bytes);
+    }
+    final byteBuffer = await js.promiseToFuture<ByteBuffer>(
+      subtle.digest(webName, _jsArrayBufferFrom(bytes)),
+    );
+    return Hash(Uint8List.view(byteBuffer));
+  }
+
+  @override
+  Hash hashSync(List<int> data) {
+    return polyfill.hashSync(data);
+  }
+
+  @override
+  HashSink newSink() => polyfill.newSink();
 }

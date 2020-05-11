@@ -24,15 +24,16 @@ See [our Github project](https://github.com/dint-dev/cryptography).
   * _Add your project here?_
 
 ## Some things to know
-  * SHA1 and SHA2 implementations use _package:crypto_, which is maintained by Google and limited
-    to hash functions.
-  * We wrote pure Dart implementations for X25519, ChaCha20 family, AES-CBC, AES-CTR, HKDF, HMAC,
-    Poly1305, and BLAKE2S. We also added support for use of [Web Cryptography API](https://www.w3.org/TR/WebCryptoAPI/)
-    (NIST elliptic curves, AES) in browsers.
-  * The APIs generally include both _asynchronous_ and _synchronous_ methods.for instance,
-    `sharedSecret(...)` and `sharedSecretSync(...)`).
-  * We recommend that you use asynchronous methods because they are able to take advantage of
-    asynchronous platform APIs such as _Web Cryptography API_.
+  * SHA1 and SHA2 implementations use _package:crypto](https://pub.dev/packages/crypto), which is
+    maintained by Google and limited to hash functions.
+  * We wrote pure Dart implementations for X25519, ED25519, ChaCha20 family, AES-CBC, AES-CTR, HKDF,
+    HMAC, Poly1305, and BLAKE2S.
+  * We implemented automatic use of [Web Cryptography API](https://www.w3.org/TR/WebCryptoAPI/)
+    (SHA1, SHA2, AES, NIST elliptic curves) in browsers.
+  * The APIs generally include both _asynchronous_ and _synchronous_ methods. For instance, you can
+    calculate a SHA-256 hash with `sha256.hash(bytes)` or `sha256.hashSync(bytes)`. We recommend
+    that you use asynchronous methods because they are able to take advantage of asynchronous
+    platform APIs such as _Web Cryptography API_.
 
 ## Available algorithms
 ### Key exchange algorithms
@@ -42,9 +43,9 @@ See [our Github project](https://github.com/dint-dev/cryptography).
     * [ecdhP521](https://pub.dev/documentation/cryptography/latest/cryptography/ecdhP521-constant.html) (ECDH P521 / secp521r1 / prime521v1)
     * Currently NIST elliptic curves are only supported in browsers (_Web Cryptography API_).
   * [x25519](https://pub.dev/documentation/cryptography/latest/cryptography/x25519-constant.html) ([read about the algorithm](https://en.wikipedia.org/wiki/Curve25519))
-    * X25519 (curve25519 Diffie-Hellman) is our recommendation for new applications. It's
-      used in technologies such as SSH, TLS, Signal, WhatsApp, and Wireguard. Performance of our
-      Dart implementation is about 1k exchanges per second on a Macbook Pro.
+    * X25519 (curve25519 Diffie-Hellman) is a popular key exchange algorithm and it's our
+      recommendation for new applications. Performance of our Dart implementation is about 1k
+      exchanges per second in VM.
 
 For more more documentation, see [KeyExchangeAlgorithm](https://pub.dev/documentation/cryptography/latest/cryptography/KeyExchangeAlgorithm-class.html).
 
@@ -55,8 +56,9 @@ For more more documentation, see [KeyExchangeAlgorithm](https://pub.dev/document
     * [ecdsaP521Sha256](https://pub.dev/documentation/cryptography/latest/cryptography/ecdsaP521Sha256-constant.html) (ECDSA P521 / secp521r1 / prime521v1)
     * Currently NIST elliptic curves are only supported in browsers (_Web Cryptography API_).
   * [ed25519](https://pub.dev/documentation/cryptography/latest/cryptography/ed25519-constant.html) ([read about the algorithm](https://en.wikipedia.org/wiki/EdDSA))
-    * ED25519 (curve25519 EdDSA) is our recommendation for new applications. Performance of our
-      Dart implementation is about 200 signatures or verifications per second.
+    * ED25519 (curve25519 EdDSA) is a popular signature algorithm and it's our recommendation for
+      new applications. Performance of our Dart implementation is about 200 signatures or
+      verifications per second in VM (about 50 in browsers).
 
 For more more documentation, see [SignatureAlgorithm](https://pub.dev/documentation/cryptography/latest/cryptography/SignatureAlgorithm-class.html).
 
@@ -65,14 +67,15 @@ For more more documentation, see [SignatureAlgorithm](https://pub.dev/documentat
     * [aesCbc](https://pub.dev/documentation/cryptography/latest/cryptography/aesCbc-constant.html) (AES-CBC)
     * [aesCtr](https://pub.dev/documentation/cryptography/latest/cryptography/aesCtr-constant.html) (AES-CTR)
     * [aesGcm](https://pub.dev/documentation/cryptography/latest/cryptography/aesGcm-constant.html) (AES-GCM, browsers-only at the moment)
+    * Performance of our Dart implementation is about 10-50 MB/s in VM (about 300MB - 700MB/s in
+      browsers).
   * Chacha20 family ([read about the algorithm](https://en.wikipedia.org/wiki/Salsa20))
     * [chacha20](https://pub.dev/documentation/cryptography/latest/cryptography/chacha20-constant.html)
     * [chacha20Poly1305Aead](https://pub.dev/documentation/cryptography/latest/cryptography/chacha20Poly1305Aead-constant.html) (AEAD_CHACHA20_POLY1305)
     * [xchacha20](https://pub.dev/documentation/cryptography/latest/cryptography/xchacha20-constant.html)
     * [xchacha20Poly1305Aead](https://pub.dev/documentation/cryptography/latest/cryptography/xchacha20Poly1305Aead-constant.html) (AEAD_XCHACHA20_POLY1305)
-    * Chacha20 (AEAD) is our recommendation for new applications. It's used in technologies such as
-      TLS, SSH, Signal, and Wireguard. Performance of our Dart implementation is about 50-100MB/s
-      on a Macbook Pro.
+    * Chacha20 (AEAD) is a popular cipher and it's our recommendation for new applications.
+      Performance of our Dart implementation is about 20-100MB/s in VM.
 
 For more more documentation, see [Cipher](https://pub.dev/documentation/cryptography/latest/cryptography/Cipher-class.html).
 
@@ -92,6 +95,7 @@ For more more documentation, see [MacAlgorithm](https://pub.dev/documentation/cr
   * [sha256](https://pub.dev/documentation/cryptography/latest/cryptography/sha256-constant.html) (SHA2-256)
   * [sha384](https://pub.dev/documentation/cryptography/latest/cryptography/sha384-constant.html) (SHA2-384)
   * [sha512](https://pub.dev/documentation/cryptography/latest/cryptography/sha512-constant.html) (SHA2-512)
+    * In browsers, performance can be over 100 times faster than _package:crypto_.
 
 For more more documentation, see [HashAlgorithm](https://pub.dev/documentation/cryptography/latest/cryptography/HashAlgorithm-class.html).
 
@@ -100,7 +104,7 @@ For more more documentation, see [HashAlgorithm](https://pub.dev/documentation/c
 In _pubspec.yaml_:
 ```yaml
 dependencies:
-  cryptography: ^1.0.0
+  cryptography: ^1.0.2
 ```
 
 

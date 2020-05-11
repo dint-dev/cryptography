@@ -14,6 +14,11 @@
 
 import 'package:cryptography/cryptography.dart';
 
+const HashAlgorithm webSha1 = null;
+const HashAlgorithm webSha256 = null;
+const HashAlgorithm webSha384 = null;
+const HashAlgorithm webSha512 = null;
+
 const Cipher webAesCbc = null;
 const Cipher webAesCtr = null;
 const Cipher webAesGcm = null;
@@ -27,3 +32,4 @@ const SignatureAlgorithm webEcdsaP256Sha256 = null;
 const SignatureAlgorithm webEcdsaP384Sha256 = null;
 const SignatureAlgorithm webEcdsaP521Sha256 = null;
 const SignatureAlgorithm webEd25519 = null;
+const SignatureAlgorithm webRsa = null;

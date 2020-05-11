@@ -12,36 +12,44 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:benchmark_harness/benchmark_harness.dart';
+import 'dart:async';
 
 /// A helper for "N op per second" benchmarks.
-abstract class ThroughputBenchmarkBase extends BenchmarkBase {
-  int runCount = 0;
+abstract class SimpleBenchmark {
+  final String _name;
 
-  ThroughputBenchmarkBase(String description)
-      : super(description, emitter: _ThroughputEmitter());
+  SimpleBenchmark(this._name);
 
-  @override
-  void run();
+  Future<void> report() async {
+    await setup();
+    try {
+      await warmup();
+      var watch = Stopwatch();
+      watch.start();
+      var n = 0;
+      while (watch.elapsedMilliseconds < 200) {
+        final possibleFuture = run();
+        if (possibleFuture is Future) {
+          await possibleFuture;
+        }
+        n++;
+      }
+      watch.stop();
 
-  @override
-  void exercise() {
-    runCount = 0;
-
-    final endAt = DateTime.now().add(const Duration(seconds: 1));
-    while (DateTime.now().isBefore(endAt)) {
-      run();
-      runCount++;
+      n = (n * (1000000 / watch.elapsed.inMicroseconds)).ceil();
+      print('$_name:'.padRight(32, ' ') + ' $n op / second');
+    } finally {
+      await teardown();
     }
-    (emitter as _ThroughputEmitter).times = runCount;
   }
-}
 
-class _ThroughputEmitter extends ScoreEmitter {
-  int times;
+  FutureOr<void> run();
 
-  @override
-  void emit(String testName, double value) {
-    print('$testName: $times op / second');
+  FutureOr<void> setup() {}
+
+  FutureOr<void> teardown() {}
+
+  FutureOr<void> warmup() {
+    return run();
   }
 }

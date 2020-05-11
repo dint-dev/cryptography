@@ -14,7 +14,7 @@
 
 import 'package:cryptography/cryptography.dart';
 
-import 'aes_impl.dart' as dart;
+import 'aes_impl.dart';
 import 'web_crypto.dart';
 
 /// _AES_ with Cipher Block Chaining mode (AES-CBC).
@@ -56,7 +56,7 @@ import 'web_crypto.dart';
 ///   );
 /// }
 /// ```
-const Cipher aesCbc = webAesCbc ?? dart.aesCbc;
+const Cipher aesCbc = webAesCbc ?? dartAesCbc;
 
 /// _AES-CTR_ cipher with a 96-bit nonce and a 32-bit counter.
 ///
@@ -99,7 +99,7 @@ const Cipher aesCbc = webAesCbc ?? dart.aesCbc;
 ///   );
 /// }
 /// ```
-const Cipher aesCtr = webAesCtr ?? dart.aesCtr;
+const Cipher aesCtr = webAesCtr ?? dartAesCtr;
 
 /// _AES-GCM_ (Galois/Counter Mode) cipher.
 /// Currently supported __only in the browser.__
