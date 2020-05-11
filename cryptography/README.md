@@ -24,8 +24,8 @@ See [our Github project](https://github.com/dint-dev/cryptography).
   * _Add your project here?_
 
 ## Some things to know
-  * SHA1 and SHA2 implementations use _package:crypto](https://pub.dev/packages/crypto), which is
-    maintained by Google and limited to hash functions.
+  * SHA1 and SHA2 implementations use the package [crypto](https://pub.dev/packages/crypto), which
+    is maintained by Google and contains only hash functions and HMAC.
   * We wrote pure Dart implementations for X25519, ED25519, ChaCha20 family, AES-CBC, AES-CTR, HKDF,
     HMAC, Poly1305, and BLAKE2S.
   * We implemented automatic use of [Web Cryptography API](https://www.w3.org/TR/WebCryptoAPI/)
