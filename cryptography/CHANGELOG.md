@@ -1,3 +1,8 @@
+## 1.0.1
+  * Implements `ed25519.newKeyPairFromSeed(seed)`.
+  * Significantly improves ED25519 performance.
+  * Small fixes in documentation.
+
 ## 1.0.0
   * A stable API.
 

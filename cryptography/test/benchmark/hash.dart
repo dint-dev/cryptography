@@ -16,7 +16,7 @@ import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
 
-import 'common.dart';
+import 'benchmark_helpers.dart';
 
 void main() {
   HashBenchmark(sha256).report();

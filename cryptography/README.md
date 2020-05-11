@@ -17,7 +17,7 @@ See [our Github project](https://github.com/dint-dev/cryptography).
 ## Used by
   * [kms](https://pub.dev/packages/kms)
     * A Dart package for hardware-based or cloud-based key management solutions.
-  * [kms_flutter](https://pub.dev/packages/kms)
+  * [kms_flutter](https://pub.dev/packages/kms_flutter)
     * Uses native APIs for storing cryptographic keys in Android and iOS.
   * [noise_protocol](https://pub.dev/packages/noise_protocol)
     * An implementation of Noise protocol, which can be used for secure communications.
@@ -29,10 +29,10 @@ See [our Github project](https://github.com/dint-dev/cryptography).
   * We wrote pure Dart implementations for X25519, ChaCha20 family, AES-CBC, AES-CTR, HKDF, HMAC,
     Poly1305, and BLAKE2S. We also added support for use of [Web Cryptography API](https://www.w3.org/TR/WebCryptoAPI/)
     (NIST elliptic curves, AES) in browsers.
-  * The APIs generally include both _asynchronous_ and _synchronous_ methods (for instance,
-    `sharedSecret(...)` and `sharedSecretSync(...)`). We recommend that you use asynchronous
-    methods because they are able to take advantage of asynchronous platform APIs such as
-    _Web Cryptography API_.
+  * The APIs generally include both _asynchronous_ and _synchronous_ methods.for instance,
+    `sharedSecret(...)` and `sharedSecretSync(...)`).
+  * We recommend that you use asynchronous methods because they are able to take advantage of
+    asynchronous platform APIs such as _Web Cryptography API_.
 
 ## Available algorithms
 ### Key exchange algorithms
@@ -114,15 +114,16 @@ import 'package:cryptography/cryptography.dart';
 Future<void> main() async {
   // Let's generate two X25519 keypairs.
   final localKeyPair = await x25519.newKeyPair();
-  final remoteKeyPair = await x5519.newKeyPair();
+  final remoteKeyPair = await x25519.newKeyPair();
 
-  // We can now calculate a shared secret
+  // We can now calculate a shared 256-bit secret
   final secretKey = await x25519.sharedSecret(
     localPrivateKey: localKeyPair.privateKey,
     remotePublicKey: remoteKeyPair.publicKey,
   );
 
-  print('Shared secret: ${secretKey.bytes}');
+  final secretBytes = await secretKey.extract();
+  print('Shared secret: $secretBytes');
 }
 ```
 
@@ -134,8 +135,8 @@ In this example, we use [ed25519](https://pub.dev/documentation/cryptography/lat
 import 'package:cryptography/cryptography.dart';
 
 Future<void> main() async {
-  // The bytes that we will sign
-  final message = [1,2,3];
+  // The message that we will sign
+  final message = <int>[1,2,3];
 
   // Generate a random ED25519 keypair
   final keyPair = await ed25519.newKeyPair();
@@ -143,19 +144,19 @@ Future<void> main() async {
   // Sign
   final signature = await ed25519.sign(
     message,
-    keyPair: keyPair,
+    keyPair,
   );
 
   print('Signature: ${signature.bytes}');
   print('Public key: ${signature.publicKey.bytes}');
 
   // Verify signature
-  final isVerified = await ed25519.verify(
+  final isSignatureCorrect = await ed25519.verify(
     message,
-    signature: signature,
+    signature,
   );
 
-  print('Correct signature: $isVerified');
+  print('Is the signature correct: $isSignatureCorrect');
 }
 ```
 

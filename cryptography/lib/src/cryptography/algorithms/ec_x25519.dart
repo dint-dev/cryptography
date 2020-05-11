@@ -15,11 +15,17 @@
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
-import 'package:cryptography/utils.dart';
 import 'package:meta/meta.dart';
+
+import 'ec_ed25519_impl.dart';
+import 'ec_x25519_impl.dart';
 
 /// _X25519_ ([RFC 7748](https://tools.ietf.org/html/rfc7748)) key exchange
 /// algorithm (ECDH with Curve25519).
+///
+/// The current implementation uses 32-bit optimizations described in the paper
+/// ["High-speed Curve25519 on 8-bit, 16-bit, and 32-bit microcontrollers"]
+/// (https://link.springer.com/article/10.1007/s10623-015-0087-1).
 ///
 /// An example:
 /// ```dart
@@ -40,14 +46,14 @@ import 'package:meta/meta.dart';
 const KeyExchangeAlgorithm x25519 = _X25519();
 
 class _X25519 extends KeyExchangeAlgorithm {
-  /// Constant [9, 0, ..., 0] is used when calculating shared secret.
+  /// Constant 9.
   static final Uint8List _constant9 = () {
     final result = Uint8List(32);
     result[0] = 9;
     return result;
   }();
 
-  /// Constant [0xdb41, 1, 0, ..., 0].
+  /// Constant 121665 (0x1db41).
   static final Int32List _constant121665 = () {
     final result = Int32List(16);
     result[0] = 0xdb41;
@@ -129,67 +135,89 @@ class _X25519 extends KeyExchangeAlgorithm {
     Uint8List publicKey,
   ) {
     // Unpack public key into the internal Int32List
-    final unpackedPublicKey = Int32List(16);
-    _unpack256(unpackedPublicKey, publicKey);
+    final unpackedPublicKey = (Register25519()..setBytes(publicKey)).data;
 
     // Clear the last bit
     unpackedPublicKey[15] &= 0x7FFF;
 
-    // Allocate temporary arrays
-    final a = Int32List(16),
-        b = Int32List(16),
-        c = Int32List(16),
-        d = Int32List(16),
-        e = Int32List(16),
-        f = Int32List(16);
+    // Allocate arrays
+    final a = Int32List(16);
+    final b = Int32List(16);
+    final c = Int32List(16);
+    final d = Int32List(16);
+    final e = Int32List(16);
+    final f = Int32List(16);
 
-    // Initialize 'b'
+    // See RFC 7748:
+    // "Elliptic Curves for Security"
+    // https://tools.ietf.org/html/rfc7748
+    //
+    // Initialize variables.
+    //
+    // `secretKey` = RFC parameter `k`
+    // `unpackedPublicKey` = RFC parameter `u`
+    // `a` = RFC assignment `x_2 = 1`
+    // `b` = RFC assignment `z_3 = u`
+    // `c` = RFC assignment `z_2 = 0`
+    // `d` = RFC assignment `z_3 = 1`
+    a[0] = 1;
+    d[0] = 1;
     for (var i = 0; i < 16; i++) {
       b[i] = unpackedPublicKey[i];
     }
 
-    // Initialize 'a' and 'd'
-    a[0] = 1;
-    d[0] = 1;
+    // For bits 255..0
+    for (var t = 254; t >= 0; t--) {
+      // Get the secret key bit
+      final k_i = 1 & (secretKey[t >> 3] >> (7 & t));
 
-    // For each bit in 'secretKey'
-    for (var i = 254; i >= 0; i--) {
-      // Get the bit
-      final isSwap = 1 & (secretKey[i >> 3] >> (7 & i));
+      // Two conditional swaps.
+      //
+      // In the RFC:
+      //   `a` is `x_2`
+      //   `b` is `x_3`
+      //   `c` is `z_2`
+      //   `d` is `z_3`
+      _conditionalSwap(a, b, k_i);
+      _conditionalSwap(c, d, k_i);
 
-      // if isSwap == 1:
-      //   swap(a, b)
-      //   swap(c, d)
-      _conditionalSwap(a, b, isSwap);
-      _conditionalSwap(c, d, isSwap);
-
-      // e = a + c
-      // a = a + c
-      // c = b + d
-      // b = b - d
+      // Perform +/- operation.
+      // We don't need to handle carry bits. Later multiplication will take
+      // care of values that have become more than 16 bits.
       for (var i = 0; i < 16; i++) {
-        final ai = a[i];
-        final bi = b[i];
-        final ci = c[i];
-        final di = d[i];
-        e[i] = ai + ci;
-        a[i] = ai - ci;
-        c[i] = bi + di;
-        b[i] = bi - di;
+        final a_i = a[i];
+        final b_i = b[i];
+        final c_i = c[i];
+        final d_i = d[i];
+
+        // `e` = RFC assignment `A = x_2 + z_2`
+        e[i] = a_i + c_i;
+
+        // `a` = RFC assignment `B = x_2 - z_2`
+        a[i] = a_i - c_i;
+
+        // `c` = RFC assignment `C = x_3 + z_3`
+        c[i] = b_i + d_i;
+
+        // `d` = RFC assignment `D = x_3 - z_3`
+        b[i] = b_i - d_i;
       }
 
-      // d = e^2
-      // f = a^2
-      // a = c * a
-      // c = b * e
-      multiply256(d, e, e);
-      multiply256(f, a, a);
-      multiply256(a, c, a);
-      multiply256(c, b, e);
+      // d = RFC assignment `AA = A^2`
+      mod38Mul(d, e, e);
 
-      // e = a + c
-      // a = a - c
-      // c = d - f
+      // f = RFC assignment `BB = B^2`
+      mod38Mul(f, a, a);
+
+      // a = RFC assignment `DA = D * A`
+      mod38Mul(a, c, a);
+
+      // b = RFC assignment `CB = C * B`
+      mod38Mul(c, b, e);
+
+      // In the RFC:
+      // x_3 = (DA + CB)^2
+      // z_3 = x_1 * (DA - CB)^2
       for (var i = 0; i < 16; i++) {
         final ai = a[i];
         final ci = c[i];
@@ -198,53 +226,67 @@ class _X25519 extends KeyExchangeAlgorithm {
         c[i] = d[i] - f[i];
       }
 
-      // b = a^2
-      multiply256(b, a, a);
+      // b = RFC expression `(DA - CB)^2`
+      //
+      // Argument `a` = RFC expression `(DA - CB)`
+      mod38Mul(b, a, a);
 
-      // a = c * _constant121665
-      multiply256(a, c, _constant121665);
+      // a = RFC expression `a24 * E`
+      //
+      // Argument `c` = RFC expression `E`
+      mod38Mul(a, _constant121665, c);
 
-      // a += d
+      // a = RFC expression `(AA + a24 * E)`
+      //
+      // Argument `a` = RFC expression `a24 * E`
+      // Argument `d` = RFC expression `AA`
       for (var i = 0; i < 16; i++) {
         a[i] += d[i];
       }
 
-      // c = c * a
-      // a = d * f
-      // d = b * unpacked
-      // b = e^2
-      multiply256(c, c, a);
-      multiply256(a, d, f);
-      multiply256(d, b, unpackedPublicKey);
-      multiply256(b, e, e);
+      // c = RFC assignment `z_2 = E * (AA + a24 * E)`
+      //
+      // Argument `a` = RFC expression `(AA + a24 * E)`
+      // Argument `c` = RFC expression `E`
+      mod38Mul(c, a, c);
 
-      // if bit == 1:
-      //   swap(a, b)
-      //   swap(c, d)
-      _conditionalSwap(a, b, isSwap);
-      _conditionalSwap(c, d, isSwap);
+      // a = RFC assignment `x_2 = AA * BB`
+      //
+      // Argument `d` = RFC expression `AA`
+      // Argument `f` = RFC expression `BB`
+      mod38Mul(a, d, f);
+
+      // d = RFC assignment `z_3 = x_1 * (DA - CB)^2`
+      mod38Mul(d, unpackedPublicKey, b);
+
+      // Remaining calculations.
+      //
+      // See:
+      // "High-speed Curve25519 on 8-bit, 16-bit, and 32-bit microcontrollers"
+      // https://link.springer.com/article/10.1007/s10623-015-0087-1
+      mod38Mul(b, e, e);
+      _conditionalSwap(a, b, k_i);
+      _conditionalSwap(c, d, k_i);
     }
 
-    // Copy 'c' to 'd'
+    // Remaining calculations.
+    //
+    // See:
+    // "High-speed Curve25519 on 8-bit, 16-bit, and 32-bit microcontrollers"
+    // https://link.springer.com/article/10.1007/s10623-015-0087-1
+
+    // d = c
     for (var i = 0; i < 16; i++) {
       d[i] = c[i];
     }
 
-    // 254 times
     for (var i = 253; i >= 0; i--) {
-      // c = c^2
-      multiply256(c, c, c);
-
+      mod38Mul(c, c, c);
       if (i != 2 && i != 4) {
-        // c = c * d
-        multiply256(c, c, d);
+        mod38Mul(c, c, d);
       }
     }
-
-    // a = a * c
-    multiply256(a, a, c);
-
-    // 3 times
+    mod38Mul(a, a, c);
     for (var i = 0; i < 3; i++) {
       var x = 1;
       for (var i = 0; i < 16; i++) {
@@ -254,31 +296,21 @@ class _X25519 extends KeyExchangeAlgorithm {
       }
       a[0] += 38 * (x - 1);
     }
-
-    // 2 times
     for (var i = 0; i < 2; i++) {
-      // The first element
       var previous = a[0] - 0xFFED;
       b[0] = 0xFFFF & previous;
-
-      // Subsequent elements
       for (var j = 1; j < 15; j++) {
         final current = a[j] - 0xFFFF - (1 & (previous >> 16));
         b[j] = 0xFFFF & current;
         previous = current;
       }
-
-      // The last element
       b[15] = a[15] - 0x7FFF - (1 & (previous >> 16));
-
-      // if isSwap == 1:
-      //   swap(a, m)
       final isSwap = 1 - (1 & (b[15] >> 16));
       _conditionalSwap(a, b, isSwap);
     }
 
     // Pack the internal Int32List into result bytes
-    _pack256(result, a);
+    Register25519(a).toBytes(result);
   }
 
   // Constant-time conditional swap.
@@ -291,20 +323,6 @@ class _X25519 extends KeyExchangeAlgorithm {
       final t = c & (p[i] ^ q[i]);
       p[i] ^= t;
       q[i] ^= t;
-    }
-  }
-
-  static void _pack256(Uint8List result, Int32List unpacked) {
-    final byteData = ByteData.view(result.buffer, result.offsetInBytes, 32);
-    for (var i = 0; i < 16; i++) {
-      byteData.setUint16(2 * i, unpacked[i], Endian.little);
-    }
-  }
-
-  static void _unpack256(Int32List result, Uint8List packed) {
-    final byteData = ByteData.view(packed.buffer, packed.offsetInBytes, 32);
-    for (var i = 0; i < 16; i++) {
-      result[i] = byteData.getUint16(2 * i, Endian.little);
     }
   }
 }

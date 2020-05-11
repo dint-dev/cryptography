@@ -14,10 +14,14 @@
 
 import 'dart:typed_data';
 
-/// Constant-time multiplication of two 256-bit scalars.
+/// Calculates `(a * b) mod (2^256 - 38)`. The 256-bit integers are stored as
+/// 16 _uint16_ values in little endian order.
 ///
-/// Arrays [a] and [b] must have length 16. Each element has 16 bits of data.
-void multiply256(Int32List result, Int32List a, Int32List b) {
+/// For optimization reasons, the modulo is different from the normal
+/// `2^255 - 19`. The reason for this is explained in the paper
+/// ["High-speed Curve25519 on 8-bit, 16-bit, and 32-bit microcontrollers"]
+/// (https://link.springer.com/article/10.1007/s10623-015-0087-1)
+void mod38Mul(Int32List result, Int32List a, Int32List b) {
   var t0 = 0,
       t1 = 0,
       t2 = 0,

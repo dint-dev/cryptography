@@ -14,7 +14,7 @@
 
 import 'package:cryptography/cryptography.dart';
 
-import 'common.dart';
+import 'benchmark_helpers.dart';
 
 void main() {
   SignBenchmark(ed25519).report();
@@ -29,7 +29,6 @@ class SignBenchmark extends ThroughputBenchmarkBase {
 
   List<int> message;
   KeyPair keyPair;
-  Signature signature;
 
   @override
   void setup() {
@@ -39,7 +38,8 @@ class SignBenchmark extends ThroughputBenchmarkBase {
 
   @override
   void run() {
-    signature = implementation.signSync(message, keyPair);
+    final result = implementation.signSync(message, keyPair);
+    assert(result != null);
   }
 }
 
@@ -62,9 +62,10 @@ class VerifyBenchmark extends ThroughputBenchmarkBase {
 
   @override
   void run() {
-    implementation.verifySync(
+    final result = implementation.verifySync(
       message,
       signature,
     );
+    assert(result != null);
   }
 }

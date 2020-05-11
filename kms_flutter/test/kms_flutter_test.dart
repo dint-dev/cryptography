@@ -1,8 +1,8 @@
 import 'package:cryptography/cryptography.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:kms/kms.dart';
 import 'package:kms_flutter/kms_flutter.dart';
-import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

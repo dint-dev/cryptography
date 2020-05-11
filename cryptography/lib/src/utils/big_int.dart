@@ -12,10 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/// Functions for implementing cryptographic algorithms.
-library cryptography.utils;
+import 'dart:typed_data';
 
-export 'src/utils/big_int.dart';
-export 'src/utils/constant_time_equality.dart';
-export 'src/utils/hex.dart';
-export 'src/utils/rotate.dart';
+final _byteMask = BigInt.from(255);
+
+BigInt bigIntFromBytes(List<int> bytes) {
+  var result = BigInt.zero;
+  for (var i = bytes.length - 1; i >= 0; i--) {
+    result = (result << 8) + BigInt.from(bytes[i]);
+  }
+  return result;
+}
+
+/// Converts bi
+Uint8List bigIntToBytes(BigInt value, List<int> result) {
+  final original = value;
+  for (var i = 0; i < 32; i++) {
+    result[i] = (_byteMask & value).toInt();
+    value >>= 8;
+  }
+  if (value != BigInt.zero) {
+    throw ArgumentError.value(original);
+  }
+  return result;
+}

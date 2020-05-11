@@ -15,6 +15,9 @@
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
+import 'package:cryptography/utils.dart';
+
+import 'ec_ed25519_impl.dart';
 
 /// _Ed25519_ ([RFC 8032](https://tools.ietf.org/html/rfc8032)) signature
 /// algorithm.
@@ -35,7 +38,7 @@ import 'package:cryptography/cryptography.dart';
 ///   print('Public key: ${signature.publicKey.bytes}');
 ///
 ///   // Anyone can verify the signature
-///   final isVerified = await ed25519.verify(
+///   final isSignatureCorrect = await ed25519.verify(
 ///     [1,2,3],
 ///     signature,
 ///   );
@@ -44,31 +47,10 @@ import 'package:cryptography/cryptography.dart';
 const SignatureAlgorithm ed25519 = _Ed25519();
 
 class _Ed25519 extends SignatureAlgorithm {
-  static final _constantP = BigInt.two.pow(255) - BigInt.from(19);
-
-  static final _constantD = BigInt.from(-121665) *
-      _modpInv(BigInt.from(121666)).remainder(_constantP);
-
-  static final _constantQ = BigInt.two.pow(252) +
-      BigInt.parse('27742317777372353535851937790883648493');
-
-  static final _modp_sqrt_m1 = BigInt.two
-      .modPow((_constantP - BigInt.one) ~/ BigInt.from(4), _constantP);
-
-  static final _g_y = BigInt.from(4) * _modpInv(BigInt.from(5)) % _constantP;
-
-  static final _g_x = _recoverX(_g_y, BigInt.zero);
-
-  static final _constantG = _Point(
-    _g_x,
-    _g_y,
-    BigInt.one,
-    _g_x * _g_y % _constantP,
-  );
-
-  static final _byteMask = BigInt.from(255);
-
   const _Ed25519();
+
+  @override
+  bool get isSeedSupported => true;
 
   @override
   String get name => 'ed25519';
@@ -77,213 +59,382 @@ class _Ed25519 extends SignatureAlgorithm {
   int get publicKeyLength => 32;
 
   @override
-  KeyPair newKeyPairSync() {
-    final privateKey = PrivateKey.randomBytes(32);
-    final publicKey = PublicKey(
-      _secretToPublic(privateKey.extractSync()),
-    );
-    return KeyPair(
-      privateKey: privateKey,
-      publicKey: publicKey,
+  Future<KeyPair> newKeyPair() async {
+    return newKeyPairFromSeed(PrivateKey.randomBytes(32));
+  }
+
+  @override
+  Future<KeyPair> newKeyPairFromSeed(PrivateKey seed) async {
+    // Call synchronous version
+    return newKeyPairFromSeedSync(
+      PrivateKey(await seed.extract()),
     );
   }
 
   @override
-  Signature signSync(List<int> msg, KeyPair keyPair) {
-    final expanded = _secretExpand(keyPair.privateKey.extractSync());
-    final a = _pointCompress(_pointMul(expanded.a, _constantG));
-    final r = _sha512_modq(<int>[...expanded.prefix, ...msg]);
-    final pointR = _pointMul(r, _constantG);
+  KeyPair newKeyPairFromSeedSync(PrivateKey seed) {
+    // Read private key bytes
+    final privateKeyBytes = seed.extractSync();
+    if (privateKeyBytes.length != 32) {
+      throw ArgumentError(
+        'Private key length must be 32. Got ${privateKeyBytes.length} bytes.',
+      );
+    }
+
+    // Take SHA512 hash of the private key.
+    final privateKeyHash =
+        sha512.hashSync(privateKeyBytes).bytes.sublist(0, 32);
+
+    // The lowest three bits must be 0
+    privateKeyHash[0] &= 0xF8;
+
+    // The highest bit must be 0
+    privateKeyHash[31] &= 0x7F;
+
+    // The second highest bit must be 1
+    privateKeyHash[31] |= 0x40;
+
+    // We get public key by multiplying the modified private key hash with G.
+    final publicKeyBytes = _pointCompress(_pointMul(
+      Register25519()..setBytes(privateKeyHash),
+      Ed25519Point.base,
+    ));
+
+    return KeyPair(
+      privateKey: seed,
+      publicKey: PublicKey(publicKeyBytes),
+    );
+  }
+
+  @override
+  KeyPair newKeyPairSync() {
+    return newKeyPairFromSeedSync(PrivateKey.randomBytes(32));
+  }
+
+  // Compresses a point
+  @override
+  Signature signSync(List<int> message, KeyPair keyPair) {
+    final privateKeyBytes = keyPair.privateKey.extractSync();
+    if (privateKeyBytes.length != 32) {
+      throw ArgumentError(
+        'Private key has invalid length ${privateKeyBytes.length}',
+      );
+    }
+
+    // Take SHA512 hash of the private key.
+    final privateKeyHash = sha512.hashSync(privateKeyBytes);
+    final privateKeyHashFixed = privateKeyHash.bytes.sublist(0, 32);
+
+    // The lowest three bits must be 0
+    privateKeyHashFixed[0] &= 0xF8;
+
+    // The highest bit must be 0
+    privateKeyHashFixed[31] &= 0x7F;
+
+    // The second highest bit must be 1
+    privateKeyHashFixed[31] |= 0x40;
+
+    // We get public key by multiplying the modified private key hash with G.
+    final publicKeyBytes = _pointCompress(_pointMul(
+      Register25519()..setBytes(privateKeyHashFixed),
+      Ed25519Point.base,
+    ));
+    final publicKey = PublicKey(publicKeyBytes);
+
+    // Calculate hash of the input.
+    // The second half of the seed hash is used as the salt.
+    final messageSalt = privateKeyHash.bytes.sublist(32);
+    final messageHashedBytes = <int>[...messageSalt, ...message];
+    final messageHash = RegisterL()
+      ..readBytes(sha512.hashSync(messageHashedBytes).bytes);
+
+    // Calculate point R.
+    final pointR = _pointMul(messageHash.toRegister25519(), Ed25519Point.base);
     final pointRCompressed = _pointCompress(pointR);
-    final h = _sha512_modq(<int>[...pointRCompressed, ...a, ...msg]);
-    final s = (r + h * expanded.a) % _constantQ;
-    final result = <int>[...pointRCompressed, ..._bytesFromBigInt(s)];
-    return Signature(result, publicKey: keyPair.publicKey);
+
+    // Calculate s
+    final sHashedBytes = <int>[
+      ...pointRCompressed,
+      ...publicKey.bytes,
+      ...message,
+    ];
+    final s = RegisterL()..readBytes(sha512.hashSync(sHashedBytes).bytes);
+    s.mul(s, RegisterL()..readBytes(privateKeyHashFixed));
+    s.add(s, messageHash);
+    final sBytes = s.toBytes();
+
+    // The signature bytes are ready
+    final result = Uint8List.fromList(<int>[
+      ...pointRCompressed,
+      ...sBytes,
+    ]);
+
+    return Signature(
+      result,
+      publicKey: keyPair.publicKey,
+    );
   }
 
   @override
   bool verifySync(List<int> input, Signature signature) {
+    // Validate public key bytes
     final publicKeyBytes = signature.publicKey.bytes;
+    if (publicKeyBytes.length != 32) {
+      throw ArgumentError('Invalid signature length');
+    }
+
+    // Validate signature bytes
     final signatureBytes = signature.bytes;
-    if (publicKeyBytes.length != 32) {
-      throw ArgumentError.value(signature);
-    }
-    if (publicKeyBytes.length != 32) {
-      throw ArgumentError.value(signature);
-    }
     if (signatureBytes.length != 64) {
-      throw StateError('Bad signature length');
+      throw ArgumentError('Invalid signature length');
     }
+
+    // Decompress point of the public key
     final a = _pointDecompress(publicKeyBytes);
     if (a == null) {
       return false;
     }
-    final rS = signatureBytes.sublist(0, 32);
-    final r = _pointDecompress(rS);
+
+    // Decompress point of the signature
+    final rBytes = signatureBytes.sublist(0, 32);
+    final r = _pointDecompress(rBytes);
     if (r == null) {
       return false;
     }
-    final s = _bytesToBigInt(signatureBytes.sublist(32));
-    if (s >= _constantQ) {
+
+    // Read bytes 32..64
+    final s = bigIntFromBytes(signatureBytes.sublist(32));
+    if (s >= RegisterL.LBigInt) {
       return false;
     }
-    final h = _sha512_modq([...rS, ...publicKeyBytes, ...input]);
-    final sB = _pointMul(s, _constantG);
-    final hA = _pointMul(h, a);
-    return _pointEqual(sB, _pointAdd(r, hA));
-  }
 
-  static BigInt _bytesToBigInt(List<int> bytes) {
-    var result = BigInt.zero;
-    for (var i = bytes.length - 1; i >= 0; i--) {
-      result = (result << 8) + BigInt.from(bytes[i]);
-    }
-    return result;
-  }
+    // Calculate hash
+    final hHashedBytes = <int>[...rBytes, ...publicKeyBytes, ...input];
+    final h = RegisterL()..readBytes(sha512.hashSync(hHashedBytes).bytes);
 
-  static List<int> _bytesFromBigInt(BigInt value) {
-    final result = Uint8List(32);
-    for (var i = 0; i < 32; i++) {
-      result[i] = (_byteMask & value).toInt();
-      value = value >> 8;
-    }
-    return result;
-  }
+    // Calculate: s * basePoint
+    final sB = _pointMul(Register25519()..setBigInt(s), Ed25519Point.base);
 
-  static BigInt _modpInv(BigInt x) {
-    return x.modPow(_constantP - BigInt.two, _constantP);
-  }
-
-  static _Point _pointAdd(_Point p, _Point q) {
-    final a = (p.v1 - p.v0) * (q.v1 - q.v0) % _constantP;
-    final b = (p.v1 + p.v0) * (q.v1 + q.v0) % _constantP;
-    final c = BigInt.two * p.v3 * q.v3 * _constantD % _constantP;
-    final d = BigInt.two * p.v2 * q.v2 % _constantP;
-    final e = b - a;
-    final f = d - c;
-    final g = d + c;
-    final h = b + a;
-    return _Point(
-      e * f,
-      g * h,
-      f * g,
-      e * h,
+    // Calculate: h * a + r
+    final rhA = Ed25519Point.zero();
+    _pointAdd(
+      rhA,
+      _pointMul(h.toRegister25519(), a),
+      r,
     );
+
+    // Compare
+    return sB.equals(rhA);
   }
 
-  static List<int> _pointCompress(_Point p) {
-    final zinv = _modpInv(p.v2);
-    final x = p.v0 * zinv % _constantP;
-    final y = p.v1 * zinv % _constantP;
-    return _bytesFromBigInt(y | ((x & BigInt.one) << 255));
+  static void _pointAdd(
+    Ed25519Point r,
+    Ed25519Point p,
+    Ed25519Point q, {
+    Ed25519Point tmp,
+  }) {
+    tmp ??= Ed25519Point.zero();
+
+    final a = r.x;
+    final b = r.y;
+    final c = r.z;
+    final d = r.w;
+
+    final e = tmp.x;
+    final f = tmp.y;
+    final g = tmp.z;
+    final h = tmp.w;
+
+    // a = (p.y - p.x) * (q.y - q.x)
+    // b = (p.y + p.x) * (q.y + q.x)
+    // c = 2 * p.w * q.w * D
+    // d = 2 * p.z * q.z
+
+    a.sub(p.y, p.x);
+    b.sub(q.y, q.x);
+    a.mul(a, b);
+
+    b.add(p.y, p.x);
+    c.add(q.y, q.x);
+    b.mul(b, c);
+
+    c.mul(Register25519.two, p.w);
+    c.mul(c, q.w);
+    c.mul(c, Register25519.D);
+
+    d.mul(Register25519.two, p.z);
+    d.mul(d, q.z);
+
+    // e = b - a
+    // f = d - c
+    // g = d + c
+    // h = b + a
+
+    e.sub(b, a);
+    f.sub(d, c);
+    g.add(d, c);
+    h.add(b, a);
+
+    // a = e * f
+    // b = g * h
+    // c = f * g
+    // d = e * h
+
+    a.mul(e, f);
+    b.mul(g, h);
+    c.mul(f, g);
+    d.mul(e, h);
+
+    // [a, b, c, d] are output registers
   }
 
-  static _Point _pointDecompress(List<int> s) {
-    if (s.length != 32) {
-      throw Exception('Invalid input length for decompression: ${s.length}');
-    }
-    var y = _bytesToBigInt(s);
-    final sign = y >> 255;
-    y &= (BigInt.one << 255) - BigInt.one;
-    var x = _recoverX(y, sign);
-    if (x == null) {
+  static List<int> _pointCompress(Ed25519Point p) {
+    final zInv = Register25519();
+    final x = Register25519();
+    final y = Register25519();
+
+    // zInv = p.z ^ (P - 2) mod (2^255 - 19)
+    zInv.pow(p.z, Register25519.PMinusTwo);
+
+    // x = p.x * zInv mod (2^255 - 19)
+    x.mul(p.x, zInv);
+
+    // y = p.y * zInv mod (2^255 - 19)
+    y.mul(p.y, zInv);
+
+    // Highest bit of y = lowest bit of x
+    assert(0x8000 & y.data[15] == 0);
+    y.data[15] |= (0x1 & x.data[0]) << 15;
+
+    return y.toBytes(Uint8List(32));
+  }
+
+  static Ed25519Point _pointDecompress(List<int> pointBytes) {
+    assert(pointBytes.length == 32);
+    final s = Uint8List.fromList(pointBytes);
+    final sign = (0x80 & s[31]) >> 7;
+    s[31] &= 0x7F;
+
+    final y = Register25519();
+    y.setBytes(s);
+
+    if (y.isGreaterOrEqual(Register25519.P)) {
+      // Got invalid Y
       return null;
-    } else {
-      return _Point(
-        x,
-        y,
-        BigInt.one,
-        x * y % _constantP,
-      );
     }
-  }
 
-  static bool _pointEqual(_Point p, _Point q) {
-    if ((p.v0 * q.v2 - q.v0 * p.v2).remainder(_constantP) != BigInt.zero) {
-      return false;
-    }
-    if ((p.v1 * q.v2 - q.v1 * p.v2).remainder(_constantP) != BigInt.zero) {
-      return false;
-    }
-    return true;
-  }
+    // Temporary arrays
+    final v0 = Register25519();
+    final v1 = Register25519();
 
-  static _Point _pointMul(BigInt s, _Point pointP) {
-    var q = _Point(
-      BigInt.zero,
-      BigInt.one,
-      BigInt.one,
-      BigInt.zero,
-    );
-    while (s > BigInt.zero) {
-      if (s & BigInt.one == BigInt.one) {
-        q = _pointAdd(q, pointP);
+    // (y * y - 1)
+    v0.mul(y, y);
+    v0.sub(v0, Register25519.one);
+
+    // (y * y * D + 1)
+    v1.mul(y, y);
+    v1.mul(v1, Register25519.D);
+    v1.add(v1, Register25519.one);
+    v1.pow(v1, Register25519.PMinusTwo);
+
+    // x2 = (y * y - 1) * (_constantD * y * y + 1)^(P-2) % P
+    final x2 = Register25519();
+    x2.mul(v0, v1);
+
+    if (x2.isZero) {
+      if (sign == 1) {
+        // Got invalid Y
+        return null;
+      } else {
+        // A special case
+        return Ed25519Point(
+          Register25519.zero,
+          y,
+          Register25519.one,
+          Register25519.zero,
+        );
       }
-      pointP = _pointAdd(pointP, pointP);
-      s >>= 1;
+    }
+
+    // x = x2^((P + 3) ~/ 8) % P
+    // Recycle `v0`
+    final x = v0;
+    x.setBigInt(Register25519.PPlus3Slash8BigInt.toBigInt());
+    x.pow(x2, x);
+
+    // if (x * x - x2) % P != 0
+    v1.mul(x, x);
+    v1.sub(v1, x2);
+    if (!v1.isZero) {
+      // x = x * Z % P
+      x.mul(x, Register25519.Z);
+    }
+
+    // if (x * x - x2) % P != 0
+    v1.mul(x, x);
+    v1.sub(v1, x2);
+    if (!v1.isZero) {
+      return null;
+    }
+
+    // if (0x1 & x) != sign
+    if ((0x1 & x.data[0]) != sign) {
+      // x = P - x
+      x.sub(Register25519.P, x);
+    }
+
+    // xy = x * y % P
+    // Recycle `v1`
+    final xy = v1;
+    xy.mul(x, y);
+
+    return Ed25519Point(
+      x,
+      y,
+      Register25519.one,
+      xy,
+    );
+  }
+
+  static Ed25519Point _pointMul(
+    Register25519 s, // Secret key
+    Ed25519Point pointP, // A point
+  ) {
+    // Construct a new point with value (0, 1, 1, 0)
+    var q = Ed25519Point.zero();
+    q.y.data[0] = 1;
+    q.z.data[0] = 1;
+
+    // Construct a copy of pointP
+    pointP = Ed25519Point(
+      Register25519.from(pointP.x),
+      Register25519.from(pointP.y),
+      Register25519.from(pointP.z),
+      Register25519.from(pointP.w),
+    );
+
+    // Construct two temporary points
+    var tmp0 = Ed25519Point.zero();
+    final tmp1 = Ed25519Point.zero();
+
+    for (var i = 0; i < 256; i++) {
+      // Get n-th bit
+      final b = 0x1 & (s.data[i ~/ 16] >> (i % 16));
+
+      if (b == 1) {
+        // Q = Q + P
+        _pointAdd(tmp0, q, pointP, tmp: tmp1);
+        final oldQ = q;
+        q = tmp0;
+        tmp0 = oldQ;
+      }
+
+      // p = P + P
+      _pointAdd(tmp0, pointP, pointP, tmp: tmp1);
+      final oldP = pointP;
+      pointP = tmp0;
+      tmp0 = oldP;
     }
     return q;
   }
-
-  static BigInt _recoverX(BigInt y, BigInt sign) {
-    if (y >= _constantP) {
-      return null;
-    }
-    var x2 = (y * y - BigInt.one) * _modpInv(_constantD * y * y + BigInt.one);
-    if (x2 == BigInt.zero) {
-      if (sign == BigInt.one) {
-        return null;
-      } else {
-        return BigInt.zero;
-      }
-    }
-    var x = x2.modPow(
-      (_constantP + BigInt.from(3)) ~/ BigInt.from(8),
-      _constantP,
-    );
-    if ((x * x - x2) % _constantP != BigInt.zero) {
-      x = x * _modp_sqrt_m1 % _constantP;
-    }
-    if ((x * x - x2) % _constantP != BigInt.zero) {
-      return null;
-    }
-    if ((x & BigInt.one) != sign) {
-      x = _constantP - x;
-    }
-    return x;
-  }
-
-  static _ExpandedSecret _secretExpand(List<int> secret) {
-    if (secret.length != 32) {
-      throw Exception('Bad size of private key');
-    }
-    final hash = sha512.hashSync(secret).bytes;
-    var a = _bytesToBigInt(hash.sublist(0, 32));
-    a &= (BigInt.one << 254) - BigInt.from(8);
-    a |= (BigInt.one << 254);
-    return _ExpandedSecret(a, hash.sublist(32));
-  }
-
-  static List<int> _secretToPublic(List<int> secret) {
-    final expanded = _secretExpand(secret);
-    return _pointCompress(_pointMul(expanded.a, _constantG));
-  }
-
-  static BigInt _sha512_modq(List<int> s) {
-    return _bytesToBigInt(sha512.hashSync(s).bytes) % _constantQ;
-  }
-}
-
-class _ExpandedSecret {
-  final BigInt a;
-  final List<int> prefix;
-  _ExpandedSecret(this.a, this.prefix);
-}
-
-class _Point {
-  final BigInt v0;
-  final BigInt v1;
-  final BigInt v2;
-  final BigInt v3;
-  _Point(this.v0, this.v1, this.v2, this.v3);
 }

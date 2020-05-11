@@ -14,7 +14,7 @@
 
 import 'package:cryptography/cryptography.dart';
 
-import 'common.dart';
+import 'benchmark_helpers.dart';
 
 void main() {
   SharedSecretBenchmark(x25519).report();

@@ -18,8 +18,8 @@ import 'package:test/test.dart';
 
 void main() {
   group('ed25519:', () {
-    test('generate 10 random keyPairs, sign/verify random message', () {
-      for (var i = 0; i < 10; i++) {
+    test('generate 100 random keyPairs, sign/verify a random message', () {
+      for (var i = 0; i < 100; i++) {
         final keyPair = ed25519.newKeyPairSync();
 
         final message = Nonce.randomBytes(1 + (i % 128)).bytes;
