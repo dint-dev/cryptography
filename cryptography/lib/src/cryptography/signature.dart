@@ -14,29 +14,33 @@
 
 import 'package:collection/collection.dart';
 import 'package:cryptography/cryptography.dart';
+import 'package:meta/meta.dart';
 
-/// A public key of some [KeyPair].
+/// A digital signature.
 ///
-/// For examples of usage, see [KeyExchangeAlgorithm] and [SignatureAlgorithm].
-class PublicKey {
-  /// Bytes of the public key.
+/// Messages can be signed and verified with some [SignatureAlgorithm].
+class Signature {
+  /// Signature bytes.
   final List<int> bytes;
 
-  const PublicKey(this.bytes) : assert(bytes != null);
+  /// Public key of the signer.
+  final PublicKey publicKey;
+
+  const Signature(this.bytes, {@required this.publicKey})
+      : assert(bytes != null),
+        assert(publicKey != null);
 
   @override
-  int get hashCode {
-    return const ListEquality<int>().hash(bytes);
-  }
+  int get hashCode =>
+      const ListEquality<int>().hash(bytes) ^ publicKey.hashCode;
 
   @override
-  bool operator ==(other) {
-    return other is PublicKey &&
-        const ListEquality<int>().equals(bytes, other.bytes);
-  }
+  bool operator ==(other) =>
+      other is Signature &&
+      const ListEquality<int>().equals(bytes, other.bytes) &&
+      publicKey == other.publicKey;
 
   @override
-  String toString() {
-    return "PublicKey([${bytes.join(', ')}])";
-  }
+  String toString() =>
+      'Signature(bytes:[${bytes.join(', ')}], publicKey: [${publicKey.bytes.join(', ')}])';
 }

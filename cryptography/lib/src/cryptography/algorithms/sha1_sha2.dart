@@ -12,14 +12,34 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'web_crypto.dart';
-import 'sha1_sha2_impl.dart';
 import 'package:cryptography/cryptography.dart';
+
+import 'sha1_sha2_impl.dart';
+import 'web_crypto.dart';
 
 /// _SHA1_, an old cryptographic hash function that's not recommended for new
 /// applications.
 ///
-/// An example:
+/// In browser, the implementation uses [Web Cryptography API](https://www.w3.org/TR/WebCryptoAPI/).
+/// In other platforms, the implementation uses [package:crypto](https://pub.dev/packages/crypto),
+/// which is maintained by Google.
+///
+/// ## Asynchonous usage (recommended)
+/// ```
+/// import 'package:cryptography/cryptography.dart';
+///
+/// Future<void> main() async {
+///   final message = <int>[1,2,3];
+///
+///   final hash = await sha1.hash(
+///     message,
+///   );
+///
+///   print('Hash: ${hash.bytes}');
+/// }
+/// ```
+///
+/// ## Synchronous usage
 /// ```
 /// import 'package:cryptography/cryptography.dart';
 ///
@@ -41,11 +61,12 @@ import 'package:cryptography/cryptography.dart';
 const HashAlgorithm sha1 = webSha1 ?? dartSha1;
 
 /// _SHA224_, a function in the SHA2 family of cryptographic hash functions.
+///
 /// In browser, the implementation uses [Web Cryptography API](https://www.w3.org/TR/WebCryptoAPI/).
 /// In other platforms, the implementation uses [package:crypto](https://pub.dev/packages/crypto),
 /// which is maintained by Google.
 ///
-/// An example:
+/// ## Example: synchronous usage
 /// ```
 /// import 'package:cryptography/cryptography.dart';
 ///
@@ -67,11 +88,27 @@ const HashAlgorithm sha1 = webSha1 ?? dartSha1;
 const HashAlgorithm sha224 = dartSha224;
 
 /// _SHA256_, a function in the SHA2 family of cryptographic hash functions.
+///
 /// In browser, the implementation uses [Web Cryptography API](https://www.w3.org/TR/WebCryptoAPI/).
 /// In other platforms, the implementation uses [package:crypto](https://pub.dev/packages/crypto),
 /// which is maintained by Google.
 ///
-/// An example:
+/// ## Asynchonous usage (recommended)
+/// ```
+/// import 'package:cryptography/cryptography.dart';
+///
+/// Future<void> main() async {
+///   final message = <int>[1,2,3];
+///
+///   final hash = await sha256.hash(
+///     message,
+///   );
+///
+///   print('Hash: ${hash.bytes}');
+/// }
+/// ```
+///
+/// ## Synchronous usage
 /// ```
 /// import 'package:cryptography/cryptography.dart';
 ///
@@ -93,11 +130,27 @@ const HashAlgorithm sha224 = dartSha224;
 const HashAlgorithm sha256 = webSha256 ?? dartSha256;
 
 /// _SHA385_, a function in the SHA2 family of cryptographic hash functions.
+///
 /// In browser, the implementation uses [Web Cryptography API](https://www.w3.org/TR/WebCryptoAPI/).
 /// In other platforms, the implementation uses [package:crypto](https://pub.dev/packages/crypto),
 /// which is maintained by Google.
 ///
-/// An example:
+/// ## Asynchonous usage (recommended)
+/// ```
+/// import 'package:cryptography/cryptography.dart';
+///
+/// Future<void> main() async {
+///   final message = <int>[1,2,3];
+///
+///   final hash = await sha384.hash(
+///     message,
+///   );
+///
+///   print('Hash: ${hash.bytes}');
+/// }
+/// ```
+///
+/// ## Synchronous usage
 /// ```
 /// import 'package:cryptography/cryptography.dart';
 ///
@@ -119,11 +172,27 @@ const HashAlgorithm sha256 = webSha256 ?? dartSha256;
 const HashAlgorithm sha384 = webSha384 ?? dartSha384;
 
 /// _SHA512_, a function in the SHA2 family of cryptographic hash functions.
+///
 /// In browser, the implementation uses [Web Cryptography API](https://www.w3.org/TR/WebCryptoAPI/).
 /// In other platforms, the implementation uses [package:crypto](https://pub.dev/packages/crypto),
 /// which is maintained by Google.
 ///
-/// An example:
+/// ## Asynchonous usage (recommended)
+/// ```
+/// import 'package:cryptography/cryptography.dart';
+///
+/// Future<void> main() async {
+///   final message = <int>[1,2,3];
+///
+///   final hash = await sha512.hash(
+///     message,
+///   );
+///
+///   print('Hash: ${hash.bytes}');
+/// }
+/// ```
+///
+/// ## Synchronous usage
 /// ```
 /// import 'package:cryptography/cryptography.dart';
 ///

@@ -17,10 +17,11 @@ import 'package:meta/meta.dart';
 
 /// A pair of keys ([PrivateKey] and a [PublicKey]).
 ///
-/// An example:
+/// ## Example
+/// An example of using [x25519]:
 /// ```
 /// final keyPair = x25519.newKeyPair();
-/// print('private key: ${keyPair.privateKey.bytes}');
+/// print('private key: ${keyPair.privateKey.extractSync()}');
 /// print('public key: ${keyPair.publicKey.bytes}');
 /// ```
 class KeyPair {

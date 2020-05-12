@@ -12,45 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:collection/collection.dart';
 import 'package:cryptography/cryptography.dart';
-import 'package:meta/meta.dart';
 
-/// A cryptographic signature. Bytes can be signed with [SignatureAlgorithm].
-class Signature {
-  /// Signature (without public key).
-  final List<int> bytes;
-
-  /// Signer's public key.
-  final PublicKey publicKey;
-
-  const Signature(this.bytes, {@required this.publicKey})
-      : assert(bytes != null),
-        assert(publicKey != null);
-
-  @override
-  int get hashCode =>
-      const ListEquality<int>().hash(bytes) ^ publicKey.hashCode;
-
-  @override
-  bool operator ==(other) =>
-      other is Signature &&
-      const ListEquality<int>().equals(bytes, other.bytes) &&
-      publicKey == other.publicKey;
-
-  @override
-  String toString() =>
-      'Signature(bytes:[${bytes.join(', ')}], publicKey: [${publicKey.bytes.join(', ')}])';
-}
-
-/// Superclass for signature-generating algorithms.
+/// An digital signature algorithm that supports [newKeyPair], [sign],
+/// [verify].
 ///
-/// Examples:
+/// ## Algorithms
 ///   * [ecdsaP256Sha256]
 ///   * [ecdsaP384Sha256]
 ///   * [ecdsaP521Sha256]
 ///   * [ed25519]
 ///
+/// ## Example
 /// An example of using [ed25519]:
 /// ```
 /// import 'package:cryptography/cryptography.dart';

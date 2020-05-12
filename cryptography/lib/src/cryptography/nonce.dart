@@ -17,11 +17,22 @@ import 'dart:typed_data';
 
 import 'package:collection/collection.dart';
 
-/// A nonce. A nonce is sometimes called Initialization Vector (IV) or salt.
+/// A nonce (sometimes known as _Initialization Vector_, _IV_ or _salt_).
 ///
+/// Usually nonces do not need to be kept secret.
+///
+/// You can generate random nonces with [Nonce.randomBytes].
+///
+/// ## Example
 /// ```
-/// // Generate a random 512 bit nonce
-/// final nonce = Nonce.randomBytes(64);
+/// import 'package:cryptography/cryptography.dart';
+///
+/// void main() {
+///   // Generate a random 512 bit nonce
+///   final nonce = Nonce.randomBytes(64);
+///
+///   print('Nonce: ${nonce.bytes}');
+/// }
 /// ```
 class Nonce {
   static final _random = Random.secure();
@@ -33,9 +44,21 @@ class Nonce {
     ArgumentError.checkNotNull(bytes, 'bytes');
   }
 
-  /// Generates N random bytes.
+  /// Generates _N_ random bytes with a cryptographically strong random number
+  /// generator.
   ///
-  /// You can optionally give a random number generator that's used.
+  /// You can optionally give a custom random number generator.
+  ///
+  /// ```
+  /// import 'package:cryptography/cryptography.dart';
+  ///
+  /// void main() {
+  ///   // Generate random 32 bytes (= 256 bits).
+  ///   final nonce = Nonce.randomBytes(32);
+  ///
+  ///   print('Nonce: ${nonce.bytes}');
+  /// }
+  /// ```
   factory Nonce.randomBytes(int length, {Random random}) {
     random ??= _random;
     final data = Uint8List(length);

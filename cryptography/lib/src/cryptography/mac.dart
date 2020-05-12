@@ -12,31 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:collection/collection.dart';
 import 'package:cryptography/cryptography.dart';
+import 'package:cryptography/utils.dart';
 
-/// A public key of some [KeyPair].
+/// A Message Authentication Code (MAC).
 ///
-/// For examples of usage, see [KeyExchangeAlgorithm] and [SignatureAlgorithm].
-class PublicKey {
-  /// Bytes of the public key.
+/// A MAC can be calculated with some [MacAlgorithm].
+class Mac {
+  /// Bytes of the MAC.
   final List<int> bytes;
 
-  const PublicKey(this.bytes) : assert(bytes != null);
-
-  @override
-  int get hashCode {
-    return const ListEquality<int>().hash(bytes);
+  Mac(this.bytes) {
+    ArgumentError.checkNotNull(bytes);
   }
 
   @override
-  bool operator ==(other) {
-    return other is PublicKey &&
-        const ListEquality<int>().equals(bytes, other.bytes);
-  }
+  int get hashCode => constantTimeBytesEquality.hash(bytes);
 
   @override
-  String toString() {
-    return "PublicKey([${bytes.join(', ')}])";
-  }
+  bool operator ==(other) =>
+      other is Mac && constantTimeBytesEquality.equals(other.bytes, bytes);
+
+  @override
+  String toString() => hexFromBytes(bytes);
 }

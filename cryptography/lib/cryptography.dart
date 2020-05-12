@@ -12,16 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/// Cryptographic algorithms.
+/// Cryptographic algorithms implemented in Dart.
 ///
-/// See:
-///   * [AuthenticatedCipher]
+/// ## Algorithm types
 ///   * [Cipher]
 ///   * [KeyExchangeAlgorithm]
 ///   * [HashAlgorithm]
+///   * [MacAlgorithm]
 ///   * [SignatureAlgorithm]
-///
 library cryptography;
+
+import 'package:cryptography/cryptography.dart';
 
 export 'src/cryptography/algorithms/aes.dart';
 export 'src/cryptography/algorithms/blake2.dart';
@@ -36,12 +37,15 @@ export 'src/cryptography/algorithms/poly1305.dart';
 export 'src/cryptography/algorithms/sha1_sha2.dart';
 export 'src/cryptography/cipher.dart';
 export 'src/cryptography/cipher_with_appended_mac.dart';
+export 'src/cryptography/hash.dart';
 export 'src/cryptography/hash_algorithm.dart';
 export 'src/cryptography/key_exchange_algorithm.dart';
 export 'src/cryptography/key_pair.dart';
+export 'src/cryptography/mac.dart';
 export 'src/cryptography/mac_algorithm.dart';
 export 'src/cryptography/nonce.dart';
 export 'src/cryptography/private_key.dart';
 export 'src/cryptography/public_key.dart';
 export 'src/cryptography/secret_key.dart';
+export 'src/cryptography/signature.dart';
 export 'src/cryptography/signature_algorithm.dart';

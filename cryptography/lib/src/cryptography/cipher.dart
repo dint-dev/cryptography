@@ -17,15 +17,16 @@ import 'package:meta/meta.dart';
 
 /// Superclass for symmetric authenticated/unauthenticated ciphers.
 ///
-/// Examples:
+/// ## Algorithms
 ///   * [aesCbc] (AES-CBC)
 ///   * [aesCtr] (AES-CTR)
 ///   * [aesGcm] (AES-GCM)
 ///   * [chacha20]
 ///   * [chacha20Poly1305Aead]
 ///   * [CipherWithAppendedMac]
-///     * Appends any message authentication code to the end.
+///     * Uses any [MacAlgorithm] (such as [Hmac]) for authentication.
 ///
+/// ## Example
 /// An example of using [chacha20Poly1305Aead]:
 /// ```dart
 /// import 'package:cryptography/cryptography.dart';
@@ -105,6 +106,9 @@ abstract class Cipher {
   /// Parameter [keyStreamIndex] can be used to define key stream index.
   /// If you give a non-zero value, non-stream algorithms will throw
   /// [UnsupportedError].
+  ///
+  /// Authenticated ciphers (such as [CipherWithAppendedMac]) should throw
+  /// [MacValidationException] if the message has an incorrect MAC.
   Future<List<int>> decrypt(
     List<int> input, {
     @required SecretKey secretKey,

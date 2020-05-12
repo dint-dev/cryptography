@@ -18,19 +18,13 @@ import 'dart:typed_data';
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/utils.dart';
 
-/// Private key part of [KeyPair].
+/// A private key of some [KeyPair].
 ///
-/// Equality operator for private keys uses [constantTimeBytesEquality].
+/// You can generate a random private key with [PrivateKey.randomBytes].
 ///
-/// An example of obtaining a private key:
-/// ```
-/// import 'package:cryptography/cryptography.dart';
+/// The equality operator uses [constantTimeBytesEquality].
 ///
-/// void main() {
-///   final keyPair = x25519.newKeyPairSync();
-///   final privateKey = keyPair.privateKey;
-/// }
-/// ```
+/// For examples of usage, see [KeyExchangeAlgorithm] and [SignatureAlgorithm].
 abstract class PrivateKey {
   static final _random = Random.secure();
 
@@ -40,9 +34,21 @@ abstract class PrivateKey {
   /// Constructor for subclasses.
   const PrivateKey.constructor();
 
-  /// Generates N random bytes.
+  /// Generates _N_ random bytes with a cryptographically strong random number
+  /// generator.
   ///
-  /// You can optionally give a random number generator that's used.
+  /// You can optionally give a custom random number generator.
+  ///
+  /// ```
+  /// import 'package:cryptography/cryptography.dart';
+  ///
+  /// void main() {
+  ///   // Generate random 32 bytes (= 256 bits).
+  ///   final privateKey = PrivateKey.randomBytes(32);
+  ///
+  ///   print('Private key: ${privateKey.bytes}');
+  /// }
+  /// ```
   factory PrivateKey.randomBytes(int length, {Random random}) {
     random ??= _random;
     final data = Uint8List(length);
@@ -52,13 +58,16 @@ abstract class PrivateKey {
     return PrivateKey(data);
   }
 
-  /// Extracts the bytes.
+  /// Attempts to extract the bytes asynchronously.
+  /// Throws [UnsupportedError] if extraction is forbidden / unavailable.
   ///
-  /// Throws [UnsupportedError] if extraction is not supported.
+  /// The returned byte list should be treated as immutable.
   Future<List<int>> extract() => Future<List<int>>(() => extractSync());
 
-  /// Extracts the bytes synchronously.
-  /// Throws [UnsupportedError] if extraction is not supported.
+  /// Attempts to extract the bytes synchronously.
+  /// Throws [UnsupportedError] if extraction is forbidden / unavailable.
+  ///
+  /// The returned byte list should be treated as immutable.
   List<int> extractSync();
 }
 

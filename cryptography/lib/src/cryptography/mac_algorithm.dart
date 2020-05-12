@@ -15,55 +15,13 @@
 import 'dart:convert';
 
 import 'package:cryptography/cryptography.dart';
-import 'package:cryptography/utils.dart';
 import 'package:meta/meta.dart';
 
-/// A Message Authentication Code (MAC) produced by [MacAlgorithm].
-class Mac {
-  /// Bytes of the MAC.
-  final List<int> bytes;
-
-  Mac(this.bytes) {
-    ArgumentError.checkNotNull(bytes);
-  }
-
-  @override
-  int get hashCode => constantTimeBytesEquality.hash(bytes);
-
-  @override
-  bool operator ==(other) =>
-      other is Mac && constantTimeBytesEquality.equals(other.bytes, bytes);
-
-  @override
-  String toString() => hexFromBytes(bytes);
-}
-
-/// Superclass for message authentication code algorithms.
+/// A Message Authentication Code (MAC) algorithm.
 ///
-/// Examples:
+/// ## Algorithms
 ///   * [Hmac]
 ///   * [poly1305]
-///
-/// An example of using [Hmac] with [sha256]:
-/// ```
-/// import 'package:cryptography/cryptography.dart';
-///
-/// Future<void> main() {
-///   final secretKey = SecretKey([1,2,3]);
-///
-///   // Create a sink
-///   final sink = Hmac(sha256).newSink(
-///     secretKey: secretKey,
-///   );
-///
-///   // Add parts
-///   sink.add([1,2,3]);
-///   sink.add([4,5]);
-///
-///   // Calculate MAC
-///   sink.close();
-///   final mac = sink.mac;
-/// }
 /// ```
 abstract class MacAlgorithm {
   const MacAlgorithm();
@@ -79,16 +37,23 @@ abstract class MacAlgorithm {
   String get name;
 
   /// Asynchronously calculates message authentication code for the input.
-  Future<Mac> calculateMac(List<int> input,
-      {@required SecretKey secretKey}) async {
+  Future<Mac> calculateMac(
+    List<int> input, {
+    @required SecretKey secretKey,
+  }) async {
     return calculateMacSync(
       input,
       secretKey: secretKey,
     );
   }
 
-  /// Calculates message authentication code for the input.
-  Mac calculateMacSync(List<int> data, {@required SecretKey secretKey}) {
+  /// Calculates message authentication code for the input. This method is
+  /// synchronous and may have lower performance than asynchronous
+  /// [calculateMac].
+  Mac calculateMacSync(
+    List<int> data, {
+    @required SecretKey secretKey,
+  }) {
     ArgumentError.checkNotNull(data);
     ArgumentError.checkNotNull(secretKey);
     final sink = newSink(secretKey: secretKey);

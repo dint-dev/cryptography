@@ -22,7 +22,11 @@ import 'ec_ed25519_impl.dart';
 /// _Ed25519_ ([RFC 8032](https://tools.ietf.org/html/rfc8032)) signature
 /// algorithm.
 ///
-/// An example:
+/// ## About the algorithm
+///   * Private key is any 32-byte sequence.
+///   * Public key is 32 bytes.
+///
+/// ## Example
 /// ```
 /// import 'package:cryptography/cryptography.dart';
 ///

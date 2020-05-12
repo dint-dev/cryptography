@@ -19,7 +19,7 @@ import 'package:cryptography/utils.dart';
 
 /// _BLAKE2S_ hash function ([RFC 7693](https://tools.ietf.org/html/rfc7693)).
 ///
-/// An example:
+/// ## Example
 /// ```
 /// import 'package:cryptography/cryptography.dart';
 ///

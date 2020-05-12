@@ -21,19 +21,14 @@ import 'package:meta/meta.dart';
 
 /// _ChaCha20_ cipher ([RFC 7539](https://tools.ietf.org/html/rfc7539)).
 ///
-/// About the algorithm:
+/// ## Algorithm description
 ///   * You must give 32 byte long `secretKey`.
 ///   * You must give 12 byte long `nonce`. You must never use the same (key,
 ///     nonce) combination twice.
 ///   * The cipher is NOT authenticated. Consider using [chacha20Poly1305Aead].
+///   * You can define index in the key stream with `keyStreamIndex`.
 ///
-/// You can pass ChaCha20_ block counter value with `keyStreamIndex` (index
-/// 0..63 --> counter 0, index 64..128 --> block counter 1, etc.).
-///
-/// When using ChaCha20, you must not use the same key/nonce combination twice.
-/// The message is not authenticated.
-///
-/// An example:
+/// ## Example
 /// ```dart
 /// import 'package:cryptography/cryptography.dart';
 ///
@@ -67,11 +62,15 @@ const Cipher chacha20 = _Chacha20._();
 ///
 /// XChaCha20 uses 192-bit nonces whereas ChaCha20 uses 96-bit nonces.
 ///
-/// About the algorithm:
+/// ## Algorithm description
 ///   * You must give 32 byte long `secretKey`.
 ///   * You must give 12 byte long `nonce`. You must never use the same (key,
 ///     nonce) combination twice.
 ///   * The cipher is NOT authenticated. Consider using [xchacha20Poly1305Aead].
+///
+/// ## Using
+///
+/// See an example in [chacha20].
 const Cipher xchacha20 = _XChaCha20();
 
 /// _HChaCha20_ ([draft-irtf-cfrg-xchacha](https://tools.ietf.org/html/draft-arciszewski-xchacha-03))

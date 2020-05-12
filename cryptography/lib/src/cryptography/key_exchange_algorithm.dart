@@ -17,13 +17,14 @@ import 'package:meta/meta.dart';
 
 /// Superclass for key exchange algorithms.
 ///
-/// Examples:
+/// ## Algorithms
 ///   * [ecdhP256]
 ///   * [ecdhP384]
 ///   * [ecdhP521]
 ///   * [x25519]
 ///
-/// An example:
+/// ## Example
+/// We use [x25519] in this example:
 /// ```dart
 /// import 'package:cryptography/cryptography.dart';
 ///

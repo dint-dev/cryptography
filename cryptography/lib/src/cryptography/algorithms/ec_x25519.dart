@@ -21,13 +21,13 @@ import 'ec_ed25519_impl.dart';
 import 'ec_x25519_impl.dart';
 
 /// _X25519_ ([RFC 7748](https://tools.ietf.org/html/rfc7748)) key exchange
-/// algorithm (ECDH with Curve25519).
+/// algorithm (Curve25519 Diffie-Hellman).
 ///
-/// The current implementation uses 32-bit optimizations described in the paper
-/// ["High-speed Curve25519 on 8-bit, 16-bit, and 32-bit microcontrollers"]
-/// (https://link.springer.com/article/10.1007/s10623-015-0087-1).
+/// ## About the algorithm
+///   * Private key is any 32-byte sequence.
+///   * Public key is 32 bytes.
 ///
-/// An example:
+/// ## Example
 /// ```dart
 /// import 'package:cryptography/cryptography.dart';
 ///
@@ -42,7 +42,7 @@ import 'ec_x25519_impl.dart';
 ///     remotePublicKey: remoteKeyPair.publicKey,
 ///   );
 /// }
-///```
+/// ```
 const KeyExchangeAlgorithm x25519 = _X25519();
 
 class _X25519 extends KeyExchangeAlgorithm {

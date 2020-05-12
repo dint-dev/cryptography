@@ -17,12 +17,31 @@ import 'dart:typed_data';
 import 'package:cryptography/cryptography.dart';
 import 'package:meta/meta.dart';
 
-/// Cipher + MAC code appended in the end.
+/// Wraps some [Cipher] and adds authentication with some [MacAlgorithm].
+///
+/// After encrypting bytes ([encrypt] or [encryptSync]), the class calculates
+/// MAC code and appends it after encrypted bytes.
+///
+/// Before decrypting bytes ([decrypt] or [decryptSync]), the class
+/// checks the MAC and throws [MacValidationException] if it's wrong.
+///
+/// Otherwise behaves like a normal [Cipher].
+///
+/// ## Example
+/// ```
+/// import 'package:cryptography/cryptography.dart';
+///
+/// void main() {
+///   final cipher = CipherWithAppendedMac(chacha20, Hmac(sha256));
+///
+///   // Use it like a normal cipher
+/// }
+/// ```
 class CipherWithAppendedMac implements Cipher {
-  /// Cipher.
+  @protected
   final Cipher cipher;
 
-  /// MAC algorithm.
+  @protected
   final MacAlgorithm macAlgorithm;
 
   const CipherWithAppendedMac(
@@ -48,13 +67,14 @@ class CipherWithAppendedMac implements Cipher {
   @override
   bool get supportsAad => cipher.supportsAad;
 
-  /// Calculates [Mac] for the parameters.
+  @protected
   Future<Mac> calculateMac(
     List<int> cipherText, {
     @required SecretKey secretKey,
     @required Nonce nonce,
     @required List<int> aad,
   }) {
+    assert(!cipher.isAuthenticated);
     if (!supportsAad && aad != null && aad.isNotEmpty) {
       throw ArgumentError.value(aad, 'aad');
     }
@@ -64,13 +84,14 @@ class CipherWithAppendedMac implements Cipher {
     );
   }
 
-  /// Calculates [Mac] for the parameters.
+  @protected
   Mac calculateMacSync(
     List<int> cipherText, {
     @required SecretKey secretKey,
     @required Nonce nonce,
     @required List<int> aad,
   }) {
+    assert(!cipher.isAuthenticated);
     if (!supportsAad && aad != null && aad.isNotEmpty) {
       throw ArgumentError.value(aad, 'aad');
     }

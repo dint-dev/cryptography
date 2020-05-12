@@ -19,11 +19,27 @@ import 'package:meta/meta.dart';
 
 /// HMAC ("hash-based message authentication code").
 ///
-/// An example:
+/// ## Asynchonous usage (recommended)
 /// ```
 /// import 'package:cryptography/cryptography.dart';
 ///
-/// Future<void> main() {
+/// Future<void> main() async {
+///   final secretKey = SecretKey([1,2,3]);
+///   final message = <int>[1,2,3];
+///
+///   final mac = await Hmac(sha256).calculateMac(
+///     message,
+///     secretKey:secretKey,
+///   );
+///   print('MAC: ${mac.bytes}');
+/// }
+/// ```
+///
+/// ## Synchronous usage
+/// ```
+/// import 'package:cryptography/cryptography.dart';
+///
+/// void main() {
 ///   final secretKey = SecretKey([1,2,3]);
 ///
 ///   // Create a sink

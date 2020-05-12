@@ -19,16 +19,11 @@ import 'package:cryptography/utils.dart';
 
 /// A secret sequence of bytes.
 ///
-/// Equality operator for keys uses [constantTimeBytesEquality].
+/// You can generate a random secret key with [SecretKey.randomBytes].
 ///
-/// ```
-/// import 'package:cryptography/cryptography.dart';
+/// The equality operator uses [constantTimeBytesEquality].
 ///
-/// void main() {
-///   // Generates a random 256-bit key.
-///   final secretKey = SecretKey.randomBytes(32);
-/// }
-/// ```
+/// For examples of usage, see [Cipher].
 abstract class SecretKey {
   static final _random = Random.secure();
 
@@ -38,9 +33,15 @@ abstract class SecretKey {
   /// Constructor for subclasses.
   const SecretKey.constructor();
 
-  /// Generates N random bytes.
+  /// Generates _N_ random bytes with a cryptographically strong random number
+  /// generator.
   ///
-  /// You can optionally give a random number generator that's used.
+  /// You can optionally give a custom random number generator.
+  ///
+  /// ```
+  /// // Generate 32 random bytes
+  /// final key = Nonce.randomBytes(32);
+  /// ```
   factory SecretKey.randomBytes(int length, {Random random}) {
     random ??= _random;
     final data = Uint8List(length);
@@ -50,24 +51,18 @@ abstract class SecretKey {
     return SecretKey(data);
   }
 
-  /// Extracts the bytes asynchronously. The returned byte list should be
-  /// treated as immutable.
+  /// Attempts to extract the bytes asynchronously.
+  /// Throws [UnsupportedError] if extraction is forbidden / unavailable.
   ///
-  /// This method is recommended over [extractSync] because some underlying
-  /// implementations, such as Web Cryptography API, do not support synchronous
-  /// extraction.
-  ///
-  /// Throws [UnsupportedError] if extraction is forbidden.
+  /// The returned byte list should be treated as immutable.
   Future<List<int>> extract() {
     return Future<List<int>>.value(extractSync());
   }
 
-  /// Extracts the bytes synchronously. The returned byte list should be
-  /// treated as immutable.
+  /// Attempts to extract the bytes synchronously.
+  /// Throws [UnsupportedError] if extraction is forbidden / unavailable.
   ///
-  /// Throws [UnsupportedError] if extraction
-  /// is forbidden or synchronous extraction is not supported by the underlying
-  /// implementation.
+  /// The returned byte list should be treated as immutable.
   List<int> extractSync();
 }
 

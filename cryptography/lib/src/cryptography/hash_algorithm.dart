@@ -15,31 +15,10 @@
 import 'dart:convert';
 
 import 'package:cryptography/cryptography.dart';
-import 'package:cryptography/utils.dart';
 
-/// An output produced by [HashAlgorithm].
-class Hash {
-  /// Bytes of the hash.
-  final List<int> bytes;
-
-  Hash(this.bytes) {
-    ArgumentError.checkNotNull(bytes, 'bytes');
-  }
-
-  @override
-  int get hashCode => constantTimeBytesEquality.hash(bytes);
-
-  @override
-  bool operator ==(other) =>
-      other is Hash && constantTimeBytesEquality.equals(bytes, other.bytes);
-
-  @override
-  String toString() => 'Hash(...)';
-}
-
-/// Superclass for hash algorithms.
+/// A hash algorithm that produces a [Hash].
 ///
-/// Examples:
+/// ## Algorithms
 ///   * [blake2s]
 ///   * [sha1]
 ///   * [sha224] (SHA2-224)
@@ -47,7 +26,8 @@ class Hash {
 ///   * [sha384] (SHA2-384)
 ///   * [sha512] (SHA2-512)
 ///
-/// An example of using [blake2s]:
+/// ## Example
+/// We [blake2s] in this example:
 /// ```
 /// import 'package:cryptography/cryptography.dart';
 ///
@@ -87,7 +67,8 @@ abstract class HashAlgorithm {
     return Future<Hash>.value(await hashSync(input));
   }
 
-  /// Calculates hash for the argument.
+  /// Calculates hash for the argument synchronously. This method is
+  /// synchronous and may have lower performance than asynchronous [hash].
   Hash hashSync(List<int> data) {
     ArgumentError.checkNotNull(data);
     var sink = newSink();
