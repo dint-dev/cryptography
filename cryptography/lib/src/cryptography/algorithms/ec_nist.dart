@@ -84,7 +84,7 @@ const KeyExchangeAlgorithm ecdhP521 = webEcdhP521;
 ///
 /// Private key export format is `[...d, ...x, ...y]`.
 ///
-/// An example:
+/// ## Example
 /// ```
 /// import 'package:cryptography/cryptography.dart';
 ///
@@ -106,7 +106,7 @@ const SignatureAlgorithm ecdsaP256Sha256 = webEcdsaP256Sha256;
 ///
 /// Private key export format is `[...d, ...x, ...y]`.
 ///
-/// An example:
+/// ## Example
 /// ```
 /// import 'package:cryptography/cryptography.dart';
 ///
@@ -126,7 +126,7 @@ const SignatureAlgorithm ecdsaP384Sha256 = webEcdsaP384Sha256;
 ///
 /// Private key export format is `[...d, ...x, ...y]`.
 ///
-/// An example:
+/// ## Example
 /// ```
 /// import 'package:cryptography/cryptography.dart';
 ///

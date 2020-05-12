@@ -25,7 +25,8 @@ import 'package:meta/meta.dart';
 /// Before decrypting bytes ([decrypt] or [decryptSync]), the class
 /// checks the MAC and throws [MacValidationException] if it's wrong.
 ///
-/// Otherwise behaves like a normal [Cipher].
+/// Other method calls (such as [newNonce]) are delegated directly to the
+/// wrapped cipher.
 ///
 /// ## Example
 /// ```

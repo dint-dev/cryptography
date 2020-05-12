@@ -25,7 +25,7 @@ import 'web_crypto.dart';
 /// The secret key can be any value with 128, 192, or 256 bits. By default, the
 /// key generator returns 256 bit keys.
 ///
-/// An example:
+/// ## Example
 /// ```dart
 /// import 'dart:convert'
 /// import 'package:cryptography/cryptography.dart';
@@ -58,7 +58,7 @@ import 'web_crypto.dart';
 /// ```
 const Cipher aesCbc = webAesCbc ?? dartAesCbc;
 
-/// _AES-CTR_ cipher with a 96-bit nonce and a 32-bit counter.
+/// _AES-CTR_ cipher.
 ///
 /// AES-CTR is NOT authenticated so you should use a separate MAC algorithm
 /// (see example).
@@ -66,10 +66,9 @@ const Cipher aesCbc = webAesCbc ?? dartAesCbc;
 /// The secret key can be any value with 128, 192, or 256 bits. By default, the
 /// key generator returns 256 bit keys.
 ///
-/// AES-CTR takes a 16-byte initialization vector and allows you to specify how
-/// many right-most bits are taken by the counter.
+/// AES-CTR takes a maximum 16-byte [Nonce].
 ///
-/// An example:
+/// ## Example
 /// ```dart
 /// import 'package:cryptography/cryptography.dart';
 ///
@@ -109,7 +108,9 @@ const Cipher aesCtr = webAesCtr ?? dartAesCtr;
 /// The secret key can be any value with 128, 192, or 256 bits. By default, the
 /// key generator returns 256 bit keys.
 ///
-/// An example:
+/// AES-GCM takes a 12-byte [Nonce].
+///
+/// ## Example
 /// ```dart
 /// import 'package:cryptography/cryptography.dart';
 ///

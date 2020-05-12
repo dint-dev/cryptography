@@ -15,16 +15,20 @@
 import 'package:cryptography/cryptography.dart';
 import 'package:meta/meta.dart';
 
-/// Superclass for symmetric authenticated/unauthenticated ciphers.
+/// An authenticated or unauthenticated cipher.
+///
+/// In most situations, you should use authenticated ciphers. You can make
+/// a non-authenticated cipher authenticated by using the subclass
+/// [CipherWithAppendedMac].
 ///
 /// ## Algorithms
 ///   * [aesCbc] (AES-CBC)
 ///   * [aesCtr] (AES-CTR)
-///   * [aesGcm] (AES-GCM)
+///   * [aesGcm] (AES-GCM, authenticated)
 ///   * [chacha20]
-///   * [chacha20Poly1305Aead]
-///   * [CipherWithAppendedMac]
-///     * Uses any [MacAlgorithm] (such as [Hmac]) for authentication.
+///   * [chacha20Poly1305Aead] (authenticated)
+///   * [xchacha20]
+///   * [xchacha20Poly1305Aead] (authenticated)
 ///
 /// ## Example
 /// An example of using [chacha20Poly1305Aead]:

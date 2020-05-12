@@ -23,10 +23,12 @@ import 'package:meta/meta.dart';
 ///
 /// ## Algorithm description
 ///   * You must give 32 byte long `secretKey`.
-///   * You must give 12 byte long `nonce`. You must never use the same (key,
-///     nonce) combination twice.
-///   * The cipher is NOT authenticated. Consider using [chacha20Poly1305Aead].
-///   * You can define index in the key stream with `keyStreamIndex`.
+///   * You must give 12 byte long `nonce`.
+///   * You must never use the same (key, nonce) combination twice.
+///   * The cipher is NOT authenticated.
+///     * Consider using [chacha20Poly1305Aead].
+///   * Optional parameter `keyStreamIndex` enables choosing index in the key
+///     stream.
 ///
 /// ## Example
 /// ```dart
@@ -64,13 +66,14 @@ const Cipher chacha20 = _Chacha20._();
 ///
 /// ## Algorithm description
 ///   * You must give 32 byte long `secretKey`.
-///   * You must give 12 byte long `nonce`. You must never use the same (key,
+///   * You must give 24 byte long `nonce`. You must never use the same (key,
 ///     nonce) combination twice.
-///   * The cipher is NOT authenticated. Consider using [xchacha20Poly1305Aead].
+///   * The cipher is NOT authenticated.
+///     * Consider using [xchacha20Poly1305Aead].
 ///
-/// ## Using
+/// ## Example
 ///
-/// See an example in [chacha20].
+/// See examples in [chacha20].
 const Cipher xchacha20 = _XChaCha20();
 
 /// _HChaCha20_ ([draft-irtf-cfrg-xchacha](https://tools.ietf.org/html/draft-arciszewski-xchacha-03))
