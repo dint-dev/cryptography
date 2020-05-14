@@ -23,7 +23,7 @@ import 'ec_x25519_impl.dart';
 /// _X25519_ ([RFC 7748](https://tools.ietf.org/html/rfc7748)) key exchange
 /// algorithm (Curve25519 Diffie-Hellman).
 ///
-/// ## About the algorithm
+/// ## Things to know
 ///   * Private key is any 32-byte sequence.
 ///   * Public key is 32 bytes.
 ///

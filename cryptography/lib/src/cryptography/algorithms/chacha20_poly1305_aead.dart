@@ -20,15 +20,13 @@ import 'package:meta/meta.dart';
 
 /// _AEAD_CHACHA20_POLY1305_ ([https://tools.ietf.org/html/rfc7539](RFC 7539)) cipher.
 ///
-/// About the algorithm:
-///   * Secret key is 32 bytes.
-///   * Nonce is 12 bytes.  You must not use the same (key, nonce) combination
-///     twice.
-///   * This cipher is authenticated and decrypting will throw [MacValidationException]
-///     if the MAC is invalid.
-///   * Associated Authenticated Data (AAD) is supported.
+/// ## Things to know
+///   * See [chacha20] for information about the cipher.
+///   * This cipher is authenticated and decrypting will throw
+///     [MacValidationException] if the cipherText contains an invalid MAC.
+///   * `aad` (Associated Authenticated Data) is supported.
 ///
-/// An example:
+/// ## Example
 /// ```dart
 /// import 'package:cryptography/cryptography.dart';
 ///
@@ -53,7 +51,7 @@ import 'package:meta/meta.dart';
 ///   // Decrypt.
 ///   //
 ///   // If the message authentication code is incorrect,
-///   // the method will return null.
+///   // the method will throw MacValidationException.
 ///   //
 ///   final decrypted = await algorithm.decrypt(
 ///     cipherText,
@@ -71,13 +69,11 @@ const CipherWithAppendedMac chacha20Poly1305Aead = _Chacha20Poly1305Aead(
 ///
 /// XChaCha20 uses 192-bit nonces whereas ChaCha20 uses 96-bit nonces.
 ///
-/// About the algorithm:
-///   * Secret key is 32 bytes.
-///   * Nonce is 24 bytes.  You must not use the same (key, nonce) combination
-///     twice.
-///   * This cipher is authenticated and decrypting will throw [MacValidationException]
-///     if the MAC is invalid.
-///   * Associated Authenticated Data (AAD) is supported.
+/// ## Things to know
+///   * See [xchacha20] for information about the cipher.
+///   * This cipher is authenticated and decrypting will throw
+///     [MacValidationException] if the cipherText contains an invalid MAC.
+///   * `aad` (Associated Authenticated Data) is supported.
 const CipherWithAppendedMac xchacha20Poly1305Aead = _Chacha20Poly1305Aead(
   name: 'xchacha20Poly1305Aead',
   cipher: xchacha20,
@@ -87,14 +83,14 @@ class _Chacha20Poly1305Aead extends CipherWithAppendedMac {
   static final _tmpByteData = ByteData(16);
   static final _tmpUint8List = Uint8List.view(_tmpByteData.buffer);
 
+  @override
+  final String name;
+
   const _Chacha20Poly1305Aead({
     @required this.name,
     @required Cipher cipher,
     MacAlgorithm macAlgorithm = poly1305,
   }) : super(cipher, macAlgorithm);
-
-  @override
-  final String name;
 
   @override
   bool get supportsAad => true;

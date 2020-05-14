@@ -1,10 +1,19 @@
+## 1.0.4
+  * Internal refactoring. Splits a number of large source files (such as Web Cryptography support)
+    into more readable smaller files.
+  * Adds VM implementation stubs for algorithms that are only supported in the browser (e.g.
+    ecdhP256). The methods throw UnimplementedError in VM.
+  * Improves Poly1305 performance.
+  * Adds a few more tests.
+  * Improves documentation.
+
 ## 1.0.3
   * Improves documentation.
 
 ## 1.0.2
   * Implements automatic use of Web Cryptography API when SHA1 or SHA2 is used in browsers.
     SHA2-512 becomes up to 100 times faster in browsers. ED25519 becomes approximately 30 times
-    faster in browsers by using Web Cryptography API.
+    faster in browsers with the improved SHA512.
   * Better documentation and benchmarks.
 
 ## 1.0.1

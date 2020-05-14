@@ -39,6 +39,31 @@ void main() {
       ...mac.bytes,
     ];
 
+    test('name', () {
+      expect(cipher.name, 'chacha20-Hmac(sha256)');
+    });
+
+    test('isAuthenticated', () {
+      expect(cipher.isAuthenticated, true);
+    });
+
+    test('secretKeyLength', () {
+      expect(cipher.secretKeyLength, 32);
+    });
+
+    test('newSecretKey()', () {
+      expect(cipher.newSecretKeySync().extractSync().length, 32);
+    });
+
+    test('nonceLength', () {
+      expect(cipher.nonceLength, 12);
+    });
+
+    test('newNonce()', () {
+      final nonce = cipher.newNonce();
+      expect(nonce.bytes.length, 12);
+    });
+
     test('encrypt(...)', () async {
       final actual = await cipher.encrypt(
         clearText,

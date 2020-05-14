@@ -12,25 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+library web_crypto;
+
+import 'dart:async';
+import 'dart:convert';
+import 'dart:js' as js;
+import 'dart:js_util' as js;
+import 'dart:typed_data';
+
 import 'package:cryptography/cryptography.dart';
-import 'package:cryptography/utils.dart';
+import 'package:meta/meta.dart';
 
-/// A hash of some message.
-///
-/// A hash can be calculated with some [HashAlgorithm].
-class Hash {
-  /// Bytes of the hash.
-  final List<int> bytes;
+import '../algorithms/aes_impl_cbc.dart' as dart;
+import '../algorithms/aes_impl_ctr.dart' as dart;
+import '../algorithms/aes_impl_gcm.dart' as dart;
+import '../algorithms/ec_dh_impl.dart' as dart;
+import '../algorithms/ec_dsa_impl.dart' as dart;
+import '../algorithms/sha1_sha2_impl.dart' as dart;
+import 'bindings.dart' as web_crypto;
 
-  const Hash(this.bytes) : assert(bytes != null);
-
-  @override
-  int get hashCode => constantTimeBytesEquality.hash(bytes);
-
-  @override
-  bool operator ==(other) =>
-      other is Hash && constantTimeBytesEquality.equals(bytes, other.bytes);
-
-  @override
-  String toString() => 'Hash(0x${hexFromBytes(bytes)})';
-}
+part 'impl/aes.dart';
+part 'impl/ec_dh.dart';
+part 'impl/ec_dsa.dart';
+part 'impl/hashes.dart';
+part 'impl/helpers.dart';

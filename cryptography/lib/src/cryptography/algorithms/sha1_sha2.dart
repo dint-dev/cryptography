@@ -14,14 +14,16 @@
 
 import 'package:cryptography/cryptography.dart';
 
+import '../web_crypto/web_crypto.dart';
 import 'sha1_sha2_impl.dart';
-import 'web_crypto.dart';
 
 /// _SHA1_, an old cryptographic hash function that's not recommended for new
 /// applications.
 ///
-/// In browser, the implementation uses [Web Cryptography API](https://www.w3.org/TR/WebCryptoAPI/).
-/// In other platforms, the implementation uses [package:crypto](https://pub.dev/packages/crypto),
+/// In browser, asynchronous methods are able to take advantage of
+/// [Web Cryptography API](https://www.w3.org/TR/WebCryptoAPI/), which provides
+/// significantly better performance.
+/// Otherwise the implementation uses [package:crypto](https://pub.dev/packages/crypto),
 /// which is maintained by Google.
 ///
 /// ## Asynchonous usage (recommended)
@@ -47,11 +49,11 @@ import 'web_crypto.dart';
 ///   // Create a sink
 ///   final sink = sha1.newSink();
 ///
-///   // Add all parts
+///   // Add any number of chunks
 ///   sink.add(<int>[1,2,3]);
 ///   sink.add(<int>[4,5]);
 ///
-///   // Calculate hash
+///   // Calculate the hash
 ///   sink.close();
 ///   final hash = sink.hash;
 ///
@@ -62,8 +64,10 @@ const HashAlgorithm sha1 = webSha1 ?? dartSha1;
 
 /// _SHA224_, a function in the SHA2 family of cryptographic hash functions.
 ///
-/// In browser, the implementation uses [Web Cryptography API](https://www.w3.org/TR/WebCryptoAPI/).
-/// In other platforms, the implementation uses [package:crypto](https://pub.dev/packages/crypto),
+/// In browser, asynchronous methods are able to take advantage of
+/// [Web Cryptography API](https://www.w3.org/TR/WebCryptoAPI/), which provides
+/// significantly better performance.
+/// Otherwise the implementation uses [package:crypto](https://pub.dev/packages/crypto),
 /// which is maintained by Google.
 ///
 /// ## Example: synchronous usage
@@ -89,8 +93,10 @@ const HashAlgorithm sha224 = dartSha224;
 
 /// _SHA256_, a function in the SHA2 family of cryptographic hash functions.
 ///
-/// In browser, the implementation uses [Web Cryptography API](https://www.w3.org/TR/WebCryptoAPI/).
-/// In other platforms, the implementation uses [package:crypto](https://pub.dev/packages/crypto),
+/// In browser, asynchronous methods are able to take advantage of
+/// [Web Cryptography API](https://www.w3.org/TR/WebCryptoAPI/), which provides
+/// significantly better performance.
+/// Otherwise the implementation uses [package:crypto](https://pub.dev/packages/crypto),
 /// which is maintained by Google.
 ///
 /// ## Asynchonous usage (recommended)
@@ -116,11 +122,11 @@ const HashAlgorithm sha224 = dartSha224;
 ///   // Create a sink
 ///   final sink = sha256.newSink();
 ///
-///   // Add all parts
+///   // Add any number of chunks
 ///   sink.add(<int>[1,2,3]);
 ///   sink.add(<int>[4,5]);
 ///
-///   // Calculate hash
+///   // Calculate the hash
 ///   sink.close();
 ///   final hash = sink.hash;
 ///
@@ -131,8 +137,10 @@ const HashAlgorithm sha256 = webSha256 ?? dartSha256;
 
 /// _SHA385_, a function in the SHA2 family of cryptographic hash functions.
 ///
-/// In browser, the implementation uses [Web Cryptography API](https://www.w3.org/TR/WebCryptoAPI/).
-/// In other platforms, the implementation uses [package:crypto](https://pub.dev/packages/crypto),
+/// In browser, asynchronous methods are able to take advantage of
+/// [Web Cryptography API](https://www.w3.org/TR/WebCryptoAPI/), which provides
+/// significantly better performance.
+/// Otherwise the implementation uses [package:crypto](https://pub.dev/packages/crypto),
 /// which is maintained by Google.
 ///
 /// ## Asynchonous usage (recommended)
@@ -158,11 +166,11 @@ const HashAlgorithm sha256 = webSha256 ?? dartSha256;
 ///   // Create a sink
 ///   final sink = sha384.newSink();
 ///
-///   // Add all parts
+///   // Add any number of chunks
 ///   sink.add(<int>[1,2,3]);
 ///   sink.add(<int>[4,5]);
 ///
-///   // Calculate hash
+///   // Calculate the hash
 ///   sink.close();
 ///   final hash = sink.hash;
 ///
@@ -173,8 +181,10 @@ const HashAlgorithm sha384 = webSha384 ?? dartSha384;
 
 /// _SHA512_, a function in the SHA2 family of cryptographic hash functions.
 ///
-/// In browser, the implementation uses [Web Cryptography API](https://www.w3.org/TR/WebCryptoAPI/).
-/// In other platforms, the implementation uses [package:crypto](https://pub.dev/packages/crypto),
+/// In browser, asynchronous methods are able to take advantage of
+/// [Web Cryptography API](https://www.w3.org/TR/WebCryptoAPI/), which provides
+/// significantly better performance.
+/// Otherwise the implementation uses [package:crypto](https://pub.dev/packages/crypto),
 /// which is maintained by Google.
 ///
 /// ## Asynchonous usage (recommended)
@@ -200,11 +210,11 @@ const HashAlgorithm sha384 = webSha384 ?? dartSha384;
 ///   // Create a sink
 ///   final sink = sha512.newSink();
 ///
-///   // Add all parts
+///   // Add any number of chunks
 ///   sink.add(<int>[1,2,3]);
 ///   sink.add(<int>[4,5]);
 ///
-///   // Calculate hash
+///   // Calculate the hash
 ///   sink.close();
 ///   final hash = sink.hash;
 ///

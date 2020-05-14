@@ -13,30 +13,38 @@
 // limitations under the License.
 
 import 'package:cryptography/cryptography.dart';
-import 'package:cryptography/utils.dart';
 
-/// A Message Authentication Code (MAC).
-///
-/// A MAC can be calculated with some [MacAlgorithm].
-class Mac {
-  /// Bytes of the MAC.
-  final List<int> bytes;
+import 'aes_impl_base.dart';
 
-  const Mac(this.bytes) : assert(bytes != null);
+const Cipher dartAesGcm = _AesGcm();
+
+class _AesGcm extends AesCipher {
+  const _AesGcm();
 
   @override
-  int get hashCode => constantTimeBytesEquality.hash(bytes);
+  bool get isAuthenticated => true;
 
   @override
-  bool operator ==(other) =>
-      other is Mac && constantTimeBytesEquality.equals(other.bytes, bytes);
+  String get name => 'aesGcm';
 
   @override
-  String toString() => 'Mac(0x${hexFromBytes(bytes)})';
-}
+  int get nonceLength => 12;
 
-/// An exception thrown by [Cipher] when decrypted bytes have invalid [Mac].
-class MacValidationException implements Exception {
   @override
-  String toString() => 'Message authentication code (MAC) is invalid';
+  List<int> decryptSync(List<int> input,
+      {SecretKey secretKey,
+      Nonce nonce,
+      List<int> aad,
+      int keyStreamIndex = 0}) {
+    throw UnimplementedError();
+  }
+
+  @override
+  List<int> encryptSync(List<int> input,
+      {SecretKey secretKey,
+      Nonce nonce,
+      List<int> aad,
+      int keyStreamIndex = 0}) {
+    throw UnimplementedError();
+  }
 }

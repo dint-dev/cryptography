@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/utils.dart';
@@ -20,7 +21,51 @@ import 'package:test/test.dart';
 
 void main() {
   group('poly1305:', () {
-    test('MAC calculation', () async {
+    test('100 000 cycles', () async {
+      var k = SecretKey(Uint8List(32)
+        ..[0] = 1
+        ..[2] = 2);
+      var state = utf8.encode('Hello world');
+      for (var i = 0; i < 100000; i++) {
+        state = poly1305.calculateMacSync(state, secretKey: k).bytes;
+
+        // Change key to something else
+        final kBytes = Uint8List(32);
+        kBytes.setAll(0, state);
+        kBytes.setAll(16, state);
+        for (var i = 0; i < kBytes.length; i++) {
+          kBytes[i] = (kBytes[i] + i) % 256;
+        }
+        k = SecretKey(kBytes);
+      }
+      expect(
+        hexFromBytes(state),
+        hexFromBytes(hexToBytes(
+          '2b a2 02 d1 83 82 24 83 fa e2 33 8c 1c 9a 88 e3',
+        )),
+      );
+    });
+
+    test('Empty message', () async {
+      final inputBytes = hexToBytes('');
+      final secretKey = SecretKey(hexToBytes(
+        '85:d6:be:78:57:55:6d:33:7f:44:52:fe:42:d5:06:a8:01:03:80:8a:fb:0d:b2:fd:4a:bf:f6:af:41:49:f5:1b',
+      ));
+      final expectedMac = Mac(hexToBytes(
+        '86 d9 3e 93 4f 63 1f 01 c7 03 49 be 81 1e fc 23',
+      ));
+
+      final mac = await poly1305.calculateMac(
+        inputBytes,
+        secretKey: secretKey,
+      );
+      expect(
+        hexFromBytes(mac.bytes),
+        hexFromBytes(expectedMac.bytes),
+      );
+    });
+
+    test('Example in the RFC: full message', () async {
       // -------------------------------------------------------------------------
       // The following input/output constants are copied from the RFC 7539:
       // https://tools.ietf.org/html/rfc7539
@@ -35,9 +80,6 @@ void main() {
         'a8:06:1d:c1:30:51:36:c6:c2:2b:8b:af:0c:01:27:a9',
       ));
 
-      // -----------------------------------------------------------------------
-      // End of constants from RFC 7539
-      // -----------------------------------------------------------------------
       final mac = await poly1305.calculateMac(
         inputBytes,
         secretKey: secretKey,
@@ -67,10 +109,6 @@ void main() {
         '8a d5 a0 8b 90 5f 81 cc 81 50 40 27 4a b2 94 71'
         'a8 33 b6 37 e3 fd 0d a5 08 db b8 e2 fd d1 a6 46',
       ));
-
-      // -----------------------------------------------------------------------
-      // End of constants from RFC 7539
-      // -----------------------------------------------------------------------
 
       final poly1305Key = await poly1305SecretKeyFromChacha20(
         secretKey,

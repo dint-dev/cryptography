@@ -17,147 +17,11 @@ import 'dart:typed_data';
 import 'package:cryptography/cryptography.dart';
 import 'package:meta/meta.dart';
 
-import 'aes_impl_block_function.dart';
-
-void _xorBlock(
-  List<int> result,
-  int resultStart,
-  List<int> arg,
-  int argStart,
-  int length,
-) {
-  for (var i = 0; i < length; i++) {
-    result[resultStart + i] ^= arg[argStart + i];
-  }
-}
-
-const Cipher dartAesCbc = _AesCbc();
+import 'aes_impl_base.dart';
 
 const Cipher dartAesCtr = _AesCtr();
 
-class _AesCbc extends Cipher {
-  const _AesCbc();
-
-  @override
-  String get name => 'aesCbc';
-
-  @override
-  int get nonceLength => 16;
-
-  @override
-  int get secretKeyLength => 32;
-
-  @override
-  Set<int> get secretKeyValidLengths => const {16, 24, 32};
-
-  @override
-  List<int> decryptSync(
-    List<int> input, {
-    @required SecretKey secretKey,
-    @required Nonce nonce,
-    List<int> aad,
-    int keyStreamIndex = 0,
-  }) {
-    if (aad != null) {
-      throw ArgumentError.value(
-        aad,
-        'aad',
-        'Must be null',
-      );
-    }
-    if (nonce.bytes.length != 16) {
-      throw ArgumentError.value(
-        nonce,
-        'nonce',
-        'Must be 16 bytes',
-      );
-    }
-    if (keyStreamIndex != 0) {
-      throw ArgumentError.value(
-        keyStreamIndex,
-        'keyStreamIndex',
-        'Must be 0',
-      );
-    }
-    final preparedKey = prepareDecrypt(secretKey.extractSync());
-    final output = Uint8List(input.length);
-    for (var i = 0; i < output.length; i += 16) {
-      aesDecryptBlock(output, i, input, i, preparedKey);
-      if (i == 0) {
-        _xorBlock(output, i, nonce.bytes, 0, 16);
-      } else {
-        _xorBlock(output, i, input, i - 16, 16);
-      }
-    }
-
-    // PKCS7 padding
-    final paddingLength = output.last;
-    if (paddingLength == 0 || paddingLength > 16) {
-      throw StateError('Invalid padding length: $paddingLength');
-    }
-    for (var i = output.length - paddingLength; i < output.length; i++) {
-      if (output[i] != paddingLength) {
-        throw StateError('Missing padding');
-      }
-    }
-    return Uint8List.view(
-      output.buffer,
-      output.offsetInBytes,
-      output.length - paddingLength,
-    );
-  }
-
-  @override
-  List<int> encryptSync(
-    List<int> input, {
-    @required SecretKey secretKey,
-    @required Nonce nonce,
-    List<int> aad,
-    int keyStreamIndex = 0,
-  }) {
-    if (aad != null) {
-      throw ArgumentError.value(
-        aad,
-        'aad',
-        'Must be null',
-      );
-    }
-    if (nonce.bytes.length != 16) {
-      throw ArgumentError.value(
-        nonce,
-        'nonce',
-        'Must be 16 bytes',
-      );
-    }
-    if (keyStreamIndex != 0) {
-      throw ArgumentError.value(
-        keyStreamIndex,
-        'keyStreamIndex',
-        'Must be 0',
-      );
-    }
-
-    // PKCS7 padding
-    final inputLength = input.length;
-    final paddingLength = 16 - (inputLength % 16);
-    final output = Uint8List(inputLength + paddingLength);
-    output.setAll(0, input);
-    output.fillRange(inputLength, output.length, paddingLength);
-
-    final preparedKey = prepareEncrypt(secretKey.extractSync());
-    for (var i = 0; i < output.length; i += 16) {
-      if (i == 0) {
-        _xorBlock(output, i, nonce.bytes, 0, 16);
-      } else {
-        _xorBlock(output, i, output, i - 16, 16);
-      }
-      aesEncryptBlock(output, i, output, i, preparedKey);
-    }
-    return output;
-  }
-}
-
-class _AesCtr extends Cipher {
+class _AesCtr extends AesCipher {
   const _AesCtr();
 
   @override
@@ -225,7 +89,7 @@ class _AesCtr extends Cipher {
       }
 
       // XOR
-      _xorBlock(output, i, input, i, blockLength);
+      xorBlock(output, i, input, i, blockLength);
 
       // Increment nonce
       nonceBytes = Nonce(nonceBytes).increment().bytes;
@@ -286,7 +150,7 @@ class _AesCtr extends Cipher {
       }
 
       // XOR
-      _xorBlock(output, i, input, i, blockLength);
+      xorBlock(output, i, input, i, blockLength);
 
       // Increment nonce
       nonceBytes = Nonce(nonceBytes).increment().bytes;

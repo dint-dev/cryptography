@@ -22,29 +22,29 @@ Future<void> main() async {
   {
     const size = 64;
     print('64-byte message:');
-    await SignBenchmark(ed25519, size).report();
-    await SignSyncBenchmark(ed25519, size).report();
-    await VerifyBenchmark(ed25519, size).report();
-    await VerifySyncBenchmark(ed25519, size).report();
+    await _Sign(ed25519, size).report();
+    await _SignSync(ed25519, size).report();
+    await _Verify(ed25519, size).report();
+    await _VerifySync(ed25519, size).report();
     print('');
   }
 
   {
     const size = 1000000;
     print('1 MB message:');
-    await SignBenchmark(ed25519, size).report();
-    await SignSyncBenchmark(ed25519, size).report();
-    await VerifyBenchmark(ed25519, size).report();
-    await VerifySyncBenchmark(ed25519, size).report();
+    await _Sign(ed25519, size).report();
+    await _SignSync(ed25519, size).report();
+    await _Verify(ed25519, size).report();
+    await _VerifySync(ed25519, size).report();
     print('');
   }
 }
 
-class SignBenchmark extends SimpleBenchmark {
+class _Sign extends SimpleBenchmark {
   final SignatureAlgorithm implementation;
   final int length;
 
-  SignBenchmark(this.implementation, this.length)
+  _Sign(this.implementation, this.length)
       : super('${implementation.name}.sign()');
 
   List<int> message;
@@ -63,11 +63,11 @@ class SignBenchmark extends SimpleBenchmark {
   }
 }
 
-class SignSyncBenchmark extends SimpleBenchmark {
+class _SignSync extends SimpleBenchmark {
   final SignatureAlgorithm implementation;
   final int length;
 
-  SignSyncBenchmark(this.implementation, this.length)
+  _SignSync(this.implementation, this.length)
       : super('${implementation.name}.signSync()');
 
   List<int> message;
@@ -86,11 +86,11 @@ class SignSyncBenchmark extends SimpleBenchmark {
   }
 }
 
-class VerifyBenchmark extends SimpleBenchmark {
+class _Verify extends SimpleBenchmark {
   final SignatureAlgorithm implementation;
   final int length;
 
-  VerifyBenchmark(this.implementation, this.length)
+  _Verify(this.implementation, this.length)
       : super('${implementation.name}.verify()');
 
   List<int> message;
@@ -114,11 +114,11 @@ class VerifyBenchmark extends SimpleBenchmark {
   }
 }
 
-class VerifySyncBenchmark extends SimpleBenchmark {
+class _VerifySync extends SimpleBenchmark {
   final SignatureAlgorithm implementation;
   final int length;
 
-  VerifySyncBenchmark(this.implementation, this.length)
+  _VerifySync(this.implementation, this.length)
       : super('${implementation.name}.verifySync()');
 
   List<int> message;

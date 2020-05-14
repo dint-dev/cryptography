@@ -16,6 +16,7 @@ import 'dart:typed_data';
 
 final _byteMask = BigInt.from(255);
 
+/// Converts bytes to [BigInt]. Uses little-endian byte order.
 BigInt bigIntFromBytes(List<int> bytes) {
   var result = BigInt.zero;
   for (var i = bytes.length - 1; i >= 0; i--) {
@@ -24,10 +25,10 @@ BigInt bigIntFromBytes(List<int> bytes) {
   return result;
 }
 
-/// Converts bi
+/// Converts [BigInt] to bytes. Uses little-endian byte order.
 Uint8List bigIntToBytes(BigInt value, List<int> result) {
   final original = value;
-  for (var i = 0; i < 32; i++) {
+  for (var i = 0; i < result.length; i++) {
     result[i] = (_byteMask & value).toInt();
     value >>= 8;
   }

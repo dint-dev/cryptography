@@ -19,7 +19,22 @@ import 'package:cryptography/utils.dart';
 
 /// _BLAKE2S_ hash function ([RFC 7693](https://tools.ietf.org/html/rfc7693)).
 ///
-/// ## Example
+/// ## Asynchronous usage
+/// ```
+/// import 'package:cryptography/cryptography.dart';
+///
+/// Future<void> main() async {
+///   final message = <int>[1,2,3];
+///
+///   final hash = await blake.hash(
+///     message,
+///   );
+///
+///   print('Hash: ${hash.bytes}');
+/// }
+/// ```
+///
+/// ## Synchronous usage
 /// ```
 /// import 'package:cryptography/cryptography.dart';
 ///
@@ -27,11 +42,11 @@ import 'package:cryptography/utils.dart';
 ///   // Create a sink
 ///   final sink = blake2s.newSink();
 ///
-///   // Add all parts
+///   // Add any number of chunks
 ///   sink.add(<int>[1,2,3]);
 ///   sink.add(<int>[4,5]);
 ///
-///   // Calculate hash
+///   // Calculate the hash
 ///   sink.close();
 ///   final hash = sink.hash;
 ///

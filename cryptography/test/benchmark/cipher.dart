@@ -24,41 +24,42 @@ Future<void> main() async {
     const messageLength = 100;
 
     print('10k x 100b messages:');
-    await CipherEncryptBenchmark(chacha20, MB, messageLength).report();
-    await CipherEncryptSyncBenchmark(chacha20, MB, messageLength).report();
-    await CipherEncryptBenchmark(chacha20Poly1305Aead, MB, messageLength)
-        .report();
-    await CipherEncryptBenchmark(aesCbc, MB, messageLength).report();
-    await CipherEncryptSyncBenchmark(aesCbc, MB, messageLength).report();
-    await CipherEncryptBenchmark(
+    await _Encrypt(chacha20, MB, messageLength).report();
+    await _EncryptSync(chacha20, MB, messageLength).report();
+    await _Encrypt(chacha20Poly1305Aead, MB, messageLength).report();
+    await _Encrypt(aesCbc, MB, messageLength).report();
+    await _EncryptSync(aesCbc, MB, messageLength).report();
+    await _Encrypt(
             CipherWithAppendedMac(aesCbc, Hmac(sha256)), MB, messageLength)
         .report();
-    await CipherEncryptBenchmark(aesCtr, MB, messageLength).report();
-    await CipherEncryptSyncBenchmark(aesCtr, MB, messageLength).report();
-    await CipherEncryptBenchmark(
+    await _EncryptSync(
+            CipherWithAppendedMac(aesCbc, Hmac(sha256)), MB, messageLength)
+        .report();
+    await _Encrypt(aesCtr, MB, messageLength).report();
+    await _EncryptSync(aesCtr, MB, messageLength).report();
+    await _Encrypt(
             CipherWithAppendedMac(aesCtr, Hmac(sha256)), MB, messageLength)
         .report();
     print('');
   }
 
   print('1 MB messages:');
-  await CipherEncryptBenchmark(chacha20, MB).report();
-  await CipherEncryptSyncBenchmark(chacha20, MB).report();
-  await CipherEncryptBenchmark(chacha20Poly1305Aead, MB).report();
+  await _Encrypt(chacha20, MB).report();
+  await _EncryptSync(chacha20, MB).report();
+  await _Encrypt(chacha20Poly1305Aead, MB).report();
 
-  await CipherEncryptBenchmark(aesCbc, MB).report();
-  await CipherEncryptSyncBenchmark(aesCbc, MB).report();
-  await CipherEncryptBenchmark(CipherWithAppendedMac(aesCbc, Hmac(sha256)), MB)
-      .report();
+  await _Encrypt(aesCbc, MB).report();
+  await _EncryptSync(aesCbc, MB).report();
+  await _Encrypt(CipherWithAppendedMac(aesCbc, Hmac(sha256)), MB).report();
+  await _EncryptSync(CipherWithAppendedMac(aesCbc, Hmac(sha256)), MB).report();
 
-  await CipherEncryptBenchmark(aesCtr, MB).report();
-  await CipherEncryptSyncBenchmark(aesCtr, MB).report();
-  await CipherEncryptBenchmark(CipherWithAppendedMac(aesCtr, Hmac(sha256)), MB)
-      .report();
+  await _Encrypt(aesCtr, MB).report();
+  await _EncryptSync(aesCtr, MB).report();
+  await _Encrypt(CipherWithAppendedMac(aesCtr, Hmac(sha256)), MB).report();
   print('');
 }
 
-class CipherEncryptBenchmark extends SimpleBenchmark {
+class _Encrypt extends SimpleBenchmark {
   final Cipher cipher;
   final int totalLength;
   final int messageLength;
@@ -67,7 +68,7 @@ class CipherEncryptBenchmark extends SimpleBenchmark {
   Uint8List cleartext;
   Uint8List result;
 
-  CipherEncryptBenchmark(this.cipher, this.totalLength, [int messageLength])
+  _Encrypt(this.cipher, this.totalLength, [int messageLength])
       : messageLength = messageLength ?? totalLength,
         super('${cipher.name}.encrypt()');
 
@@ -94,7 +95,7 @@ class CipherEncryptBenchmark extends SimpleBenchmark {
   }
 }
 
-class CipherEncryptSyncBenchmark extends SimpleBenchmark {
+class _EncryptSync extends SimpleBenchmark {
   final Cipher cipher;
   final int totalLength;
   final int messageLength;
@@ -103,7 +104,7 @@ class CipherEncryptSyncBenchmark extends SimpleBenchmark {
   Uint8List cleartext;
   Uint8List result;
 
-  CipherEncryptSyncBenchmark(this.cipher, this.totalLength, [int messageLength])
+  _EncryptSync(this.cipher, this.totalLength, [int messageLength])
       : messageLength = messageLength ?? totalLength,
         super('${cipher.name}.encryptSync()');
 

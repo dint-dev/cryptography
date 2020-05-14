@@ -15,11 +15,23 @@
 import 'dart:typed_data';
 
 /// Converts a list of bytes to a hexadecimal string.
-String hexFromBytes(Iterable<int> list) {
-  if (list == null) {
+String hexFromBytes(Iterable<int> iterable) {
+  if (iterable == null) {
     return 'null';
   }
-  return list.map((v) => v.toRadixString(16).padLeft(2, '0')).join(' ');
+  final list = iterable.toList();
+  final sb = StringBuffer();
+  for (var i = 0; i < list.length; i++) {
+    if (i > 0) {
+      if (i % 16 == 0) {
+        sb.write('\n');
+      } else {
+        sb.write(' ');
+      }
+    }
+    sb.write(list[i].toRadixString(16).padLeft(2, '0'));
+  }
+  return sb.toString();
 }
 
 /// Converts a hexadecimal string to a list of bytes.

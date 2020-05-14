@@ -23,10 +23,9 @@ void main() {
     test('information', () {
       expect(algorithm.name, 'chacha20Poly1305Aead');
       expect(algorithm.isAuthenticated, isTrue);
+      expect(algorithm.nonceLength, 12);
       expect(algorithm.secretKeyLength, 32);
       expect(algorithm.secretKeyValidLengths, unorderedEquals({32}));
-      expect(algorithm.cipher, same(chacha20));
-      expect(algorithm.macAlgorithm, same(poly1305));
     });
 
     test('contains MAC (async)', () async {

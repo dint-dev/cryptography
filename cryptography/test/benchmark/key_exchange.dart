@@ -17,13 +17,39 @@ import 'package:cryptography/cryptography.dart';
 import 'benchmark_helpers.dart';
 
 Future<void> main() async {
-  await SharedSecretBenchmark(x25519).report();
+  await _SharedSecret(x25519).report();
+  await _SharedSecretSync(x25519).report();
 }
 
-class SharedSecretBenchmark extends SimpleBenchmark {
+class _SharedSecret extends SimpleBenchmark {
   final KeyExchangeAlgorithm implementation;
 
-  SharedSecretBenchmark(this.implementation) : super(implementation.name);
+  _SharedSecret(this.implementation)
+      : super('${implementation.name}.sharedSecret()');
+
+  KeyPair keypair1;
+  KeyPair keypair2;
+
+  @override
+  void setup() {
+    keypair1 = implementation.newKeyPairSync();
+    keypair2 = implementation.newKeyPairSync();
+  }
+
+  @override
+  void run() {
+    implementation.sharedSecret(
+      localPrivateKey: keypair1.privateKey,
+      remotePublicKey: keypair2.publicKey,
+    );
+  }
+}
+
+class _SharedSecretSync extends SimpleBenchmark {
+  final KeyExchangeAlgorithm implementation;
+
+  _SharedSecretSync(this.implementation)
+      : super('${implementation.name}.sharedSecretSync()');
 
   KeyPair keypair1;
   KeyPair keypair2;

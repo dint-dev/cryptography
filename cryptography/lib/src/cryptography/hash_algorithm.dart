@@ -49,7 +49,8 @@ import 'package:cryptography/cryptography.dart';
 abstract class HashAlgorithm {
   const HashAlgorithm();
 
-  /// The internal block size in bytes.
+  /// The internal block size in bytes. This information is required by some
+  /// algorithms such as [Hmac].
   int get blockLengthInBytes;
 
   /// Digest size in bytes.
@@ -67,8 +68,11 @@ abstract class HashAlgorithm {
     return Future<Hash>.value(await hashSync(input));
   }
 
-  /// Calculates hash for the argument synchronously. This method is
-  /// synchronous and may have lower performance than asynchronous [hash].
+  /// Calculates hash for the argument synchronously.
+  ///
+  /// This method is synchronous and may have lower performance than
+  /// asynchronous [hash] because this method can't take advantage of
+  /// asynchronous platform API such as _Web Cryptography API_.
   Hash hashSync(List<int> data) {
     ArgumentError.checkNotNull(data);
     var sink = newSink();
@@ -77,8 +81,9 @@ abstract class HashAlgorithm {
     return sink.hash;
   }
 
-  /// Creates a new sink for calculating hash from many parts.
+  /// Constructs a sink for calculating a hash.
   ///
+  /// ## Example
   /// An example with [sha256]:
   /// ```
   /// import 'package:cryptography/cryptography.dart';
@@ -87,12 +92,14 @@ abstract class HashAlgorithm {
   ///   // Create a sink
   ///   final sink = sha256.newSink();
   ///
-  ///   // Add all parts
+  ///   // Add any number of chunks
   ///   sink.add([1,2,3]);
   ///   sink.add([4,5]);
   ///
-  ///   // Calculate hash
+  ///   // Close
   ///   sink.close();
+  ///
+  ///   // We have a hash
   ///   final hash = sink.hash;
   ///
   ///   print('Hash: ${hash.bytes}');
@@ -105,6 +112,29 @@ abstract class HashAlgorithm {
 }
 
 /// Enables calculation of [Hash] for inputs larger than fit in the memory.
+///
+/// ## Example
+/// An example with [sha256]:
+/// ```
+/// import 'package:cryptography/cryptography.dart';
+///
+/// void main() {
+///   // Create a sink
+///   final sink = sha256.newSink();
+///
+///   // Add any number of chunks
+///   sink.add([1,2,3]);
+///   sink.add([4,5]);
+///
+///   // Close
+///   sink.close();
+///
+///   // We have a hash
+///   final hash = sink.hash;
+///
+///   print('Hash: ${hash.bytes}');
+/// }
+/// ```
 abstract class HashSink extends ByteConversionSink {
   /// Result after calling `close()`.
   Hash get hash;

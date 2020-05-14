@@ -5,6 +5,13 @@
 Popular cryptographic algorithms for [Dart](https://dart.dev) / [Flutter](https://flutter.dev)
 developers. Licensed under the [Apache License 2.0](LICENSE).
 
+This package is:
+  * __Commercially used__. Unlike some  other open-source packages, this package doesn't have
+    license issues. Correctness and audit-friendliness critical to us.
+  * __Fast__. For example, our benchmarks show that SHA-512 performance in browsers can be _over
+    100 times faster_ than _package:crypto_ by Google (thanks to use of platform APIs).
+  * __Easy__. This is probably the easiest-to-use cryptographic package written in Dart.
+
 Any feedback, issue reports, or pull requests are appreciated!
 See [our Github project](https://github.com/dint-dev/cryptography).
 
@@ -37,68 +44,70 @@ See [our Github project](https://github.com/dint-dev/cryptography).
 
 ## Available algorithms
 ### Key exchange algorithms
-  * NIST elliptic curves ([read about the algorithm](https://en.wikipedia.org/wiki/Elliptic-curve_cryptography))
+Key exchange algorithms are subclasses of [KeyExchangeAlgorithm](https://pub.dev/documentation/cryptography/latest/cryptography/KeyExchangeAlgorithm-class.html).
+The following implementations are available:
+  * Elliptic curves approved by NIST ([read about the algorithm](https://en.wikipedia.org/wiki/Elliptic-curve_cryptography))
     * [ecdhP256](https://pub.dev/documentation/cryptography/latest/cryptography/ecdhP256-constant.html) (ECDH P256 / secp256r1 / prime256v1)
     * [ecdhP384](https://pub.dev/documentation/cryptography/latest/cryptography/ecdhP384-constant.html) (ECDH P384 / secp384r1 / prime384v1)
     * [ecdhP521](https://pub.dev/documentation/cryptography/latest/cryptography/ecdhP521-constant.html) (ECDH P521 / secp521r1 / prime521v1)
-    * Currently NIST elliptic curves are only supported in browsers (_Web Cryptography API_).
+    * Currently these elliptic curves are only supported in browsers (_Web Cryptography API_).
   * [x25519](https://pub.dev/documentation/cryptography/latest/cryptography/x25519-constant.html) ([read about the algorithm](https://en.wikipedia.org/wiki/Curve25519))
-    * X25519 (curve25519 Diffie-Hellman) is a popular key exchange algorithm and it's our
-      recommendation for new applications. Performance of our Dart implementation is about 1k
-      exchanges per second in VM.
+    * X25519 (curve25519 Diffie-Hellman) is a popular, often-recommended key agreement algorithm.
+      In our benchmarks, we observe performance of around 1k operations per second in VM.
 
 For more more documentation, see [KeyExchangeAlgorithm](https://pub.dev/documentation/cryptography/latest/cryptography/KeyExchangeAlgorithm-class.html).
 
 ### Digital signature algorithms
-  * NIST elliptic curves ([read about the algorithm](https://en.wikipedia.org/wiki/Elliptic-curve_cryptography))
-    * [ecdsaP256Sha256](https://pub.dev/documentation/cryptography/latest/cryptography/ecdsaP256Sha256-constant.html) (ECDSA P256 / secp256r1 / prime256v1)
-    * [ecdsaP384Sha256](https://pub.dev/documentation/cryptography/latest/cryptography/ecdsaP384Sha256-constant.html) (ECDSA P384 / secp384r1 / prime384v1)
-    * [ecdsaP521Sha256](https://pub.dev/documentation/cryptography/latest/cryptography/ecdsaP521Sha256-constant.html) (ECDSA P521 / secp521r1 / prime521v1)
-    * Currently NIST elliptic curves are only supported in browsers (_Web Cryptography API_).
+Signature algorithms are subclasses of [SignatureAlgorithm](https://pub.dev/documentation/cryptography/latest/cryptography/SignatureAlgorithm-class.html).
+The following implementations are available:
   * [ed25519](https://pub.dev/documentation/cryptography/latest/cryptography/ed25519-constant.html) ([read about the algorithm](https://en.wikipedia.org/wiki/EdDSA))
-    * ED25519 (curve25519 EdDSA) is a popular signature algorithm and it's our recommendation for
-      new applications. Performance of our Dart implementation is about 200 signatures or
-      verifications per second in VM (about 50 in browsers).
-
-For more more documentation, see [SignatureAlgorithm](https://pub.dev/documentation/cryptography/latest/cryptography/SignatureAlgorithm-class.html).
+    * ED25519 (curve25519 EdDSA) is a popular, often-recommended signature algorithm.
+      In our benchmarks, we observe performance of around 200 signatures or verifications per
+      second in VM (about 50 in browsers).
+  * Elliptic curves approved by NIST ([read about the algorithm](https://en.wikipedia.org/wiki/Elliptic-curve_cryptography))
+    * [ecdsaP256Sha256](https://pub.dev/documentation/cryptography/latest/cryptography/ecdsaP256Sha256-constant.html) (ECDSA P256 / secp256r1 / prime256v1 + SHA256)
+    * [ecdsaP384Sha256](https://pub.dev/documentation/cryptography/latest/cryptography/ecdsaP384Sha256-constant.html) (ECDSA P384 / secp384r1 / prime384v1 + SHA256)
+    * [ecdsaP384Sha384](https://pub.dev/documentation/cryptography/latest/cryptography/ecdsaP384Sha384-constant.html) (ECDSA P384 / secp384r1 / prime384v1 + SHA384)
+    * [ecdsaP521Sha256](https://pub.dev/documentation/cryptography/latest/cryptography/ecdsaP521Sha256-constant.html) (ECDSA P521 / secp521r1 / prime521v1 + SHA256)
+    * [ecdsaP521Sha512](https://pub.dev/documentation/cryptography/latest/cryptography/ecdsaP521Sha512-constant.html) (ECDSA P521 / secp521r1 / prime521v1 + SHA512)
+    * Currently these elliptic curves are only supported in browsers (_Web Cryptography API_).
 
 ### Symmetric encryption
-  * NIST AES ([read about the algorithm](https://en.wikipedia.org/wiki/Advanced_Encryption_Standard))
+Ciphers are subclasses of [Cipher](https://pub.dev/documentation/cryptography/latest/cryptography/Cipher-class.html).
+The following implementations are available:
+  * AES ([read about the algorithm](https://en.wikipedia.org/wiki/Advanced_Encryption_Standard))
     * [aesCbc](https://pub.dev/documentation/cryptography/latest/cryptography/aesCbc-constant.html) (AES-CBC)
     * [aesCtr](https://pub.dev/documentation/cryptography/latest/cryptography/aesCtr-constant.html) (AES-CTR)
     * [aesGcm](https://pub.dev/documentation/cryptography/latest/cryptography/aesGcm-constant.html) (AES-GCM, browsers-only at the moment)
-    * Performance of our Dart implementation is about 10-50 MB/s in VM (about 300MB - 700MB/s in
+    * In our benchmarks, we observe performance of around 10-50 MB/s in VM (about 300MB - 700MB/s in
       browsers).
   * Chacha20 family ([read about the algorithm](https://en.wikipedia.org/wiki/Salsa20))
     * [chacha20](https://pub.dev/documentation/cryptography/latest/cryptography/chacha20-constant.html)
     * [chacha20Poly1305Aead](https://pub.dev/documentation/cryptography/latest/cryptography/chacha20Poly1305Aead-constant.html) (AEAD_CHACHA20_POLY1305)
     * [xchacha20](https://pub.dev/documentation/cryptography/latest/cryptography/xchacha20-constant.html)
     * [xchacha20Poly1305Aead](https://pub.dev/documentation/cryptography/latest/cryptography/xchacha20Poly1305Aead-constant.html) (AEAD_XCHACHA20_POLY1305)
-    * Chacha20 (AEAD) is a popular cipher and it's our recommendation for new applications.
-      Performance of our Dart implementation is about 20-100MB/s in VM.
-
-For more more documentation, see [Cipher](https://pub.dev/documentation/cryptography/latest/cryptography/Cipher-class.html).
+    * Chacha20 is a popular cipher and it's our recommendation if you can choose an algorithm.
+      In our benchmarks, we observe performance of around 20-100MB/s in VM.
 
 ### Key derivation algorithms
+  * [HChacha20](https://pub.dev/documentation/cryptography/latest/cryptography/HChacha20-class.html)
   * [Hkdf](https://pub.dev/documentation/cryptography/latest/cryptography/Hkdf-class.html)
 
 ### Message authentication codes
+Message authentication algorithms are subclasses of [MacAlgorithm](https://pub.dev/documentation/cryptography/latest/cryptography/MacAlgorithm-class.html).
+The following implementations are available:
   * [Hmac](https://pub.dev/documentation/cryptography/latest/cryptography/Hmac-class.html)
   * [poly1305](https://pub.dev/documentation/cryptography/latest/cryptography/poly1305-constant.html)
 
-For more more documentation, see [MacAlgorithm](https://pub.dev/documentation/cryptography/latest/cryptography/MacAlgorithm-class.html).
-
 ### Cryptographic hash functions
+Hash functions are subclasses of [HashAlgorithm](https://pub.dev/documentation/cryptography/latest/cryptography/HashAlgorithm-class.html).
+The following implementations are available:
   * [blake2s](https://pub.dev/documentation/cryptography/latest/cryptography/blake2s-constant.html) (BLAKE2S)
   * [sha1](https://pub.dev/documentation/cryptography/latest/cryptography/sha1-constant.html) (SHA1)
   * [sha224](https://pub.dev/documentation/cryptography/latest/cryptography/sha224-constant.html) (SHA2-224)
   * [sha256](https://pub.dev/documentation/cryptography/latest/cryptography/sha256-constant.html) (SHA2-256)
   * [sha384](https://pub.dev/documentation/cryptography/latest/cryptography/sha384-constant.html) (SHA2-384)
   * [sha512](https://pub.dev/documentation/cryptography/latest/cryptography/sha512-constant.html) (SHA2-512)
-    * In browsers, performance can be over 100 times faster than _package:crypto_.
-
-For more more documentation, see [HashAlgorithm](https://pub.dev/documentation/cryptography/latest/cryptography/HashAlgorithm-class.html).
-
 
 # Adding dependency
 In _pubspec.yaml_:

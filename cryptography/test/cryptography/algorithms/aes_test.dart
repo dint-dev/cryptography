@@ -15,7 +15,7 @@
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
-import 'package:cryptography/src/cryptography/algorithms/aes_impl_block_function.dart'
+import 'package:cryptography/src/cryptography/algorithms/aes_impl_base.dart'
     as block;
 import 'package:cryptography/src/utils/hex.dart';
 import 'package:test/test.dart';
@@ -254,7 +254,8 @@ void main() {
         final secretKey = secretKey128;
         final nonce = Nonce(List<int>.filled(16, 1));
         final cipherText = hexToBytes(
-          '68 4f a0 20 8c 9f 75 f3 71 b9 77 cc 4d 4f 04 4b 84 9a f4 46 1f 00 e0 ac 7c 2f d2 24 1c 71 14 e8',
+          '68 4f a0 20 8c 9f 75 f3 71 b9 77 cc 4d 4f 04 4b'
+          '84 9a f4 46 1f 00 e0 ac 7c 2f d2 24 1c 71 14 e8',
         );
         expect(cipherText, hasLength(32));
 
@@ -310,7 +311,9 @@ void main() {
         final secretKey = secretKey128;
         final nonce = Nonce(List<int>.filled(16, 1));
         final cipherText = hexToBytes(
-          '68 4f a0 20 8c 9f 75 f3 71 b9 77 cc 4d 4f 04 4b 62 11 8f 13 ae 07 60 1d 28 15 e9 cc 4c 8a b6 84 31 b2 2a 1a 9d fa f2 f5 77 8c c6 28 65 51 e3 fe',
+          '68 4f a0 20 8c 9f 75 f3 71 b9 77 cc 4d 4f 04 4b'
+          '62 11 8f 13 ae 07 60 1d 28 15 e9 cc 4c 8a b6 84'
+          '31 b2 2a 1a 9d fa f2 f5 77 8c c6 28 65 51 e3 fe',
         );
         expect(cipherText, hasLength(48));
 
@@ -469,6 +472,9 @@ void main() {
         final clearText = <int>[1, 2, 3];
         final secretKey = secretKey128;
         final nonce = Nonce(List<int>.filled(12, 1));
+        final cipherText = hexToBytes(
+          '38 1f 47',
+        );
 
         // Encrypt
         final encrypted = await algorithm.encrypt(
@@ -478,7 +484,7 @@ void main() {
         );
         expect(
           hexFromBytes(encrypted),
-          '38 1f 47',
+          hexFromBytes(cipherText),
         );
 
         // Decrypt
@@ -496,7 +502,8 @@ void main() {
         final secretKey = secretKey128;
         final nonce = Nonce(List<int>.filled(16, 1));
         final cipherText = hexToBytes(
-          '8e 40 c1 4f eb 68 64 4f 22 1c 51 a5 4c 3f 20 6c c9 c7 4f 85 32 8b 36 66 ea 4f 32 b4 81 e3 bf 67 77',
+          '8e 40 c1 4f eb 68 64 4f 22 1c 51 a5 4c 3f 20 6c'
+          'c9 c7 4f 85 32 8b 36 66 ea 4f 32 b4 81 e3 bf 67 77',
         );
         expect(cipherText, hasLength(33));
 
@@ -607,19 +614,15 @@ void main() {
   group('aesGcm', () {
     final algorithm = aesGcm;
 
-    test('unavailable outside browser', () {
-      expect(algorithm, isNull);
-    }, testOn: 'vm');
+    test('information', () {
+      expect(algorithm.name, 'aesGcm');
+      expect(algorithm.isAuthenticated, isTrue);
+      expect(algorithm.secretKeyLength, 32);
+      expect(algorithm.secretKeyValidLengths, unorderedEquals({16, 24, 32}));
+      expect(algorithm.nonceLength, 12);
+    });
 
     group('in browser:', () {
-      test('information', () {
-        expect(algorithm.name, 'aesGcm');
-        expect(algorithm.isAuthenticated, isTrue);
-        expect(algorithm.secretKeyLength, 32);
-        expect(algorithm.secretKeyValidLengths, unorderedEquals({16, 24, 32}));
-        expect(algorithm.nonceLength, 12);
-      });
-
       test('newSecretKey()', () async {
         final secretKey = await algorithm.newSecretKey();
         expect(secretKey.extractSync().length, 32);
@@ -636,7 +639,11 @@ void main() {
         test('128-bit key', () async {
           final clearText = <int>[1, 2, 3];
           final secretKey = secretKey128;
-          final nonce = Nonce(List<int>.filled(43, 1));
+          final nonce = Nonce(List<int>.filled(16, 1));
+          final cipherText = hexToBytes(
+            '6a 5a e3 e5 37 72 f8 83 1f 8b 1b fe ce fa ab 42'
+            '19 d1 a5',
+          );
 
           //
           // Encrypt
@@ -648,7 +655,7 @@ void main() {
           );
           expect(
             hexFromBytes(encrypted),
-            'a5 32 ac 06 a2 84 7c a5 3e c9 47 b7 d5 d5 81 f8 db a1 65',
+            hexFromBytes(cipherText),
           );
 
           //
@@ -665,7 +672,11 @@ void main() {
         test('256-bit key', () async {
           final clearText = <int>[1, 2, 3];
           final secretKey = secretKey256;
-          final nonce = Nonce(List<int>.filled(43, 1));
+          final nonce = Nonce(List<int>.filled(16, 1));
+          final cipherText = hexToBytes(
+            'a3 1b 4d 8b 08 91 c9 dd 0a f0 6b 1c d1 b3 60 40\n'
+            '42 90 9f',
+          );
 
           //
           // Encrypt
@@ -677,7 +688,7 @@ void main() {
           );
           expect(
             hexFromBytes(encrypted),
-            'c0 de 6d f6 2c 2c ca c3 7e 4c 11 3e 50 ab 35 c1 f6 cb 38',
+            hexFromBytes(cipherText),
           );
 
           //

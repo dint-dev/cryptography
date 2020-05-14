@@ -35,7 +35,7 @@ import 'package:meta/meta.dart';
 /// void main() {
 ///   final cipher = CipherWithAppendedMac(chacha20, Hmac(sha256));
 ///
-///   // Use it like a normal cipher
+///   // Use it like a normal cipher.
 /// }
 /// ```
 class CipherWithAppendedMac implements Cipher {

@@ -16,6 +16,8 @@ library aes;
 
 import 'dart:typed_data';
 
+import 'package:cryptography/cryptography.dart';
+
 part 'aes_impl_constants.dart';
 
 const _numberOfRounds = {
@@ -23,123 +25,6 @@ const _numberOfRounds = {
   24: 12,
   32: 14,
 };
-
-Uint32List prepareEncrypt(List<int> key) {
-  final rounds = _numberOfRounds[key.length];
-  if (rounds == null) {
-    throw ArgumentError('Invalid key length');
-  }
-  final encryptionData = Uint32List((rounds + 1) * 4);
-  var roundKeyCount = (rounds + 1) * 4;
-  var keyLengthInWords = key.length ~/ 4;
-  var words = _uint32ListFrom(key, 0, key.length);
-
-  for (var i = 0; i < keyLengthInWords; i++) {
-    encryptionData[i] = words[i];
-  }
-
-  var roundConstantIndex = 0;
-  for (var t = keyLengthInWords; t < roundKeyCount;) {
-    var word = words[keyLengthInWords - 1];
-
-    words[0] ^= ((_S[(word >> 16) & 0xFF] << 24) ^
-        (_S[(word >> 8) & 0xFF] << 16) ^
-        (_S[word & 0xFF] << 8) ^
-        _S[(word >> 24) & 0xFF] ^
-        (_roundConstants[roundConstantIndex] << 24));
-
-    roundConstantIndex++;
-
-    if (keyLengthInWords != 8) {
-      for (var i = 1; i < keyLengthInWords; i++) {
-        words[i] ^= words[i - 1];
-      }
-    } else {
-      for (var i = 1; i < (keyLengthInWords ~/ 2); i++) {
-        words[i] ^= words[i - 1];
-      }
-      word = words[(keyLengthInWords ~/ 2) - 1];
-
-      words[keyLengthInWords ~/ 2] ^= (_S[0xFF & word] ^
-          (_S[0xFF & (word >> 8)] << 8) ^
-          (_S[0xFF & (word >> 16)] << 16) ^
-          (_S[0xFF & (word >> 24)] << 24));
-
-      for (var i = (keyLengthInWords ~/ 2) + 1; i < keyLengthInWords; i++) {
-        words[i] ^= words[i - 1];
-      }
-    }
-    for (var i = 0; i < keyLengthInWords && t < roundKeyCount; i++) {
-      encryptionData[t] = words[i];
-      t++;
-    }
-  }
-  return encryptionData;
-}
-
-Uint32List prepareDecrypt(List<int> key) {
-  final rounds = _numberOfRounds[key.length];
-  if (rounds == null) {
-    throw ArgumentError('Invalid key length');
-  }
-  final decryptionData = Uint32List((rounds + 1) * 4);
-  var roundKeyCount = (rounds + 1) * 4;
-  var keyLengthInWords = key.length ~/ 4;
-  var words = _uint32ListFrom(key, 0, key.length);
-
-  for (var i = 0; i < keyLengthInWords; i++) {
-    final word = words[i];
-    decryptionData[4 * (rounds - (i ~/ 4)) + i % 4] = word;
-  }
-
-  var roundConstantIndex = 0;
-  for (var t = keyLengthInWords; t < roundKeyCount;) {
-    var word = words[keyLengthInWords - 1];
-
-    words[0] ^= ((_S[(word >> 16) & 0xFF] << 24) ^
-        (_S[(word >> 8) & 0xFF] << 16) ^
-        (_S[word & 0xFF] << 8) ^
-        _S[(word >> 24) & 0xFF] ^
-        (_roundConstants[roundConstantIndex] << 24));
-
-    roundConstantIndex++;
-
-    if (keyLengthInWords != 8) {
-      for (var i = 1; i < keyLengthInWords; i++) {
-        words[i] ^= words[i - 1];
-      }
-    } else {
-      for (var i = 1; i < (keyLengthInWords ~/ 2); i++) {
-        words[i] ^= words[i - 1];
-      }
-      word = words[(keyLengthInWords ~/ 2) - 1];
-
-      words[keyLengthInWords ~/ 2] ^= (_S[0xFF & word] ^
-          (_S[0xFF & (word >> 8)] << 8) ^
-          (_S[0xFF & (word >> 16)] << 16) ^
-          (_S[0xFF & (word >> 24)] << 24));
-
-      for (var i = (keyLengthInWords ~/ 2) + 1; i < keyLengthInWords; i++) {
-        words[i] ^= words[i - 1];
-      }
-    }
-    for (var i = 0; i < keyLengthInWords && t < roundKeyCount; i++) {
-      decryptionData[4 * (rounds - (t ~/ 4)) + (t % 4)] = words[i];
-      t++;
-    }
-  }
-
-  for (var round = 1; round < rounds; round++) {
-    for (var c = 0; c < 4; c++) {
-      final x = decryptionData[4 * round + c];
-      decryptionData[4 * round + c] = (_U1[0xFF & (x >> 24)] ^
-          _U2[0xFF & (x >> 16)] ^
-          _U3[0xFF & (x >> 8)] ^
-          _U4[0xFF & x]);
-    }
-  }
-  return decryptionData;
-}
 
 void aesDecryptBlock(
   List<int> result,
@@ -314,6 +199,135 @@ void aesEncryptBlock(
   }
 }
 
+Uint32List prepareDecrypt(List<int> key) {
+  final rounds = _numberOfRounds[key.length];
+  if (rounds == null) {
+    throw ArgumentError('Invalid key length');
+  }
+  final decryptionData = Uint32List((rounds + 1) * 4);
+  var roundKeyCount = (rounds + 1) * 4;
+  var keyLengthInWords = key.length ~/ 4;
+  var words = _uint32ListFrom(key, 0, key.length);
+
+  for (var i = 0; i < keyLengthInWords; i++) {
+    final word = words[i];
+    decryptionData[4 * (rounds - (i ~/ 4)) + i % 4] = word;
+  }
+
+  var roundConstantIndex = 0;
+  for (var t = keyLengthInWords; t < roundKeyCount;) {
+    var word = words[keyLengthInWords - 1];
+
+    words[0] ^= ((_S[(word >> 16) & 0xFF] << 24) ^
+        (_S[(word >> 8) & 0xFF] << 16) ^
+        (_S[word & 0xFF] << 8) ^
+        _S[(word >> 24) & 0xFF] ^
+        (_roundConstants[roundConstantIndex] << 24));
+
+    roundConstantIndex++;
+
+    if (keyLengthInWords != 8) {
+      for (var i = 1; i < keyLengthInWords; i++) {
+        words[i] ^= words[i - 1];
+      }
+    } else {
+      for (var i = 1; i < (keyLengthInWords ~/ 2); i++) {
+        words[i] ^= words[i - 1];
+      }
+      word = words[(keyLengthInWords ~/ 2) - 1];
+
+      words[keyLengthInWords ~/ 2] ^= (_S[0xFF & word] ^
+          (_S[0xFF & (word >> 8)] << 8) ^
+          (_S[0xFF & (word >> 16)] << 16) ^
+          (_S[0xFF & (word >> 24)] << 24));
+
+      for (var i = (keyLengthInWords ~/ 2) + 1; i < keyLengthInWords; i++) {
+        words[i] ^= words[i - 1];
+      }
+    }
+    for (var i = 0; i < keyLengthInWords && t < roundKeyCount; i++) {
+      decryptionData[4 * (rounds - (t ~/ 4)) + (t % 4)] = words[i];
+      t++;
+    }
+  }
+
+  for (var round = 1; round < rounds; round++) {
+    for (var c = 0; c < 4; c++) {
+      final x = decryptionData[4 * round + c];
+      decryptionData[4 * round + c] = (_U1[0xFF & (x >> 24)] ^
+          _U2[0xFF & (x >> 16)] ^
+          _U3[0xFF & (x >> 8)] ^
+          _U4[0xFF & x]);
+    }
+  }
+  return decryptionData;
+}
+
+Uint32List prepareEncrypt(List<int> key) {
+  final rounds = _numberOfRounds[key.length];
+  if (rounds == null) {
+    throw ArgumentError('Invalid key length');
+  }
+  final encryptionData = Uint32List((rounds + 1) * 4);
+  var roundKeyCount = (rounds + 1) * 4;
+  var keyLengthInWords = key.length ~/ 4;
+  var words = _uint32ListFrom(key, 0, key.length);
+
+  for (var i = 0; i < keyLengthInWords; i++) {
+    encryptionData[i] = words[i];
+  }
+
+  var roundConstantIndex = 0;
+  for (var t = keyLengthInWords; t < roundKeyCount;) {
+    var word = words[keyLengthInWords - 1];
+
+    words[0] ^= ((_S[(word >> 16) & 0xFF] << 24) ^
+        (_S[(word >> 8) & 0xFF] << 16) ^
+        (_S[word & 0xFF] << 8) ^
+        _S[(word >> 24) & 0xFF] ^
+        (_roundConstants[roundConstantIndex] << 24));
+
+    roundConstantIndex++;
+
+    if (keyLengthInWords != 8) {
+      for (var i = 1; i < keyLengthInWords; i++) {
+        words[i] ^= words[i - 1];
+      }
+    } else {
+      for (var i = 1; i < (keyLengthInWords ~/ 2); i++) {
+        words[i] ^= words[i - 1];
+      }
+      word = words[(keyLengthInWords ~/ 2) - 1];
+
+      words[keyLengthInWords ~/ 2] ^= (_S[0xFF & word] ^
+          (_S[0xFF & (word >> 8)] << 8) ^
+          (_S[0xFF & (word >> 16)] << 16) ^
+          (_S[0xFF & (word >> 24)] << 24));
+
+      for (var i = (keyLengthInWords ~/ 2) + 1; i < keyLengthInWords; i++) {
+        words[i] ^= words[i - 1];
+      }
+    }
+    for (var i = 0; i < keyLengthInWords && t < roundKeyCount; i++) {
+      encryptionData[t] = words[i];
+      t++;
+    }
+  }
+  return encryptionData;
+}
+
+void xorBlock(
+  List<int> result,
+  int resultStart,
+  List<int> arg,
+  int argStart,
+  int length,
+) {
+  for (var i = 0; i < length; i++) {
+    result[resultStart + i] ^= arg[argStart + i];
+  }
+}
+
 Uint32List _uint32ListFrom(List<int> bytes, int start, int end) {
   final uint32List = Uint32List((end - start) ~/ 4);
   final byteData = ByteData.view(uint32List.buffer);
@@ -326,4 +340,17 @@ Uint32List _uint32ListFrom(List<int> bytes, int start, int end) {
     }
   }
   return uint32List;
+}
+
+abstract class AesCipher extends Cipher {
+  @override
+  int get secretKeyLength => 32;
+
+  @override
+  Set<int> get secretKeyValidLengths => const {16, 24, 32};
+
+  @override
+  int get nonceLength;
+
+  const AesCipher();
 }

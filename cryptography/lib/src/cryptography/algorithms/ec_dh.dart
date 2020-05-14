@@ -14,7 +14,8 @@
 
 import 'package:cryptography/cryptography.dart';
 
-import 'web_crypto.dart';
+import '../web_crypto/web_crypto.dart';
+import 'ec_dh_impl.dart';
 
 /// _NIST P-256_ Elliptic Curve Diffie-Hellman (ECDH) key exchange algorithm.
 /// Currently supported __only in the browser.__
@@ -35,7 +36,7 @@ import 'web_crypto.dart';
 ///   );
 /// }
 /// ```
-const KeyExchangeAlgorithm ecdhP256 = webEcdhP256;
+const KeyExchangeAlgorithm ecdhP256 = webEcdhP256 ?? dartEcdhP256;
 
 /// _NIST P-384_ Elliptic Curve Diffie-Hellman (ECDH) key exchange algorithm.
 /// Currently supported __only in the browser.__
@@ -56,7 +57,7 @@ const KeyExchangeAlgorithm ecdhP256 = webEcdhP256;
 ///   );
 /// }
 /// ```
-const KeyExchangeAlgorithm ecdhP384 = webEcdhP384;
+const KeyExchangeAlgorithm ecdhP384 = webEcdhP384 ?? dartEcdhP384;
 
 /// _NIST P-521_ Elliptic Curve Diffie-Hellman (ECDH) key exchange algorithm.
 /// Currently supported __only in the browser.__
@@ -77,66 +78,4 @@ const KeyExchangeAlgorithm ecdhP384 = webEcdhP384;
 ///   );
 /// }
 /// ```
-const KeyExchangeAlgorithm ecdhP521 = webEcdhP521;
-
-/// _NIST P-256_ Elliptic Curve Digital Signature Algorithm (ECDSA).
-/// Currently supported __only in the browser.__
-///
-/// Private key export format is `[...d, ...x, ...y]`.
-///
-/// ## Example
-/// ```
-/// import 'package:cryptography/cryptography.dart';
-///
-/// Future<void> main() async {
-///   final algorithm = ecdsaP256Sha256;
-///   final keyPair = await algorithm.newKeyPair();
-///   final signature = await algorithm.sign([1,2,3], keyPair);
-///
-///   // Anyone can verify the signature
-///   final isVerified = await algorithm.verify([1,2,3], signature);
-/// }
-/// ```
-///
-/// For more about ECDSA, see [RFC 6090](https://www.ietf.org/rfc/rfc6090.txt).
-const SignatureAlgorithm ecdsaP256Sha256 = webEcdsaP256Sha256;
-
-/// _NIST P-384_ Elliptic Curve Digital Signature Algorithm (ECDSA).
-/// Currently supported __only in the browser.__
-///
-/// Private key export format is `[...d, ...x, ...y]`.
-///
-/// ## Example
-/// ```
-/// import 'package:cryptography/cryptography.dart';
-///
-/// Future<void> main() async {
-///   final algorithm = ecdsaP384Sha256;
-///   final keyPair = await algorithm.newKeyPair();
-///   final signature = await algorithm.sign([1,2,3], keyPair);
-///
-///   // Anyone can verify the signature
-///   final isVerified = await algorithm.verify([1,2,3], signature);
-/// }
-/// ```
-const SignatureAlgorithm ecdsaP384Sha256 = webEcdsaP384Sha256;
-
-/// _NIST P-521_ Elliptic Curve Digital Signature Algorithm (ECDSA).
-/// Currently supported __only in the browser.__
-///
-/// Private key export format is `[...d, ...x, ...y]`.
-///
-/// ## Example
-/// ```
-/// import 'package:cryptography/cryptography.dart';
-///
-/// Future<void> main() async {
-///   final algorithm = ecdsaP521Sha256;
-///   final keyPair = await algorithm.newKeyPair();
-///   final signature = await algorithm.sign([1,2,3], keyPair);
-///
-///   // Anyone can verify the signature
-///   final isVerified = await algorithm.verify([1,2,3], signature);
-/// }
-/// ```
-const SignatureAlgorithm ecdsaP521Sha256 = webEcdsaP521Sha256;
+const KeyExchangeAlgorithm ecdhP521 = webEcdhP521 ?? dartEcdhP521;

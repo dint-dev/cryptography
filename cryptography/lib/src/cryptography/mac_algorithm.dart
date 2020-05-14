@@ -36,7 +36,7 @@ abstract class MacAlgorithm {
   ///   * "poly1305"
   String get name;
 
-  /// Asynchronously calculates message authentication code for the input.
+  /// Calculates message authentication code.
   Future<Mac> calculateMac(
     List<int> input, {
     @required SecretKey secretKey,
@@ -47,9 +47,11 @@ abstract class MacAlgorithm {
     );
   }
 
-  /// Calculates message authentication code for the input. This method is
-  /// synchronous and may have lower performance than asynchronous
-  /// [calculateMac].
+  /// Calculates message authentication code synchronously.
+  ///
+  /// This method is synchronous and may have lower performance than
+  /// asynchronous [calculateMac] because this method can't take advantage of
+  /// asynchronous platform API such as _Web Cryptography API_.
   Mac calculateMacSync(
     List<int> data, {
     @required SecretKey secretKey,
@@ -63,13 +65,65 @@ abstract class MacAlgorithm {
     return mac;
   }
 
-  /// Returns a sink that writes Mac to t
+  /// Constructs a sink for calculating a [Mac].
+  ///
+  /// ## Example
+  /// ```
+  /// import 'package:cryptography/cryptography.dart';
+  ///
+  /// void main() {
+  ///   final secretKey = SecretKey([1,2,3]);
+  ///
+  ///   // Create a sink
+  ///   final sink = Hmac(sha256).newSink(
+  ///     secretKey: secretKey,
+  ///   );
+  ///
+  ///   // Add chunks of data
+  ///   sink.add([4,5,6]);
+  ///   sink.add([7,8]);
+  ///
+  ///   // Close
+  ///   sink.close();
+  ///
+  ///   // We now have a MAC
+  ///   final mac = sink.mac;
+  ///
+  ///   print('MAC: ${mac.bytes');
+  /// }
+  /// ```
   MacSink newSink({@required SecretKey secretKey});
 }
 
-/// Enables calculation of [Mac] for inputs larger than fit in the memory.
+/// A sink for calculating a [Mac].
+///
+/// ## Example
+/// ```
+/// import 'package:cryptography/cryptography.dart';
+///
+/// void main() {
+///   final secretKey = SecretKey([1,2,3]);
+///
+///   // Create a sink
+///   final sink = Hmac(sha256).newSink(
+///     secretKey: secretKey,
+///   );
+///
+///   // Add chunks of data
+///   sink.add([4,5,6]);
+///   sink.add([7,8]);
+///
+///   // Close
+///   sink.close();
+///
+///   // We now have a MAC
+///   final mac = sink.mac;
+///
+///   print('MAC: ${mac.bytes');
+/// }
+/// ```
 abstract class MacSink extends ByteConversionSink {
-  /// Result after calling `close()`.
+  /// Result after calling `close()`. Null if [close] has not been called.
   Mac get mac;
 
   @override
@@ -77,10 +131,4 @@ abstract class MacSink extends ByteConversionSink {
     ArgumentError.checkNotNull(chunk);
     addSlice(chunk, 0, chunk.length, false);
   }
-}
-
-/// Thrown by [Cipher] when decrypted bytes have invalid [Mac].
-class MacValidationException implements Exception {
-  @override
-  String toString() => 'Message authentication code (MAC) is invalid';
 }

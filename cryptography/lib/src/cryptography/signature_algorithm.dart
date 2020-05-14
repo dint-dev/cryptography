@@ -55,16 +55,20 @@ abstract class SignatureAlgorithm {
   ///   * "ed25519"
   String get name;
 
-  /// Whether [newKeyPairFromSeed] is supported.
+  /// Tells whether [newKeyPairFromSeed] is supported.
   bool get isSeedSupported => false;
 
-  /// Public key length (in bytes).
+  /// Returns public key length (in bytes).
   int get publicKeyLength;
 
-  /// Generates a new keypair.
+  /// Generates a new random keypair.
   Future<KeyPair> newKeyPair() => Future<KeyPair>.value(newKeyPairSync());
 
-  /// Generates a new keypair.
+  /// Generates a new random keypair synchronously.
+  ///
+  /// This method is synchronous and may have lower performance than
+  /// asynchronous [newKeyPairSync] because this method can't take advantage of
+  /// asynchronous platform API such as _Web Cryptography API_.
   KeyPair newKeyPairSync();
 
   /// Generates a new keypair from seed. Throws [UnsupportedError] if seeds are
@@ -84,20 +88,112 @@ abstract class SignatureAlgorithm {
   }
 
   /// Signs bytes.
+  ///
+  /// ## Example
+  /// An example of using [ed25519]:
+  /// ```
+  /// import 'package:cryptography/cryptography.dart';
+  ///
+  /// Future<void> main() async {
+  ///   // Generate a key pair
+  ///   final keyPair = await ed25519.newKeyPair();
+  ///
+  ///   // Sign
+  ///   final signature = await ed25519.sign(
+  ///     [1,2,3],
+  ///     keyPair,
+  ///   );
+  ///
+  ///   // Verify
+  ///   final isVerified = await ed25519.verify(
+  ///     [1,2,3],
+  ///     signature,
+  ///   );
+  /// }
+  /// ```
   Future<Signature> sign(List<int> input, KeyPair keyPair) {
     return Future<Signature>(() => signSync(input, keyPair));
   }
 
   /// Signs bytes. Unlike [sign], this method is synchronous. Throws
   /// [UnsupportedError] if the operation can not be performed synchronously.
+  ///
+  /// ## Example
+  /// An example of using [ed25519]:
+  /// ```
+  /// import 'package:cryptography/cryptography.dart';
+  ///
+  /// Future<void> main() async {
+  ///   // Generate a key pair
+  ///   final keyPair = await ed25519.newKeyPair();
+  ///
+  ///   // Sign
+  ///   final signature = await ed25519.sign(
+  ///     [1,2,3],
+  ///     keyPair,
+  ///   );
+  ///
+  ///   // Verify
+  ///   final isVerified = await ed25519.verify(
+  ///     [1,2,3],
+  ///     signature,
+  ///   );
+  /// }
+  /// ```
   Signature signSync(List<int> input, KeyPair keyPair);
 
   /// Verifies a signature.
+  ///
+  /// ## Example
+  /// An example of using [ed25519]:
+  /// ```
+  /// import 'package:cryptography/cryptography.dart';
+  ///
+  /// Future<void> main() async {
+  ///   // Generate a key pair
+  ///   final keyPair = await ed25519.newKeyPair();
+  ///
+  ///   // Sign
+  ///   final signature = await ed25519.sign(
+  ///     [1,2,3],
+  ///     keyPair,
+  ///   );
+  ///
+  ///   // Verify
+  ///   final isVerified = await ed25519.verify(
+  ///     [1,2,3],
+  ///     signature,
+  ///   );
+  /// }
+  /// ```
   Future<bool> verify(List<int> input, Signature signature) {
     return Future<bool>(() => verifySync(input, signature));
   }
 
   /// Verifies a signature. Unlike [verify], this method is synchronous. Throws
   /// [UnsupportedError] if the operation can not be performed synchronously.
+  ///
+  /// ## Example
+  /// An example of using [ed25519]:
+  /// ```
+  /// import 'package:cryptography/cryptography.dart';
+  ///
+  /// void main() {
+  ///   // Generate a key pair
+  ///   final keyPair = await ed25519.newKeyPair();
+  ///
+  ///   // Sign
+  ///   final signature = await ed25519.signSync(
+  ///     [1,2,3],
+  ///     keyPair,
+  ///   );
+  ///
+  ///   // Verify
+  ///   final isVerified = await ed25519.verifySync(
+  ///     [1,2,3],
+  ///     signature,
+  ///   );
+  /// }
+  /// ```
   bool verifySync(List<int> input, Signature signature);
 }

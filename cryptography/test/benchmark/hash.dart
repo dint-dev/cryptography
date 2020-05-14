@@ -22,46 +22,46 @@ Future<void> main() async {
   {
     print('64 byte messages:');
     const size = 64;
-    await HashBenchmark(sha256, size).report();
-    await HashSyncBenchmark(sha256, size).report();
-    await HashBenchmark(sha512, size).report();
-    await HashSyncBenchmark(sha512, size).report();
-    await HashBenchmark(blake2s, size).report();
-    await HashSyncBenchmark(blake2s, size).report();
+    await _Hash(sha256, size).report();
+    await _HashSync(sha256, size).report();
+    await _Hash(sha512, size).report();
+    await _HashSync(sha512, size).report();
+    await _Hash(blake2s, size).report();
+    await _HashSync(blake2s, size).report();
     print('');
   }
 
   {
     const size = 1000;
     print('1 kB messages:');
-    await HashBenchmark(sha256, size).report();
-    await HashSyncBenchmark(sha256, size).report();
-    await HashBenchmark(sha512, size).report();
-    await HashSyncBenchmark(sha512, size).report();
-    await HashBenchmark(blake2s, size).report();
-    await HashSyncBenchmark(blake2s, size).report();
+    await _Hash(sha256, size).report();
+    await _HashSync(sha256, size).report();
+    await _Hash(sha512, size).report();
+    await _HashSync(sha512, size).report();
+    await _Hash(blake2s, size).report();
+    await _HashSync(blake2s, size).report();
     print('');
   }
 
   {
     const size = 1000000;
     print('1 MB messages:');
-    await HashBenchmark(sha256, size).report();
-    await HashSyncBenchmark(sha256, size).report();
-    await HashBenchmark(sha512, size).report();
-    await HashSyncBenchmark(sha512, size).report();
-    await HashBenchmark(blake2s, size).report();
-    await HashSyncBenchmark(blake2s, size).report();
+    await _Hash(sha256, size).report();
+    await _HashSync(sha256, size).report();
+    await _Hash(sha512, size).report();
+    await _HashSync(sha512, size).report();
+    await _Hash(blake2s, size).report();
+    await _HashSync(blake2s, size).report();
   }
 }
 
-class HashBenchmark extends SimpleBenchmark {
+class _Hash extends SimpleBenchmark {
   final HashAlgorithm implementation;
   final int length;
 
   List<int> message;
 
-  HashBenchmark(this.implementation, this.length)
+  _Hash(this.implementation, this.length)
       : super('${implementation.name}'.padRight(20));
 
   @override
@@ -75,13 +75,13 @@ class HashBenchmark extends SimpleBenchmark {
   }
 }
 
-class HashSyncBenchmark extends SimpleBenchmark {
+class _HashSync extends SimpleBenchmark {
   final HashAlgorithm implementation;
   final int length;
 
   List<int> message;
 
-  HashSyncBenchmark(this.implementation, this.length)
+  _HashSync(this.implementation, this.length)
       : super('${implementation.name} (sync)'.padRight(20));
 
   @override

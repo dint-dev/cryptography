@@ -14,16 +14,19 @@
 
 import 'package:cryptography/cryptography.dart';
 
-import 'aes_impl.dart';
-import 'web_crypto.dart';
+import '../web_crypto/web_crypto.dart';
+import 'aes_impl_cbc.dart';
+import 'aes_impl_ctr.dart';
+import 'aes_impl_gcm.dart';
 
 /// _AES_ with Cipher Block Chaining mode (AES-CBC).
 ///
-/// AES-CBC is NOT authenticated so you should use a separate MAC algorithm
-/// (see example).
-///
-/// The secret key can be any value with 128, 192, or 256 bits. By default, the
-/// key generator returns 256 bit keys.
+/// ## Things to know
+/// * `secretKey` can be any value with 128, 192, or 256 bits. By default, the
+///   [Cipher.newSecretKey] returns 256 bit keys.
+/// * `nonce` must be 12 - 16 bytes.
+/// * AES-CBC is NOT authenticated so you should use a separate MAC algorithm
+///   (see example).
 ///
 /// ## Example
 /// ```dart
@@ -60,11 +63,12 @@ const Cipher aesCbc = webAesCbc ?? dartAesCbc;
 
 /// _AES-CTR_ cipher.
 ///
-/// AES-CTR is NOT authenticated so you should use a separate MAC algorithm
-/// (see example).
-///
-/// The secret key can be any value with 128, 192, or 256 bits. By default, the
-/// key generator returns 256 bit keys.
+/// ## Things to know
+/// * `secretKey` can be any value with 128, 192, or 256 bits. By default, the
+///   [Cipher.newSecretKey] returns 256 bit keys.
+/// * `nonce` must be 8 - 16 bytes.
+/// * AES-CTR is NOT authenticated so you should use a separate MAC algorithm
+///   (see example).
 ///
 /// AES-CTR takes a maximum 16-byte [Nonce].
 ///
@@ -103,12 +107,11 @@ const Cipher aesCtr = webAesCtr ?? dartAesCtr;
 /// _AES-GCM_ (Galois/Counter Mode) cipher.
 /// Currently supported __only in the browser.__
 ///
-/// AES-GCM is authenticated so you don't need a separate MAC algorithm.
-///
-/// The secret key can be any value with 128, 192, or 256 bits. By default, the
-/// key generator returns 256 bit keys.
-///
-/// AES-GCM takes a 12-byte [Nonce].
+/// ## Things to know
+/// * `secretKey` can be any value with 128, 192, or 256 bits. By default, the
+///   [Cipher.newSecretKey] returns 256 bit keys.
+/// * `nonce` must be 12 - 16 bytes.
+/// * AES-GCM is authenticated so you don't need a separate MAC algorithm.
 ///
 /// ## Example
 /// ```dart
@@ -136,4 +139,4 @@ const Cipher aesCtr = webAesCtr ?? dartAesCtr;
 ///   );
 /// }
 /// ```
-const Cipher aesGcm = webAesGcm;
+const Cipher aesGcm = webAesGcm ?? dartAesGcm;
