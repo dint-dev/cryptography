@@ -26,8 +26,11 @@ import 'package:meta/meta.dart';
 abstract class MacAlgorithm {
   const MacAlgorithm();
 
+  @deprecated
+  int get macLengthInBytes => macLength;
+
   /// Number of bytes in the message authentication code.
-  int get macLengthInBytes;
+  int get macLength;
 
   /// A descriptive algorithm name for debugging purposes.
   ///

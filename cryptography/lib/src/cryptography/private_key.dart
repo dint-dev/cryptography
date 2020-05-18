@@ -29,10 +29,10 @@ abstract class PrivateKey {
   static final _random = Random.secure();
 
   /// Constructs a private key with the bytes.
-  const factory PrivateKey(List<int> bytes) = _PrivateKey;
+  factory PrivateKey(List<int> bytes) = _PrivateKey;
 
   /// Constructor for subclasses.
-  const PrivateKey.constructor();
+  PrivateKey.constructor();
 
   /// Generates _N_ random bytes with a cryptographically strong random number
   /// generator.
@@ -69,13 +69,20 @@ abstract class PrivateKey {
   ///
   /// The returned byte list should be treated as immutable.
   List<int> extractSync();
+
+  Map<Object, Object> _associatedValues;
+
+  /// Associated values. Can be used for caching cryptographic objects such as
+  /// Web Cryptography object handles.
+  Map<Object, Object> get associatedValues =>
+      _associatedValues ??= <Object, Object>{};
 }
 
 class _PrivateKey extends PrivateKey {
   /// Bytes of the key. May be null.
   final List<int> _bytes;
 
-  const _PrivateKey(this._bytes)
+  _PrivateKey(this._bytes)
       : assert(_bytes != null),
         super.constructor();
 

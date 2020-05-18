@@ -1,5 +1,5 @@
 name: cryptography
-version: 1.0.4
+version: 1.1.0
 homepage: https://github.com/dint-dev/cryptography
 description:
   Cryptographic algorithms for encryption, digital signatures, key agreement, authentication, and
@@ -11,6 +11,7 @@ environment:
 dependencies:
   collection: ^1.10.0
   crypto: ^2.0.0
+  fixnum: ^0.10.11
   js: ^0.6.0
   meta: ^1.1.0
   typed_data: ^1.1.0

@@ -105,7 +105,6 @@ const Cipher aesCbc = webAesCbc ?? dartAesCbc;
 const Cipher aesCtr = webAesCtr ?? dartAesCtr;
 
 /// _AES-GCM_ (Galois/Counter Mode) cipher.
-/// Currently supported __only in the browser.__
 ///
 /// ## Things to know
 /// * `secretKey` can be any value with 128, 192, or 256 bits. By default, the

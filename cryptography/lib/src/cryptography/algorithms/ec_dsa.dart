@@ -17,11 +17,11 @@ import 'package:cryptography/src/cryptography/algorithms/ec_dsa_impl.dart';
 
 import '../web_crypto/web_crypto.dart';
 
-/// _NIST P-256_ Elliptic Curve Digital Signature Algorithm (ECDSA)
-/// with [sha256] hash algorithm.
+/// Elliptic Curve Digital Signature Algorithm (ECDSA) using _P-256_
+/// (secp256r1 / prime256v1) curve and [sha256] hash algorithm.
 /// Currently supported __only in the browser.__
 ///
-/// Private key export format is `[...d, ...x, ...y]`.
+/// Private keys are instances of [JwkPrivateKey].
 ///
 /// ## Example
 /// ```
@@ -41,11 +41,11 @@ import '../web_crypto/web_crypto.dart';
 const SignatureAlgorithm ecdsaP256Sha256 =
     webEcdsaP256Sha256 ?? dartEcdsaP256Sha256;
 
-/// _NIST P-384_ Elliptic Curve Digital Signature Algorithm (ECDSA)
-/// with [sha256] hash algorithm.
+/// Elliptic Curve Digital Signature Algorithm (ECDSA) using _P-384_
+/// (secp384r1 / prime384v1) curve and [sha256] hash algorithm.
 /// Currently supported __only in the browser.__
 ///
-/// Private key export format is `[...d, ...x, ...y]`.
+/// Private keys are instances of [JwkPrivateKey].
 ///
 /// ## Example
 /// ```
@@ -63,11 +63,11 @@ const SignatureAlgorithm ecdsaP256Sha256 =
 const SignatureAlgorithm ecdsaP384Sha256 =
     webEcdsaP384Sha256 ?? dartEcdsaP384Sha256;
 
-/// _NIST P-384_ Elliptic Curve Digital Signature Algorithm (ECDSA)
-/// with [sha384] hash algorithm.
+/// Elliptic Curve Digital Signature Algorithm (ECDSA) using _P-384_
+/// (secp384r1 / prime384v1) curve and [sha384] hash algorithm.
 /// Currently supported __only in the browser.__
 ///
-/// Private key export format is `[...d, ...x, ...y]`.
+/// Private keys are instances of [JwkPrivateKey].
 ///
 /// ## Example
 /// ```
@@ -85,11 +85,11 @@ const SignatureAlgorithm ecdsaP384Sha256 =
 const SignatureAlgorithm ecdsaP384Sha384 =
     webEcdsaP384Sha384 ?? dartEcdsaP384Sha384;
 
-/// _NIST P-521_ Elliptic Curve Digital Signature Algorithm (ECDSA)
-/// with [sha256] hash algorithm.
+/// Elliptic Curve Digital Signature Algorithm (ECDSA) using _P-521_
+/// (secp521r1 / prime521v1) curve and [sha256] hash algorithm.
 /// Currently supported __only in the browser.__
 ///
-/// Private key export format is `[...d, ...x, ...y]`.
+/// Private keys are instances of [JwkPrivateKey].
 ///
 /// ## Example
 /// ```
@@ -107,11 +107,11 @@ const SignatureAlgorithm ecdsaP384Sha384 =
 const SignatureAlgorithm ecdsaP521Sha256 =
     webEcdsaP521Sha256 ?? dartEcdsaP521Sha256;
 
-/// _NIST P-521_ Elliptic Curve Digital Signature Algorithm (ECDSA)
-/// with [sha512] hash algorithm.
+/// Elliptic Curve Digital Signature Algorithm (ECDSA) using _P-521_
+/// (secp521r1 / prime521v1) curve and [sha512] hash algorithm.
 /// Currently supported __only in the browser.__
 ///
-/// Private key export format is `[...d, ...x, ...y]`.
+/// Private keys are instances of [JwkPrivateKey].
 ///
 /// ## Example
 /// ```

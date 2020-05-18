@@ -22,26 +22,25 @@
 ///   * [SignatureAlgorithm]
 library cryptography;
 
-import 'package:cryptography/cryptography.dart';
-
 export 'src/cryptography/algorithms/aes.dart';
 export 'src/cryptography/algorithms/blake2.dart';
 export 'src/cryptography/algorithms/chacha20.dart';
-export 'src/cryptography/algorithms/chacha20_hchacha20.dart';
 export 'src/cryptography/algorithms/chacha20_poly1305_aead.dart';
-export 'src/cryptography/algorithms/chacha20_xchacha20.dart';
 export 'src/cryptography/algorithms/ec_dh.dart';
 export 'src/cryptography/algorithms/ec_dsa.dart';
 export 'src/cryptography/algorithms/ec_ed25519.dart';
 export 'src/cryptography/algorithms/ec_x25519.dart';
+export 'src/cryptography/algorithms/hchacha20.dart';
 export 'src/cryptography/algorithms/hkdf.dart';
 export 'src/cryptography/algorithms/hmac.dart';
 export 'src/cryptography/algorithms/poly1305.dart';
 export 'src/cryptography/algorithms/sha1_sha2.dart';
+export 'src/cryptography/algorithms/xchacha20.dart';
 export 'src/cryptography/cipher.dart';
 export 'src/cryptography/cipher_with_appended_mac.dart';
 export 'src/cryptography/hash.dart';
 export 'src/cryptography/hash_algorithm.dart';
+export 'src/cryptography/jwk.dart';
 export 'src/cryptography/key_exchange_algorithm.dart';
 export 'src/cryptography/key_pair.dart';
 export 'src/cryptography/mac.dart';

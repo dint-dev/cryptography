@@ -50,7 +50,7 @@ class AesGcmParams {
   external factory AesGcmParams({
     @required String name,
     @required ByteBuffer iv,
-    @required ByteBuffer arrayBuffer,
+    ByteBuffer additionalData,
     @required int tagLength,
   });
 }

@@ -15,9 +15,10 @@
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
+import 'package:cryptography/utils.dart';
 import 'package:meta/meta.dart';
 
-import 'aes_impl_base.dart';
+import 'aes_impl.dart';
 
 const Cipher dartAesCbc = _AesCbc();
 
@@ -31,108 +32,172 @@ class _AesCbc extends AesCipher {
   int get nonceLength => 16;
 
   @override
-  List<int> decryptSync(
+  Uint8List decryptSync(
     List<int> input, {
     @required SecretKey secretKey,
     @required Nonce nonce,
     List<int> aad,
     int keyStreamIndex = 0,
   }) {
-    if (aad != null) {
-      throw ArgumentError.value(
-        aad,
-        'aad',
-        'Must be null',
-      );
+    // Validate parameters
+    final secretKeyBytes = secretKey.extractSync();
+    checkCipherParameters(
+      this,
+      secretKeyLength: secretKeyBytes.length,
+      nonce: nonce,
+      aad: aad != null,
+      keyStreamIndex: keyStreamIndex,
+    );
+    if (input.length % 16 != 0) {
+      throw ArgumentError('Invalid length: ${input.length}');
     }
-    if (nonce.bytes.length != 16) {
-      throw ArgumentError.value(
-        nonce,
-        'nonce',
-        'Must be 16 bytes',
+
+    // Expand key
+    final preparedKey = aesExpandKeyForDecrypting(secretKey, secretKeyBytes);
+
+    // Construct output
+    final outputAsUint32List = Uint32List(input.length ~/ 16 * 4);
+    final outputAsUint8List = Uint8List.view(outputAsUint32List.buffer);
+    outputAsUint8List.setAll(0, input);
+    assert(outputAsUint8List.length == input.length);
+
+    // Current block
+    var e0 = 0;
+    var e1 = 0;
+    var e2 = 0;
+    var e3 = 0;
+
+    for (var i = 0; i < outputAsUint32List.length; i += 4) {
+      // Memorize previous encrypted block
+      final p0 = e0;
+      final p1 = e1;
+      final p2 = e2;
+      final p3 = e3;
+
+      // Memorize encrypted block
+      e0 = outputAsUint32List[i];
+      e1 = outputAsUint32List[i + 1];
+      e2 = outputAsUint32List[i + 2];
+      e3 = outputAsUint32List[i + 3];
+
+      // Block function
+      aesDecryptBlock(
+        outputAsUint32List,
+        i,
+        outputAsUint32List,
+        i,
+        preparedKey,
       );
-    }
-    if (keyStreamIndex != 0) {
-      throw ArgumentError.value(
-        keyStreamIndex,
-        'keyStreamIndex',
-        'Must be 0',
-      );
-    }
-    final preparedKey = prepareDecrypt(secretKey.extractSync());
-    final output = Uint8List(input.length);
-    for (var i = 0; i < output.length; i += 16) {
-      aesDecryptBlock(output, i, input, i, preparedKey);
+
       if (i == 0) {
-        xorBlock(output, i, nonce.bytes, 0, 16);
+        // block ^= nonce
+        final nonceBytes = nonce.bytes;
+        for (var i = 0; i < nonceBytes.length; i++) {
+          outputAsUint8List[i] ^= nonceBytes[i];
+        }
       } else {
-        xorBlock(output, i, input, i - 16, 16);
+        // block ^= previous_block
+        outputAsUint32List[i] ^= p0;
+        outputAsUint32List[i + 1] ^= p1;
+        outputAsUint32List[i + 2] ^= p2;
+        outputAsUint32List[i + 3] ^= p3;
       }
     }
 
     // PKCS7 padding
-    final paddingLength = output.last;
+    final paddingLength = outputAsUint8List.last;
     if (paddingLength == 0 || paddingLength > 16) {
-      throw StateError('Invalid padding length: $paddingLength');
+      throw StateError(
+        'Invalid padding length: $paddingLength, ${outputAsUint8List}',
+      );
     }
-    for (var i = output.length - paddingLength; i < output.length; i++) {
-      if (output[i] != paddingLength) {
+
+    // Check that all padding bytes are valid
+    for (var i = outputAsUint8List.length - paddingLength;
+        i < outputAsUint8List.length;
+        i++) {
+      if (outputAsUint8List[i] != paddingLength) {
         throw StateError('Missing padding');
       }
     }
+    if (paddingLength == 0) {
+      return outputAsUint8List;
+    }
     return Uint8List.view(
-      output.buffer,
-      output.offsetInBytes,
-      output.length - paddingLength,
+      outputAsUint32List.buffer,
+      outputAsUint32List.offsetInBytes,
+      outputAsUint32List.lengthInBytes - paddingLength,
     );
   }
 
   @override
-  List<int> encryptSync(
+  Uint8List encryptSync(
     List<int> input, {
     @required SecretKey secretKey,
     @required Nonce nonce,
     List<int> aad,
     int keyStreamIndex = 0,
   }) {
-    if (aad != null) {
-      throw ArgumentError.value(
-        aad,
-        'aad',
-        'Must be null',
-      );
-    }
-    if (nonce.bytes.length != 16) {
-      throw ArgumentError.value(
-        nonce,
-        'nonce',
-        'Must be 16 bytes',
-      );
-    }
-    if (keyStreamIndex != 0) {
-      throw ArgumentError.value(
-        keyStreamIndex,
-        'keyStreamIndex',
-        'Must be 0',
-      );
-    }
+    // Check parameters
+    final secretKeyBytes = secretKey.extractSync();
+    checkCipherParameters(
+      this,
+      secretKeyLength: secretKeyBytes.length,
+      nonce: nonce,
+      aad: aad != null,
+      keyStreamIndex: keyStreamIndex,
+    );
 
-    // PKCS7 padding
-    final inputLength = input.length;
-    final paddingLength = 16 - (inputLength % 16);
-    final output = Uint8List(inputLength + paddingLength);
-    output.setAll(0, input);
-    output.fillRange(inputLength, output.length, paddingLength);
+    // Expand key
+    final expandedKey = aesExpandKeyForEncrypting(
+      secretKey,
+      secretKeyBytes,
+    );
 
-    final preparedKey = prepareEncrypt(secretKey.extractSync());
-    for (var i = 0; i < output.length; i += 16) {
-      if (i == 0) {
-        xorBlock(output, i, nonce.bytes, 0, 16);
-      } else {
-        xorBlock(output, i, output, i - 16, 16);
+    // Construct Uint32List list for the output
+    final paddingLength = 16 - input.length % 16;
+    final outputAsUint32List = Uint32List(
+      (input.length + paddingLength) ~/ 16 * 4,
+    );
+    final outputAsUint8List = Uint8List.view(outputAsUint32List.buffer);
+
+    // Fill output with input + PKCS7 padding
+    outputAsUint8List.setRange(0, input.length, input);
+    outputAsUint8List.fillRange(
+      input.length,
+      outputAsUint8List.lengthInBytes,
+      paddingLength,
+    );
+    if (Endian.host == Endian.big) {
+      final outputByteData = ByteData.view(outputAsUint8List.buffer);
+      for (var i = 0; i < outputAsUint8List.length; i += 4) {
+        outputAsUint8List[i] = outputByteData.getUint32(i, Endian.big);
       }
-      aesEncryptBlock(output, i, output, i, preparedKey);
     }
-    return output;
+
+    for (var i = 0; i < outputAsUint32List.length; i += 4) {
+      if (i == 0) {
+        // block ^= nonce
+        final nonceBytes = nonce.bytes;
+        for (var i = 0; i < nonceBytes.length; i++) {
+          outputAsUint8List[i] ^= nonceBytes[i];
+        }
+      } else {
+        // block ^= previous_block
+        for (var j = 0; j < 4; j++) {
+          outputAsUint32List[i + j] ^= outputAsUint32List[i + j - 4];
+        }
+      }
+
+      // Block function
+      aesEncryptBlock(
+        outputAsUint32List,
+        i,
+        outputAsUint32List,
+        i,
+        expandedKey,
+      );
+    }
+    return outputAsUint8List;
   }
 }

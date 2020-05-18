@@ -61,20 +61,9 @@ Future<KeyPair> _newWebEcKeyPair(String curve) {
   return js
       .promiseToFuture<web_crypto.CryptoKeyPair>(promise)
       .then((cryptoKeyPair) async {
-    final privateKeyJwk = await js.promiseToFuture<web_crypto.Jwk>(
+    final privateKeyJs = await js.promiseToFuture<web_crypto.Jwk>(
       web_crypto.subtle.exportKey('jwk', cryptoKeyPair.privateKey),
     );
-
-    // Get private key.
-    // There is no standard for raw private keys,
-    // so we simply choose:
-    //   d + x + y
-    // TODO: Provide an API for getting individual components?
-    final privateKeyBytes = <int>[
-      ..._base64UrlDecode(privateKeyJwk.d),
-      ..._base64UrlDecode(privateKeyJwk.x),
-      ..._base64UrlDecode(privateKeyJwk.y),
-    ];
 
     // Get public key.
     final publicByteBuffer = await js.promiseToFuture<ByteBuffer>(
@@ -83,7 +72,11 @@ Future<KeyPair> _newWebEcKeyPair(String curve) {
     final publicKeyBytes = Uint8List.view(publicByteBuffer);
 
     return KeyPair(
-      privateKey: PrivateKey(privateKeyBytes),
+      privateKey: JwkPrivateKey(
+        d: _base64UrlDecode(privateKeyJs.d),
+        x: _base64UrlDecode(privateKeyJs.x),
+        y: _base64UrlDecode(privateKeyJs.y),
+      ),
       publicKey: PublicKey(publicKeyBytes),
     );
   });

@@ -15,9 +15,11 @@
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
+import 'package:cryptography/src/utils/bytes.dart';
+import 'package:cryptography/src/utils/parameters.dart';
 import 'package:meta/meta.dart';
 
-import 'aes_impl_base.dart';
+import 'aes_impl.dart';
 
 const Cipher dartAesCtr = _AesCtr();
 
@@ -28,133 +30,100 @@ class _AesCtr extends AesCipher {
   String get name => 'aesCtr';
 
   @override
-  int get nonceLength => 12;
+  int get nonceLength => 16;
 
   @override
-  int get secretKeyLength => 32;
+  int get nonceLengthMin => 12;
 
   @override
-  Set<int> get secretKeyValidLengths => const {16, 24, 32};
+  int get nonceLengthMax => 16;
 
   @override
-  List<int> decryptSync(
+  Uint8List decryptSync(
     List<int> input, {
     @required SecretKey secretKey,
     @required Nonce nonce,
     List<int> aad,
     int keyStreamIndex = 0,
   }) {
-    if (aad != null) {
-      throw ArgumentError.value(
-        aad,
-        'aad',
-        'Must be null',
-      );
-    }
-    if (nonce.bytes.length > 16) {
-      throw ArgumentError.value(
-        nonce,
-        'nonce',
-        'Must be at most 16 bytes',
-      );
-    }
-    if (keyStreamIndex % 16 != 0) {
-      throw ArgumentError.value(
-        keyStreamIndex,
-        'keyStreamIndex',
-        'Must be a multiple of 16',
-      );
-    }
-
-    // Initialize parameters
-    final preparedKey = prepareEncrypt(secretKey.extractSync());
-
-    // Create 16 byte nonce from a possibly shorter nonce.
-    var nonceBytes = Uint8List(16);
-    nonceBytes.setAll(0, nonce.bytes);
-    if (keyStreamIndex != 0) {
-      nonceBytes = Nonce(nonceBytes).increment(keyStreamIndex ~/ 16).bytes;
-    }
-
-    // Initialize output
-    final output = Uint8List.fromList(input);
-
-    // For each block
-    for (var i = 0; i < input.length; i += 16) {
-      // Encrypt nonce
-      aesEncryptBlock(output, i, nonceBytes, 0, preparedKey);
-      var blockLength = output.length - i;
-      if (blockLength > 16) {
-        blockLength = 16;
-      }
-
-      // XOR
-      xorBlock(output, i, input, i, blockLength);
-
-      // Increment nonce
-      nonceBytes = Nonce(nonceBytes).increment().bytes;
-    }
-    return output;
+    // Encryption function can be used for decrypting too.
+    return encryptSync(
+      input,
+      secretKey: secretKey,
+      nonce: nonce,
+      aad: aad,
+      keyStreamIndex: keyStreamIndex,
+    );
   }
 
   @override
-  List<int> encryptSync(
-    List<int> input, {
+  Uint8List encryptSync(
+    List<int> plainText, {
     @required SecretKey secretKey,
     @required Nonce nonce,
     List<int> aad,
     int keyStreamIndex = 0,
   }) {
-    if (aad != null) {
-      throw ArgumentError.value(
-        aad,
-        'aad',
-        'Must be null',
-      );
-    }
-    if (nonce.bytes.length > 16) {
-      throw ArgumentError.value(
-        nonce,
-        'nonce',
-        'Must be at most 16 bytes',
-      );
-    }
-    if (keyStreamIndex % 16 != 0) {
-      throw ArgumentError.value(
-        keyStreamIndex,
-        'keyStreamIndex',
-        'Must be a multiple of 16',
-      );
-    }
-
-    // Initialize parameters
-    final preparedKey = prepareEncrypt(secretKey.extractSync());
+    // Check arguments
+    final secretKeyBytes = secretKey.extractSync();
+    checkCipherParameters(
+      this,
+      secretKeyLength: secretKeyBytes.length,
+      nonce: nonce,
+      aad: aad != null,
+      keyStreamIndex: keyStreamIndex,
+      // TODO: Support any keyStreamIndex
+      keyStreamFactor: 1,
+    );
 
     // Create 16 byte nonce from a possibly shorter nonce.
-    var nonceBytes = Uint8List(16);
-    nonceBytes.setAll(0, nonce.bytes);
+    final nonceAsUint8List = Uint8List(16);
+    nonceAsUint8List.setAll(0, nonce.bytes);
+    final nonceAsUint32List = Uint32List.view(nonceAsUint8List.buffer);
+
+    // Append key stream index
     if (keyStreamIndex != 0) {
-      nonceBytes = Nonce(nonceBytes).increment(keyStreamIndex ~/ 16).bytes;
+      bytesAsBigEndianAddInt(nonceAsUint8List, keyStreamIndex ~/ 16);
     }
 
-    // Initialize output
-    final output = Uint8List.fromList(input);
+    // Allocate output bytes
+    final outputAsUint32List = Uint32List(
+      (keyStreamIndex % 16 + plainText.length + 15) ~/ 16 * 4,
+    );
+
+    // Expand AES key
+    final preparedKey = aesExpandKeyForEncrypting(
+      secretKey,
+      secretKeyBytes,
+    );
 
     // For each block
-    for (var i = 0; i < input.length; i += 16) {
-      // Encrypt nonce
-      aesEncryptBlock(output, i, nonceBytes, 0, preparedKey);
-      var blockLength = output.length - i;
-      if (blockLength > 16) {
-        blockLength = 16;
-      }
+    for (var i = 0; i < outputAsUint32List.length; i += 4) {
+      // Encrypt nonce with AES
+      aesEncryptBlock(
+        outputAsUint32List,
+        i,
+        nonceAsUint32List,
+        0,
+        preparedKey,
+      );
 
-      // XOR
-      xorBlock(output, i, input, i, blockLength);
-
-      // Increment nonce
-      nonceBytes = Nonce(nonceBytes).increment().bytes;
+      // Increment nonce.
+      bytesAsBigEndianAddInt(nonceAsUint8List, 1);
     }
-    return output;
+
+    // Construct the returned view
+    final outputAsUint8List = Uint8List.view(
+      outputAsUint32List.buffer,
+      keyStreamIndex % 16,
+      plainText.length,
+    );
+
+    // output ^= plainText
+    for (var i = 0; i < plainText.length; i++) {
+      outputAsUint8List[i] ^= plainText[i];
+    }
+
+    return outputAsUint8List;
   }
 }

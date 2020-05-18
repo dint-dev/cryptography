@@ -79,23 +79,25 @@ class Nonce {
         const ListEquality<int>().equals(bytes, other.bytes);
   }
 
-  /// Returns a nonce incremented by 1.
+  /// Returns a nonce incremented by 1. Uses big endian byte order.
   Nonce increment([int n = 1]) {
-    if (n < 0 || n > 0xFF) {
-      throw ArgumentError.value(n, 'n');
+    if (n == 0) {
+      return this;
     }
     final result = Uint8List.fromList(bytes);
-    for (var i = result.length - 1; i >= 0; i--) {
-      final newByte = result[i] + n;
-      result[i] = 0xFF & newByte;
+    loop:
+    while (n != 0) {
+      for (var i = result.length - 1; i >= 0; i--) {
+        final newByte = result[i] + n;
+        result[i] = 0xFF & newByte;
 
-      // No carry?
-      if (newByte <= 0xFF) {
-        break;
+        // No carry?
+        if (newByte <= 0xFF) {
+          break loop;
+        }
+
+        n = newByte ~/ 0x100;
       }
-
-      // Carry (1)
-      n = 1;
     }
     return Nonce(result);
   }

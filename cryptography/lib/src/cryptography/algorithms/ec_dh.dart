@@ -17,10 +17,11 @@ import 'package:cryptography/cryptography.dart';
 import '../web_crypto/web_crypto.dart';
 import 'ec_dh_impl.dart';
 
-/// _NIST P-256_ Elliptic Curve Diffie-Hellman (ECDH) key exchange algorithm.
+/// _P-256_ (secp256r1 / prime256v1) Elliptic Curve Diffie-Hellman (ECDH) key
+/// exchange algorithm.
 /// Currently supported __only in the browser.__
 ///
-/// Private key export format is `[...d, ...x, ...y]`.
+/// Private keys are instances of [JwkPrivateKey].
 ///
 /// An example:
 /// ```
@@ -38,10 +39,11 @@ import 'ec_dh_impl.dart';
 /// ```
 const KeyExchangeAlgorithm ecdhP256 = webEcdhP256 ?? dartEcdhP256;
 
-/// _NIST P-384_ Elliptic Curve Diffie-Hellman (ECDH) key exchange algorithm.
+/// _P-384_ (secp384r1 / prime384v1) Elliptic Curve Diffie-Hellman (ECDH) key
+/// exchange algorithm.
 /// Currently supported __only in the browser.__
 ///
-/// Private key export format is `[...d, ...x, ...y]`.
+/// Private keys are instances of [JwkPrivateKey].
 ///
 /// An example:
 /// ```
@@ -59,10 +61,11 @@ const KeyExchangeAlgorithm ecdhP256 = webEcdhP256 ?? dartEcdhP256;
 /// ```
 const KeyExchangeAlgorithm ecdhP384 = webEcdhP384 ?? dartEcdhP384;
 
-/// _NIST P-521_ Elliptic Curve Diffie-Hellman (ECDH) key exchange algorithm.
+/// _P-521_ (secp521r1 / prime521v1) Elliptic Curve Diffie-Hellman (ECDH) key
+/// exchange algorithm.
 /// Currently supported __only in the browser.__
 ///
-/// Private key export format is `[...d, ...x, ...y]`.
+/// Private keys are instances of [JwkPrivateKey].
 ///
 /// An example:
 /// ```

@@ -40,23 +40,32 @@ Future<void> main() async {
     await _Encrypt(
             CipherWithAppendedMac(aesCtr, Hmac(sha256)), MB, messageLength)
         .report();
+
+    await _Encrypt(aesGcm, MB, messageLength).report();
+    await _EncryptSync(aesGcm, MB, messageLength).report();
     print('');
   }
 
-  print('1 MB messages:');
-  await _Encrypt(chacha20, MB).report();
-  await _EncryptSync(chacha20, MB).report();
-  await _Encrypt(chacha20Poly1305Aead, MB).report();
+  {
+    print('1 MB messages:');
+    await _Encrypt(chacha20, MB).report();
+    await _EncryptSync(chacha20, MB).report();
+    await _Encrypt(chacha20Poly1305Aead, MB).report();
 
-  await _Encrypt(aesCbc, MB).report();
-  await _EncryptSync(aesCbc, MB).report();
-  await _Encrypt(CipherWithAppendedMac(aesCbc, Hmac(sha256)), MB).report();
-  await _EncryptSync(CipherWithAppendedMac(aesCbc, Hmac(sha256)), MB).report();
+    await _Encrypt(aesCbc, MB).report();
+    await _EncryptSync(aesCbc, MB).report();
+    await _Encrypt(CipherWithAppendedMac(aesCbc, Hmac(sha256)), MB).report();
+    await _EncryptSync(CipherWithAppendedMac(aesCbc, Hmac(sha256)), MB)
+        .report();
 
-  await _Encrypt(aesCtr, MB).report();
-  await _EncryptSync(aesCtr, MB).report();
-  await _Encrypt(CipherWithAppendedMac(aesCtr, Hmac(sha256)), MB).report();
-  print('');
+    await _Encrypt(aesCtr, MB).report();
+    await _EncryptSync(aesCtr, MB).report();
+    await _Encrypt(CipherWithAppendedMac(aesCtr, Hmac(sha256)), MB).report();
+
+    await _Encrypt(aesGcm, MB).report();
+    await _EncryptSync(aesGcm, MB).report();
+    print('');
+  }
 }
 
 class _Encrypt extends SimpleBenchmark {

@@ -19,8 +19,10 @@ import 'dart:convert';
 import 'dart:js' as js;
 import 'dart:js_util' as js;
 import 'dart:typed_data';
+import 'dart:html' as html;
 
 import 'package:cryptography/cryptography.dart';
+import 'package:cryptography/src/utils/parameters.dart';
 import 'package:meta/meta.dart';
 
 import '../algorithms/aes_impl_cbc.dart' as dart;
@@ -31,7 +33,10 @@ import '../algorithms/ec_dsa_impl.dart' as dart;
 import '../algorithms/sha1_sha2_impl.dart' as dart;
 import 'bindings.dart' as web_crypto;
 
-part 'impl/aes.dart';
+part 'impl/aes_cbc.dart';
+part 'impl/aes_cipher.dart';
+part 'impl/aes_ctr.dart';
+part 'impl/aes_gcm.dart';
 part 'impl/ec_dh.dart';
 part 'impl/ec_dsa.dart';
 part 'impl/hashes.dart';

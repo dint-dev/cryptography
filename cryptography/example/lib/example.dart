@@ -8,9 +8,9 @@ Future<void> main() async {
   final nonce = chacha20.newNonce();
 
   // Encrypt
-  final clearText = [1, 2, 3];
+  final plainText = [1, 2, 3];
   final cipherText = await chacha20Poly1305Aead.encrypt(
-    clearText,
+    plainText,
     secretKey: secretKey,
     nonce: nonce,
   );

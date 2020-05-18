@@ -54,4 +54,7 @@ import 'chacha20_impl.dart';
 ///   );
 /// }
 /// ```
-const Cipher chacha20 = Chacha20();
+const Cipher chacha20 = ChaCha(
+  rounds: 20,
+  name: 'chacha20',
+);

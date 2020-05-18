@@ -63,7 +63,7 @@ class Hmac extends MacAlgorithm {
   const Hmac(this.hashAlgorithm);
 
   @override
-  int get macLengthInBytes => hashAlgorithm.hashLengthInBytes;
+  int get macLength => hashAlgorithm.hashLengthInBytes;
 
   @override
   String get name => 'Hmac(${hashAlgorithm.name})';

@@ -35,7 +35,7 @@ String hexFromBytes(Iterable<int> iterable) {
 }
 
 /// Converts a hexadecimal string to a list of bytes.
-List<int> hexToBytes(String input) {
+Uint8List hexToBytes(String input) {
   if (input == null) {
     return null;
   }

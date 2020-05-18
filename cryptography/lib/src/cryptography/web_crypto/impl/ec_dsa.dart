@@ -49,17 +49,17 @@ class _WebEcdsa extends SignatureAlgorithm {
   final String webCryptoHashName;
   final SignatureAlgorithm dartImplementation;
 
-  @override
-  String get name => dartImplementation.name;
-
-  @override
-  int get publicKeyLength => dartImplementation.publicKeyLength;
-
   const _WebEcdsa({
     @required this.webCryptoNamedCurve,
     @required this.webCryptoHashName,
     @required this.dartImplementation,
   });
+
+  @override
+  String get name => dartImplementation.name;
+
+  @override
+  int get publicKeyLength => dartImplementation.publicKeyLength;
 
   @override
   Future<KeyPair> newKeyPair() {
@@ -74,28 +74,24 @@ class _WebEcdsa extends SignatureAlgorithm {
     return dartImplementation.newKeyPairSync();
   }
 
-  @override
-  Future<Signature> sign(List<int> input, KeyPair keyPair) async {
-    final subtle = web_crypto.subtle;
-    if (subtle == null) {
-      // Very old browser
-      return super.sign(input, keyPair);
+  Future<web_crypto.CryptoKey> _getCryptoKey(KeyPair keyPair) async {
+    final cachedValue = keyPair.privateKey.associatedValues[this];
+    if (cachedValue != null) {
+      return cachedValue;
     }
-    final privateBytes = await keyPair.privateKey.extract();
-    final n = privateBytes.length ~/ 3;
-    final privateKeyJwk = web_crypto.Jwk(
-      crv: webCryptoNamedCurve,
-      d: _base64UrlEncode(privateBytes.sublist(0, n)),
-      ext: false,
-      key_ops: const ['sign'],
-      kty: 'EC',
-      x: _base64UrlEncode(privateBytes.sublist(n, 2 * n)),
-      y: _base64UrlEncode(privateBytes.sublist(2 * n)),
-    );
-    final privateKeyJs = await js.promiseToFuture<web_crypto.CryptoKey>(
-      subtle.importKey(
+    final jwkPrivateKey = await JwkPrivateKey.from(await keyPair.privateKey);
+    final result = js.promiseToFuture<web_crypto.CryptoKey>(
+      web_crypto.subtle.importKey(
         'jwk',
-        privateKeyJwk,
+        web_crypto.Jwk(
+          crv: webCryptoNamedCurve,
+          d: _base64UrlEncode(jwkPrivateKey.d),
+          ext: false,
+          key_ops: const ['sign'],
+          kty: 'EC',
+          x: _base64UrlEncode(jwkPrivateKey.x),
+          y: _base64UrlEncode(jwkPrivateKey.y),
+        ),
         web_crypto.EcKeyImportParams(
           name: 'ECDSA',
           namedCurve: webCryptoNamedCurve,
@@ -104,21 +100,31 @@ class _WebEcdsa extends SignatureAlgorithm {
         const ['sign'],
       ),
     );
-    return js
-        .promiseToFuture<ByteBuffer>(web_crypto.subtle.sign(
+    keyPair.privateKey.associatedValues[this] = result;
+    return result;
+  }
+
+  @override
+  Future<Signature> sign(List<int> input, KeyPair keyPair) async {
+    final subtle = web_crypto.subtle;
+    if (subtle == null) {
+      // Very old browser
+      return super.sign(input, keyPair);
+    }
+    final cryptoKey = await _getCryptoKey(keyPair);
+    final byteBuffer =
+        await js.promiseToFuture<ByteBuffer>(web_crypto.subtle.sign(
       web_crypto.EcdsaParams(
         name: 'ECDSA',
         hash: webCryptoHashName,
       ),
-      privateKeyJs,
+      cryptoKey,
       _jsArrayBufferFrom(input),
-    ))
-        .then((byteBuffer) async {
-      return Signature(
-        Uint8List.view(byteBuffer),
-        publicKey: keyPair.publicKey,
-      );
-    });
+    ));
+    return Signature(
+      Uint8List.view(byteBuffer),
+      publicKey: keyPair.publicKey,
+    );
   }
 
   @override

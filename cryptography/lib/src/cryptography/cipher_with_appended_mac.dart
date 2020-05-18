@@ -17,7 +17,7 @@ import 'dart:typed_data';
 import 'package:cryptography/cryptography.dart';
 import 'package:meta/meta.dart';
 
-/// Wraps some [Cipher] and adds authentication with some [MacAlgorithm].
+/// Combines an arbitrary [Cipher] with an arbitrary [MacAlgorithm].
 ///
 /// After encrypting bytes ([encrypt] or [encryptSync]), the class calculates
 /// MAC code and appends it after encrypted bytes.
@@ -58,6 +58,12 @@ class CipherWithAppendedMac implements Cipher {
 
   @override
   int get nonceLength => cipher.nonceLength;
+
+  @override
+  int get nonceLengthMax => cipher.nonceLengthMax;
+
+  @override
+  int get nonceLengthMin => cipher.nonceLengthMin;
 
   @override
   int get secretKeyLength => cipher.secretKeyLength;
@@ -103,7 +109,7 @@ class CipherWithAppendedMac implements Cipher {
   }
 
   @override
-  Future<List<int>> decrypt(
+  Future<Uint8List> decrypt(
     List<int> cipherText, {
     @required SecretKey secretKey,
     @required Nonce nonce,
@@ -113,7 +119,7 @@ class CipherWithAppendedMac implements Cipher {
     if (!supportsAad && aad != null && aad.isNotEmpty) {
       throw ArgumentError.value(aad, 'aad');
     }
-    final n = cipherText.length - macAlgorithm.macLengthInBytes;
+    final n = cipherText.length - macAlgorithm.macLength;
     final dataSection = cipherText.take(n).toList(growable: false);
     final macSection = cipherText.skip(n).toList(growable: false);
 
@@ -138,7 +144,7 @@ class CipherWithAppendedMac implements Cipher {
   }
 
   @override
-  List<int> decryptSync(
+  Uint8List decryptSync(
     List<int> cipherText, {
     @required SecretKey secretKey,
     @required Nonce nonce,
@@ -148,7 +154,7 @@ class CipherWithAppendedMac implements Cipher {
     if (!supportsAad && aad != null && aad.isNotEmpty) {
       throw ArgumentError.value(aad, 'aad');
     }
-    final n = cipherText.length - macAlgorithm.macLengthInBytes;
+    final n = cipherText.length - macAlgorithm.macLength;
     final dataSection = cipherText.take(n).toList(growable: false);
     final macSection = cipherText.skip(n).toList(growable: false);
 
@@ -199,8 +205,8 @@ class CipherWithAppendedMac implements Cipher {
   }
 
   @override
-  Future<List<int>> encrypt(
-    List<int> clearText, {
+  Future<Uint8List> encrypt(
+    List<int> plainText, {
     @required SecretKey secretKey,
     @required Nonce nonce,
     List<int> aad,
@@ -210,7 +216,7 @@ class CipherWithAppendedMac implements Cipher {
       throw ArgumentError.value(aad, 'aad');
     }
     final cipherText = await cipher.encrypt(
-      clearText,
+      plainText,
       secretKey: secretKey,
       nonce: nonce,
       aad: cipher.supportsAad ? aad : null,
@@ -231,8 +237,8 @@ class CipherWithAppendedMac implements Cipher {
   }
 
   @override
-  List<int> encryptSync(
-    List<int> clearText, {
+  Uint8List encryptSync(
+    List<int> plainText, {
     @required SecretKey secretKey,
     @required Nonce nonce,
     List<int> aad,
@@ -242,7 +248,7 @@ class CipherWithAppendedMac implements Cipher {
       throw ArgumentError.value(aad, 'aad');
     }
     final cipherText = cipher.encryptSync(
-      clearText,
+      plainText,
       secretKey: secretKey,
       nonce: nonce,
       aad: cipher.supportsAad ? aad : null,
@@ -290,19 +296,15 @@ class CipherWithAppendedMac implements Cipher {
 
   @override
   List<int> getDataInCipherText(List<int> cipherText) {
-    final n = cipherText.length - macAlgorithm.macLengthInBytes;
+    final n = cipherText.length - macAlgorithm.macLength;
     return cipherText.sublist(0, n);
   }
 
   @override
   Mac getMacInCipherText(List<int> cipherText) {
-    final n = cipherText.length - macAlgorithm.macLengthInBytes;
+    final n = cipherText.length - macAlgorithm.macLength;
     return Mac(cipherText.sublist(n));
   }
-
-  @override
-  bool isSecretKeyLengthInBytesValid(int length) =>
-      cipher.isSecretKeyLengthInBytesValid(length);
 
   @override
   Nonce newNonce() => cipher.newNonce();

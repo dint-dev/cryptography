@@ -67,16 +67,15 @@ class _WebEcdh extends KeyExchangeAlgorithm {
         remotePublicKey: remotePublicKey,
       );
     }
-    final privateBytes = await localPrivateKey.extract();
-    final n = privateBytes.length ~/ 3;
+    final privateKey = await JwkPrivateKey.from(localPrivateKey);
     final privateKeyJwk = web_crypto.Jwk(
       crv: webCryptoNamedCurve,
-      d: _base64UrlEncode(privateBytes.sublist(0, n)),
+      d: _base64UrlEncode(privateKey.d),
       ext: true,
       key_ops: const ['deriveBits'],
       kty: 'EC',
-      x: _base64UrlEncode(privateBytes.sublist(n, 2 * n)),
-      y: _base64UrlEncode(privateBytes.sublist(2 * n)),
+      x: _base64UrlEncode(privateKey.x),
+      y: _base64UrlEncode(privateKey.y),
     );
     final privateKeyJs = await js.promiseToFuture<web_crypto.CryptoKey>(
       subtle.importKey(

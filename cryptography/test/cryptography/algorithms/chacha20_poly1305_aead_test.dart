@@ -31,9 +31,9 @@ void main() {
     test('contains MAC (async)', () async {
       final secretKey = await algorithm.newSecretKey();
       final nonce = algorithm.newNonce();
-      final clearText = [1, 2, 3];
+      final plainText = [1, 2, 3];
       final cipherText = await algorithm.encrypt(
-        clearText,
+        plainText,
         secretKey: secretKey,
         nonce: nonce,
       );
@@ -43,9 +43,9 @@ void main() {
     test('contains MAC (sync)', () {
       final secretKey = algorithm.newSecretKeySync();
       final nonce = algorithm.newNonce();
-      final clearText = [1, 2, 3];
+      final plainText = [1, 2, 3];
       final cipherText = algorithm.encryptSync(
-        clearText,
+        plainText,
         secretKey: secretKey,
         nonce: nonce,
       );
@@ -55,9 +55,9 @@ void main() {
     test('decrypt() throws if the MAC is invalid', () async {
       final secretKey = algorithm.newSecretKeySync();
       final nonce = algorithm.newNonce();
-      final clearText = [1, 2, 3];
+      final plainText = [1, 2, 3];
       final cipherText = algorithm.encryptSync(
-        clearText,
+        plainText,
         secretKey: secretKey,
         nonce: nonce,
       );
@@ -71,9 +71,9 @@ void main() {
     test('decryptSync() throws if the MAC is invalid', () {
       final secretKey = algorithm.newSecretKeySync();
       final nonce = algorithm.newNonce();
-      final clearText = [1, 2, 3];
+      final plainText = [1, 2, 3];
       final cipherText = algorithm.encryptSync(
-        clearText,
+        plainText,
         secretKey: secretKey,
         nonce: nonce,
       );
@@ -90,7 +90,7 @@ void main() {
       // The following input/output constants are copied from the RFC 7539:
       // https://tools.ietf.org/html/rfc7539
       // -------------------------------------------------------------------------
-      final clearText =
+      final plainText =
           "Ladies and Gentlemen of the class of '99: If I could offer you only one tip for the future, sunscreen would be it."
               .runes
               .toList();
@@ -127,7 +127,7 @@ fa b3 24 e4 fa d6 75 94 55 85 80 8b 48 31 d7 bc
 
       setUp(() {
         expectedOutput = chacha20Poly1305Aead.encryptSync(
-          clearText,
+          plainText,
           secretKey: secretKey,
           nonce: nonce,
           aad: aad,
@@ -143,7 +143,7 @@ fa b3 24 e4 fa d6 75 94 55 85 80 8b 48 31 d7 bc
       //
       test('encrypt(...)', () async {
         final encrypted = await chacha20Poly1305Aead.encrypt(
-          clearText,
+          plainText,
           secretKey: secretKey,
           nonce: nonce,
           aad: aad,
@@ -165,7 +165,7 @@ fa b3 24 e4 fa d6 75 94 55 85 80 8b 48 31 d7 bc
 
       test('encryptSync(...)', () {
         final encrypted = algorithm.encryptSync(
-          clearText,
+          plainText,
           aad: aad,
           secretKey: secretKey,
           nonce: nonce,
@@ -190,7 +190,7 @@ fa b3 24 e4 fa d6 75 94 55 85 80 8b 48 31 d7 bc
         );
         expect(
           hexFromBytes(decrypted),
-          hexFromBytes(clearText),
+          hexFromBytes(plainText),
         );
       });
 
@@ -203,7 +203,7 @@ fa b3 24 e4 fa d6 75 94 55 85 80 8b 48 31 d7 bc
         );
         expect(
           hexFromBytes(decrypted),
-          hexFromBytes(clearText),
+          hexFromBytes(plainText),
         );
       });
     });

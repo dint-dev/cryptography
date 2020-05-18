@@ -49,7 +49,9 @@ abstract class SimpleBenchmark {
 
   FutureOr<void> teardown() {}
 
-  FutureOr<void> warmup() {
-    return run();
+  FutureOr<void> warmup() async {
+    for (var i = 0; i < 5; i++) {
+      await run();
+    }
   }
 }

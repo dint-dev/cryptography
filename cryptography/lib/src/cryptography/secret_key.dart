@@ -28,10 +28,10 @@ abstract class SecretKey {
   static final _random = Random.secure();
 
   /// Constructs a secret key on the heap.
-  const factory SecretKey(List<int> bytes) = _SecretKey;
+  factory SecretKey(List<int> bytes) = _SecretKey;
 
   /// Constructor for subclasses.
-  const SecretKey.constructor();
+  SecretKey.constructor();
 
   /// Generates _N_ random bytes with a cryptographically strong random number
   /// generator.
@@ -64,12 +64,19 @@ abstract class SecretKey {
   ///
   /// The returned byte list should be treated as immutable.
   List<int> extractSync();
+
+  Map<Object, Object> _associatedValues;
+
+  /// Associated values. Can be used for caching cryptographic objects such as
+  /// Web Cryptography object handles.
+  Map<Object, Object> get cachedValues =>
+      _associatedValues ??= <Object, Object>{};
 }
 
 class _SecretKey extends SecretKey {
   final List<int> _bytes;
 
-  const _SecretKey(this._bytes)
+  _SecretKey(this._bytes)
       : assert(_bytes != null),
         super.constructor();
 

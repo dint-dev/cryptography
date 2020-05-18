@@ -38,9 +38,9 @@ import 'package:meta/meta.dart';
 ///   final nonce = Nonce.randomBytes(12);
 ///
 ///   // Encrypt
-///   final clearText = <int>[1, 2, 3];
+///   final plainText = <int>[1, 2, 3];
 ///   final encrypted = await chacha20Poly1305Aead.encrypt(
-///     clearText,
+///     plainText,
 ///     secretKey: secretKey,
 ///     nonce: nonce,
 ///   );
@@ -187,7 +187,7 @@ class _Chacha20Poly1305Aead extends CipherWithAppendedMac {
   }
 
   @override
-  Future<List<int>> decrypt(
+  Future<Uint8List> decrypt(
     List<int> cipherText, {
     SecretKey secretKey,
     Nonce nonce,
@@ -216,7 +216,7 @@ class _Chacha20Poly1305Aead extends CipherWithAppendedMac {
   }
 
   @override
-  List<int> decryptSync(
+  Uint8List decryptSync(
     List<int> cipherText, {
     SecretKey secretKey,
     Nonce nonce,
@@ -245,15 +245,15 @@ class _Chacha20Poly1305Aead extends CipherWithAppendedMac {
   }
 
   @override
-  Future<List<int>> encrypt(
-    List<int> clearText, {
+  Future<Uint8List> encrypt(
+    List<int> plainText, {
     SecretKey secretKey,
     Nonce nonce,
     List<int> aad,
     int keyStreamIndex = 0,
   }) async {
     final cipherTextWithoutMac = await cipher.encrypt(
-      clearText,
+      plainText,
       secretKey: secretKey,
       nonce: nonce,
       aad: null,
@@ -273,15 +273,15 @@ class _Chacha20Poly1305Aead extends CipherWithAppendedMac {
   }
 
   @override
-  List<int> encryptSync(
-    List<int> clearText, {
+  Uint8List encryptSync(
+    List<int> plainText, {
     SecretKey secretKey,
     Nonce nonce,
     List<int> aad,
     int keyStreamIndex = 0,
   }) {
     final cipherTextWithoutMac = cipher.encryptSync(
-      clearText,
+      plainText,
       secretKey: secretKey,
       nonce: nonce,
       aad: null,

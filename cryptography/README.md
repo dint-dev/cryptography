@@ -6,11 +6,8 @@ Popular cryptographic algorithms for [Dart](https://dart.dev) / [Flutter](https:
 developers. Licensed under the [Apache License 2.0](LICENSE).
 
 This package is:
-  * __Commercially used__. Unlike some  other open-source packages, this package doesn't have
-    license issues. Correctness and audit-friendliness critical to us.
-  * __Fast__. For example, our benchmarks show that SHA-512 performance in browsers can be _over
-    100 times faster_ than _package:crypto_ by Google (thanks to use of platform APIs).
-  * __Easy__. This is probably the easiest-to-use cryptographic package written in Dart.
+  * __Safe__. Plenty of tests. No license issues. Used in commercial products.
+  * __Fast.__ For example, SHA-512 can be over 100 times faster than _package:crypto_.
 
 Any feedback, issue reports, or pull requests are appreciated!
 See [our Github project](https://github.com/dint-dev/cryptography).
@@ -40,7 +37,8 @@ See [our Github project](https://github.com/dint-dev/cryptography).
   * The APIs generally include both _asynchronous_ and _synchronous_ methods. For instance, you can
     calculate a SHA-256 hash with `sha256.hash(bytes)` or `sha256.hashSync(bytes)`. We recommend
     that you use asynchronous methods because they are able to take advantage of asynchronous
-    platform APIs such as _Web Cryptography API_.
+    platform APIs such as _Web Cryptography API_, which can be much faster and more likely to be
+    constant-time.
 
 ## Available algorithms
 ### Key exchange algorithms
@@ -53,7 +51,7 @@ The following implementations are available:
     * Currently these elliptic curves are only supported in browsers (_Web Cryptography API_).
   * [x25519](https://pub.dev/documentation/cryptography/latest/cryptography/x25519-constant.html) ([read about the algorithm](https://en.wikipedia.org/wiki/Curve25519))
     * X25519 (curve25519 Diffie-Hellman) is a popular, often-recommended key agreement algorithm.
-      In our benchmarks, we observe performance of around 1k operations per second in VM.
+      In our benchmarks, the performance is around 1k operations per second in VM.
 
 For more more documentation, see [KeyExchangeAlgorithm](https://pub.dev/documentation/cryptography/latest/cryptography/KeyExchangeAlgorithm-class.html).
 
@@ -62,8 +60,8 @@ Signature algorithms are subclasses of [SignatureAlgorithm](https://pub.dev/docu
 The following implementations are available:
   * [ed25519](https://pub.dev/documentation/cryptography/latest/cryptography/ed25519-constant.html) ([read about the algorithm](https://en.wikipedia.org/wiki/EdDSA))
     * ED25519 (curve25519 EdDSA) is a popular, often-recommended signature algorithm.
-      In our benchmarks, we observe performance of around 200 signatures or verifications per
-      second in VM (about 50 in browsers).
+      In our benchmarks, the performance is around 200 signatures or verifications per second in VM
+      (about 50 in browsers).
   * Elliptic curves approved by NIST ([read about the algorithm](https://en.wikipedia.org/wiki/Elliptic-curve_cryptography))
     * [ecdsaP256Sha256](https://pub.dev/documentation/cryptography/latest/cryptography/ecdsaP256Sha256-constant.html) (ECDSA P256 / secp256r1 / prime256v1 + SHA256)
     * [ecdsaP384Sha256](https://pub.dev/documentation/cryptography/latest/cryptography/ecdsaP384Sha256-constant.html) (ECDSA P384 / secp384r1 / prime384v1 + SHA256)
@@ -75,11 +73,13 @@ The following implementations are available:
 ### Symmetric encryption
 Ciphers are subclasses of [Cipher](https://pub.dev/documentation/cryptography/latest/cryptography/Cipher-class.html).
 The following implementations are available:
+  * [CipherWithAppendedMac](https://pub.dev/documentation/cryptography/latest/cryptography/CipherWithAppendedMac-class.html)
+    adds authentication (such as HMAC-SHA256) to ciphers without built-in authentication.
   * AES ([read about the algorithm](https://en.wikipedia.org/wiki/Advanced_Encryption_Standard))
     * [aesCbc](https://pub.dev/documentation/cryptography/latest/cryptography/aesCbc-constant.html) (AES-CBC)
     * [aesCtr](https://pub.dev/documentation/cryptography/latest/cryptography/aesCtr-constant.html) (AES-CTR)
-    * [aesGcm](https://pub.dev/documentation/cryptography/latest/cryptography/aesGcm-constant.html) (AES-GCM, browsers-only at the moment)
-    * In our benchmarks, we observe performance of around 10-50 MB/s in VM (about 300MB - 700MB/s in
+    * [aesGcm](https://pub.dev/documentation/cryptography/latest/cryptography/aesGcm-constant.html) (AES-GCM)
+    * In our benchmarks, the performance is around 10-70 MB/s in VM (about 400MB - 700MB/s in
       browsers).
   * Chacha20 family ([read about the algorithm](https://en.wikipedia.org/wiki/Salsa20))
     * [chacha20](https://pub.dev/documentation/cryptography/latest/cryptography/chacha20-constant.html)
@@ -87,7 +87,7 @@ The following implementations are available:
     * [xchacha20](https://pub.dev/documentation/cryptography/latest/cryptography/xchacha20-constant.html)
     * [xchacha20Poly1305Aead](https://pub.dev/documentation/cryptography/latest/cryptography/xchacha20Poly1305Aead-constant.html) (AEAD_XCHACHA20_POLY1305)
     * Chacha20 is a popular cipher and it's our recommendation if you can choose an algorithm.
-      In our benchmarks, we observe performance of around 20-100MB/s in VM.
+      In our benchmarks, the performance is around 40-140MB/s in VM.
 
 ### Key derivation algorithms
   * [HChacha20](https://pub.dev/documentation/cryptography/latest/cryptography/HChacha20-class.html)

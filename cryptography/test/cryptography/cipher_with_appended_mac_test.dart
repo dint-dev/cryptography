@@ -20,13 +20,13 @@ import 'package:test/test.dart';
 
 void main() {
   group('CipherWithAppendedMac:', () {
-    const clearText = <int>[1, 2, 3];
+    const plainText = <int>[1, 2, 3];
     final secretKey = chacha20.newSecretKeySync();
     final nonce = chacha20.newNonce();
     const hmac = Hmac(sha256);
     const cipher = CipherWithAppendedMac(chacha20, hmac);
     final cipherTextWithoutMac = chacha20.encryptSync(
-      clearText,
+      plainText,
       secretKey: secretKey,
       nonce: nonce,
     );
@@ -66,7 +66,7 @@ void main() {
 
     test('encrypt(...)', () async {
       final actual = await cipher.encrypt(
-        clearText,
+        plainText,
         secretKey: secretKey,
         nonce: nonce,
       );
@@ -78,7 +78,7 @@ void main() {
 
     test('encryptSync(...)', () {
       final actual = cipher.encryptSync(
-        clearText,
+        plainText,
         secretKey: secretKey,
         nonce: nonce,
       );
@@ -96,7 +96,7 @@ void main() {
       );
       expect(
         hexFromBytes(actual),
-        hexFromBytes(clearText),
+        hexFromBytes(plainText),
       );
     });
 
@@ -108,7 +108,7 @@ void main() {
       );
       expect(
         hexFromBytes(actual),
-        hexFromBytes(clearText),
+        hexFromBytes(plainText),
       );
     });
 

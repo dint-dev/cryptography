@@ -1,3 +1,23 @@
+## 1.1.0
+  * BREAKING CHANGE: Cipher methods `encrypt` / `encryptSync` and `decrypt` / `decryptSync` now use
+    return type `Future<Uint8List>` / `Uint8List` instead of previous `Future<List<int>>` /
+    `List<int>`. We return instances of `Uint8List` anyway and we felt it's good to expose this
+    fact despite despite possibility that the change affects some developers. If you are affected by
+    this, you should see compile-time type warnings.
+  * `Cipher` has new getters `nonceLengthMin` and `nonceLengthMax`.
+  * AES-GCM is supported in the VM too.
+  * AES performance is improved significantly.
+  * Adds `JwkPrivateKey`.
+  * BREAKING CHANGE: JwkPrivateKey (instead of previous unspecified format) becomes the private key
+    storage format for P-256/P-384/P-521. Any attempt to use the previous unspecified format will
+    lead to errors. It's unlikely that anyone is affected by this change so we don't bump the major
+    version.
+  * `SecretKey` and `PrivateKey` now have property `Map<Object,Object> cachedValues`, which can
+    be used for caching objects needed for cryptographic operations (such as handles to Web
+    Cryptography API objects).
+  * Hides utils from developers.
+  * Internal refactoring.
+
 ## 1.0.4
   * Internal refactoring. Splits a number of large source files (such as Web Cryptography support)
     into more readable smaller files.

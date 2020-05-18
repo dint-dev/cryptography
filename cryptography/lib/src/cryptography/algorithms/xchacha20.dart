@@ -15,6 +15,10 @@
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
+import 'package:cryptography/src/utils/parameters.dart';
+import 'package:meta/meta.dart';
+
+import 'chacha20_impl.dart';
 
 /// XChaCha20 cipher ([draft-irtf-cfrg-xchacha](https://tools.ietf.org/html/draft-arciszewski-xchacha-03)).
 ///
@@ -31,16 +35,32 @@ import 'package:cryptography/cryptography.dart';
 /// ## Example
 ///
 /// See examples in [chacha20].
-const Cipher xchacha20 = _XChaCha20();
+const Cipher xchacha20 = _XChaCha(
+  name: 'xchacha20',
+  rounds: 20,
+);
 
-class _XChaCha20 extends Cipher {
-  const _XChaCha20();
+class _XChaCha extends Cipher {
+  final int _rounds;
 
   @override
-  String get name => 'xchacha20';
+  final String name;
+
+  const _XChaCha({
+    @required this.name,
+    @required int rounds,
+  })  : assert(name != null),
+        assert(rounds != null),
+        _rounds = rounds;
 
   @override
   int get nonceLength => 24;
+
+  @override
+  int get nonceLengthMax => 24;
+
+  @override
+  int get nonceLengthMin => 24;
 
   @override
   int get secretKeyLength => 32;
@@ -49,21 +69,23 @@ class _XChaCha20 extends Cipher {
   Set<int> get secretKeyValidLengths => <int>{32};
 
   @override
-  List<int> decryptSync(List<int> input,
+  Uint8List decryptSync(List<int> input,
       {SecretKey secretKey,
       Nonce nonce,
       List<int> aad,
       int keyStreamIndex = 0}) {
-    if (nonce.bytes.length != 24) {
-      throw ArgumentError.value(
-        nonce,
-        'nonce',
-        'Must be 24 bytes',
-      );
-    }
-    final oldNonceBytes = Uint8List.fromList(nonce.bytes);
+    final secretKeyBytes = secretKey.extractSync();
+    checkCipherParameters(
+      this,
+      secretKeyLength: secretKeyBytes.length,
+      nonce: nonce,
+      aad: aad != null,
+      keyStreamIndex: keyStreamIndex,
+      keyStreamFactor: 1,
+    );
 
     // Create a new secret key with hchacha20.
+    final oldNonceBytes = Uint8List.fromList(nonce.bytes);
     final newSecretKey = const HChacha20().deriveKeySync(
       secretKey: secretKey,
       nonce: Nonce(Uint8List.view(oldNonceBytes.buffer, 0, 16)),
@@ -77,8 +99,8 @@ class _XChaCha20 extends Cipher {
       newNonceBytes[4 + i] = oldNonceBytes[16 + i];
     }
 
-    // Decrypt with chacha20
-    return chacha20.decryptSync(
+    // Decrypt with chacha
+    return _chacha.decryptSync(
       input,
       secretKey: newSecretKey,
       nonce: Nonce(newNonceBytes),
@@ -86,23 +108,36 @@ class _XChaCha20 extends Cipher {
     );
   }
 
+  /// Chacha cipher with the same rounds count.
+  Cipher get _chacha {
+    final rounds = _rounds;
+    return rounds == 20
+        ? chacha20
+        : ChaCha(
+            rounds: rounds,
+            name: '',
+          );
+  }
+
   @override
-  List<int> encryptSync(List<int> input,
+  Uint8List encryptSync(List<int> input,
       {SecretKey secretKey,
       Nonce nonce,
       List<int> aad,
       int keyStreamIndex = 0}) {
-    // Check that nonce is 24 bytes.
-    if (nonce.bytes.length != 24) {
-      throw ArgumentError.value(
-        nonce,
-        'nonce',
-        'Must be 24 bytes',
-      );
-    }
-    final oldNonceBytes = Uint8List.fromList(nonce.bytes);
+    ArgumentError.checkNotNull(secretKey, 'secretKey');
+    final secretKeyBytes = secretKey.extractSync();
+    checkCipherParameters(
+      this,
+      secretKeyLength: secretKeyBytes.length,
+      nonce: nonce,
+      aad: aad != null,
+      keyStreamIndex: keyStreamIndex,
+      keyStreamFactor: 1,
+    );
 
     // Create a new secret key with hchacha20.
+    final oldNonceBytes = Uint8List.fromList(nonce.bytes);
     final newSecretKey = const HChacha20().deriveKeySync(
       secretKey: secretKey,
       nonce: Nonce(Uint8List.view(oldNonceBytes.buffer, 0, 16)),
@@ -116,8 +151,8 @@ class _XChaCha20 extends Cipher {
       newNonceBytes[4 + i] = oldNonceBytes[16 + i];
     }
 
-    // Encrypt with chacha20
-    return chacha20.encryptSync(
+    // Encrypt with chacha
+    return _chacha.encryptSync(
       input,
       secretKey: newSecretKey,
       nonce: Nonce(newNonceBytes),

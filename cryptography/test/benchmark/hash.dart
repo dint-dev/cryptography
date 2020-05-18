@@ -20,53 +20,58 @@ import 'benchmark_helpers.dart';
 
 Future<void> main() async {
   {
-    print('64 byte messages:');
-    const size = 64;
-    await _Hash(sha256, size).report();
-    await _HashSync(sha256, size).report();
-    await _Hash(sha512, size).report();
-    await _HashSync(sha512, size).report();
-    await _Hash(blake2s, size).report();
-    await _HashSync(blake2s, size).report();
+    print('100 byte messages:');
+    const size = 100;
+    const times = 10000;
+    await _Hash(sha256, size, times).report();
+    await _HashSync(sha256, size, times).report();
+    await _Hash(sha512, size, times).report();
+    await _HashSync(sha512, size, times).report();
+    await _Hash(blake2s, size, times).report();
+    await _HashSync(blake2s, size, times).report();
     print('');
   }
 
   {
     const size = 1000;
+    const times = 1000;
     print('1 kB messages:');
-    await _Hash(sha256, size).report();
-    await _HashSync(sha256, size).report();
-    await _Hash(sha512, size).report();
-    await _HashSync(sha512, size).report();
-    await _Hash(blake2s, size).report();
-    await _HashSync(blake2s, size).report();
+    await _Hash(sha256, size, times).report();
+    await _HashSync(sha256, size, times).report();
+    await _Hash(sha512, size, times).report();
+    await _HashSync(sha512, size, times).report();
+    await _Hash(blake2s, size, times).report();
+    await _HashSync(blake2s, size, times).report();
     print('');
   }
 
   {
     const size = 1000000;
+    const times = 1;
     print('1 MB messages:');
-    await _Hash(sha256, size).report();
-    await _HashSync(sha256, size).report();
-    await _Hash(sha512, size).report();
-    await _HashSync(sha512, size).report();
-    await _Hash(blake2s, size).report();
-    await _HashSync(blake2s, size).report();
+    await _Hash(sha256, size, times).report();
+    await _HashSync(sha256, size, times).report();
+    await _Hash(sha512, size, times).report();
+    await _HashSync(sha512, size, times).report();
+    await _Hash(blake2s, size, times).report();
+    await _HashSync(blake2s, size, times).report();
   }
 }
 
 class _Hash extends SimpleBenchmark {
   final HashAlgorithm implementation;
   final int length;
-
+  final int n;
   List<int> message;
 
-  _Hash(this.implementation, this.length)
+  _Hash(this.implementation, this.length, this.n)
       : super('${implementation.name}'.padRight(20));
 
   @override
-  Future<void> run() {
-    return implementation.hash(message);
+  Future<void> run() async {
+    for (var i = 0; i < n; i++) {
+      await implementation.hash(message);
+    }
   }
 
   @override
@@ -78,15 +83,17 @@ class _Hash extends SimpleBenchmark {
 class _HashSync extends SimpleBenchmark {
   final HashAlgorithm implementation;
   final int length;
-
+  final int n;
   List<int> message;
 
-  _HashSync(this.implementation, this.length)
+  _HashSync(this.implementation, this.length, this.n)
       : super('${implementation.name} (sync)'.padRight(20));
 
   @override
   void run() {
-    implementation.hashSync(message);
+    for (var i = 0; i < n; i++) {
+      implementation.hashSync(message);
+    }
   }
 
   @override

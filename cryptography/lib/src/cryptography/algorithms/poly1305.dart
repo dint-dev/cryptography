@@ -40,7 +40,7 @@ class _Poly1305 extends MacAlgorithm {
   const _Poly1305();
 
   @override
-  int get macLengthInBytes => 16;
+  int get macLength => 16;
 
   @override
   String get name => 'poly1305';
