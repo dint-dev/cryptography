@@ -18,14 +18,20 @@ import 'dart:typed_data';
 import 'package:cryptography/cryptography.dart';
 import 'package:meta/meta.dart';
 
-/// A [JWK](https://tools.ietf.org/html/rfc7517) (RFC 7517: JSON Web Key)
+/// A JWK ([RFC 7517: JSON Web Key](https://tools.ietf.org/html/rfc7517))
 /// private key.
 class JwkPrivateKey extends PrivateKey {
+  /// Elliptic curve parameter `d`.
   final List<int> d;
+
+  /// Elliptic curve parameter `x`.
   final List<int> x;
+
+  /// Elliptic curve parameter `y`.
   final List<int> y;
 
-  JwkPrivateKey({
+  /// Constructs a private key with elliptic curve parameters.
+  JwkPrivateKey.withElliptic({
     @required this.d,
     @required this.x,
     @required this.y,
@@ -84,7 +90,7 @@ class JwkPrivateKey extends PrivateKey {
     if (y == null) {
       throw ArgumentError('Missing property "y"');
     }
-    return JwkPrivateKey(
+    return JwkPrivateKey.withElliptic(
       d: d,
       x: x,
       y: y,
@@ -98,6 +104,11 @@ class JwkPrivateKey extends PrivateKey {
       'x': base64UrlEncode(x),
       'y': base64UrlEncode(y),
     };
+  }
+
+  /// Converts to bytes.
+  List<int> toBytes() {
+    return utf8.encode(json.encode(toJson()));
   }
 
   @override

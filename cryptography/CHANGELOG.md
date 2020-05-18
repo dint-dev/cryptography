@@ -1,3 +1,6 @@
+## 1.1.1
+  * Improved documentation and did some internal refactoring.
+
 ## 1.1.0
   * BREAKING CHANGE: Cipher methods `encrypt` / `encryptSync` and `decrypt` / `decryptSync` now use
     return type `Future<Uint8List>` / `Uint8List` instead of previous `Future<List<int>>` /
@@ -17,6 +20,7 @@
     Cryptography API objects).
   * Hides utils from developers.
   * Internal refactoring.
+  * Better documentation.
 
 ## 1.0.4
   * Internal refactoring. Splits a number of large source files (such as Web Cryptography support)

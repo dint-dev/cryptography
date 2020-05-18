@@ -65,12 +65,11 @@ abstract class SecretKey {
   /// The returned byte list should be treated as immutable.
   List<int> extractSync();
 
-  Map<Object, Object> _associatedValues;
+  Map<Object, Object> _cachedValues;
 
-  /// Associated values. Can be used for caching cryptographic objects such as
-  /// Web Cryptography object handles.
-  Map<Object, Object> get cachedValues =>
-      _associatedValues ??= <Object, Object>{};
+  /// Used internally by _package:cryptography_ for caching cryptographic
+  /// objects such as Web Cryptography _CryptoKey_ references.
+  Map<Object, Object> get cachedValues => _cachedValues ??= <Object, Object>{};
 }
 
 class _SecretKey extends SecretKey {

@@ -23,7 +23,7 @@ import 'ec_dh_impl.dart';
 ///
 /// Private keys are instances of [JwkPrivateKey].
 ///
-/// An example:
+/// ## Example
 /// ```
 /// import 'package:cryptography/cryptography.dart';
 ///
@@ -45,7 +45,7 @@ const KeyExchangeAlgorithm ecdhP256 = webEcdhP256 ?? dartEcdhP256;
 ///
 /// Private keys are instances of [JwkPrivateKey].
 ///
-/// An example:
+/// ## Example
 /// ```
 /// import 'package:cryptography/cryptography.dart';
 ///
@@ -67,7 +67,7 @@ const KeyExchangeAlgorithm ecdhP384 = webEcdhP384 ?? dartEcdhP384;
 ///
 /// Private keys are instances of [JwkPrivateKey].
 ///
-/// An example:
+/// ## Example
 /// ```
 /// import 'package:cryptography/cryptography.dart';
 ///

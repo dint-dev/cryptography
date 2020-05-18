@@ -75,7 +75,7 @@ class _WebEcdsa extends SignatureAlgorithm {
   }
 
   Future<web_crypto.CryptoKey> _getCryptoKey(KeyPair keyPair) async {
-    final cachedValue = keyPair.privateKey.associatedValues[this];
+    final cachedValue = keyPair.privateKey.cachedValues[this];
     if (cachedValue != null) {
       return cachedValue;
     }
@@ -100,7 +100,7 @@ class _WebEcdsa extends SignatureAlgorithm {
         const ['sign'],
       ),
     );
-    keyPair.privateKey.associatedValues[this] = result;
+    keyPair.privateKey.cachedValues[this] = result;
     return result;
   }
 

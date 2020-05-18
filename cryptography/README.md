@@ -30,10 +30,10 @@ See [our Github project](https://github.com/dint-dev/cryptography).
 ## Some things to know
   * SHA1 and SHA2 implementations use the package [crypto](https://pub.dev/packages/crypto), which
     is maintained by Google and contains only hash functions and HMAC.
-  * We wrote pure Dart implementations for X25519, ED25519, ChaCha20 family, AES-CBC, AES-CTR, HKDF,
-    HMAC, Poly1305, and BLAKE2S.
+  * We wrote pure Dart implementations for X25519, ED25519, ChaCha20 / XChacha20, AES-CBC, AES-CTR,
+    AES-GCM, HKDF, HMAC, Poly1305, and BLAKE2S.
   * We implemented automatic use of [Web Cryptography API](https://www.w3.org/TR/WebCryptoAPI/)
-    (SHA1, SHA2, AES, NIST elliptic curves) in browsers.
+    (SHA1, SHA2, AES, ECDH, ECDSA) in browsers.
   * The APIs generally include both _asynchronous_ and _synchronous_ methods. For instance, you can
     calculate a SHA-256 hash with `sha256.hash(bytes)` or `sha256.hashSync(bytes)`. We recommend
     that you use asynchronous methods because they are able to take advantage of asynchronous
@@ -43,6 +43,7 @@ See [our Github project](https://github.com/dint-dev/cryptography).
 ## Available algorithms
 ### Key exchange algorithms
 Key exchange algorithms are subclasses of [KeyExchangeAlgorithm](https://pub.dev/documentation/cryptography/latest/cryptography/KeyExchangeAlgorithm-class.html).
+
 The following implementations are available:
   * Elliptic curves approved by NIST ([read about the algorithm](https://en.wikipedia.org/wiki/Elliptic-curve_cryptography))
     * [ecdhP256](https://pub.dev/documentation/cryptography/latest/cryptography/ecdhP256-constant.html) (ECDH P256 / secp256r1 / prime256v1)
@@ -57,6 +58,7 @@ For more more documentation, see [KeyExchangeAlgorithm](https://pub.dev/document
 
 ### Digital signature algorithms
 Signature algorithms are subclasses of [SignatureAlgorithm](https://pub.dev/documentation/cryptography/latest/cryptography/SignatureAlgorithm-class.html).
+
 The following implementations are available:
   * [ed25519](https://pub.dev/documentation/cryptography/latest/cryptography/ed25519-constant.html) ([read about the algorithm](https://en.wikipedia.org/wiki/EdDSA))
     * ED25519 (curve25519 EdDSA) is a popular, often-recommended signature algorithm.
@@ -72,6 +74,7 @@ The following implementations are available:
 
 ### Symmetric encryption
 Ciphers are subclasses of [Cipher](https://pub.dev/documentation/cryptography/latest/cryptography/Cipher-class.html).
+
 The following implementations are available:
   * [CipherWithAppendedMac](https://pub.dev/documentation/cryptography/latest/cryptography/CipherWithAppendedMac-class.html)
     adds authentication (such as HMAC-SHA256) to ciphers without built-in authentication.
@@ -95,12 +98,14 @@ The following implementations are available:
 
 ### Message authentication codes
 Message authentication algorithms are subclasses of [MacAlgorithm](https://pub.dev/documentation/cryptography/latest/cryptography/MacAlgorithm-class.html).
+
 The following implementations are available:
   * [Hmac](https://pub.dev/documentation/cryptography/latest/cryptography/Hmac-class.html)
   * [poly1305](https://pub.dev/documentation/cryptography/latest/cryptography/poly1305-constant.html)
 
 ### Cryptographic hash functions
 Hash functions are subclasses of [HashAlgorithm](https://pub.dev/documentation/cryptography/latest/cryptography/HashAlgorithm-class.html).
+
 The following implementations are available:
   * [blake2s](https://pub.dev/documentation/cryptography/latest/cryptography/blake2s-constant.html) (BLAKE2S)
   * [sha1](https://pub.dev/documentation/cryptography/latest/cryptography/sha1-constant.html) (SHA1)
@@ -113,7 +118,7 @@ The following implementations are available:
 In _pubspec.yaml_:
 ```yaml
 dependencies:
-  cryptography: ^1.0.2
+  cryptography: ^1.1.1
 ```
 
 

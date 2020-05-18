@@ -72,7 +72,7 @@ Future<KeyPair> _newWebEcKeyPair(String curve) {
     final publicKeyBytes = Uint8List.view(publicByteBuffer);
 
     return KeyPair(
-      privateKey: JwkPrivateKey(
+      privateKey: JwkPrivateKey.withElliptic(
         d: _base64UrlDecode(privateKeyJs.d),
         x: _base64UrlDecode(privateKeyJs.x),
         y: _base64UrlDecode(privateKeyJs.y),

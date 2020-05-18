@@ -16,10 +16,10 @@ library web_crypto;
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:html' as html;
 import 'dart:js' as js;
 import 'dart:js_util' as js;
 import 'dart:typed_data';
-import 'dart:html' as html;
 
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/src/utils/parameters.dart';
