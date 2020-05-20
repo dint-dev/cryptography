@@ -67,7 +67,7 @@ class _WebEcdh extends KeyExchangeAlgorithm {
         remotePublicKey: remotePublicKey,
       );
     }
-    final privateKey = await JwkPrivateKey.from(localPrivateKey);
+    final privateKey = await EcJwkPrivateKey.from(localPrivateKey);
     final privateKeyJwk = web_crypto.Jwk(
       crv: webCryptoNamedCurve,
       d: _base64UrlEncode(privateKey.d),

@@ -79,7 +79,7 @@ class _WebEcdsa extends SignatureAlgorithm {
     if (cachedValue != null) {
       return cachedValue;
     }
-    final jwkPrivateKey = await JwkPrivateKey.from(await keyPair.privateKey);
+    final jwkPrivateKey = await EcJwkPrivateKey.from(await keyPair.privateKey);
     final result = js.promiseToFuture<web_crypto.CryptoKey>(
       web_crypto.subtle.importKey(
         'jwk',

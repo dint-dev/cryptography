@@ -27,6 +27,7 @@ import 'aes_impl_gcm.dart';
 /// * `nonce` must be 12 - 16 bytes.
 /// * AES-CBC is NOT authenticated so you should use a separate MAC algorithm
 ///   (see example).
+/// * In browsers, the implementation takes advantage of _Web Cryptography API_.
 ///
 /// ## Example
 /// ```dart
@@ -69,6 +70,7 @@ const Cipher aesCbc = webAesCbc ?? dartAesCbc;
 /// * `nonce` must be 8 - 16 bytes.
 /// * AES-CTR is NOT authenticated so you should use a separate MAC algorithm
 ///   (see example).
+/// * In browsers, the implementation takes advantage of _Web Cryptography API_.
 ///
 /// AES-CTR takes a maximum 16-byte [Nonce].
 ///
@@ -107,10 +109,11 @@ const Cipher aesCtr = webAesCtr ?? dartAesCtr;
 /// _AES-GCM_ (Galois/Counter Mode) cipher.
 ///
 /// ## Things to know
-/// * `secretKey` can be any value with 128, 192, or 256 bits. By default, the
+/// * `secretKey` can be any value with 128, 192, or 256 bits. By default,
 ///   [Cipher.newSecretKey] returns 256 bit keys.
-/// * `nonce` must be 12 - 16 bytes.
+/// * `nonce` can be 12 bytes or longer.
 /// * AES-GCM is authenticated so you don't need a separate MAC algorithm.
+/// * In browsers, the implementation takes advantage of _Web Cryptography API_.
 ///
 /// ## Example
 /// ```dart

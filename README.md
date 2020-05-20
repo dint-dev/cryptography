@@ -11,8 +11,8 @@ Want to contribute? Please share feedback / issue reports in the
 ## Packages
   * [cryptography](cryptography)
     * Covers:
-      * Ciphers (AES, ChaCha20, XChaCha20)
-      * Digital signature algorithms (ED25519, P256/P384/P521)
+      * Ciphers (AES, ChaCha20/XChaCha20)
+      * Digital signature algorithms (ED25519, P256/P384/P521, RSA-PSS, RSASSA-PKCS1-V15)
       * Key exchange algorithms (P256/P384/P521, X25519)
       * Message authentication codes (HMAC, Poly1305)
       * Hashes (SHA1, SHA2, BLAKE2S)

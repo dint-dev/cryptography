@@ -34,6 +34,8 @@ export 'src/cryptography/algorithms/hchacha20.dart';
 export 'src/cryptography/algorithms/hkdf.dart';
 export 'src/cryptography/algorithms/hmac.dart';
 export 'src/cryptography/algorithms/poly1305.dart';
+export 'src/cryptography/algorithms/rsa_pss.dart';
+export 'src/cryptography/algorithms/rsa_ssa_pkcs1v15.dart';
 export 'src/cryptography/algorithms/sha1_sha2.dart';
 export 'src/cryptography/algorithms/xchacha20.dart';
 export 'src/cryptography/cipher.dart';

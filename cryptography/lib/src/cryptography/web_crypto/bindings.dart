@@ -106,42 +106,6 @@ class EcdhParams {
 
 @JS()
 @anonymous
-class RsaHashedKeyGenParams {
-  external factory RsaHashedKeyGenParams({
-    @required String name,
-    @required int modulusLength,
-    @required dynamic publicExponent,
-    @required String hash,
-  });
-}
-
-@JS()
-@anonymous
-class RsaHashedImportParams {
-  external factory RsaHashedImportParams({
-    @required String name,
-    @required String hash,
-  });
-}
-
-@JS()
-@anonymous
-class SignParams {
-  external factory SignParams({
-    @required String name,
-  });
-}
-
-@JS()
-@anonymous
-class VerifyParams {
-  external factory VerifyParams({
-    @required String name,
-  });
-}
-
-@JS()
-@anonymous
 class EcdsaParams {
   external factory EcdsaParams({
     @required String name,
@@ -172,31 +136,35 @@ class HmacKeyGenParams {
 @anonymous
 class Jwk {
   external factory Jwk({
-    String alg,
     String crv,
-    String d,
+    String n,
     String e,
+    String d,
+    String p,
+    String q,
+    String dp,
+    String dq,
+    String qi,
     bool ext,
     List<String> key_ops,
     @required String kty,
-    String n,
     String x,
     String y,
   });
+  external String get kty;
   external String get crv;
-  external String get d;
+  external String get n;
   external String get e;
+  external String get d;
+  external String get p;
+  external String get q;
+  external String get dp;
+  external String get dq;
+  external String get qi;
   external bool get ext;
   external List<String> get key_ops;
-  external String get kty;
-  external String get n;
   external String get x;
   external String get y;
-}
-
-@JS()
-class KeyPair {
-  external factory KeyPair._();
 }
 
 @JS()
@@ -205,8 +173,40 @@ class Promise<T> {
 }
 
 @JS()
-class Signature {
-  external factory Signature._();
+@anonymous
+class RsaHashedImportParams {
+  external factory RsaHashedImportParams({
+    @required String name,
+    @required String hash,
+  });
+}
+
+@JS()
+@anonymous
+class RsaHashedKeyGenParams {
+  external factory RsaHashedKeyGenParams({
+    @required String name,
+    @required int modulusLength,
+    @required dynamic publicExponent,
+    @required String hash,
+  });
+}
+
+@JS()
+@anonymous
+class RsaPssParams {
+  external factory RsaPssParams({
+    @required String name,
+    int saltLength,
+  });
+}
+
+@JS()
+@anonymous
+class SignParams {
+  external factory SignParams({
+    @required String name,
+  });
 }
 
 @JS()
@@ -244,7 +244,7 @@ class Subtle {
     ByteBuffer data,
   );
 
-  external Promise<Signature> exportKey(
+  external Promise<CryptoKey> exportKey(
     String format,
     CryptoKey key,
   );
@@ -255,7 +255,7 @@ class Subtle {
     List<String> keyUsages,
   );
 
-  external Promise<Signature> importKey(
+  external Promise<CryptoKey> importKey(
     String format,
     dynamic keyData,
     dynamic algorithm,
@@ -263,7 +263,7 @@ class Subtle {
     List<String> keyUsages,
   );
 
-  external Promise<Signature> sign(
+  external Promise<ByteBuffer> sign(
     dynamic algorithm,
     CryptoKey key,
     ByteBuffer data,
@@ -287,4 +287,12 @@ class Subtle {
     ByteBuffer wrappedKey,
     ByteBuffer data,
   );
+}
+
+@JS()
+@anonymous
+class VerifyParams {
+  external factory VerifyParams({
+    @required String name,
+  });
 }

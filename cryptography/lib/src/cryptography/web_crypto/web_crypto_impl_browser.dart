@@ -33,11 +33,16 @@ import '../algorithms/ec_dsa_impl.dart' as dart;
 import '../algorithms/sha1_sha2_impl.dart' as dart;
 import 'bindings.dart' as web_crypto;
 
+part 'impl/aes.dart';
 part 'impl/aes_cbc.dart';
-part 'impl/aes_cipher.dart';
 part 'impl/aes_ctr.dart';
 part 'impl/aes_gcm.dart';
 part 'impl/ec_dh.dart';
 part 'impl/ec_dsa.dart';
 part 'impl/hashes.dart';
 part 'impl/helpers.dart';
+part 'impl/rsa.dart';
+part 'impl/rsa_pss.dart';
+part 'impl/rsa_ssa_pkcs1v15.dart';
+
+bool get isWebCryptoSupported => web_crypto.subtle != null;

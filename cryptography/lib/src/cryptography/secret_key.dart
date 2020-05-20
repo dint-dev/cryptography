@@ -15,22 +15,25 @@
 import 'dart:math' show Random;
 import 'dart:typed_data';
 
+import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/utils.dart';
 
-/// A secret sequence of bytes.
+/// A secret key.
 ///
 /// You can generate a random secret key with [SecretKey.randomBytes].
 ///
-/// The equality operator uses [constantTimeBytesEquality].
+/// In asymmetric cryptography, you should use [PrivateKey] instead of this
+/// class.
 ///
-/// For examples of usage, see [Cipher].
+/// ## Examples
+/// See [Cipher] documentation.
 abstract class SecretKey {
   static final _random = Random.secure();
 
-  /// Constructs a secret key on the heap.
+  /// Constructs an instance with the bytes.
   factory SecretKey(List<int> bytes) = _SecretKey;
 
-  /// Constructor for subclasses.
+  /// A constructor for subclasses.
   SecretKey.constructor();
 
   /// Generates _N_ random bytes with a cryptographically strong random number
@@ -68,7 +71,8 @@ abstract class SecretKey {
   Map<Object, Object> _cachedValues;
 
   /// Used internally by _package:cryptography_ for caching cryptographic
-  /// objects such as Web Cryptography _CryptoKey_ references.
+  /// objects such as Web Cryptography _CryptoKey_ references and AES key after
+  /// expansion.
   Map<Object, Object> get cachedValues => _cachedValues ??= <Object, Object>{};
 }
 

@@ -18,11 +18,20 @@ import 'package:cryptography/cryptography.dart';
 /// A public key of some [KeyPair].
 ///
 /// For examples of usage, see [KeyExchangeAlgorithm] and [SignatureAlgorithm].
-class PublicKey {
+abstract class PublicKey {
   /// Bytes of the public key.
-  final List<int> bytes;
+  List<int> get bytes;
 
-  const PublicKey(this.bytes) : assert(bytes != null);
+  Map<Object, Object> _cachedValues;
+
+  factory PublicKey(List<int> bytes) = _PublicKey;
+
+  /// A constructor for subclasses.
+  PublicKey.constructor();
+
+  /// Used internally by _package:cryptography_ for caching cryptographic
+  /// objects such as Web Cryptography _CryptoKey_ references.
+  Map<Object, Object> get cachedValues => _cachedValues ??= <Object, Object>{};
 
   @override
   int get hashCode {
@@ -39,4 +48,13 @@ class PublicKey {
   String toString() {
     return "PublicKey([${bytes.join(', ')}])";
   }
+}
+
+class _PublicKey extends PublicKey {
+  @override
+  final List<int> bytes;
+
+  _PublicKey(this.bytes)
+      : assert(bytes != null),
+        super.constructor();
 }

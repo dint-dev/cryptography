@@ -24,6 +24,16 @@ void main() {
       expect(algorithm.publicKeyLength, 32);
     });
 
+    test('generated private key looks normal', () async {
+      final keyPair = await algorithm.newKeyPair();
+      expect(keyPair.privateKey, isA<EcJwkPrivateKey>());
+
+      final privateKey = keyPair.privateKey as EcJwkPrivateKey;
+      expect(privateKey.d, isNotEmpty);
+      expect(privateKey.x, isNotEmpty);
+      expect(privateKey.y, isNotEmpty);
+    }, testOn: 'chrome');
+
     test('works in browser', () async {
       await _testKeyExchange(algorithm);
     }, testOn: 'chrome');
@@ -70,6 +80,8 @@ Future<void> _testKeyExchange(KeyExchangeAlgorithm algorithm) async {
     keypair0.publicKey,
     isNot(keypair1.publicKey),
   );
+
+  expect(keypair0.privateKey, isA<EcJwkPrivateKey>());
 
   // Each generates a shared secret
   final sharedKey0 = await algorithm.sharedSecret(

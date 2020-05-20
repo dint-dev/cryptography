@@ -60,19 +60,20 @@ Future<KeyPair> _newWebEcKeyPair(String curve) {
   );
   return js
       .promiseToFuture<web_crypto.CryptoKeyPair>(promise)
-      .then((cryptoKeyPair) async {
+      .then((jsKeyPair) async {
     final privateKeyJs = await js.promiseToFuture<web_crypto.Jwk>(
-      web_crypto.subtle.exportKey('jwk', cryptoKeyPair.privateKey),
+      web_crypto.subtle.exportKey('jwk', jsKeyPair.privateKey),
     );
 
     // Get public key.
     final publicByteBuffer = await js.promiseToFuture<ByteBuffer>(
-      web_crypto.subtle.exportKey('raw', cryptoKeyPair.publicKey),
+      web_crypto.subtle.exportKey('raw', jsKeyPair.publicKey),
     );
     final publicKeyBytes = Uint8List.view(publicByteBuffer);
 
     return KeyPair(
-      privateKey: JwkPrivateKey.withElliptic(
+      privateKey: EcJwkPrivateKey(
+        crv: curve,
         d: _base64UrlDecode(privateKeyJs.d),
         x: _base64UrlDecode(privateKeyJs.x),
         y: _base64UrlDecode(privateKeyJs.y),

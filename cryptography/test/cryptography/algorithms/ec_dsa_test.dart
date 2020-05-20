@@ -24,6 +24,16 @@ void main() {
       expect(algorithm.publicKeyLength, 32);
     });
 
+    test('generated private key looks normal', () async {
+      final keyPair = await algorithm.newKeyPair();
+      expect(keyPair.privateKey, isA<EcJwkPrivateKey>());
+
+      final privateKey = keyPair.privateKey as EcJwkPrivateKey;
+      expect(privateKey.d, isNotEmpty);
+      expect(privateKey.x, isNotEmpty);
+      expect(privateKey.y, isNotEmpty);
+    }, testOn: 'chrome');
+
     test('works in browser', () async {
       await _testSignature(algorithm);
     }, testOn: 'chrome');
@@ -36,6 +46,16 @@ void main() {
       expect(algorithm.name, 'ecdsaP384Sha256');
       expect(algorithm.publicKeyLength, 48);
     });
+
+    test('generated private key looks normal', () async {
+      final keyPair = await algorithm.newKeyPair();
+      expect(keyPair.privateKey, isA<EcJwkPrivateKey>());
+
+      final privateKey = keyPair.privateKey as EcJwkPrivateKey;
+      expect(privateKey.d, isNotEmpty);
+      expect(privateKey.x, isNotEmpty);
+      expect(privateKey.y, isNotEmpty);
+    }, testOn: 'chrome');
 
     test('works in browser', () async {
       await _testSignature(algorithm);
@@ -58,10 +78,20 @@ void main() {
   group('ecdsaP521Sha256:', () {
     const algorithm = ecdsaP521Sha256;
 
-    test('informatino', () {
+    test('information', () {
       expect(algorithm.name, 'ecdsaP521Sha256');
       expect(algorithm.publicKeyLength, 66);
     });
+
+    test('generated private key looks normal', () async {
+      final keyPair = await algorithm.newKeyPair();
+      expect(keyPair.privateKey, isA<EcJwkPrivateKey>());
+
+      final privateKey = keyPair.privateKey as EcJwkPrivateKey;
+      expect(privateKey.d, isNotEmpty);
+      expect(privateKey.x, isNotEmpty);
+      expect(privateKey.y, isNotEmpty);
+    }, testOn: 'chrome');
 
     test('works in browser', () async {
       await _testSignature(algorithm);

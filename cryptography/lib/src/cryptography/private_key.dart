@@ -31,7 +31,7 @@ abstract class PrivateKey {
   /// Constructs a private key with the bytes.
   factory PrivateKey(List<int> bytes) = _PrivateKey;
 
-  /// Constructor for subclasses.
+  /// A constructor for subclasses.
   PrivateKey.constructor();
 
   /// Generates _N_ random bytes with a cryptographically strong random number

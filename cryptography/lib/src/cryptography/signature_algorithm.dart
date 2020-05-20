@@ -58,7 +58,8 @@ abstract class SignatureAlgorithm {
   /// Tells whether [newKeyPairFromSeed] is supported.
   bool get isSeedSupported => false;
 
-  /// Returns public key length (in bytes).
+  /// Returns public key length (in bytes) or null if many lengths are
+  /// supported.
   int get publicKeyLength;
 
   /// Generates a new random keypair.
