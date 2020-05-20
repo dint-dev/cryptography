@@ -23,7 +23,7 @@ import '../web_crypto/web_crypto.dart';
 ///
 /// ## Example
 /// ```
-/// import 'package:cryptography/cryptography.dart;
+/// import 'package:cryptography/cryptography.dart';
 ///
 /// Future<void> main() async {
 ///   const algorithm = RsaPkcs1v15(sha256);

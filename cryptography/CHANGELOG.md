@@ -1,3 +1,6 @@
+## 1.2.1
+  * Fixes documentation issues.
+
 ## 1.2.0
   * Adds `RsaPss` and `RsaPkcs1v15` (Web Cryptography only).
   * BREAKING CHANGE: Recently added `JwkPrivateKey` is now `EcJwkPrivateKey`.

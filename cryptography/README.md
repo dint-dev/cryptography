@@ -35,13 +35,13 @@ See [our Github repository](https://github.com/dint-dev/cryptography).
     AES-CTR, AES-GCM, HKDF, HMAC, Poly1305, and BLAKE2S.
   * We implemented automatic use of [Web Cryptography API](https://www.w3.org/TR/WebCryptoAPI/)
     (_crypto.subtle_) when you use SHA1, SHA2, AES, ECDH, ECDSA, or RSA in browsers.
-  * It has been proposed ([SDK issue #34659](https://github.com/dart-lang/sdk/issues/34659)) that
-    Dart/Flutter SDK would export C functions from _BoringSSL_. If that happens, this package will
-    use those C implementations (but Dart implementations are still needed in the web platform).
-  * The APIs generally include both _asynchronous_ and _synchronous_ methods.  Only asynchronous
-    methods are able to use Web Crypto. For instance, you can calculate a SHA-512 hash with
-    `sha512.hash(bytes)` or `sha512.hashSync(bytes)`. In browsers, asynchronous version can be 100
-    times faster. In other platforms the synchronous version is faster, but only a bit.
+  * The APIs generally include both _asynchronous_ and _synchronous_ methods.  Only the
+    asynchronous methods are able to use Web Crypto APIs. For instance, you can calculate a SHA-512
+    hash with `sha512.hash(bytes)` or `sha512.hashSync(bytes)`. In browsers, asynchronous version
+    can be as much as 100 times faster. In other platforms the synchronous version is slightly
+    faster. We recommend that developers use asynchronous methods.
+  * If Dart SDK decides to expose _BoringSSL_ functions ([SDK issue](https://github.com/dart-lang/sdk/issues/34659)),
+    we will use them as much as possible.
 
 ## Cryptographic material classes
   * [SecretKey](https://pub.dev/documentation/cryptography/latest/cryptography/SecretKey-class.html)
