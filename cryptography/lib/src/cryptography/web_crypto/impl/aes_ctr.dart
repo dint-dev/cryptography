@@ -23,6 +23,9 @@ class _WebAesCtrCipher extends _WebAesCipher {
   Cipher get dartImplementation => dart.dartAesCtr;
 
   @override
+  String get webName => 'AES-CTR';
+
+  @override
   Future<Uint8List> _decrypt(
     List<int> input, {
     @required SecretKey secretKey,

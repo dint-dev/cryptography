@@ -23,6 +23,9 @@ class _WebAesCbcCipher extends _WebAesCipher {
   Cipher get dartImplementation => dart.dartAesCbc;
 
   @override
+  String get webName => 'AES-CBC';
+
+  @override
   Future<Uint8List> _decrypt(
     List<int> input, {
     @required SecretKey secretKey,

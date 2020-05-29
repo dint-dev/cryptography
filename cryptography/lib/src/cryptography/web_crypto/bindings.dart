@@ -128,7 +128,7 @@ class HmacKeyGenParams {
   external factory HmacKeyGenParams({
     @required String name,
     @required String hash,
-    @required int length,
+    int length,
   });
 }
 

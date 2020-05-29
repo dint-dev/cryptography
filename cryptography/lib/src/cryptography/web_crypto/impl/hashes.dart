@@ -58,6 +58,24 @@ class _WebHash extends HashAlgorithm {
   String get name => dartImplementation.name;
 
   @override
+  Future<SecretKey> newHashKey() async {
+    final jsCryptoKey = await js
+        .promiseToFuture<web_crypto.CryptoKey>(web_crypto.subtle.generateKey(
+      web_crypto.HmacKeyGenParams(
+        name: 'HMAC',
+        hash: webName,
+      ),
+      true,
+      ['sign', 'verify'],
+    ));
+
+    final jsRaw = await js.promiseToFuture<ByteBuffer>(
+        web_crypto.subtle.exportKey('raw', jsCryptoKey));
+
+    return SecretKey(jsRaw.asUint8List());
+  }
+
+  @override
   Future<Hash> hash(List<int> bytes) async {
     ArgumentError.checkNotNull(bytes);
     if (bytes.length < minLengthForWebCrypto) {

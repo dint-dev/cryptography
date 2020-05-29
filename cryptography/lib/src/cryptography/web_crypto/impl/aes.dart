@@ -25,6 +25,8 @@ abstract class _WebAesCipher extends Cipher {
   @override
   String get name => dartImplementation.name;
 
+  String get webName => name;
+
   @override
   int get nonceLength => dartImplementation.nonceLength;
 
@@ -43,6 +45,27 @@ abstract class _WebAesCipher extends Cipher {
 
   @override
   bool get supportsAad => dartImplementation.supportsAad;
+
+  @override
+  Future<SecretKey> newSecretKey({int length}) async {
+    if (!secretKeyValidLengths.contains(length)) {
+      length = secretKeyLength;
+    }
+    final jsCryptoKey = await js
+        .promiseToFuture<web_crypto.CryptoKey>(web_crypto.subtle.generateKey(
+      web_crypto.AesKeyGenParams(
+        name: webName,
+        length: 8 * length,
+      ),
+      true,
+      ['encrypt', 'decrypt'],
+    ));
+
+    final jsRaw = await js.promiseToFuture<ByteBuffer>(
+        web_crypto.subtle.exportKey('raw', jsCryptoKey));
+
+    return SecretKey(jsRaw.asUint8List());
+  }
 
   @override
   Future<Uint8List> decrypt(

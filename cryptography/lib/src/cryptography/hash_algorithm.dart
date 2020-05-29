@@ -63,6 +63,11 @@ abstract class HashAlgorithm {
   ///   * "sha256"
   String get name;
 
+  /// Generates a secret key for keyed hash functions.
+  Future<SecretKey> newHashKey() async {
+    return SecretKey.randomBytes(hashLengthInBytes);
+  }
+
   /// Calculates hash for the argument.
   Future<Hash> hash(List<int> input) async {
     return Future<Hash>.value(await hashSync(input));

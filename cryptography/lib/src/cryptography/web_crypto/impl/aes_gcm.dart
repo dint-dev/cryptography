@@ -23,6 +23,9 @@ class _WebAesGcmCipher extends _WebAesCipher {
   Cipher get dartImplementation => dart.dartAesGcm;
 
   @override
+  String get webName => 'AES-GCM';
+
+  @override
   Future<Uint8List> _decrypt(
     List<int> input, {
     @required SecretKey secretKey,
