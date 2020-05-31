@@ -134,6 +134,16 @@ class HmacKeyGenParams {
 
 @JS()
 @anonymous
+class HmacImportParams {
+  external factory HmacImportParams({
+    @required String name,
+    @required String hash,
+    int length,
+  });
+}
+
+@JS()
+@anonymous
 class Jwk {
   external factory Jwk({
     String crv,
