@@ -68,6 +68,7 @@ class AesKeyGenParams {
 class Crypto {
   external factory Crypto._();
   external Subtle get subtle;
+  external Uint8List getRandomValues(Uint8List array);
 }
 
 @JS()
