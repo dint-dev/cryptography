@@ -17,6 +17,8 @@ import 'dart:typed_data';
 
 import 'package:collection/collection.dart';
 
+import '../utils/random_bytes.dart';
+
 /// A nonce (sometimes known as _Initialization Vector_, _IV_ or _salt_).
 ///
 /// Usually nonces do not need to be kept secret.
@@ -35,8 +37,6 @@ import 'package:collection/collection.dart';
 /// }
 /// ```
 class Nonce {
-  static final _random = Random.secure();
-
   /// Bytes of the nonce.
   final List<int> bytes;
 
@@ -44,10 +44,15 @@ class Nonce {
     ArgumentError.checkNotNull(bytes, 'bytes');
   }
 
-  /// Generates _N_ random bytes with a cryptographically strong random number
+  /// Generates _N_ random bytes with a cryptographically secure random number
   /// generator.
   ///
-  /// You can optionally give a custom random number generator.
+  /// A description of the random number generator:
+  ///   * In browsers, `window.crypto.getRandomValues() is used directly.
+  ///   * In Dart, _dart:math_ [Random.secure()] is used.
+  ///
+  /// You can give a custom random number generator. This can be useful for
+  /// deterministic tests.
   ///
   /// ```
   /// import 'package:cryptography/cryptography.dart';
@@ -60,11 +65,8 @@ class Nonce {
   /// }
   /// ```
   factory Nonce.randomBytes(int length, {Random random}) {
-    random ??= _random;
     final data = Uint8List(length);
-    for (var i = 0; i < data.length; i++) {
-      data[i] = random.nextInt(256);
-    }
+    fillBytesWithSecureRandomNumbers(data, random: random);
     return Nonce(data);
   }
 

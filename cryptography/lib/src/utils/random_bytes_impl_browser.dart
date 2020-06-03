@@ -12,9 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:typed_data';
 import 'dart:html' as html;
+import 'dart:math';
+import 'dart:typed_data';
 
-void fillBytesWithSecureRandomNumbers(Uint8List bytes) {
-  html.window.crypto.getRandomValues(bytes);
+// Store the function so it can't be mutated by Javascript libraries.
+final _webCryptoRandom = html.window.crypto.getRandomValues;
+
+void fillBytesWithSecureRandomNumbers(Uint8List bytes, {Random random}) {
+  if (random == null) {
+    // Use Web Cryptography API directly (instead of Random.secure()).
+    _webCryptoRandom(bytes);
+  } else {
+    for (var i = 0; i < bytes.length; i++) {
+      bytes[i] = random.nextInt(256);
+    }
+  }
 }

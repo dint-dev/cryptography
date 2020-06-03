@@ -18,6 +18,8 @@ import 'dart:typed_data';
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/utils.dart';
 
+import '../utils/random_bytes.dart';
+
 /// A secret key.
 ///
 /// You can generate a random secret key with [SecretKey.randomBytes].
@@ -28,7 +30,7 @@ import 'package:cryptography/utils.dart';
 /// ## Examples
 /// See [Cipher] documentation.
 abstract class SecretKey {
-  static final _random = Random.secure();
+  Map<Object, Object> _cachedValues;
 
   /// Constructs an instance with the bytes.
   factory SecretKey(List<int> bytes) = _SecretKey;
@@ -36,23 +38,30 @@ abstract class SecretKey {
   /// A constructor for subclasses.
   SecretKey.constructor();
 
-  /// Generates _N_ random bytes with a cryptographically strong random number
+  /// Generates _N_ random bytes with a cryptographically secure random number
   /// generator.
   ///
-  /// You can optionally give a custom random number generator.
+  /// A description of the random number generator:
+  ///   * In browsers, `window.crypto.getRandomValues() is used directly.
+  ///   * In Dart, _dart:math_ [Random.secure()] is used.
+  ///
+  /// You can give a custom random number generator. This can be useful for
+  /// deterministic tests.
   ///
   /// ```
   /// // Generate 32 random bytes
   /// final key = Nonce.randomBytes(32);
   /// ```
   factory SecretKey.randomBytes(int length, {Random random}) {
-    random ??= _random;
     final data = Uint8List(length);
-    for (var i = 0; i < data.length; i++) {
-      data[i] = random.nextInt(256);
-    }
+    fillBytesWithSecureRandomNumbers(data, random: random);
     return SecretKey(data);
   }
+
+  /// Used internally by _package:cryptography_ for caching cryptographic
+  /// objects such as Web Cryptography _CryptoKey_ references and AES key after
+  /// expansion.
+  Map<Object, Object> get cachedValues => _cachedValues ??= <Object, Object>{};
 
   /// Attempts to extract the bytes asynchronously.
   /// Throws [UnsupportedError] if extraction is forbidden / unavailable.
@@ -67,13 +76,6 @@ abstract class SecretKey {
   ///
   /// The returned byte list should be treated as immutable.
   List<int> extractSync();
-
-  Map<Object, Object> _cachedValues;
-
-  /// Used internally by _package:cryptography_ for caching cryptographic
-  /// objects such as Web Cryptography _CryptoKey_ references and AES key after
-  /// expansion.
-  Map<Object, Object> get cachedValues => _cachedValues ??= <Object, Object>{};
 }
 
 class _SecretKey extends SecretKey {

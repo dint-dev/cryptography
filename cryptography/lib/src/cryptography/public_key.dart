@@ -18,6 +18,13 @@ import 'package:cryptography/cryptography.dart';
 /// A public key of some [KeyPair].
 ///
 /// For examples of usage, see [KeyExchangeAlgorithm] and [SignatureAlgorithm].
+///
+/// Some algorithms use the following subclasses:
+///   * [EcJwkPublicKey]
+///   * [RsaJwkPublicKey]
+///
+/// ## Examples
+/// For examples of usage, see [KeyExchangeAlgorithm] and [SignatureAlgorithm].
 abstract class PublicKey {
   /// Bytes of the public key.
   List<int> get bytes;

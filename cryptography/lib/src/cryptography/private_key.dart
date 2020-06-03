@@ -18,15 +18,22 @@ import 'dart:typed_data';
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/utils.dart';
 
+import '../utils/random_bytes.dart';
+
 /// A private key of some [KeyPair].
 ///
 /// You can generate a random private key with [PrivateKey.randomBytes].
 ///
 /// The equality operator uses [constantTimeBytesEquality].
 ///
+/// Some algorithms use the following subclasses:
+///   * [EcJwkPrivateKey]
+///   * [RsaJwkPrivateKey]
+///
+/// ## Examples
 /// For examples of usage, see [KeyExchangeAlgorithm] and [SignatureAlgorithm].
 abstract class PrivateKey {
-  static final _random = Random.secure();
+  Map<Object, Object> _cachedValues;
 
   /// Constructs a private key with the bytes.
   factory PrivateKey(List<int> bytes) = _PrivateKey;
@@ -34,10 +41,15 @@ abstract class PrivateKey {
   /// A constructor for subclasses.
   PrivateKey.constructor();
 
-  /// Generates _N_ random bytes with a cryptographically strong random number
+  /// Generates _N_ random bytes with a cryptographically secure random number
   /// generator.
   ///
-  /// You can optionally give a custom random number generator.
+  /// A description of the random number generator:
+  ///   * In browsers, `window.crypto.getRandomValues() is used directly.
+  ///   * In Dart, _dart:math_ [Random.secure()] is used.
+  ///
+  /// You can give a custom random number generator. This can be useful for
+  /// deterministic tests.
   ///
   /// ```
   /// import 'package:cryptography/cryptography.dart';
@@ -50,13 +62,14 @@ abstract class PrivateKey {
   /// }
   /// ```
   factory PrivateKey.randomBytes(int length, {Random random}) {
-    random ??= _random;
     final data = Uint8List(length);
-    for (var i = 0; i < length; i++) {
-      data[i] = random.nextInt(256);
-    }
+    fillBytesWithSecureRandomNumbers(data, random: random);
     return PrivateKey(data);
   }
+
+  /// Used internally by _package:cryptography_ for caching cryptographic
+  /// objects such as Web Cryptography _CryptoKey_ references.
+  Map<Object, Object> get cachedValues => _cachedValues ??= <Object, Object>{};
 
   /// Attempts to extract the bytes asynchronously.
   /// Throws [UnsupportedError] if extraction is forbidden / unavailable.
@@ -69,12 +82,6 @@ abstract class PrivateKey {
   ///
   /// The returned byte list should be treated as immutable.
   List<int> extractSync();
-
-  Map<Object, Object> _cachedValues;
-
-  /// Used internally by _package:cryptography_ for caching cryptographic
-  /// objects such as Web Cryptography _CryptoKey_ references.
-  Map<Object, Object> get cachedValues => _cachedValues ??= <Object, Object>{};
 }
 
 class _PrivateKey extends PrivateKey {

@@ -14,7 +14,10 @@
 
 /// Functions for implementing cryptographic algorithms.
 /// {@nodoc}
-library cryptography.utils;
+@visibleForTesting
+library crypto;
+
+import 'package:meta/meta.dart';
 
 export 'src/utils/big_int.dart';
 export 'src/utils/bytes.dart';
@@ -22,4 +25,5 @@ export 'src/utils/bytes.dart';
 export 'src/utils/constant_time_equality.dart';
 export 'src/utils/hex.dart';
 export 'src/utils/parameters.dart';
+export 'src/utils/random_bytes.dart';
 export 'src/utils/rotate.dart';

@@ -16,7 +16,7 @@ import 'package:collection/collection.dart';
 import 'package:cryptography/cryptography.dart';
 import 'package:meta/meta.dart';
 
-/// A digital signature.
+/// A digital signature made of [bytes] and [publicKey].
 ///
 /// Messages can be signed and verified with some [SignatureAlgorithm].
 class Signature {

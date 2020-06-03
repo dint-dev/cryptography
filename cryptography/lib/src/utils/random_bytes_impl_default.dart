@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:typed_data';
 import 'dart:math';
+import 'dart:typed_data';
 
-final _random = Random.secure();
+final _defaultSecureRandom = Random.secure();
 
-void fillBytesWithSecureRandomNumbers(Uint8List bytes) {
-  final random = _random;
+void fillBytesWithSecureRandomNumbers(Uint8List bytes, {Random random}) {
+  random ??= _defaultSecureRandom;
   for (var i = 0; i < bytes.length; i++) {
     bytes[i] = random.nextInt(256);
   }
