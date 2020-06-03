@@ -26,7 +26,7 @@ import 'package:cryptography/utils.dart';
 /// Future<void> main() async {
 ///   final message = <int>[1,2,3];
 ///
-///   final hash = await blake.hash(
+///   final hash = await blake2s.hash(
 ///     message,
 ///   );
 ///
@@ -111,8 +111,6 @@ class _Blake2sSink extends HashSink {
   bool _isClosed = false;
 
   final Uint32List _localValues = Uint32List(16);
-
-  final Uint32List _state = Uint32List(16);
 
   _Blake2sSink() {
     final h = _hash;
@@ -226,7 +224,6 @@ class _Blake2sSink extends HashSink {
 
     final h = _hash;
     final v = _localValues;
-    final s = _state;
     final m = _buffer;
 
     // Initialize v[0..7]
@@ -252,36 +249,26 @@ class _Blake2sSink extends HashSink {
     }
 
     final sigma = _sigma;
-    for (var round = 0; round < 10; round++) {
-      final sigmaStart = (round % 10) * 16;
-      for (var i = 0; i < 16; i++) {
-        s[i] = sigma[sigmaStart + i];
-      }
-      _g(v, 0, 4, 8, 12, m[s[0]], m[s[1]]);
-      _g(v, 1, 5, 9, 13, m[s[2]], m[s[3]]);
-      _g(v, 2, 6, 10, 14, m[s[4]], m[s[5]]);
-      _g(v, 3, 7, 11, 15, m[s[6]], m[s[7]]);
 
-      _g(v, 0, 5, 10, 15, m[s[8]], m[s[9]]);
-      _g(v, 1, 6, 11, 12, m[s[10]], m[s[11]]);
-      _g(v, 2, 7, 8, 13, m[s[12]], m[s[13]]);
-      _g(v, 3, 4, 9, 14, m[s[14]], m[s[15]]);
+    // 10 rounds
+    for (var round = 0; round < 10; round++) {
+      // Sigma index
+      final si = round * 16;
+
+      _g(v, 0, 4, 8, 12, m[sigma[si + 0]], m[sigma[si + 1]]);
+      _g(v, 1, 5, 9, 13, m[sigma[si + 2]], m[sigma[si + 3]]);
+      _g(v, 2, 6, 10, 14, m[sigma[si + 4]], m[sigma[si + 5]]);
+      _g(v, 3, 7, 11, 15, m[sigma[si + 6]], m[sigma[si + 7]]);
+
+      _g(v, 0, 5, 10, 15, m[sigma[si + 8]], m[sigma[si + 9]]);
+      _g(v, 1, 6, 11, 12, m[sigma[si + 10]], m[sigma[si + 11]]);
+      _g(v, 2, 7, 8, 13, m[sigma[si + 12]], m[sigma[si + 13]]);
+      _g(v, 3, 4, 9, 14, m[sigma[si + 14]], m[sigma[si + 15]]);
     }
 
     // Copy.
     for (var i = 0; i < 8; i++) {
-      h[i] = h[i] ^ v[i] ^ v[i + 8];
-    }
-
-    // Erase local variables.
-    //
-    // This is not strictly necessary, but it's a good habit that doesn't cost
-    // much relative to the total cost of the function.
-    for (var i = 0; i < v.length; i++) {
-      v[i] = 0;
-    }
-    for (var i = 0; i < s.length; i++) {
-      s[i] = 0;
+      h[i] = h[i] ^ v[i] ^ v[8 + i];
     }
   }
 

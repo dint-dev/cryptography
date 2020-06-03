@@ -30,6 +30,7 @@ import '../algorithms/aes_impl_ctr.dart' as dart;
 import '../algorithms/aes_impl_gcm.dart' as dart;
 import '../algorithms/ec_dh_impl.dart' as dart;
 import '../algorithms/ec_dsa_impl.dart' as dart;
+import '../algorithms/pbkdf2_impl.dart' as dart;
 import '../algorithms/sha1_sha2_impl.dart' as dart;
 import 'bindings.dart' as web_crypto;
 
@@ -41,6 +42,7 @@ part 'impl/ec_dh.dart';
 part 'impl/ec_dsa.dart';
 part 'impl/hashes.dart';
 part 'impl/helpers.dart';
+part 'impl/pbkdf2.dart';
 part 'impl/rsa.dart';
 part 'impl/rsa_pss.dart';
 part 'impl/rsa_ssa_pkcs1v15.dart';

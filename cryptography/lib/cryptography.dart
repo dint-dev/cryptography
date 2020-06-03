@@ -23,7 +23,8 @@
 library cryptography;
 
 export 'src/cryptography/algorithms/aes.dart';
-export 'src/cryptography/algorithms/blake2.dart';
+export 'src/cryptography/algorithms/blake2b.dart';
+export 'src/cryptography/algorithms/blake2s.dart';
 export 'src/cryptography/algorithms/chacha20.dart';
 export 'src/cryptography/algorithms/chacha20_poly1305_aead.dart';
 export 'src/cryptography/algorithms/ec_dh.dart';
@@ -33,6 +34,7 @@ export 'src/cryptography/algorithms/ec_x25519.dart';
 export 'src/cryptography/algorithms/hchacha20.dart';
 export 'src/cryptography/algorithms/hkdf.dart';
 export 'src/cryptography/algorithms/hmac.dart';
+export 'src/cryptography/algorithms/pbkdf2.dart';
 export 'src/cryptography/algorithms/poly1305.dart';
 export 'src/cryptography/algorithms/rsa_pss.dart';
 export 'src/cryptography/algorithms/rsa_ssa_pkcs1v15.dart';

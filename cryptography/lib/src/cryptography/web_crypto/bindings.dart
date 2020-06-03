@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-@JS()
+@JS('crypto')
 library web_crypto_api;
 
 import 'dart:typed_data';
@@ -21,9 +21,7 @@ import 'package:js/js.dart';
 import 'package:meta/meta.dart';
 
 @JS()
-external Crypto get crypto;
-
-Subtle get subtle => crypto.subtle;
+external Subtle get subtle;
 
 @JS()
 @anonymous
@@ -124,6 +122,16 @@ class EcKeyImportParams {
 
 @JS()
 @anonymous
+class HmacImportParams {
+  external factory HmacImportParams({
+    @required String name,
+    @required String hash,
+    int length,
+  });
+}
+
+@JS()
+@anonymous
 class HmacKeyGenParams {
   external factory HmacKeyGenParams({
     @required String name,
@@ -151,20 +159,31 @@ class Jwk {
     String x,
     String y,
   });
-  external String get kty;
   external String get crv;
-  external String get n;
-  external String get e;
   external String get d;
-  external String get p;
-  external String get q;
   external String get dp;
   external String get dq;
-  external String get qi;
+  external String get e;
   external bool get ext;
   external List<String> get key_ops;
+  external String get kty;
+  external String get n;
+  external String get p;
+  external String get q;
+  external String get qi;
   external String get x;
   external String get y;
+}
+
+@JS()
+@anonymous
+class Pkdf2Params {
+  external factory Pkdf2Params({
+    @required String name,
+    @required String hash,
+    @required ByteBuffer salt,
+    @required int iterations,
+  });
 }
 
 @JS()
