@@ -12,6 +12,8 @@
 // For specification, see the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:math';
+
 import 'package:cryptography/cryptography.dart';
 import 'package:meta/meta.dart';
 
@@ -171,13 +173,13 @@ abstract class _EcdsaNist extends SignatureAlgorithm {
   @override
   final int publicKeyLength;
 
-  // ignore: unused_element
+  /// Modulus
   BigInt get _p;
-  // ignore: unused_element
+
   BigInt get _a;
-  // ignore: unused_element
+
   BigInt get _b;
-  // ignore: unused_element
+
   BigInt get _n;
 
   final HashAlgorithm hashAlgorithm;

@@ -3,7 +3,7 @@
 
 # Overview
 Popular cryptographic algorithms for [Dart](https://dart.dev) / [Flutter](https://flutter.dev)
-developers. Licensed under the [Apache License 2.0](LICENSE).
+developers. Copyright 2019-2020 Gohilla Ltd. Licensed under the [Apache License 2.0](LICENSE).
 
 This package is:
   * __Safe__. Plenty of tests. No license risks. Used in commercial products.
@@ -64,7 +64,7 @@ The following [KeyExchangeAlgorithm](https://pub.dev/documentation/cryptography/
     * [ecdhP256](https://pub.dev/documentation/cryptography/latest/cryptography/ecdhP256-constant.html) (ECDH P256 / secp256r1 / prime256v1)
     * [ecdhP384](https://pub.dev/documentation/cryptography/latest/cryptography/ecdhP384-constant.html) (ECDH P384 / secp384r1 / prime384v1)
     * [ecdhP521](https://pub.dev/documentation/cryptography/latest/cryptography/ecdhP521-constant.html) (ECDH P521 / secp521r1 / prime521v1)
-    * Currently works only in browsers (_Web Cryptography API_)
+    * Currently implemented only in browsers.
   * [x25519](https://pub.dev/documentation/cryptography/latest/cryptography/x25519-constant.html) (curve25519 Diffie-Hellman)
     * In our benchmarks, the performance is around 1k operations per second in VM.
 
@@ -81,11 +81,11 @@ The following [SignatureAlgorithm](https://pub.dev/documentation/cryptography/la
     * [ecdsaP384Sha384](https://pub.dev/documentation/cryptography/latest/cryptography/ecdsaP384Sha384-constant.html) (ECDSA P384 / secp384r1 / prime384v1 + SHA384)
     * [ecdsaP521Sha256](https://pub.dev/documentation/cryptography/latest/cryptography/ecdsaP521Sha256-constant.html) (ECDSA P521 / secp521r1 / prime521v1 + SHA256)
     * [ecdsaP521Sha512](https://pub.dev/documentation/cryptography/latest/cryptography/ecdsaP521Sha512-constant.html) (ECDSA P521 / secp521r1 / prime521v1 + SHA512)
-    * Currently works only in browsers (_Web Cryptography API_)
+    * Currently implemented only in browsers.
   * RSA
     * [RsaPss](https://pub.dev/documentation/cryptography/latest/cryptography/RsaPss-class.html) (RSA-PSS)
     * [RsaSsaPkcs1v15](https://pub.dev/documentation/cryptography/latest/cryptography/RsaPkcs1v15-class.html) (RSASSA-PKCS1v15)
-    * Currently works only in browsers (_Web Cryptography API_)
+    * Currently implemented only in browsers.
 
 ### Symmetric encryption
 The following [Cipher](https://pub.dev/documentation/cryptography/latest/cryptography/Cipher-class.html) implementations are available:
@@ -104,9 +104,12 @@ The following [Cipher](https://pub.dev/documentation/cryptography/latest/cryptog
     * [xchacha20Poly1305Aead](https://pub.dev/documentation/cryptography/latest/cryptography/xchacha20Poly1305Aead-constant.html) (AEAD_XCHACHA20_POLY1305)
     * In our benchmarks, the performance is around 40-140MB/s in VM.
 
+### Password hashing algorithms
+  * [Pbkdf2](https://pub.dev/documentation/cryptography/latest/cryptography/Pbkdf2-class.html) (PBKDF2)
+
 ### Key derivation algorithms
   * [HChacha20](https://pub.dev/documentation/cryptography/latest/cryptography/HChacha20-class.html)
-  * [Hkdf](https://pub.dev/documentation/cryptography/latest/cryptography/Hkdf-class.html)
+  * [Hkdf](https://pub.dev/documentation/cryptography/latest/cryptography/Hkdf-class.html) (HKDF)
 
 ### Message authentication codes
 The following [MacAlgorithm](https://pub.dev/documentation/cryptography/latest/cryptography/MacAlgorithm-class.html) implementations are available:
@@ -115,6 +118,7 @@ The following [MacAlgorithm](https://pub.dev/documentation/cryptography/latest/c
 
 ### Cryptographic hash functions
 The following [HashAlgorithm](https://pub.dev/documentation/cryptography/latest/cryptography/HashAlgorithm-class.html) implementations are available:
+  * [blake2b](https://pub.dev/documentation/cryptography/latest/cryptography/blake2b-constant.html) (BLAKE2B)
   * [blake2s](https://pub.dev/documentation/cryptography/latest/cryptography/blake2s-constant.html) (BLAKE2S)
   * [sha1](https://pub.dev/documentation/cryptography/latest/cryptography/sha1-constant.html) (SHA1)
   * [sha224](https://pub.dev/documentation/cryptography/latest/cryptography/sha224-constant.html) (SHA2-224)

@@ -1,3 +1,7 @@
+## 1.3.0
+  * Adds PBKDF2 and Blake2b.
+  * Some internal refactoring.
+
 ## 1.2.1
   * Fixes documentation issues.
 

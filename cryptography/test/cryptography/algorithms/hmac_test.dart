@@ -86,7 +86,7 @@ void main() {
       expect(() => sink.addSlice([1], 0, 1, false), throwsStateError);
     });
 
-    test('calculate(): different secretKey and data lengths', () async {
+    test('calculateMac(...): different secretKey and data lengths', () async {
       for (var n = 0; n < 1024; n++) {
         final secretKey = SecretKey(Uint8List(n));
         final data = Uint8List(n);
@@ -110,7 +110,7 @@ void main() {
       }
     });
 
-    test('calculateSync(): different secretKey and data lengths', () {
+    test('calculateMacSync(...): different secretKey and data lengths', () {
       for (var n = 0; n < 1024; n++) {
         final secretKey = SecretKey(Uint8List(n));
         final data = Uint8List(n);

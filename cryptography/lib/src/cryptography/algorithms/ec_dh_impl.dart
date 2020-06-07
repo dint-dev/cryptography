@@ -146,16 +146,9 @@ abstract class _EcdhNist extends KeyExchangeAlgorithm {
   @override
   final int publicKeyLength;
 
-  // ignore: unused element
   BigInt get _p;
-
-  // ignore: unused element
   BigInt get _a;
-
-  // ignore: unused element
   BigInt get _b;
-
-  // ignore: unused element
   BigInt get _n;
 
   const _EcdhNist({
