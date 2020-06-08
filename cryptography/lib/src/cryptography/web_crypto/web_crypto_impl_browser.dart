@@ -27,7 +27,7 @@ import 'package:meta/meta.dart';
 
 import '../algorithms/aes_impl_cbc.dart' as dart;
 import '../algorithms/aes_impl_ctr.dart' as dart;
-import '../algorithms/aes_impl_gcm.dart' as dart;
+import '../algorithms/aes_gcm.dart' as dart;
 import '../algorithms/ec_dh_impl.dart' as dart;
 import '../algorithms/ec_dsa_impl.dart' as dart;
 import '../algorithms/pbkdf2_impl.dart' as dart;

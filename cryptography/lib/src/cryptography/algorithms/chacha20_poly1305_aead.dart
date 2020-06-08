@@ -60,7 +60,7 @@ import 'package:meta/meta.dart';
 ///   );
 /// }
 /// ```
-const CipherWithAppendedMac chacha20Poly1305Aead = _Chacha20Poly1305Aead(
+const CipherWithAppendedMac chacha20Poly1305Aead = Chacha20Poly1305Aead(
   name: 'chacha20Poly1305Aead',
   cipher: chacha20,
 );
@@ -74,19 +74,21 @@ const CipherWithAppendedMac chacha20Poly1305Aead = _Chacha20Poly1305Aead(
 ///   * This cipher is authenticated and decrypting will throw
 ///     [MacValidationException] if the cipherText contains an invalid MAC.
 ///   * `aad` (Associated Authenticated Data) is supported.
-const CipherWithAppendedMac xchacha20Poly1305Aead = _Chacha20Poly1305Aead(
+const CipherWithAppendedMac xchacha20Poly1305Aead = Chacha20Poly1305Aead(
   name: 'xchacha20Poly1305Aead',
   cipher: xchacha20,
 );
 
-class _Chacha20Poly1305Aead extends CipherWithAppendedMac {
+/// {@nodoc}
+@visibleForTesting
+class Chacha20Poly1305Aead extends CipherWithAppendedMac {
   static final _tmpByteData = ByteData(16);
   static final _tmpUint8List = Uint8List.view(_tmpByteData.buffer);
 
   @override
   final String name;
 
-  const _Chacha20Poly1305Aead({
+  const Chacha20Poly1305Aead({
     @required this.name,
     @required Cipher cipher,
     MacAlgorithm macAlgorithm = poly1305,
@@ -122,7 +124,14 @@ class _Chacha20Poly1305Aead extends CipherWithAppendedMac {
       nonce: nonce,
     );
     final sink = poly1305.newSink(secretKey: secretKeyForPoly1305);
+
     var length = 0;
+
+    final tmpByteData = _tmpByteData;
+    tmpByteData.setUint32(0, 0);
+    tmpByteData.setUint32(4, 0);
+    tmpByteData.setUint32(8, 0);
+    tmpByteData.setUint32(12, 0);
 
     // Add Additional Authenticated Data (AAD)
     final aadLength = aad == null ? 0 : aad.length;
@@ -152,7 +161,6 @@ class _Chacha20Poly1305Aead extends CipherWithAppendedMac {
 
     // Add 16-byte footer.
     // We can't use setUint64() because it's not supported in the browsers.
-    final tmpByteData = _tmpByteData;
     tmpByteData.setUint32(
       0,
       uint32mask & aadLength,
@@ -183,6 +191,7 @@ class _Chacha20Poly1305Aead extends CipherWithAppendedMac {
 
     // Return MAC
     sink.close();
+
     return sink.mac;
   }
 

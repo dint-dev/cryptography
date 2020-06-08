@@ -18,9 +18,45 @@ import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/utils.dart';
 import 'package:meta/meta.dart';
 
+import '../web_crypto/web_crypto.dart';
 import 'aes_impl.dart';
 
-const Cipher dartAesGcm = _AesGcm();
+/// _AES-GCM_ (Galois/Counter Mode) cipher.
+///
+/// ## Things to know
+/// * `secretKey` can be any value with 128, 192, or 256 bits. By default,
+///   [Cipher.newSecretKey] returns 256 bit keys.
+/// * `nonce` can be 12 bytes or longer.
+/// * AES-GCM is authenticated so you don't need a separate MAC algorithm.
+/// * In browsers, the implementation takes advantage of _Web Cryptography API_.
+///
+/// ## Example
+/// ```dart
+/// import 'package:cryptography/cryptography.dart';
+///
+/// Future<void> main() async {
+///   final message = utf8.encode('Encrypted message');
+///
+///   const cipher = aesGcm;
+///   final secretKey = cipher.newSecretKeySync();
+///   final nonce = cipher.newNonce();
+///
+///   // Encrypt
+///   final encrypted = await cipher.encrypt(
+///     input,
+///     secretKey: secretKey,
+///     nonce: nonce,
+///   );
+///
+///   // Decrypt
+///   final decrypted = await cipher.encrypt(
+///     encryptedBytes,
+///     secretKey: secretKey,
+///     nonce: nonce,
+///   );
+/// }
+/// ```
+const Cipher aesGcm = webAesGcm ?? AesGcm();
 
 int _uint32ChangeEndian(int v) {
   // We mask with 0xFFFFFFFF to ensure the compiler recognizes the value will
@@ -31,14 +67,16 @@ int _uint32ChangeEndian(int v) {
       (0xFF & (v >> 24));
 }
 
-class _AesGcm extends AesCipher {
+/// {@nodoc}
+@visibleForTesting
+class AesGcm extends AesCipher {
   static final _r = () {
     final result = Uint32List(4);
     Uint8List.view(result.buffer)..[0] = 0xe1;
     return result;
   }();
 
-  const _AesGcm();
+  const AesGcm();
 
   @override
   bool get isAuthenticated => true;

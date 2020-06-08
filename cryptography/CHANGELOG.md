@@ -1,3 +1,6 @@
+## 1.4.0
+  * Adds support for _cryptography_flutter_, which uses operating system implementations.
+
 ## 1.3.0
   * Adds PBKDF2 and Blake2b.
   * Some internal refactoring.

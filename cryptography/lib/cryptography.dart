@@ -23,6 +23,7 @@
 library cryptography;
 
 export 'src/cryptography/algorithms/aes.dart';
+export 'src/cryptography/algorithms/aes_gcm.dart';
 export 'src/cryptography/algorithms/blake2b.dart';
 export 'src/cryptography/algorithms/blake2s.dart';
 export 'src/cryptography/algorithms/chacha20.dart';

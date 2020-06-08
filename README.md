@@ -15,9 +15,13 @@ Want to contribute? Please share feedback / issue reports in the
       * Digital signature algorithms (ED25519, P256/P384/P521, RSA-PSS, RSASSA-PKCS1-V15)
       * Key exchange algorithms (P256/P384/P521, X25519)
       * Message authentication codes (HMAC, Poly1305)
-      * Hashes (SHA1, SHA2, BLAKE2S)
+      * Hashes (SHA1, SHA2, BLAKE2B, BLAKE2S)
     * [Pub package](https://pub.dev/packages/cryptography)
     * [API reference](https://pub.dev/documentation/cryptography/latest/)
+  * [cryptography_flutter](cryptography_flutter)
+    * A version of _cryptography_ that delegates some asynchronous operations to operating system
+      APIs in Android, iOS, and Mac OS X.
+    * [Pub package](https://pub.dev/packages/cryptography_flutter)
   * [kms](kms)
     * A framework for Key Management Service (KMS) solutions.
     * [Pub package](https://pub.dev/packages/kms)

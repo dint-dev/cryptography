@@ -20,7 +20,7 @@ class _WebAesGcmCipher extends _WebAesCipher {
   const _WebAesGcmCipher();
 
   @override
-  Cipher get dartImplementation => dart.dartAesGcm;
+  Cipher get dartImplementation => const dart.AesGcm();
 
   @override
   Future<Uint8List> _decrypt(

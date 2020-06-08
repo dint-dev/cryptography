@@ -19,7 +19,7 @@ See [our Github repository](https://github.com/dint-dev/cryptography).
   * [Pub package](https://pub.dev/packages/cryptography)
   * [API reference](https://pub.dev/documentation/cryptography/latest/)
 
-## Used by
+## Related packages
   * [kms](https://pub.dev/packages/kms)
     * A Dart package for hardware-based or cloud-based key management solutions.
   * [kms_flutter](https://pub.dev/packages/kms_flutter)
@@ -32,7 +32,7 @@ See [our Github repository](https://github.com/dint-dev/cryptography).
   * SHA1 and SHA2 implementations use the package [crypto](https://pub.dev/packages/crypto), which
     is maintained by Google and contains only hash functions and HMAC.
   * We wrote pure Dart implementations for X25519, ED25519, RSA-PSS, ChaCha20 / XChacha20, AES-CBC,
-    AES-CTR, AES-GCM, HKDF, HMAC, Poly1305, and BLAKE2S.
+    AES-CTR, AES-GCM, HKDF, HMAC, Poly1305, BLAKE2S, and BLAKE2B.
   * We implemented automatic use of [Web Cryptography API](https://www.w3.org/TR/WebCryptoAPI/)
     (_crypto.subtle_) when you use SHA1, SHA2, AES, ECDH, ECDSA, or RSA in browsers.
   * The APIs generally include both _asynchronous_ and _synchronous_ methods.  Only the
@@ -42,6 +42,11 @@ See [our Github repository](https://github.com/dint-dev/cryptography).
     faster. We recommend that developers use asynchronous methods.
   * If Dart SDK decides to expose _BoringSSL_ functions ([SDK issue](https://github.com/dart-lang/sdk/issues/34659)),
     we will use them as much as possible.
+
+## Using operating system APIs of Android, iOS, and Mac OS X
+The package [cryptography_flutter](https://pub.dev/packages/cryptography_flutter) optimizes
+performance of some cryptographic algorithms by using native APIs of Android, iOS, and Mac OS X.
+You must use asynchronous methods to get the performance boost.
 
 ## Cryptographic material classes
   * [SecretKey](https://pub.dev/documentation/cryptography/latest/cryptography/SecretKey-class.html)
@@ -126,13 +131,12 @@ The following [HashAlgorithm](https://pub.dev/documentation/cryptography/latest/
   * [sha384](https://pub.dev/documentation/cryptography/latest/cryptography/sha384-constant.html) (SHA2-384)
   * [sha512](https://pub.dev/documentation/cryptography/latest/cryptography/sha512-constant.html) (SHA2-512)
 
-# Adding dependency
+# Getting started
 In _pubspec.yaml_:
 ```yaml
 dependencies:
-  cryptography: ^1.1.1
+  cryptography: ^1.4.0
 ```
-
 
 # Examples
 ## Key agreement with X25519
