@@ -17,7 +17,7 @@ import 'dart:typed_data';
 
 import 'package:collection/collection.dart';
 
-import '../utils/random_bytes.dart';
+import 'utils/random_bytes.dart';
 
 /// A nonce (sometimes known as _Initialization Vector_, _IV_ or _salt_).
 ///

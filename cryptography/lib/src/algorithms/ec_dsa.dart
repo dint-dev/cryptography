@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import 'package:cryptography/cryptography.dart';
-import 'package:cryptography/src/cryptography/algorithms/ec_dsa_impl.dart';
+import 'ec_dsa_impl.dart';
 
 import '../web_crypto/web_crypto.dart';
 

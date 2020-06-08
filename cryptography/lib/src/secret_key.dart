@@ -18,7 +18,7 @@ import 'dart:typed_data';
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/src/utils.dart';
 
-import '../utils/random_bytes.dart';
+import 'utils/random_bytes.dart';
 
 /// A secret key.
 ///

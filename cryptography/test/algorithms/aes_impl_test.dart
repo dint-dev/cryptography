@@ -15,8 +15,8 @@
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
-import 'package:cryptography/src/cryptography/algorithms/aes_impl.dart' as aes;
-import 'package:cryptography/src/cryptography/algorithms/aes_impl_constants.dart'
+import 'package:cryptography/src/algorithms/aes_impl.dart' as aes;
+import 'package:cryptography/src/algorithms/aes_impl_constants.dart'
     as constants;
 import 'package:cryptography/src/utils/hex.dart';
 import 'package:test/test.dart';
