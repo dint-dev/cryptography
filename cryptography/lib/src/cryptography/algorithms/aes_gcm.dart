@@ -67,8 +67,8 @@ int _uint32ChangeEndian(int v) {
       (0xFF & (v >> 24));
 }
 
-/// {@nodoc}
-@visibleForTesting
+/// _AES-GCM_ implementation for subclassing.
+/// For documentation, see [aesGcm].
 class AesGcm extends AesCipher {
   static final _r = () {
     final result = Uint32List(4);
@@ -93,8 +93,8 @@ class AesGcm extends AesCipher {
   @override
   Future<Uint8List> decrypt(
     List<int> cipherText, {
-    SecretKey secretKey,
-    Nonce nonce,
+    @required SecretKey secretKey,
+    @required Nonce nonce,
     List<int> aad,
     int keyStreamIndex = 0,
   }) async {
@@ -131,8 +131,8 @@ class AesGcm extends AesCipher {
   @override
   Future<Uint8List> encrypt(
     List<int> cipherText, {
-    SecretKey secretKey,
-    Nonce nonce,
+    @required SecretKey secretKey,
+    @required Nonce nonce,
     List<int> aad,
     int keyStreamIndex = 0,
   }) async {
@@ -150,8 +150,8 @@ class AesGcm extends AesCipher {
   @override
   Uint8List encryptSync(
     List<int> plainText, {
-    SecretKey secretKey,
-    Nonce nonce,
+    @required SecretKey secretKey,
+    @required Nonce nonce,
     List<int> aad,
     int keyStreamIndex = 0,
   }) {

@@ -14,4 +14,19 @@
 
 import 'package:flutter/services.dart';
 
-const MethodChannel channel = const MethodChannel('cryptography_flutter');
+const MethodChannel channel = MethodChannel('cryptography_flutter');
+
+Future<bool> _isPluginAvailable;
+
+Future<bool> getIsPluginAvailable() {
+  return _isPluginAvailable ??= _getIsPluginAvailable();
+}
+
+Future<bool> _getIsPluginAvailable() async {
+  try {
+    await channel.invokeMethod('ping').timeout(const Duration(seconds: 1));
+    return true;
+  } on MissingPluginException {
+    return false;
+  }
+}

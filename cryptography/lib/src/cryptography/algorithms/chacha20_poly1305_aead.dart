@@ -79,8 +79,10 @@ const CipherWithAppendedMac xchacha20Poly1305Aead = Chacha20Poly1305Aead(
   cipher: xchacha20,
 );
 
-/// {@nodoc}
-@visibleForTesting
+/// _AEAD_CHACHA20_POLY1305_ implementation for subclassing.
+/// For documentation, see [chacha20Poly1305Aead].
+///
+/// This is used by [chacha20Poly1305Aead] and [xchacha20Poly1305Aead].
 class Chacha20Poly1305Aead extends CipherWithAppendedMac {
   static final _tmpByteData = ByteData(16);
   static final _tmpUint8List = Uint8List.view(_tmpByteData.buffer);
@@ -91,8 +93,9 @@ class Chacha20Poly1305Aead extends CipherWithAppendedMac {
   const Chacha20Poly1305Aead({
     @required this.name,
     @required Cipher cipher,
-    MacAlgorithm macAlgorithm = poly1305,
-  }) : super(cipher, macAlgorithm);
+  })  : assert(name != null),
+        assert(cipher != null),
+        super(cipher, poly1305);
 
   @override
   bool get supportsAad => true;
@@ -198,8 +201,8 @@ class Chacha20Poly1305Aead extends CipherWithAppendedMac {
   @override
   Future<Uint8List> decrypt(
     List<int> cipherText, {
-    SecretKey secretKey,
-    Nonce nonce,
+    @required SecretKey secretKey,
+    @required Nonce nonce,
     List<int> aad,
     int keyStreamIndex = 0,
   }) async {
@@ -227,8 +230,8 @@ class Chacha20Poly1305Aead extends CipherWithAppendedMac {
   @override
   Uint8List decryptSync(
     List<int> cipherText, {
-    SecretKey secretKey,
-    Nonce nonce,
+    @required SecretKey secretKey,
+    @required Nonce nonce,
     List<int> aad,
     int keyStreamIndex = 0,
   }) {
@@ -256,8 +259,8 @@ class Chacha20Poly1305Aead extends CipherWithAppendedMac {
   @override
   Future<Uint8List> encrypt(
     List<int> plainText, {
-    SecretKey secretKey,
-    Nonce nonce,
+    @required SecretKey secretKey,
+    @required Nonce nonce,
     List<int> aad,
     int keyStreamIndex = 0,
   }) async {
@@ -284,8 +287,8 @@ class Chacha20Poly1305Aead extends CipherWithAppendedMac {
   @override
   Uint8List encryptSync(
     List<int> plainText, {
-    SecretKey secretKey,
-    Nonce nonce,
+    @required SecretKey secretKey,
+    @required Nonce nonce,
     List<int> aad,
     int keyStreamIndex = 0,
   }) {

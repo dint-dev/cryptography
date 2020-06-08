@@ -1,13 +1,12 @@
 import 'package:cryptography_flutter/cryptography.dart';
-import 'package:e2e/e2e.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  E2EWidgetsFlutterBinding.ensureInitialized();
-
   final clearText = List<int>.filled(10000, 1);
 
   group('aesGcm:', () {
+    TestWidgetsFlutterBinding.ensureInitialized();
+
     const algo = aesGcm;
     SecretKey secretKey;
     Nonce nonce;

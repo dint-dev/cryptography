@@ -20,28 +20,39 @@ import 'plugin.dart';
 import 'dart:typed_data';
 import 'dart:io';
 
-const Cipher chacha20Poly1305Aead = Chacha20Poly1305Aead();
+/// Optimized _AEAD_CHACHA20_POLY1305_  implementation.
+///
+/// See [cryptography.chacha20Poly1305Aead].
+const Cipher chacha20Poly1305Aead = Chacha20Poly1305Aead(
+  name: 'chacha20Poly1305Aead',
+  cipher: chacha20,
+);
 
-/// {@nodoc}
-@visibleForTesting
-// ignore: invalid_use_of_visible_for_testing_member
+/// Optimized _AEAD_CHACHA20_POLY1305_  implementation for subclassing.
+/// For documentation, see [chacha20Poly1305Aead].
 class Chacha20Poly1305Aead extends cryptography.Chacha20Poly1305Aead {
-  const Chacha20Poly1305Aead()
-      : super(
-          name: 'chacha20Poly1305Aead',
-          cipher: chacha20,
+  const Chacha20Poly1305Aead({
+    @required String name,
+    @required Cipher cipher,
+  })  : assert(name != null),
+        assert(cipher != null),
+        super(
+          name: name,
+          cipher: cipher,
         );
 
   @override
   Future<Uint8List> decrypt(
     List<int> cipherText, {
-    SecretKey secretKey,
-    Nonce nonce,
+    @required SecretKey secretKey,
+    @required Nonce nonce,
     List<int> aad,
     int keyStreamIndex = 0,
   }) async {
     aad ??= const <int>[];
-    if (aad.isEmpty &&
+    final isPluginAvailable = await getIsPluginAvailable();
+    if (isPluginAvailable &&
+        aad.isEmpty &&
         keyStreamIndex == 0 &&
         cipherText.length > 128 &&
         (Platform.isIOS || Platform.isMacOS)) {
@@ -74,13 +85,15 @@ class Chacha20Poly1305Aead extends cryptography.Chacha20Poly1305Aead {
   @override
   Future<Uint8List> encrypt(
     List<int> plainText, {
-    SecretKey secretKey,
-    Nonce nonce,
+    @required SecretKey secretKey,
+    @required Nonce nonce,
     List<int> aad,
     int keyStreamIndex = 0,
   }) async {
     aad ??= const <int>[];
-    if (aad.isEmpty &&
+    final isPluginAvailable = await getIsPluginAvailable();
+    if (isPluginAvailable &&
+        aad.isEmpty &&
         keyStreamIndex == 0 &&
         plainText.length > 128 &&
         (Platform.isIOS || Platform.isMacOS)) {
@@ -107,6 +120,7 @@ class Chacha20Poly1305Aead extends cryptography.Chacha20Poly1305Aead {
     }
     return super.encrypt(
       plainText,
+      secretKey: secretKey,
       nonce: nonce,
       aad: aad,
       keyStreamIndex: keyStreamIndex,

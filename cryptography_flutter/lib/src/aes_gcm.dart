@@ -17,16 +17,16 @@ import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart' hide aesGcm, AesGcm;
 import 'package:cryptography/cryptography.dart' as cryptography;
-import 'package:flutter/foundation.dart';
-import 'package:meta/meta.dart';
 
 import 'plugin.dart';
 
-const Cipher aesGcm = cryptography.aesGcm;
+/// Optimized _AES-GCM_ implementation.
+///
+/// See [cryptography.aesGcm].
+const Cipher aesGcm = AesGcm();
 
-/// {@nodoc}
-@visibleForTesting
-// ignore: invalid_use_of_visible_for_testing_member
+/// Optimized _AES-GCM_ implementation for subclassing.
+/// For documentation, see [aesGcm].
 class AesGcm extends cryptography.AesGcm {
   const AesGcm();
 
@@ -39,7 +39,9 @@ class AesGcm extends cryptography.AesGcm {
     int keyStreamIndex = 0,
   }) async {
     aad ??= const <int>[];
-    if (aad.isEmpty &&
+    final isPluginAvailable = await getIsPluginAvailable();
+    if (isPluginAvailable &&
+        aad.isEmpty &&
         keyStreamIndex == 0 &&
         cipherText.length > 128 &&
         (Platform.isIOS || Platform.isMacOS)) {
@@ -77,8 +79,10 @@ class AesGcm extends cryptography.AesGcm {
     List<int> aad,
     int keyStreamIndex = 0,
   }) async {
+    final isPluginAvailable = await getIsPluginAvailable();
     aad ??= const <int>[];
-    if (aad.isEmpty &&
+    if (isPluginAvailable &&
+        aad.isEmpty &&
         keyStreamIndex == 0 &&
         plainText.length > 128 &&
         (Platform.isIOS || Platform.isMacOS)) {
@@ -105,6 +109,7 @@ class AesGcm extends cryptography.AesGcm {
     }
     return super.encrypt(
       plainText,
+      secretKey: secretKey,
       nonce: nonce,
       aad: aad,
       keyStreamIndex: keyStreamIndex,

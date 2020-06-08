@@ -15,12 +15,5 @@
 /// An optimized version of [package:cryptography](https://pub.dev/packages/cryptography).
 library cryptography_flutter;
 
-export 'package:cryptography/cryptography.dart'
-    hide
-        aesGcm,
-        AesGcm,
-        chacha20Poly1305Aead,
-        Chacha20Poly1305Aead;
-
-export 'src/all_overrides.dart'
+export 'src/all_exports.dart'
     if (dart.library.js) 'package:cryptography/cryptography.dart';

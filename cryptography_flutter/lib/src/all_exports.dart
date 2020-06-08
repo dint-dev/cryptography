@@ -12,5 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+export 'package:cryptography/cryptography.dart'
+    hide aesGcm, AesGcm, chacha20Poly1305Aead, Chacha20Poly1305Aead;
 export 'aes_gcm.dart';
 export 'chacha20.dart';

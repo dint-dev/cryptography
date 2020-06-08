@@ -10,6 +10,11 @@ public class SwiftCryptographyFlutterPlugin: NSObject, FlutterPlugin {
   }
 
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+    if call.method == "ping" {
+      result("ok")
+      return
+    }
+
     let args = call.arguments as! [String: Any];
     if #available(iOS 13.0, OSX 15.0, tvOS 13.0, watchOS 6.0, *) {
     switch call.method {

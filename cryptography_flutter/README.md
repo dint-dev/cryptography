@@ -34,3 +34,16 @@ import 'package:cryptography_flutter/cryptography.dart';
 ```
 
 For more instructions, read documentation for [cryptography](https://pub.dev/packages/cryptography).
+
+# Contributing?
+## Testing
+Run "no plugin available" tests:
+```
+flutter test
+```
+
+Run e2e tests:
+```
+cd example
+flutter driver test/cryptography_flutter_e2e.dart
+```

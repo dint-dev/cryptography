@@ -267,11 +267,13 @@ class ChaCha extends Cipher {
   Set<int> get secretKeyValidLengths => const <int>{32};
 
   @override
-  Uint8List decryptSync(List<int> cipherText,
-      {SecretKey secretKey,
-      Nonce nonce,
-      List<int> aad,
-      int keyStreamIndex = 0}) {
+  Uint8List decryptSync(
+    List<int> cipherText, {
+    @required SecretKey secretKey,
+    @required Nonce nonce,
+    List<int> aad,
+    int keyStreamIndex = 0,
+  }) {
     return encryptSync(
       cipherText,
       secretKey: secretKey,
@@ -284,8 +286,8 @@ class ChaCha extends Cipher {
   @override
   Uint8List encryptSync(
     List<int> plainText, {
-    SecretKey secretKey,
-    Nonce nonce,
+    @required SecretKey secretKey,
+    @required Nonce nonce,
     List<int> aad,
     int keyStreamIndex = 0,
   }) {
