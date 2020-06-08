@@ -12,18 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/// Functions for implementing cryptographic algorithms.
-/// {@nodoc}
-@visibleForTesting
-library crypto;
-
-import 'package:meta/meta.dart';
-
-export 'src/utils/big_int.dart';
-export 'src/utils/bytes.dart';
-export 'src/utils/bytes.dart';
-export 'src/utils/constant_time_equality.dart';
-export 'src/utils/hex.dart';
-export 'src/utils/parameters.dart';
-export 'src/utils/random_bytes.dart';
-export 'src/utils/rotate.dart';
+export 'utils/big_int.dart';
+export 'utils/bytes.dart';
+export 'utils/bytes.dart';
+export 'utils/constant_time_equality.dart';
+export 'utils/hex.dart';
+export 'utils/parameters.dart';
+export 'utils/random_bytes.dart';
+export 'utils/rotate.dart';

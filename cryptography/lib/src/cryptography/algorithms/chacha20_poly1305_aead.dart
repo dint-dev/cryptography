@@ -15,7 +15,7 @@
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
-import 'package:cryptography/utils.dart';
+import 'package:cryptography/src/utils.dart';
 import 'package:meta/meta.dart';
 
 /// _AEAD_CHACHA20_POLY1305_ ([https://tools.ietf.org/html/rfc7539](RFC 7539)) cipher.

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:cryptography/utils.dart';
+import 'package:cryptography/src/utils.dart';
 import 'package:noise_protocol/noise_protocol.dart';
 
 Future<void> main() async {

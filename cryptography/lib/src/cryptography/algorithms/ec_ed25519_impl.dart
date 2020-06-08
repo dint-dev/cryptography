@@ -14,7 +14,7 @@
 
 import 'dart:typed_data';
 
-import 'package:cryptography/utils.dart';
+import 'package:cryptography/src/utils.dart';
 
 import 'ec_x25519_impl.dart';
 

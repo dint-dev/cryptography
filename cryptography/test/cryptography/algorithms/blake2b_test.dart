@@ -18,7 +18,7 @@ import 'dart:typed_data';
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/src/cryptography/algorithms/blake2b_impl_browser.dart'
     as impl;
-import 'package:cryptography/utils.dart';
+import 'package:cryptography/src/utils.dart';
 import 'package:test/test.dart';
 
 void main() {

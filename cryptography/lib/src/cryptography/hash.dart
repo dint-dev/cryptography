@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import 'package:cryptography/cryptography.dart';
-import 'package:cryptography/utils.dart';
+import 'package:cryptography/src/utils.dart';
 
 /// A hash of some message.
 ///

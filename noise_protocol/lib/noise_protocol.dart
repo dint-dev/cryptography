@@ -23,7 +23,7 @@ import 'dart:typed_data';
 import 'package:collection/collection.dart';
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/cryptography.dart' as cryptography;
-import 'package:cryptography/utils.dart';
+import 'package:cryptography/src/utils.dart';
 import 'package:meta/meta.dart';
 import 'package:typed_data/typed_buffers.dart';
 
