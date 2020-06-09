@@ -12,10 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:cryptography/cryptography.dart';
+import 'dart:convert';
 
-import '../web_crypto/web_crypto.dart';
-import 'sha1_sha2_impl.dart';
+import 'package:crypto/crypto.dart' as impl;
+import 'package:cryptography/cryptography.dart';
+import 'package:cryptography/src/utils.dart';
+import 'package:typed_data/typed_buffers.dart';
+
+import '../web_crypto/web_crypto.dart' as web_crypto;
 
 /// _SHA1_, an old cryptographic hash function that's not recommended for new
 /// applications.
@@ -60,7 +64,7 @@ import 'sha1_sha2_impl.dart';
 ///   print('Hash: ${hash.bytes}');
 /// }
 /// ```
-const HashAlgorithm sha1 = webSha1 ?? dartSha1;
+const HashAlgorithm sha1 = _Sha1();
 
 /// _SHA224_, a function in the SHA2 family of cryptographic hash functions.
 ///
@@ -89,7 +93,7 @@ const HashAlgorithm sha1 = webSha1 ?? dartSha1;
 ///   print('Hash: ${hash.bytes}');
 /// }
 /// ```
-const HashAlgorithm sha224 = dartSha224;
+const HashAlgorithm sha224 = _Sha224();
 
 /// _SHA256_, a function in the SHA2 family of cryptographic hash functions.
 ///
@@ -133,7 +137,7 @@ const HashAlgorithm sha224 = dartSha224;
 ///   print('Hash: ${hash.bytes}');
 /// }
 /// ```
-const HashAlgorithm sha256 = webSha256 ?? dartSha256;
+const HashAlgorithm sha256 = _Sha256();
 
 /// _SHA385_, a function in the SHA2 family of cryptographic hash functions.
 ///
@@ -177,7 +181,7 @@ const HashAlgorithm sha256 = webSha256 ?? dartSha256;
 ///   print('Hash: ${hash.bytes}');
 /// }
 /// ```
-const HashAlgorithm sha384 = webSha384 ?? dartSha384;
+const HashAlgorithm sha384 = _Sha384();
 
 /// _SHA512_, a function in the SHA2 family of cryptographic hash functions.
 ///
@@ -221,4 +225,186 @@ const HashAlgorithm sha384 = webSha384 ?? dartSha384;
 ///   print('Hash: ${hash.bytes}');
 /// }
 /// ```
-const HashAlgorithm sha512 = webSha512 ?? dartSha512;
+const HashAlgorithm sha512 = _Sha512();
+
+abstract class _Hash extends HashAlgorithm {
+  const _Hash();
+
+  @override
+  int get blockLengthInBytes => _impl.blockSize;
+
+  impl.Hash get _impl;
+
+  String get _webCryptoName;
+
+  @override
+  Future<Hash> hash(List<int> input) async {
+    ArgumentError.checkNotNull(input);
+    if (web_crypto.isWebCryptoSupported) {
+      final webCryptoName = _webCryptoName;
+      if (webCryptoName != null) {
+        // Try performing this operation with Web Cryptography
+        try {
+          return web_crypto.hash(input, webCryptoName);
+        } catch (e) {
+          if (webCryptoThrows) {
+            rethrow;
+          }
+        }
+      }
+    }
+    return super.hash(input);
+  }
+
+  @override
+  HashSink newSink() {
+    final captureSink = _ImplDigestCaptureSink();
+    final implSink = _impl.startChunkedConversion(captureSink);
+    return _HashSink(
+      implSink,
+      captureSink,
+    );
+  }
+}
+
+class _HashSink extends HashSink {
+  final ByteConversionSink _sink;
+  final _ImplDigestCaptureSink _captureSink;
+
+  bool _isClosed = false;
+
+  _HashSink(this._sink, this._captureSink);
+
+  @override
+  Hash get hash => _captureSink._result;
+
+  @override
+  void add(List<int> chunk) {
+    ArgumentError.checkNotNull(chunk);
+    if (_isClosed) {
+      throw StateError('Already closed');
+    }
+    _sink.add(chunk);
+  }
+
+  @override
+  void addSlice(List<int> chunk, int start, int end, bool isLast) {
+    ArgumentError.checkNotNull(chunk, 'chunk');
+    ArgumentError.checkNotNull(start, 'start');
+    ArgumentError.checkNotNull(end, 'end');
+    if (_isClosed) {
+      throw StateError('Already closed');
+    }
+    _sink.addSlice(chunk, start, end, isLast);
+    if (isLast) {
+      close();
+    }
+  }
+
+  @override
+  void close() {
+    if (_isClosed) {
+      return;
+    }
+    _isClosed = true;
+    _sink.close();
+  }
+}
+
+class _ImplDigestCaptureSink extends Sink<impl.Digest> {
+  Hash _result;
+
+  _ImplDigestCaptureSink();
+
+  @override
+  void add(impl.Digest implDigest) {
+    assert(_result == null);
+    final hash = Hash(implDigest.bytes);
+    _result = hash;
+  }
+
+  @override
+  void close() {
+    assert(_result != null);
+  }
+}
+
+class _Sha1 extends _Hash {
+  const _Sha1();
+
+  @override
+  int get hashLengthInBytes => 20;
+
+  @override
+  String get name => 'sha1';
+
+  @override
+  impl.Hash get _impl => impl.sha1;
+
+  @override
+  String get _webCryptoName => 'SHA-1';
+}
+
+class _Sha224 extends _Hash {
+  const _Sha224();
+
+  @override
+  int get hashLengthInBytes => 28;
+
+  @override
+  String get name => 'sha224';
+
+  @override
+  impl.Hash get _impl => impl.sha224;
+
+  @override
+  String get _webCryptoName => null;
+}
+
+class _Sha256 extends _Hash {
+  const _Sha256();
+
+  @override
+  int get hashLengthInBytes => 32;
+
+  @override
+  String get name => 'sha256';
+
+  @override
+  impl.Hash get _impl => impl.sha256;
+
+  @override
+  String get _webCryptoName => 'SHA-256';
+}
+
+class _Sha384 extends _Hash {
+  const _Sha384();
+
+  @override
+  int get hashLengthInBytes => 48;
+
+  @override
+  String get name => 'sha384';
+
+  @override
+  impl.Hash get _impl => impl.sha384;
+
+  @override
+  String get _webCryptoName => 'SHA-384';
+}
+
+class _Sha512 extends _Hash {
+  const _Sha512();
+
+  @override
+  int get hashLengthInBytes => 64;
+
+  @override
+  String get name => 'sha512';
+
+  @override
+  impl.Hash get _impl => impl.sha512;
+
+  @override
+  String get _webCryptoName => 'SHA-512';
+}

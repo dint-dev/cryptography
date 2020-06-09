@@ -14,169 +14,216 @@
 
 part of web_crypto;
 
-abstract class WebRsaSignatureAlgorithm extends SignatureAlgorithm {
-  final HashAlgorithm hash;
-  final int defaultModulusLength;
-  final List<int> defaultPublicExponent;
+@override
+Future<KeyPair> rsaNewKeyPairForSigning({
+  @required String name,
+  @required int modulusLength,
+  @required List<int> publicExponent,
+  @required String hashName,
+}) async {
+  ArgumentError.checkNotNull(name);
+  ArgumentError.checkNotNull(modulusLength);
+  ArgumentError.checkNotNull(publicExponent);
+  ArgumentError.checkNotNull(hashName);
+  // Generate CryptoKeyPair
+  final jsCryptoKeyPair = await js
+      .promiseToFuture<web_crypto.CryptoKeyPair>(web_crypto.subtle.generateKey(
+    web_crypto.RsaHashedKeyGenParams(
+      name: name,
+      modulusLength: modulusLength,
+      publicExponent: Uint8List.fromList(publicExponent),
+      hash: hashName,
+    ),
+    true,
+    ['sign', 'verify'],
+  ));
 
-  WebRsaSignatureAlgorithm(
-    this.hash, {
-    this.defaultModulusLength = 4096,
-    this.defaultPublicExponent = const <int>[0x01, 0x00, 0x01],
-  });
+  // Export to JWK
+  final jsJwk = await js.promiseToFuture<web_crypto.Jwk>(
+    web_crypto.subtle.exportKey('jwk', jsCryptoKeyPair.privateKey),
+  );
 
-  @override
-  int get publicKeyLength => null;
+  // Construct a keys
+  final privateKey = RsaJwkPrivateKey(
+    n: _base64UrlDecode(jsJwk.n),
+    e: _base64UrlDecode(jsJwk.e),
+    d: _base64UrlDecode(jsJwk.d),
+    p: _base64UrlDecode(jsJwk.p),
+    q: _base64UrlDecode(jsJwk.q),
+    dp: _base64UrlDecode(jsJwk.dp),
+    dq: _base64UrlDecode(jsJwk.dq),
+    qi: _base64UrlDecode(jsJwk.qi),
+  );
 
-  String get webCryptoHashName {
-    switch (hash.name) {
-      case 'sha256':
-        return 'SHA-256';
-      case 'sha384':
-        return 'SHA-384';
-      case 'sha512':
-        return 'SHA-512';
-      default:
-        return null;
-    }
+  final publicKey = privateKey.toPublicKey();
+
+  // Cache Web Cryptography keys
+  privateKey.cachedValues[_webCryptoKeyCachingKey] = jsCryptoKeyPair.privateKey;
+  publicKey.cachedValues[_webCryptoKeyCachingKey] = jsCryptoKeyPair.publicKey;
+
+  // Return a key pair
+  return KeyPair(
+    privateKey: privateKey,
+    publicKey: publicKey,
+  );
+}
+
+Future<Signature> rsaPssSign(
+  List<int> message,
+  KeyPair keyPair, {
+  @required int saltLength,
+  @required String hashName,
+}) async {
+  final byteBuffer = await js.promiseToFuture(web_crypto.subtle.sign(
+    web_crypto.RsaPssParams(
+      name: 'RSA-PSS',
+      saltLength: saltLength,
+    ),
+    await _rsaCryptoKeyFromPrivateKey(
+      keyPair.privateKey,
+      name: 'RSA-PSS',
+      hashName: hashName,
+    ),
+    _jsArrayBufferFrom(message),
+  ));
+  return Signature(
+    Uint8List.view(byteBuffer),
+    publicKey: keyPair.publicKey,
+  );
+}
+
+Future<bool> rsaPssVerify(
+  List<int> input,
+  Signature signature, {
+  @required int saltLength,
+  @required String hashName,
+}) async {
+  return js.promiseToFuture<bool>(web_crypto.subtle.verify(
+    web_crypto.RsaPssParams(
+      name: 'RSA-PSS',
+      saltLength: saltLength,
+    ),
+    await _rsaCryptoKeyFromPublicKey(
+      signature.publicKey,
+      name: 'RSA-PSS',
+      hashName: hashName,
+    ),
+    _jsArrayBufferFrom(signature.bytes),
+    _jsArrayBufferFrom(input),
+  ));
+}
+
+Future<Signature> rsaSsaPkcs1v15Sign(
+  List<int> input,
+  KeyPair keyPair, {
+  @required String hashName,
+}) async {
+  final byteBuffer = await js.promiseToFuture(web_crypto.subtle.sign(
+    'RSASSA-PKCS1-v1_5',
+    await _rsaCryptoKeyFromPrivateKey(
+      keyPair.privateKey,
+      name: 'RSASSA-PKCS1-v1_5',
+      hashName: hashName,
+    ),
+    _jsArrayBufferFrom(input),
+  ));
+  return Signature(
+    Uint8List.view(byteBuffer),
+    publicKey: keyPair.publicKey,
+  );
+}
+
+Future<bool> rsaSsaPkcs1v15Verify(
+  List<int> input,
+  Signature signature, {
+  @required String hashName,
+}) async {
+  return js.promiseToFuture<bool>(web_crypto.subtle.verify(
+    'RSASSA-PKCS1-v1_5',
+    await _rsaCryptoKeyFromPublicKey(
+      signature.publicKey,
+      name: 'RSASSA-PKCS1-v1_5',
+      hashName: hashName,
+    ),
+    _jsArrayBufferFrom(signature.bytes),
+    _jsArrayBufferFrom(input),
+  ));
+}
+
+Future<web_crypto.CryptoKey> _rsaCryptoKeyFromPrivateKey(
+  PrivateKey privateKey, {
+  @required String name,
+  @required String hashName,
+}) async {
+  // Is it cached?
+  final cachedValue = privateKey.cachedValues[_webCryptoKeyCachingKey];
+  if (cachedValue != null) {
+    return cachedValue;
   }
 
-  String get webCryptoName;
-
-  @override
-  Future<KeyPair> newKeyPair() async {
-    // Generate CryptoKeyPair
-    final jsCryptoKeyPair = await js.promiseToFuture<web_crypto.CryptoKeyPair>(
-        web_crypto.subtle.generateKey(
-      web_crypto.RsaHashedKeyGenParams(
-        name: webCryptoName,
-        modulusLength: defaultModulusLength,
-        publicExponent: Uint8List.fromList(defaultPublicExponent),
-        hash: webCryptoHashName,
+  // Import JWK key
+  final jwkPrivateKey = privateKey as RsaJwkPrivateKey;
+  final jsCryptoKey = js.promiseToFuture<web_crypto.CryptoKey>(
+    web_crypto.subtle.importKey(
+      'jwk',
+      web_crypto.Jwk(
+        kty: 'RSA',
+        n: _base64UrlEncode(jwkPrivateKey.n),
+        e: _base64UrlEncode(jwkPrivateKey.e),
+        p: _base64UrlEncode(jwkPrivateKey.p),
+        d: _base64UrlEncode(jwkPrivateKey.d),
+        q: _base64UrlEncode(jwkPrivateKey.q),
+        dp: _base64UrlEncode(jwkPrivateKey.dp),
+        dq: _base64UrlEncode(jwkPrivateKey.dq),
+        qi: _base64UrlEncode(jwkPrivateKey.qi),
       ),
-      true,
-      ['sign'],
-    ));
-
-    // Export to JWK
-    final jsJwk = await js.promiseToFuture<web_crypto.Jwk>(
-      web_crypto.subtle.exportKey('jwk', jsCryptoKeyPair.privateKey),
-    );
-
-    // Construct a keys
-    final privateKey = RsaJwkPrivateKey(
-      n: _base64UrlDecode(jsJwk.n),
-      e: _base64UrlDecode(jsJwk.e),
-      d: _base64UrlDecode(jsJwk.d),
-      p: _base64UrlDecode(jsJwk.p),
-      q: _base64UrlDecode(jsJwk.q),
-      dp: _base64UrlDecode(jsJwk.dp),
-      dq: _base64UrlDecode(jsJwk.dq),
-      qi: _base64UrlDecode(jsJwk.qi),
-    );
-    final publicKey = privateKey.toPublicKey();
-
-    // Cache Web Cryptography keys
-    privateKey.cachedValues[this] = jsCryptoKeyPair.privateKey;
-    publicKey.cachedValues[this] = jsCryptoKeyPair.publicKey;
-
-    // Return a key pair
-    return KeyPair(
-      privateKey: privateKey,
-      publicKey: publicKey,
-    );
-  }
-
-  @override
-  KeyPair newKeyPairSync() {
-    throw UnimplementedError(
-      'RSA is only supported in browsers. Synchronous methods are not supported.',
-    );
-  }
-
-  @override
-  Signature signSync(List<int> input, KeyPair keyPair) {
-    throw UnimplementedError(
-      'RSA is only supported in browsers. Synchronous methods are not supported.',
-    );
-  }
-
-  @override
-  bool verifySync(List<int> input, Signature signature) {
-    throw UnimplementedError(
-      'RSA is only supported in browsers. Synchronous methods are not supported.',
-    );
-  }
-
-  Future<web_crypto.CryptoKey> _getCryptoKeyFromPrivateKey(
-      PrivateKey privateKey) async {
-    // Is it cached?
-    final cachedValue = privateKey.cachedValues[this];
-    if (cachedValue != null) {
-      return cachedValue;
-    }
-
-    // Import JWK key
-    final jwkPrivateKey = privateKey as RsaJwkPrivateKey;
-    final jsCryptoKey = js.promiseToFuture<web_crypto.CryptoKey>(
-      web_crypto.subtle.importKey(
-        'jwk',
-        web_crypto.Jwk(
-          kty: 'RSA',
-          n: _base64UrlEncode(jwkPrivateKey.n),
-          e: _base64UrlEncode(jwkPrivateKey.e),
-          p: _base64UrlEncode(jwkPrivateKey.p),
-          d: _base64UrlEncode(jwkPrivateKey.d),
-          q: _base64UrlEncode(jwkPrivateKey.q),
-          dp: _base64UrlEncode(jwkPrivateKey.dp),
-          dq: _base64UrlEncode(jwkPrivateKey.dq),
-          qi: _base64UrlEncode(jwkPrivateKey.qi),
-        ),
-        web_crypto.RsaHashedImportParams(
-          name: webCryptoName,
-          hash: 'SHA-256',
-        ),
-        false,
-        const ['sign'],
+      web_crypto.RsaHashedImportParams(
+        name: name,
+        hash: hashName,
       ),
-    );
+      false,
+      const ['sign'],
+    ),
+  );
 
-    // Cache
-    privateKey.cachedValues[this] = jsCryptoKey;
+  // Cache
+  privateKey.cachedValues[_webCryptoKeyCachingKey] = jsCryptoKey;
 
-    return jsCryptoKey;
+  return jsCryptoKey;
+}
+
+Future<web_crypto.CryptoKey> _rsaCryptoKeyFromPublicKey(
+  PublicKey publicKey, {
+  @required String name,
+  @required String hashName,
+}) async {
+  // Is it cached?
+  final cachedValue = publicKey.cachedValues[_webCryptoKeyCachingKey];
+  if (cachedValue != null) {
+    return cachedValue;
   }
 
-  Future<web_crypto.CryptoKey> _getCryptoKeyFromPublicKey(
-      PublicKey publicKey) async {
-    // Is it cached?
-    final cachedValue = publicKey.cachedValues[this];
-    if (cachedValue != null) {
-      return cachedValue;
-    }
-
-    // Import JWK key
-    final jwkPrivateKey = publicKey as RsaJwkPublicKey;
-    final jsCryptoKey = js.promiseToFuture<web_crypto.CryptoKey>(
-      web_crypto.subtle.importKey(
-        'jwk',
-        web_crypto.Jwk(
-          kty: 'RSA',
-          n: _base64UrlEncode(jwkPrivateKey.n),
-          e: _base64UrlEncode(jwkPrivateKey.e),
-        ),
-        web_crypto.RsaHashedImportParams(
-          name: webCryptoName,
-          hash: webCryptoHashName,
-        ),
-        false,
-        const ['verify'],
+  // Import JWK key
+  final jwkPrivateKey = publicKey as RsaJwkPublicKey;
+  final jsCryptoKey = js.promiseToFuture<web_crypto.CryptoKey>(
+    web_crypto.subtle.importKey(
+      'jwk',
+      web_crypto.Jwk(
+        kty: 'RSA',
+        n: _base64UrlEncode(jwkPrivateKey.n),
+        e: _base64UrlEncode(jwkPrivateKey.e),
       ),
-    );
+      web_crypto.RsaHashedImportParams(
+        name: name,
+        hash: hashName,
+      ),
+      false,
+      const ['verify'],
+    ),
+  );
 
-    // Cache
-    publicKey.cachedValues[this] = jsCryptoKey;
+  // Cache
+  publicKey.cachedValues[_webCryptoKeyCachingKey] = jsCryptoKey;
 
-    return jsCryptoKey;
-  }
+  return jsCryptoKey;
 }

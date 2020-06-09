@@ -18,9 +18,54 @@ import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/src/utils.dart';
 import 'package:meta/meta.dart';
 
+import '../web_crypto/web_crypto.dart' as web_crypto;
 import 'aes_impl.dart';
 
-const Cipher dartAesCbc = _AesCbc();
+/// _AES-CBC_ cipher ("cipher block chaining mode").
+///
+/// In browsers, asynchronous methods attempt to use Web Cryptography API.
+/// Otherwise pure Dart implementation is used.
+///
+/// ## Things to know
+/// * `secretKey` can be any value with 128, 192, or 256 bits. By default, the
+///   [Cipher.newSecretKey] returns 256 bit keys.
+/// * `nonce` must be 12 - 16 bytes.
+/// * AES-CBC is NOT authenticated so you should use a separate MAC algorithm
+///   (see example).
+/// * In browsers, the implementation takes advantage of _Web Cryptography API_.
+///
+/// ## Example
+/// ```dart
+/// import 'dart:convert'
+/// import 'package:cryptography/cryptography.dart';
+///
+/// Future<void> main() async {
+///   final message = utf8.encode('Encrypted message');
+///
+///   // AES-CBC is NOT authenticated,
+///   // so we should use some MAC algorithm such as HMAC-SHA256.
+///   const cipher = CipherWithAppendedMac(aesCbc, Hmac(sha256));
+///
+///   // Choose some secret key and nonce
+///   final secretKey = cipher.newSecretKeySync();
+///   final nonce = cipher.newNonce();
+///
+///   // Encrypt
+///   final encrypted = cipher.encrypt(
+///     message,
+///     secretKey: secretKey,
+///     nonce: nonce,
+///   );
+///
+///   // Decrypt
+///   final decrypted = cipher.encrypt(
+///     encrypted,
+///     secretKey: secretKey,
+///     nonce: nonce,
+///   );
+/// }
+/// ```
+const Cipher aesCbc = _AesCbc();
 
 class _AesCbc extends AesCipher {
   const _AesCbc();
@@ -30,6 +75,37 @@ class _AesCbc extends AesCipher {
 
   @override
   int get nonceLength => 16;
+
+  @override
+  Future<Uint8List> decrypt(
+    List<int> cipherText, {
+    SecretKey secretKey,
+    Nonce nonce,
+    List<int> aad,
+    int keyStreamIndex = 0,
+  }) {
+    if (web_crypto.isWebCryptoSupported) {
+      // Try performing this operation with Web Cryptography
+      try {
+        return web_crypto.aesCbcDecrypt(
+          cipherText,
+          secretKey: secretKey,
+          nonce: nonce,
+        );
+      } catch (e) {
+        if (webCryptoThrows) {
+          rethrow;
+        }
+      }
+    }
+    return super.decrypt(
+      cipherText,
+      secretKey: secretKey,
+      nonce: nonce,
+      aad: aad,
+      keyStreamIndex: keyStreamIndex,
+    );
+  }
 
   @override
   Uint8List decryptSync(
@@ -131,6 +207,37 @@ class _AesCbc extends AesCipher {
   }
 
   @override
+  Future<Uint8List> encrypt(
+    List<int> plainText, {
+    SecretKey secretKey,
+    Nonce nonce,
+    List<int> aad,
+    int keyStreamIndex = 0,
+  }) {
+    if (web_crypto.isWebCryptoSupported) {
+      // Try performing this operation with Web Cryptography
+      try {
+        return web_crypto.aesCbcEncrypt(
+          plainText,
+          secretKey: secretKey,
+          nonce: nonce,
+        );
+      } catch (e) {
+        if (webCryptoThrows) {
+          rethrow;
+        }
+      }
+    }
+    return super.encrypt(
+      plainText,
+      secretKey: secretKey,
+      nonce: nonce,
+      aad: aad,
+      keyStreamIndex: keyStreamIndex,
+    );
+  }
+
+  @override
   Uint8List encryptSync(
     List<int> input, {
     @required SecretKey secretKey,
@@ -199,5 +306,14 @@ class _AesCbc extends AesCipher {
       );
     }
     return outputAsUint8List;
+  }
+
+  @override
+  Future<SecretKey> newSecretKey({int length}) {
+    length ??= secretKeyLength;
+    if (web_crypto.isWebCryptoSupported) {
+      return web_crypto.aesNewSecretKey(name: 'AES-CBC', bits: 8 * length);
+    }
+    return super.newSecretKey(length: length);
   }
 }

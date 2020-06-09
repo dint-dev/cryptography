@@ -14,12 +14,12 @@
 
 import 'package:cryptography/cryptography.dart';
 
-import '../web_crypto/web_crypto.dart';
+import '../web_crypto/web_crypto.dart' as web_crypto;
 
-/// RSA-PSS signature algorithm. __Currently only supported in browsers__. The
+/// _RSA-PSS_ signature algorithm. __Currently supported only in browsers__. The
 /// hash algorithm must be [sha256], [sha384], or [sha512].
 ///
-/// By default, [newKeyPair] generates 4096 bit keys.
+/// By default, key size is [defaultModulusLength] (4096 bits).
 ///
 /// ## Example
 /// ```
@@ -33,6 +33,9 @@ import '../web_crypto/web_crypto.dart';
 /// }
 /// ```
 class RsaPss extends SignatureAlgorithm {
+  static const int defaultModulusLength = 4096;
+  static const List<int> defaultPublicExponent = [0x01, 0x00, 0x01];
+
   final HashAlgorithm hashAlgorithm;
   final int nonceLength;
 
@@ -44,54 +47,81 @@ class RsaPss extends SignatureAlgorithm {
   @override
   int get publicKeyLength => null;
 
-  SignatureAlgorithm get _webCryptoImplementation {
-    if (isWebCryptoSupported) {
-      if (identical(hashAlgorithm, sha256) ||
-          identical(hashAlgorithm, sha384) ||
-          identical(hashAlgorithm, sha512)) {
-        return WebRsaPss(hashAlgorithm);
-      }
-    }
-    return null;
-  }
-
   @override
-  Future<KeyPair> newKeyPair() {
-    final webCryptoImplementation = _webCryptoImplementation;
-    if (webCryptoImplementation != null) {
-      return webCryptoImplementation.newKeyPair();
+  Future<KeyPair> newKeyPair({
+    int modulusLength = defaultModulusLength,
+    List<int> publicExponent = defaultPublicExponent,
+  }) {
+    if (web_crypto.isWebCryptoSupported) {
+      final hashName = _webCryptoHashName;
+      if (hashName != null) {
+        return web_crypto.rsaNewKeyPairForSigning(
+          name: 'RSA-PSS',
+          modulusLength: modulusLength,
+          publicExponent: publicExponent,
+          hashName: hashName,
+        );
+      }
     }
     return super.newKeyPair();
   }
 
   @override
-  KeyPair newKeyPairSync() {
+  KeyPair newKeyPairSync({
+    int modulusLength = defaultModulusLength,
+    List<int> publicExponent = defaultPublicExponent,
+  }) {
     throw UnimplementedError(
-      'Only supported in browsers. Hash algorithm must be sha256, sha384, or sha512. Synchronous methods are not supported.',
+      '$name newKeyPair() is not supported on the current platform. Try asynchronous method?',
     );
   }
 
   @override
   Future<Signature> sign(List<int> input, KeyPair keyPair) {
-    final webCryptoImplementation = _webCryptoImplementation;
-    if (webCryptoImplementation != null) {
-      return webCryptoImplementation.sign(input, keyPair);
+    if (web_crypto.isWebCryptoSupported) {
+      final hashName = _webCryptoHashName;
+      if (hashName != null) {
+        return web_crypto.rsaPssSign(
+          input,
+          keyPair,
+          saltLength: 32,
+          hashName: hashName,
+        );
+      }
     }
     return super.sign(input, keyPair);
+  }
+
+  String get _webCryptoHashName {
+    return const <String, String>{
+      'sha256': 'SHA-256',
+      'sha384': 'SHA-384',
+      'sha512': 'SHA-512',
+    }[hashAlgorithm.name];
   }
 
   @override
   Signature signSync(List<int> input, KeyPair keyPair) {
     throw UnimplementedError(
-      'Only supported in browsers. Hash algorithm must be sha256, sha384, or sha512. Synchronous methods are not supported.',
+      '$name signSync(...) is not supported on the current platform. Try asynchronous method?',
     );
   }
 
   @override
   Future<bool> verify(List<int> input, Signature signature) {
-    final webCryptoImplementation = _webCryptoImplementation;
-    if (webCryptoImplementation != null) {
-      return webCryptoImplementation.verify(input, signature);
+    if (web_crypto.isWebCryptoSupported) {
+      final hashName = _webCryptoHashName;
+      if (hashName != null) {
+        return web_crypto.rsaPssVerify(
+          input,
+          signature,
+          saltLength: 32,
+          hashName: hashName,
+        );
+      }
+      throw UnimplementedError(
+        'Unsupported hash algorithm: ${hashAlgorithm.name}',
+      );
     }
     return super.verify(input, signature);
   }
@@ -99,7 +129,7 @@ class RsaPss extends SignatureAlgorithm {
   @override
   bool verifySync(List<int> input, Signature signature) {
     throw UnimplementedError(
-      'Only supported in browsers. Hash algorithm must be sha256, sha384, or sha512. Synchronous methods are not supported.',
+      '$name verifySync(...) is not supported on the current platform. Try asynchronous method?',
     );
   }
 }

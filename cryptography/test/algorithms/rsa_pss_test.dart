@@ -19,6 +19,10 @@ void main() {
   group('RsaPss:', () {
     final algorithm = RsaPss(sha256);
 
+    test('name', () async {
+      expect(algorithm.name, 'rsaPss');
+    });
+
     test('default modulus length is 4096 bits', () async {
       final keyPair = await algorithm.newKeyPair();
       expect(keyPair.publicKey.bytes, hasLength(greaterThan(500)));
@@ -67,23 +71,40 @@ Future<void> _testHashAlgorithm(HashAlgorithm hashAlgorithm) async {
   expect(privateKey.qi, isNotEmpty);
 
   // Sign
+  const message = <int>[1, 2, 3];
   final signature = await algorithm.sign(
-    [1, 2, 3],
+    message,
     keyPair,
   );
+  expect(signature.bytes, isNotEmpty);
+  expect(signature.publicKey, isA<RsaJwkPublicKey>());
+  expect(signature.publicKey.bytes, isNotEmpty);
+
+  // Verify the signature
+  {
+    final isSignatureOk = await algorithm.verify(
+      message,
+      signature,
+    );
+    expect(isSignatureOk, isTrue);
+  }
+
+  // Remove cached CryptoKey
   keyPair.privateKey.cachedValues.clear();
   keyPair.publicKey.cachedValues.clear();
 
   // Verify the signature
-  final isSignatureOk = await algorithm.verify(
-    [1, 2, 3],
-    signature,
-  );
-  expect(isSignatureOk, isTrue);
+  {
+    final isSignatureOk = await algorithm.verify(
+      message,
+      signature,
+    );
+    expect(isSignatureOk, isTrue);
+  }
 
   // Try verify another message with the same signature
   final isWrongSignatureOk = await algorithm.verify(
-    [1, 2, 3, 4],
+    [...message, 4],
     signature,
   );
   expect(isWrongSignatureOk, isFalse);

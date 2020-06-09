@@ -17,6 +17,9 @@ import 'package:cryptography/src/utils.dart';
 import 'package:test/test.dart';
 
 void main() {
+  // Enable exceptions from Web Cryptography API in browsers.
+  webCryptoThrows = true;
+
   group('Hkdf', () {
     test('Test case #1', () async {
       // Test vectors from RFC 5869:

@@ -15,11 +15,16 @@
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
+import '../web_crypto/web_crypto.dart' as web_crypto;
 import 'package:meta/meta.dart';
+import '../utils.dart';
 
 /// HKDF key derivation algorithm ([RFC 5869](https://tools.ietf.org/html/rfc5869)).
 ///
-/// An example:
+/// In browsers, asynchronous methods attempt to use Web Cryptography API.
+/// Otherwise pure Dart implementation is used.
+///
+/// ## Example
 /// ```
 /// import 'package:cryptography/cryptography.dart';
 ///
@@ -33,7 +38,7 @@ class Hkdf {
   /// HMAC used by this HKDF instance.
   final Hmac hmac;
 
-  const Hkdf(this.hmac);
+  const Hkdf(this.hmac) : assert(hmac != null);
 
   /// Generates a secret key of the specified length.
   Future<SecretKey> deriveKey(
@@ -45,6 +50,32 @@ class Hkdf {
     final hashLength = hmac.hashAlgorithm.hashLengthInBytes;
     final inputBytes = await input.extract();
     final nonceBytes = nonce == null ? Uint8List(hashLength) : nonce.bytes;
+
+    if (web_crypto.isWebCryptoSupported) {
+      // Is the hash algorithm supported by Web Cryptography?
+      final hashName = const {
+        'sha256': 'SHA-256',
+        'sha384': 'SHA-384',
+        'sha512': 'SHA-512',
+      }[hmac.hashAlgorithm.name];
+      if (hashName != null) {
+        // Try performing this operation with Web Cryptography
+        try {
+          final result = await web_crypto.hkdf(
+            await input.extract(),
+            hashName: hashName,
+            salt: nonce?.bytes,
+            info: info,
+            bits: 8 * outputLength,
+          );
+          return SecretKey(result);
+        } catch (e) {
+          if (webCryptoThrows) {
+            rethrow;
+          }
+        }
+      }
+    }
 
     // Calculate a pseudorandom key
     final prkMac = await hmac.calculateMac(

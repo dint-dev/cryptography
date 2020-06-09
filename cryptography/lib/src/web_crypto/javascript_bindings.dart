@@ -122,6 +122,17 @@ class EcKeyImportParams {
 
 @JS()
 @anonymous
+class HkdfParams {
+  external factory HkdfParams({
+    @required String name,
+    @required String hash,
+    @required ByteBuffer salt,
+    @required ByteBuffer info,
+  });
+}
+
+@JS()
+@anonymous
 class HmacImportParams {
   external factory HmacImportParams({
     @required String name,

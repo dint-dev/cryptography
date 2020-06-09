@@ -1,3 +1,11 @@
+## 1.4.1
+  * Improves Web Cryptography support internally.
+    * The implementation is now easier to read.
+    * In older browsers, the implementation fall back to pure Dart implementation if attempt to
+      use Web Cryptography fails.
+    * HMAC and HKDF are now able to use Web Cryptography.
+  * Improves documentation.
+
 ## 1.4.0
   * Adds support for _cryptography_flutter_, which uses operating system implementations.
 

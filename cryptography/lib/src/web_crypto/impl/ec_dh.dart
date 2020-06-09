@@ -14,118 +14,154 @@
 
 part of web_crypto;
 
-const KeyExchangeAlgorithm webEcdhP256 = _WebEcdh(
-  webCryptoNamedCurve: 'P-256',
-  dartImplementation: dart.dartEcdhP256,
-);
+// For avoiding confusion with ECDSA, we have separate caching keys
+final _ecdhCachingKeys = {
+  'P-256': Object(),
+  'P-384': Object(),
+  'P-521': Object(),
+};
 
-const KeyExchangeAlgorithm webEcdhP384 = _WebEcdh(
-  webCryptoNamedCurve: 'P-384',
-  dartImplementation: dart.dartEcdhP384,
-);
+Future<KeyPair> ecdhNewKeyPair({@required String curve}) async {
+  // Generate key
+  final jsKeyPair = await js.promiseToFuture<web_crypto.CryptoKeyPair>(
+    web_crypto.subtle.generateKey(
+      web_crypto.EcdhParams(
+        name: 'ECDH',
+        namedCurve: curve,
+      ),
+      true,
+      ['deriveBits'],
+    ),
+  );
 
-const KeyExchangeAlgorithm webEcdhP521 = _WebEcdh(
-  webCryptoNamedCurve: 'P-521',
-  dartImplementation: dart.dartEcdhP521,
-);
+  final privateKeyJs = await js.promiseToFuture<web_crypto.Jwk>(
+    web_crypto.subtle.exportKey('jwk', jsKeyPair.privateKey),
+  );
+  final privateKey = EcJwkPrivateKey(
+    crv: curve,
+    d: _base64UrlDecode(privateKeyJs.d),
+    x: _base64UrlDecode(privateKeyJs.x),
+    y: _base64UrlDecode(privateKeyJs.y),
+  );
 
-class _WebEcdh extends KeyExchangeAlgorithm {
-  final String webCryptoNamedCurve;
-  final KeyExchangeAlgorithm dartImplementation;
+  // Get public key.
+  final publicKeyByteBuffer = await js.promiseToFuture<ByteBuffer>(
+    web_crypto.subtle.exportKey('raw', jsKeyPair.publicKey),
+  );
+  final publicKey = PublicKey(
+    Uint8List.view(publicKeyByteBuffer),
+  );
 
-  const _WebEcdh({
-    @required this.webCryptoNamedCurve,
-    @required this.dartImplementation,
-  }) : assert(dartImplementation != null);
-
-  @override
-  String get name => dartImplementation.name;
-
-  @override
-  int get publicKeyLength => dartImplementation.publicKeyLength;
-
-  @override
-  Future<KeyPair> newKeyPair() {
-    return _newWebEcKeyPair(webCryptoNamedCurve);
+  final cachingKey = _ecdhCachingKeys[curve];
+  if (cachingKey != null) {
+    privateKey.cachedValues[cachingKey] = jsKeyPair.privateKey;
+    publicKey.cachedValues[cachingKey] = jsKeyPair.publicKey;
   }
 
-  @override
-  KeyPair newKeyPairSync() {
-    return dartImplementation.newKeyPairSync();
-  }
+  return KeyPair(
+    privateKey: privateKey,
+    publicKey: publicKey,
+  );
+}
 
-  @override
-  Future<SecretKey> sharedSecret({
-    PrivateKey localPrivateKey,
-    PublicKey remotePublicKey,
-  }) async {
-    final subtle = web_crypto.subtle;
-    if (subtle == null) {
-      // Very old browser
-      return super.sharedSecret(
-        localPrivateKey: localPrivateKey,
-        remotePublicKey: remotePublicKey,
-      );
-    }
-    final privateKey = await EcJwkPrivateKey.from(localPrivateKey);
-    final privateKeyJwk = web_crypto.Jwk(
-      crv: webCryptoNamedCurve,
-      d: _base64UrlEncode(privateKey.d),
-      ext: true,
-      key_ops: const ['deriveBits'],
-      kty: 'EC',
-      x: _base64UrlEncode(privateKey.x),
-      y: _base64UrlEncode(privateKey.y),
-    );
-    final privateKeyJs = await js.promiseToFuture<web_crypto.CryptoKey>(
-      subtle.importKey(
-        'jwk',
-        privateKeyJwk,
-        web_crypto.EcdhParams(
-          name: 'ECDH',
-          namedCurve: webCryptoNamedCurve,
-        ),
-        true,
-        const ['deriveBits'],
-      ),
-    );
-
-    final publicKeyBytes = remotePublicKey.bytes;
-    final publicKeyJs = await js.promiseToFuture<web_crypto.CryptoKey>(
-      web_crypto.subtle.importKey(
-        'raw',
-        _jsArrayBufferFrom(publicKeyBytes),
-        web_crypto.EcdhParams(
-          name: 'ECDH',
-          namedCurve: webCryptoNamedCurve,
-        ),
-        true,
-        const [],
-      ),
-    );
-
-    return js
-        .promiseToFuture<ByteBuffer>(web_crypto.subtle.deriveBits(
+Future<SecretKey> ecdhSharedSecret({
+  @required PrivateKey localPrivateKey,
+  @required PublicKey remotePublicKey,
+  @required String curve,
+  int bits = 256,
+}) async {
+  final jsPrivateKeyFuture = _ecdhPrivateKeyToJs(
+    localPrivateKey,
+    curve: curve,
+  );
+  final jsPublicKeyFuture = _ecdhPublicKeyToJs(
+    remotePublicKey,
+    curve: curve,
+  );
+  final byteBuffer = await js.promiseToFuture<ByteBuffer>(
+    web_crypto.subtle.deriveBits(
       web_crypto.EcdhKeyDeriveParams(
         name: 'ECDH',
-        public: publicKeyJs,
+        public: await jsPublicKeyFuture,
       ),
-      privateKeyJs,
-      256,
-    ))
-        .then((byteBuffer) async {
-      return SecretKey(Uint8List.view(byteBuffer));
-    });
+      await jsPrivateKeyFuture,
+      bits,
+    ),
+  );
+  return SecretKey(Uint8List.view(byteBuffer));
+}
+
+Future<web_crypto.CryptoKey> _ecdhPrivateKeyToJs(
+  PrivateKey privateKey, {
+  @required String curve,
+}) async {
+  final cachingKey = _ecdhCachingKeys[curve];
+  if (cachingKey != null) {
+    final result = privateKey.cachedValues[cachingKey];
+    if (result != null) {
+      return result;
+    }
   }
 
-  @override
-  SecretKey sharedSecretSync({
-    PrivateKey localPrivateKey,
-    PublicKey remotePublicKey,
-  }) {
-    return dartImplementation.sharedSecretSync(
-      localPrivateKey: localPrivateKey,
-      remotePublicKey: remotePublicKey,
-    );
+  final jwk = await EcJwkPrivateKey.from(privateKey);
+  final jsJwk = web_crypto.Jwk(
+    crv: curve,
+    d: _base64UrlEncode(jwk.d),
+    ext: true,
+    key_ops: const ['deriveBits'],
+    kty: 'EC',
+    x: _base64UrlEncode(jwk.x),
+    y: _base64UrlEncode(jwk.y),
+  );
+
+  final result = js.promiseToFuture<web_crypto.CryptoKey>(
+    web_crypto.subtle.importKey(
+      'jwk',
+      jsJwk,
+      web_crypto.EcdhParams(
+        name: 'ECDH',
+        namedCurve: curve,
+      ),
+      true,
+      const ['deriveBits'],
+    ),
+  );
+
+  if (cachingKey != null) {
+    privateKey.cachedValues[cachingKey] = result;
   }
+
+  return result;
+}
+
+Future<web_crypto.CryptoKey> _ecdhPublicKeyToJs(
+  PublicKey publicKey, {
+  @required String curve,
+}) async {
+  final cachingKey = _ecdhCachingKeys[curve];
+  if (cachingKey != null) {
+    final result = publicKey.cachedValues[cachingKey];
+    if (result != null) {
+      return result;
+    }
+  }
+
+  final result = js.promiseToFuture<web_crypto.CryptoKey>(
+    web_crypto.subtle.importKey(
+      'raw',
+      _jsArrayBufferFrom(publicKey.bytes),
+      web_crypto.EcdhParams(
+        name: 'ECDH',
+        namedCurve: curve,
+      ),
+      true,
+      const [],
+    ),
+  );
+
+  if (cachingKey != null) {
+    publicKey.cachedValues[cachingKey] = result;
+  }
+
+  return result;
 }

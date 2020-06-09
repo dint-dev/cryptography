@@ -12,77 +12,176 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:typed_data';
+
 import 'package:cryptography/cryptography.dart';
-
-const Cipher webAesCbc = null;
-
-const Cipher webAesCtr = null;
-const Cipher webAesGcm = null;
-const KeyExchangeAlgorithm webEcdhP256 = null;
-
-const KeyExchangeAlgorithm webEcdhP384 = null;
-const KeyExchangeAlgorithm webEcdhP521 = null;
-const SignatureAlgorithm webEcdsaP256Sha256 = null;
-
-const SignatureAlgorithm webEcdsaP384Sha256 = null;
-const SignatureAlgorithm webEcdsaP384Sha384 = null;
-const SignatureAlgorithm webEcdsaP521Sha256 = null;
-const SignatureAlgorithm webEcdsaP521Sha512 = null;
-const SignatureAlgorithm webRsaPss = null;
-
-const HashAlgorithm webSha1 = null;
-const HashAlgorithm webSha256 = null;
-const HashAlgorithm webSha384 = null;
-const HashAlgorithm webSha512 = null;
+import 'package:meta/meta.dart';
 
 bool get isWebCryptoSupported => false;
 
-class WebRsaPss extends SignatureAlgorithm {
-  WebRsaPss(HashAlgorithm hashAlgorithm);
-
-  @override
-  String get name => throw UnimplementedError();
-
-  @override
-  int get publicKeyLength => null;
-
-  @override
-  KeyPair newKeyPairSync() {
-    throw UnimplementedError();
-  }
-
-  @override
-  Signature signSync(List<int> input, KeyPair keyPair) {
-    throw UnimplementedError();
-  }
-
-  @override
-  bool verifySync(List<int> input, Signature signature) {
-    throw UnimplementedError();
-  }
+Future<Uint8List> aesCbcDecrypt(
+  List<int> input, {
+  @required SecretKey secretKey,
+  @required Nonce nonce,
+}) {
+  throw UnimplementedError();
 }
 
-class WebRsaSsaPkcs1v15 extends SignatureAlgorithm {
-  WebRsaSsaPkcs1v15(HashAlgorithm hashAlgorithm);
+Future<Uint8List> aesCbcEncrypt(
+  List<int> input, {
+  @required SecretKey secretKey,
+  @required Nonce nonce,
+}) {
+  throw UnimplementedError();
+}
 
-  @override
-  String get name => throw UnimplementedError();
+Future<Uint8List> aesCtrDecrypt(
+  List<int> input, {
+  @required SecretKey secretKey,
+  @required Nonce nonce,
+}) {
+  throw UnimplementedError();
+}
 
-  @override
-  int get publicKeyLength => null;
+Future<Uint8List> aesCtrEncrypt(
+  List<int> input, {
+  @required SecretKey secretKey,
+  @required Nonce nonce,
+}) {
+  throw UnimplementedError();
+}
 
-  @override
-  KeyPair newKeyPairSync() {
-    throw UnimplementedError();
-  }
+Future<Uint8List> aesGcmDecrypt(
+  List<int> input, {
+  @required SecretKey secretKey,
+  @required Nonce nonce,
+  List<int> aad,
+}) {
+  throw UnimplementedError();
+}
 
-  @override
-  Signature signSync(List<int> input, KeyPair keyPair) {
-    throw UnimplementedError();
-  }
+Future<Uint8List> aesGcmEncrypt(
+  List<int> input, {
+  @required SecretKey secretKey,
+  @required Nonce nonce,
+  List<int> aad,
+}) {
+  throw UnimplementedError();
+}
 
-  @override
-  bool verifySync(List<int> input, Signature signature) {
-    throw UnimplementedError();
-  }
+Future<SecretKey> aesNewSecretKey({
+  @required String name,
+  @required int bits,
+}) {
+  throw UnimplementedError();
+}
+
+Future<KeyPair> ecdhNewKeyPair({@required String curve}) {
+  throw UnimplementedError();
+}
+
+Future<SecretKey> ecdhSharedSecret({
+  @required PrivateKey localPrivateKey,
+  @required PublicKey remotePublicKey,
+  @required String curve,
+}) {
+  throw UnimplementedError();
+}
+
+Future<KeyPair> ecdsaNewKeyPair({@required String curve}) {
+  throw UnimplementedError();
+}
+
+Future<Signature> ecdsaSign(
+  List<int> input,
+  KeyPair keyPair, {
+  @required String namedCurve,
+  @required String hashName,
+}) {
+  throw UnimplementedError();
+}
+
+Future<bool> ecdsaVerify(
+  List<int> input,
+  Signature signature, {
+  @required String namedCurve,
+  @required String hashName,
+}) {
+  throw UnimplementedError();
+}
+
+Future<Hash> hash(List<int> bytes, String name) {
+  throw UnimplementedError();
+}
+
+Future<List<int>> hkdf(
+  List<int> bytes, {
+  @required String hashName,
+  @required List<int> salt,
+  @required List<int> info,
+  @required int bits,
+}) {
+  throw UnimplementedError();
+}
+
+Future<Mac> hmac(
+  List<int> bytes, {
+  @required SecretKey secretKey,
+  @required String hashName,
+}) {
+  throw UnimplementedError();
+}
+
+Future<Uint8List> pbkdf2(
+  List<int> input, {
+  @required String hashName,
+  @required int bits,
+  @required int iterations,
+  @required Nonce nonce,
+}) {
+  throw UnimplementedError();
+}
+
+@override
+Future<KeyPair> rsaNewKeyPairForSigning({
+  @required String name,
+  @required int modulusLength,
+  @required List<int> publicExponent,
+  @required String hashName,
+}) {
+  throw UnimplementedError();
+}
+
+Future<Signature> rsaPssSign(
+  List<int> input,
+  KeyPair keyPair, {
+  @required int saltLength,
+  @required String hashName,
+}) {
+  throw UnimplementedError();
+}
+
+Future<bool> rsaPssVerify(
+  List<int> input,
+  Signature signature, {
+  @required int saltLength,
+  @required String hashName,
+}) {
+  throw UnimplementedError();
+}
+
+Future<Signature> rsaSsaPkcs1v15Sign(
+  List<int> input,
+  KeyPair keyPair, {
+  @required String hashName,
+}) {
+  throw UnimplementedError();
+}
+
+Future<bool> rsaSsaPkcs1v15Verify(
+  List<int> input,
+  Signature signature, {
+  @required String hashName,
+}) {
+  throw UnimplementedError();
 }

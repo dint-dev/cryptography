@@ -22,7 +22,8 @@
 ///   * [SignatureAlgorithm]
 library cryptography;
 
-export 'src/algorithms/aes.dart';
+export 'src/algorithms/aes_cbc.dart';
+export 'src/algorithms/aes_ctr.dart';
 export 'src/algorithms/aes_gcm.dart';
 export 'src/algorithms/blake2b.dart';
 export 'src/algorithms/blake2s.dart';

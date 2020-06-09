@@ -13,10 +13,14 @@
 // limitations under the License.
 
 import 'package:cryptography/cryptography.dart';
+import 'package:cryptography/src/utils.dart';
 import 'package:cryptography/src/utils/hex.dart';
 import 'package:test/test.dart';
 
 void main() {
+  // Enable exceptions from Web Cryptography API in browsers.
+  webCryptoThrows = true;
+
   final secretKey128 = SecretKey(List<int>.filled(16, 2));
   final secretKey256 = SecretKey(List<int>.filled(32, 2));
 

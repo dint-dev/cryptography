@@ -15,13 +15,58 @@
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
-import 'package:cryptography/src/utils/bytes.dart';
-import 'package:cryptography/src/utils/parameters.dart';
+import 'package:cryptography/src/utils.dart';
 import 'package:meta/meta.dart';
 
+import '../web_crypto/web_crypto.dart' as web_crypto;
 import 'aes_impl.dart';
 
-const Cipher dartAesCtr = _AesCtr();
+/// _AES-CTR_ cipher ("counter mode").
+///
+/// In browsers, asynchronous methods attempt to use Web Cryptography API.
+/// Otherwise pure Dart implementation is used.
+///
+/// ## Things to know
+/// * `secretKey` can be any value with 128, 192, or 256 bits. By default, the
+///   [Cipher.newSecretKey] returns 256 bit keys.
+/// * `nonce` must be 8 - 16 bytes.
+/// * AES-CTR is NOT authenticated so you should use a separate MAC algorithm
+///   (see example).
+/// * In browsers, the implementation takes advantage of _Web Cryptography API_.
+///
+/// AES-CTR takes a maximum 16-byte [Nonce].
+///
+/// ## Example
+/// ```dart
+/// import 'package:cryptography/cryptography.dart';
+///
+/// void main() {
+///   final message = utf8.encode('Encrypted message');
+///
+///   // AES-CTR is NOT authenticated,
+///   // so we should use some MAC algorithm such as HMAC-SHA256.
+///   const cipher = CipherWithAppendedMac(aesCtr, Hmac(sha256));
+///
+///   // Choose some secret key and nonce
+///   final secretKey = cipher.newSecretKeySync();
+///   final nonce = cipher.newNonce();
+///
+///   // Encrypt
+///   final encrypted = cipher.encrypt(
+///     message,
+///     secretKey: secretKey,
+///     nonce: nonce,
+///   );
+///
+///   // Decrypt
+///   final decrypted = cipher.encrypt(
+///     encrypted,
+///     secretKey: secretKey,
+///     nonce: nonce,
+///   );
+/// }
+/// ```
+const Cipher aesCtr = _AesCtr();
 
 class _AesCtr extends AesCipher {
   const _AesCtr();
@@ -33,10 +78,39 @@ class _AesCtr extends AesCipher {
   int get nonceLength => 16;
 
   @override
+  int get nonceLengthMax => 16;
+
+  @override
   int get nonceLengthMin => 12;
 
   @override
-  int get nonceLengthMax => 16;
+  Future<Uint8List> decrypt(List<int> cipherText,
+      {SecretKey secretKey,
+      Nonce nonce,
+      List<int> aad,
+      int keyStreamIndex = 0}) {
+    if (web_crypto.isWebCryptoSupported) {
+      // Try performing this operation with Web Cryptography
+      try {
+        return web_crypto.aesCtrDecrypt(
+          cipherText,
+          secretKey: secretKey,
+          nonce: nonce,
+        );
+      } catch (e) {
+        if (webCryptoThrows) {
+          rethrow;
+        }
+      }
+    }
+    return super.decrypt(
+      cipherText,
+      secretKey: secretKey,
+      nonce: nonce,
+      aad: aad,
+      keyStreamIndex: keyStreamIndex,
+    );
+  }
 
   @override
   Uint8List decryptSync(
@@ -49,6 +123,34 @@ class _AesCtr extends AesCipher {
     // Encryption function can be used for decrypting too.
     return encryptSync(
       input,
+      secretKey: secretKey,
+      nonce: nonce,
+      aad: aad,
+      keyStreamIndex: keyStreamIndex,
+    );
+  }
+
+  @override
+  Future<Uint8List> encrypt(List<int> plainText,
+      {SecretKey secretKey,
+      Nonce nonce,
+      List<int> aad,
+      int keyStreamIndex = 0}) {
+    if (web_crypto.isWebCryptoSupported) {
+      try {
+        return web_crypto.aesCtrDecrypt(
+          plainText,
+          secretKey: secretKey,
+          nonce: nonce,
+        );
+      } catch (e) {
+        if (webCryptoThrows) {
+          rethrow;
+        }
+      }
+    }
+    return super.encrypt(
+      plainText,
       secretKey: secretKey,
       nonce: nonce,
       aad: aad,
@@ -125,5 +227,14 @@ class _AesCtr extends AesCipher {
     }
 
     return outputAsUint8List;
+  }
+
+  @override
+  Future<SecretKey> newSecretKey({int length}) {
+    length ??= secretKeyLength;
+    if (web_crypto.isWebCryptoSupported) {
+      return web_crypto.aesNewSecretKey(name: 'AES-CTR', bits: 8 * length);
+    }
+    return super.newSecretKey(length: length);
   }
 }

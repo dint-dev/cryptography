@@ -18,10 +18,13 @@ import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/src/utils.dart';
 import 'package:meta/meta.dart';
 
-import '../web_crypto/web_crypto.dart';
+import '../web_crypto/web_crypto.dart' as web_crypto;
 import 'aes_impl.dart';
 
 /// _AES-GCM_ (Galois/Counter Mode) cipher.
+///
+/// In browsers, asynchronous methods attempt to use Web Cryptography API.
+/// Otherwise pure Dart implementation is used.
 ///
 /// ## Things to know
 /// * `secretKey` can be any value with 128, 192, or 256 bits. By default,
@@ -56,7 +59,7 @@ import 'aes_impl.dart';
 ///   );
 /// }
 /// ```
-const Cipher aesGcm = webAesGcm ?? AesGcm();
+const Cipher aesGcm = AesGcm();
 
 int _uint32ChangeEndian(int v) {
   // We mask with 0xFFFFFFFF to ensure the compiler recognizes the value will
@@ -98,6 +101,21 @@ class AesGcm extends AesCipher {
     List<int> aad,
     int keyStreamIndex = 0,
   }) async {
+    if (web_crypto.isWebCryptoSupported) {
+      // Try performing this operation with Web Cryptography
+      try {
+        return web_crypto.aesGcmDecrypt(
+          cipherText,
+          secretKey: secretKey,
+          nonce: nonce,
+          aad: aad,
+        );
+      } catch (e) {
+        if (webCryptoThrows) {
+          rethrow;
+        }
+      }
+    }
     final secretKeyBytes = await secretKey.extract();
     return _decrypt(
       cipherText,
@@ -136,6 +154,21 @@ class AesGcm extends AesCipher {
     List<int> aad,
     int keyStreamIndex = 0,
   }) async {
+    if (web_crypto.isWebCryptoSupported) {
+      // Try performing this operation with Web Cryptography
+      try {
+        return web_crypto.aesGcmEncrypt(
+          cipherText,
+          secretKey: secretKey,
+          nonce: nonce,
+          aad: aad,
+        );
+      } catch (e) {
+        if (webCryptoThrows) {
+          rethrow;
+        }
+      }
+    }
     final secretKeyBytes = await secretKey.extract();
     return _encrypt(
       cipherText,
@@ -180,6 +213,15 @@ class AesGcm extends AesCipher {
       cipherText.length - 16,
       cipherText.length,
     ));
+  }
+
+  @override
+  Future<SecretKey> newSecretKey({int length}) {
+    length ??= secretKeyLength;
+    if (web_crypto.isWebCryptoSupported) {
+      return web_crypto.aesNewSecretKey(name: 'AES-GCM', bits: 8 * length);
+    }
+    return super.newSecretKey(length: length);
   }
 
   Uint8List _decrypt(

@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// THIS FILE IS NOT EXPORTED.
+
 export 'utils/big_int.dart';
 export 'utils/bytes.dart';
 export 'utils/bytes.dart';
@@ -20,3 +22,7 @@ export 'utils/hex.dart';
 export 'utils/parameters.dart';
 export 'utils/random_bytes.dart';
 export 'utils/rotate.dart';
+
+/// Determines whether Web Crypto exceptions are not ignored. Default is
+/// false.
+bool webCryptoThrows = false;

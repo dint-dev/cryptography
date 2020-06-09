@@ -239,6 +239,7 @@ void initializeChacha(
   }
 }
 
+/// Superclass for [chacha20] and [xchacha20].
 class ChaCha extends Cipher {
   final int rounds;
 

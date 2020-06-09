@@ -37,6 +37,14 @@ void main() {
     test('works in browser', () async {
       await _testKeyExchange(algorithm);
     }, testOn: 'chrome');
+
+    test('generated key pair can be used as ECDSA key pair', () async {
+      final keyPair = await algorithm.newKeyPair();
+
+      final message = <int>[1, 2, 3];
+      final signature = await ecdsaP256Sha256.sign(message, keyPair);
+      await ecdsaP256Sha256.verify(message, signature);
+    }, testOn: 'chrome');
   });
 
   group('ecdhP384:', () {
@@ -98,4 +106,32 @@ Future<void> _testKeyExchange(KeyExchangeAlgorithm algorithm) async {
     sharedKey0,
     sharedKey1,
   );
+
+  {
+    // Reconstruct the key pair
+    final newKeyPair0 = KeyPair(
+      privateKey: PrivateKey(keypair0.privateKey.extractSync()),
+      publicKey: PublicKey(keypair0.publicKey.bytes),
+    );
+
+    final newSharedKey0 = await algorithm.sharedSecret(
+      localPrivateKey: newKeyPair0.privateKey,
+      remotePublicKey: keypair1.publicKey,
+    );
+
+    final newSharedKey1 = await algorithm.sharedSecret(
+      localPrivateKey: keypair1.privateKey,
+      remotePublicKey: newKeyPair0.publicKey,
+    );
+
+    expect(
+      sharedKey0,
+      newSharedKey0,
+    );
+
+    expect(
+      sharedKey0,
+      newSharedKey1,
+    );
+  }
 }

@@ -15,9 +15,14 @@
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
+import 'package:cryptography/src/utils.dart';
+import '../web_crypto/web_crypto.dart' as web_crypto;
 import 'package:meta/meta.dart';
 
 /// HMAC ("hash-based message authentication code").
+///
+/// In browsers, asynchronous methods attempt to use Web Cryptography API.
+/// Otherwise pure Dart implementation is used.
 ///
 /// ## Asynchonous usage (recommended)
 /// ```
@@ -75,9 +80,35 @@ class Hmac extends MacAlgorithm {
   }) async {
     ArgumentError.checkNotNull(input);
     ArgumentError.checkNotNull(secretKey);
-    final hashAlgorithm = this.hashAlgorithm;
-    final blockLength = hashAlgorithm.blockLengthInBytes;
     var hmacKey = await secretKey.extract();
+    final hashAlgorithm = this.hashAlgorithm;
+
+    // If Web Crypto API is available and the HMAC key is not empty
+    if (web_crypto.isWebCryptoSupported && hmacKey.isNotEmpty) {
+      // Is the hash algorithm supported by Web Cryptography?
+      final hashName = const <String, String>{
+        'sha1': 'SHA-1',
+        'sha256': 'SHA-256',
+        'sha384': 'SHA-384',
+        'sha512': 'SHA-512',
+      }[hashAlgorithm.name];
+      if (hashName != null) {
+        // Try performing this operation with Web Cryptography
+        try {
+          return web_crypto.hmac(
+            input,
+            secretKey: secretKey,
+            hashName: hashName,
+          );
+        } catch (e) {
+          if (webCryptoThrows) {
+            rethrow;
+          }
+        }
+      }
+    }
+
+    final blockLength = hashAlgorithm.blockLengthInBytes;
     if (hmacKey.length > blockLength) {
       hmacKey = hashAlgorithm.hashSync(hmacKey).bytes;
     }

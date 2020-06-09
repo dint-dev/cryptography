@@ -24,7 +24,7 @@ void main() {
       expect(algorithm.publicKeyLength, 32);
     });
 
-    test('generated private key looks normal', () async {
+    test('generated key pair looks normal', () async {
       final keyPair = await algorithm.newKeyPair();
       expect(keyPair.privateKey, isA<EcJwkPrivateKey>());
 
@@ -32,6 +32,16 @@ void main() {
       expect(privateKey.d, isNotEmpty);
       expect(privateKey.x, isNotEmpty);
       expect(privateKey.y, isNotEmpty);
+    }, testOn: 'chrome');
+
+    test('generated key pair can be used as ECDH key pair', () async {
+      final keyPair0 = await algorithm.newKeyPair();
+      final keyPair1 = await algorithm.newKeyPair();
+
+      await ecdhP256.sharedSecret(
+        localPrivateKey: keyPair0.privateKey,
+        remotePublicKey: keyPair1.publicKey,
+      );
     }, testOn: 'chrome');
 
     test('works in browser', () async {
@@ -153,5 +163,16 @@ Future<void> _testSignature(SignatureAlgorithm algorithm) async {
       Signature(signature.bytes, publicKey: otherKeyPair.publicKey),
     ),
     isFalse,
+  );
+
+  // Reconstruct the key pair and sign again
+  final newKeyPair = KeyPair(
+    privateKey: PrivateKey(keypair.privateKey.extractSync()),
+    publicKey: PublicKey(keypair.publicKey.bytes),
+  );
+  final newSignature = await algorithm.sign(message, newKeyPair);
+  expect(
+    await algorithm.verify(message, newSignature),
+    isTrue,
   );
 }

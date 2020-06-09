@@ -22,29 +22,25 @@ import 'dart:js_util' as js;
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
-import 'package:cryptography/src/utils/parameters.dart';
 import 'package:meta/meta.dart';
 
-import '../algorithms/aes_impl_cbc.dart' as dart;
-import '../algorithms/aes_impl_ctr.dart' as dart;
-import '../algorithms/aes_gcm.dart' as dart;
-import '../algorithms/ec_dh_impl.dart' as dart;
-import '../algorithms/ec_dsa_impl.dart' as dart;
-import '../algorithms/pbkdf2_impl.dart' as dart;
-import '../algorithms/sha1_sha2_impl.dart' as dart;
-import 'bindings.dart' as web_crypto;
+import 'javascript_bindings.dart' as web_crypto;
 
 part 'impl/aes.dart';
-part 'impl/aes_cbc.dart';
-part 'impl/aes_ctr.dart';
-part 'impl/aes_gcm.dart';
 part 'impl/ec_dh.dart';
 part 'impl/ec_dsa.dart';
-part 'impl/hashes.dart';
-part 'impl/helpers.dart';
-part 'impl/pbkdf2.dart';
+part 'impl/other.dart';
 part 'impl/rsa.dart';
-part 'impl/rsa_pss.dart';
-part 'impl/rsa_ssa_pkcs1v15.dart';
 
-bool get isWebCryptoSupported => web_crypto.subtle != null;
+final bool isWebCryptoSupported = web_crypto.subtle != null;
+
+ByteBuffer _jsArrayBufferFrom(List<int> data) {
+  // Avoid copying if possible
+  if (data is Uint8List &&
+      data.offsetInBytes == 0 &&
+      data.lengthInBytes == data.buffer.lengthInBytes) {
+    return data.buffer;
+  }
+  // Copy
+  return Uint8List.fromList(data).buffer;
+}
