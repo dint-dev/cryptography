@@ -63,17 +63,28 @@ You must use asynchronous methods to get the performance boost.
     functions.
 
 ## Available algorithms
-### Key exchange algorithms
-The following [KeyExchangeAlgorithm](https://pub.dev/documentation/cryptography/latest/cryptography/KeyExchangeAlgorithm-class.html) implementations are available:
-  * Elliptic curves approved by NIST ([read about the algorithm](https://en.wikipedia.org/wiki/Elliptic-curve_cryptography))
-    * [ecdhP256](https://pub.dev/documentation/cryptography/latest/cryptography/ecdhP256-constant.html) (ECDH P256 / secp256r1 / prime256v1)
-    * [ecdhP384](https://pub.dev/documentation/cryptography/latest/cryptography/ecdhP384-constant.html) (ECDH P384 / secp384r1 / prime384v1)
-    * [ecdhP521](https://pub.dev/documentation/cryptography/latest/cryptography/ecdhP521-constant.html) (ECDH P521 / secp521r1 / prime521v1)
-    * Currently implemented only in browsers.
-  * [x25519](https://pub.dev/documentation/cryptography/latest/cryptography/x25519-constant.html) (curve25519 Diffie-Hellman)
-    * In our benchmarks, the performance is around 1k operations per second in VM.
-
-For more more documentation, see [KeyExchangeAlgorithm](https://pub.dev/documentation/cryptography/latest/cryptography/KeyExchangeAlgorithm-class.html).
+### Symmetric encryption
+The following [Cipher](https://pub.dev/documentation/cryptography/latest/cryptography/Cipher-class.html) implementations are available:
+  * [CipherWithAppendedMac](https://pub.dev/documentation/cryptography/latest/cryptography/CipherWithAppendedMac-class.html)
+    adds authentication (such as HMAC-SHA256) to ciphers without built-in authentication.
+  * AES ([read about the algorithm](https://en.wikipedia.org/wiki/Advanced_Encryption_Standard))
+    * [aesCbc](https://pub.dev/documentation/cryptography/latest/cryptography/aesCbc-constant.html) (AES-CBC)
+    * [aesCtr](https://pub.dev/documentation/cryptography/latest/cryptography/aesCtr-constant.html) (AES-CTR)
+    * [aesGcm](https://pub.dev/documentation/cryptography/latest/cryptography/aesGcm-constant.html) (AES-GCM)
+    * In our benchmarks, the performance is around:
+      * 10-70 MB/s in VM.
+      * About 400MB - 700MB/s in browsers.
+      * [cryptography_flutter](https://pub.dev/packages/cryptography_flutter) maximizes AES-GCM
+        performance in iOS and Mac OS X by using operating system APIs.
+  * Chacha20 family ([read about the algorithm](https://en.wikipedia.org/wiki/Salsa20))
+    * [chacha20](https://pub.dev/documentation/cryptography/latest/cryptography/chacha20-constant.html)
+    * [chacha20Poly1305Aead](https://pub.dev/documentation/cryptography/latest/cryptography/chacha20Poly1305Aead-constant.html) (AEAD_CHACHA20_POLY1305)
+    * [xchacha20](https://pub.dev/documentation/cryptography/latest/cryptography/xchacha20-constant.html)
+    * [xchacha20Poly1305Aead](https://pub.dev/documentation/cryptography/latest/cryptography/xchacha20Poly1305Aead-constant.html) (AEAD_XCHACHA20_POLY1305)
+    * In our benchmarks, the performance is around:
+      * 40-140MB/s in VM.
+      * [cryptography_flutter](https://pub.dev/packages/cryptography_flutter) maximizes performance
+        in iOS and Mac OS X by using operating system APIs.
 
 ### Digital signature algorithms
 The following [SignatureAlgorithm](https://pub.dev/documentation/cryptography/latest/cryptography/SignatureAlgorithm-class.html) implementations are available:
@@ -89,32 +100,23 @@ The following [SignatureAlgorithm](https://pub.dev/documentation/cryptography/la
     * Currently implemented only in browsers.
   * RSA
     * [RsaPss](https://pub.dev/documentation/cryptography/latest/cryptography/RsaPss-class.html) (RSA-PSS)
-    * [RsaSsaPkcs1v15](https://pub.dev/documentation/cryptography/latest/cryptography/RsaPkcs1v15-class.html) (RSASSA-PKCS1v15)
+    * [RsaSsaPkcs1v15](https://pub.dev/documentation/cryptography/latest/cryptography/RsaSsaPkcs1v15-class.html) (RSASSA-PKCS1v15)
     * Currently implemented only in browsers.
 
-### Symmetric encryption
-The following [Cipher](https://pub.dev/documentation/cryptography/latest/cryptography/Cipher-class.html) implementations are available:
-  * [CipherWithAppendedMac](https://pub.dev/documentation/cryptography/latest/cryptography/CipherWithAppendedMac-class.html)
-    adds authentication (such as HMAC-SHA256) to ciphers without built-in authentication.
-  * AES ([read about the algorithm](https://en.wikipedia.org/wiki/Advanced_Encryption_Standard))
-    * [aesCbc](https://pub.dev/documentation/cryptography/latest/cryptography/aesCbc-constant.html) (AES-CBC)
-    * [aesCtr](https://pub.dev/documentation/cryptography/latest/cryptography/aesCtr-constant.html) (AES-CTR)
-    * [aesGcm](https://pub.dev/documentation/cryptography/latest/cryptography/aesGcm-constant.html) (AES-GCM)
-    * In our benchmarks, the performance is around 10-70 MB/s in VM (about 400MB - 700MB/s in
-      browsers).
-  * Chacha20 family ([read about the algorithm](https://en.wikipedia.org/wiki/Salsa20))
-    * [chacha20](https://pub.dev/documentation/cryptography/latest/cryptography/chacha20-constant.html)
-    * [chacha20Poly1305Aead](https://pub.dev/documentation/cryptography/latest/cryptography/chacha20Poly1305Aead-constant.html) (AEAD_CHACHA20_POLY1305)
-    * [xchacha20](https://pub.dev/documentation/cryptography/latest/cryptography/xchacha20-constant.html)
-    * [xchacha20Poly1305Aead](https://pub.dev/documentation/cryptography/latest/cryptography/xchacha20Poly1305Aead-constant.html) (AEAD_XCHACHA20_POLY1305)
-    * In our benchmarks, the performance is around 40-140MB/s in VM.
-
-### Password hashing algorithms
-  * [Pbkdf2](https://pub.dev/documentation/cryptography/latest/cryptography/Pbkdf2-class.html) (PBKDF2)
+### Key exchange algorithms
+The following [KeyExchangeAlgorithm](https://pub.dev/documentation/cryptography/latest/cryptography/KeyExchangeAlgorithm-class.html) implementations are available:
+  * Elliptic curves approved by NIST ([read about the algorithm](https://en.wikipedia.org/wiki/Elliptic-curve_cryptography))
+    * [ecdhP256](https://pub.dev/documentation/cryptography/latest/cryptography/ecdhP256-constant.html) (ECDH P256 / secp256r1 / prime256v1)
+    * [ecdhP384](https://pub.dev/documentation/cryptography/latest/cryptography/ecdhP384-constant.html) (ECDH P384 / secp384r1 / prime384v1)
+    * [ecdhP521](https://pub.dev/documentation/cryptography/latest/cryptography/ecdhP521-constant.html) (ECDH P521 / secp521r1 / prime521v1)
+    * Currently implemented only in browsers.
+  * [x25519](https://pub.dev/documentation/cryptography/latest/cryptography/x25519-constant.html) (curve25519 Diffie-Hellman)
+    * In our benchmarks, the performance is around 1k operations per second in VM.
 
 ### Key derivation algorithms
   * [HChacha20](https://pub.dev/documentation/cryptography/latest/cryptography/HChacha20-class.html)
   * [Hkdf](https://pub.dev/documentation/cryptography/latest/cryptography/Hkdf-class.html) (HKDF)
+  * [Pbkdf2](https://pub.dev/documentation/cryptography/latest/cryptography/Pbkdf2-class.html) (PBKDF2)
 
 ### Message authentication codes
 The following [MacAlgorithm](https://pub.dev/documentation/cryptography/latest/cryptography/MacAlgorithm-class.html) implementations are available:

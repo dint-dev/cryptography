@@ -25,7 +25,7 @@ Mac OS X. You must use asynchronous methods to get the performance boost.
 In _pubspec.yaml_:
 ```yaml
 dependencies:
-  cryptography_flutter: ^1.4.0
+  cryptography_flutter: ^1.0.0
 ```
 
 Then just use:

@@ -1,4 +1,4 @@
-[![Pub Package](https://img.shields.io/pub/v/noise.svg)](https://pub.dev/packages/noise)
+[![Pub Package](https://img.shields.io/pub/v/noise_protocol.svg)](https://pub.dev/packages/noise_protocol)
 [![Github Actions CI](https://github.com/dint-dev/cryptography/workflows/Dart%20CI/badge.svg)](https://github.com/dint-dev/cryptography/actions?query=workflow%3A%22Dart+CI%22)
 
 # Overview
