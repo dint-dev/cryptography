@@ -12,18 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-@JS('crypto')
+@JS()
 library web_crypto_api;
 
 import 'dart:typed_data';
-import 'crypto_key.dart';
 
 import 'package:js/js.dart';
 import 'package:meta/meta.dart';
 
-export 'crypto_key.dart';
-
-@JS()
+@JS('crypto.subtle')
 external Subtle get subtle;
 
 @JS()
@@ -65,13 +62,22 @@ class AesKeyGenParams {
   });
 }
 
-@JS()
+@JS('crypto')
 class Crypto {
   external factory Crypto._();
   external Subtle get subtle;
 }
 
-@JS()
+@JS('CryptoKey')
+class CryptoKey {
+  external factory CryptoKey._();
+  external dynamic get algorithm;
+  external bool get extractable;
+  external String get type;
+  external List<String> get usages;
+}
+
+@JS('CryptoKeyPair')
 class CryptoKeyPair {
   external factory CryptoKeyPair._();
   external CryptoKey get privateKey;
@@ -191,7 +197,7 @@ class Pkdf2Params {
   });
 }
 
-@JS()
+@JS('Promise')
 class Promise<T> {
   external factory Promise._();
 }
@@ -233,7 +239,7 @@ class SignParams {
   });
 }
 
-@JS()
+@JS('SubtleCrypto')
 class Subtle {
   external factory Subtle._();
 
