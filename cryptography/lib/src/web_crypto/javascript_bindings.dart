@@ -16,9 +16,12 @@
 library web_crypto_api;
 
 import 'dart:typed_data';
+import 'crypto_key.dart';
 
 import 'package:js/js.dart';
 import 'package:meta/meta.dart';
+
+export 'crypto_key.dart';
 
 @JS()
 external Subtle get subtle;
@@ -66,15 +69,6 @@ class AesKeyGenParams {
 class Crypto {
   external factory Crypto._();
   external Subtle get subtle;
-}
-
-@JS()
-class CryptoKey {
-  external factory CryptoKey._();
-  external dynamic get algorithm;
-  external bool get extractable;
-  external String get type;
-  external List<String> get usages;
 }
 
 @JS()
