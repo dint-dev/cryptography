@@ -32,7 +32,7 @@ part 'impl/ec_dsa.dart';
 part 'impl/other.dart';
 part 'impl/rsa.dart';
 
-final bool isWebCryptoSupported = web_crypto.subtle != null;
+final bool isWebCryptoSupported = html.window.crypto?.subtle != null;
 
 ByteBuffer _jsArrayBufferFrom(List<int> data) {
   // Avoid copying if possible

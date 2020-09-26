@@ -24,7 +24,7 @@ final _ecdhCachingKeys = {
 Future<KeyPair> ecdhNewKeyPair({@required String curve}) async {
   // Generate key
   final jsKeyPair = await js.promiseToFuture<web_crypto.CryptoKeyPair>(
-    web_crypto.subtle.generateKey(
+    web_crypto.generateKey(
       web_crypto.EcdhParams(
         name: 'ECDH',
         namedCurve: curve,
@@ -35,7 +35,7 @@ Future<KeyPair> ecdhNewKeyPair({@required String curve}) async {
   );
 
   final privateKeyJs = await js.promiseToFuture<web_crypto.Jwk>(
-    web_crypto.subtle.exportKey('jwk', jsKeyPair.privateKey),
+    web_crypto.exportKey('jwk', jsKeyPair.privateKey),
   );
   final privateKey = EcJwkPrivateKey(
     crv: curve,
@@ -46,7 +46,7 @@ Future<KeyPair> ecdhNewKeyPair({@required String curve}) async {
 
   // Get public key.
   final publicKeyByteBuffer = await js.promiseToFuture<ByteBuffer>(
-    web_crypto.subtle.exportKey('raw', jsKeyPair.publicKey),
+    web_crypto.exportKey('raw', jsKeyPair.publicKey),
   );
   final publicKey = PublicKey(
     Uint8List.view(publicKeyByteBuffer),
@@ -79,7 +79,7 @@ Future<SecretKey> ecdhSharedSecret({
     curve: curve,
   );
   final byteBuffer = await js.promiseToFuture<ByteBuffer>(
-    web_crypto.subtle.deriveBits(
+    web_crypto.deriveBits(
       web_crypto.EcdhKeyDeriveParams(
         name: 'ECDH',
         public: await jsPublicKeyFuture,
@@ -115,7 +115,7 @@ Future<web_crypto.CryptoKey> _ecdhPrivateKeyToJs(
   );
 
   final result = js.promiseToFuture<web_crypto.CryptoKey>(
-    web_crypto.subtle.importKey(
+    web_crypto.importKey(
       'jwk',
       jsJwk,
       web_crypto.EcdhParams(
@@ -147,7 +147,7 @@ Future<web_crypto.CryptoKey> _ecdhPublicKeyToJs(
   }
 
   final result = js.promiseToFuture<web_crypto.CryptoKey>(
-    web_crypto.subtle.importKey(
+    web_crypto.importKey(
       'raw',
       _jsArrayBufferFrom(publicKey.bytes),
       web_crypto.EcdhParams(

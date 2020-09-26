@@ -17,7 +17,7 @@ part of web_crypto;
 Future<Hash> hash(List<int> bytes, String name) async {
   ArgumentError.checkNotNull(bytes);
   final byteBuffer = await js.promiseToFuture<ByteBuffer>(
-    web_crypto.subtle.digest(name, _jsArrayBufferFrom(bytes)),
+    web_crypto.digest(name, _jsArrayBufferFrom(bytes)),
   );
   return Hash(Uint8List.view(byteBuffer));
 }
@@ -39,7 +39,7 @@ Future<web_crypto.CryptoKey> _hmacSecretKeyToJs(
 
   final secretKeyBytes = await secretKey.extract();
   final result = await js.promiseToFuture<web_crypto.CryptoKey>(
-    web_crypto.subtle.importKey(
+    web_crypto.importKey(
       'raw',
       _jsArrayBufferFrom(secretKeyBytes),
       web_crypto.HmacImportParams(
@@ -69,7 +69,7 @@ Future<List<int>> hkdf(
   salt ??= const <int>[];
 
   final jsCryptoKey = await js.promiseToFuture<web_crypto.CryptoKey>(
-    web_crypto.subtle.importKey(
+    web_crypto.importKey(
       'raw',
       _jsArrayBufferFrom(bytes),
       'HKDF',
@@ -79,7 +79,7 @@ Future<List<int>> hkdf(
   );
 
   final byteBuffer = await js.promiseToFuture<ByteBuffer>(
-    web_crypto.subtle.deriveBits(
+    web_crypto.deriveBits(
       web_crypto.HkdfParams(
         name: 'HKDF',
         hash: hashName,
@@ -102,7 +102,7 @@ Future<Mac> hmac(
   ArgumentError.checkNotNull(bytes);
   final jsCryptoKey = await _hmacSecretKeyToJs(secretKey, hashName);
   final byteBuffer = await js.promiseToFuture<ByteBuffer>(
-    web_crypto.subtle.sign(
+    web_crypto.sign(
       'HMAC',
       jsCryptoKey,
       _jsArrayBufferFrom(bytes),
@@ -124,7 +124,7 @@ Future<Uint8List> pbkdf2(
 
   // importKey(...)
   final cryptoKey = await js.promiseToFuture<web_crypto.CryptoKey>(
-    web_crypto.subtle.importKey(
+    web_crypto.importKey(
       'raw',
       _jsArrayBufferFrom(input),
       'PBKDF2',
@@ -135,7 +135,7 @@ Future<Uint8List> pbkdf2(
 
   // deriveBits(...)
   final byteBuffer = await js.promiseToFuture<ByteBuffer>(
-    web_crypto.subtle.deriveBits(
+    web_crypto.deriveBits(
       web_crypto.Pkdf2Params(
         name: 'PBKDF2',
         hash: hashName,

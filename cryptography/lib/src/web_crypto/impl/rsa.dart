@@ -26,8 +26,8 @@ Future<KeyPair> rsaNewKeyPairForSigning({
   ArgumentError.checkNotNull(publicExponent);
   ArgumentError.checkNotNull(hashName);
   // Generate CryptoKeyPair
-  final jsCryptoKeyPair = await js
-      .promiseToFuture<web_crypto.CryptoKeyPair>(web_crypto.subtle.generateKey(
+  final jsCryptoKeyPair =
+      await js.promiseToFuture<web_crypto.CryptoKeyPair>(web_crypto.generateKey(
     web_crypto.RsaHashedKeyGenParams(
       name: name,
       modulusLength: modulusLength,
@@ -40,7 +40,7 @@ Future<KeyPair> rsaNewKeyPairForSigning({
 
   // Export to JWK
   final jsJwk = await js.promiseToFuture<web_crypto.Jwk>(
-    web_crypto.subtle.exportKey('jwk', jsCryptoKeyPair.privateKey),
+    web_crypto.exportKey('jwk', jsCryptoKeyPair.privateKey),
   );
 
   // Construct a keys
@@ -74,7 +74,7 @@ Future<Signature> rsaPssSign(
   @required int saltLength,
   @required String hashName,
 }) async {
-  final byteBuffer = await js.promiseToFuture(web_crypto.subtle.sign(
+  final byteBuffer = await js.promiseToFuture(web_crypto.sign(
     web_crypto.RsaPssParams(
       name: 'RSA-PSS',
       saltLength: saltLength,
@@ -98,7 +98,7 @@ Future<bool> rsaPssVerify(
   @required int saltLength,
   @required String hashName,
 }) async {
-  return js.promiseToFuture<bool>(web_crypto.subtle.verify(
+  return js.promiseToFuture<bool>(web_crypto.verify(
     web_crypto.RsaPssParams(
       name: 'RSA-PSS',
       saltLength: saltLength,
@@ -118,7 +118,7 @@ Future<Signature> rsaSsaPkcs1v15Sign(
   KeyPair keyPair, {
   @required String hashName,
 }) async {
-  final byteBuffer = await js.promiseToFuture(web_crypto.subtle.sign(
+  final byteBuffer = await js.promiseToFuture(web_crypto.sign(
     'RSASSA-PKCS1-v1_5',
     await _rsaCryptoKeyFromPrivateKey(
       keyPair.privateKey,
@@ -138,7 +138,7 @@ Future<bool> rsaSsaPkcs1v15Verify(
   Signature signature, {
   @required String hashName,
 }) async {
-  return js.promiseToFuture<bool>(web_crypto.subtle.verify(
+  return js.promiseToFuture<bool>(web_crypto.verify(
     'RSASSA-PKCS1-v1_5',
     await _rsaCryptoKeyFromPublicKey(
       signature.publicKey,
@@ -164,7 +164,7 @@ Future<web_crypto.CryptoKey> _rsaCryptoKeyFromPrivateKey(
   // Import JWK key
   final jwkPrivateKey = privateKey as RsaJwkPrivateKey;
   final jsCryptoKey = js.promiseToFuture<web_crypto.CryptoKey>(
-    web_crypto.subtle.importKey(
+    web_crypto.importKey(
       'jwk',
       web_crypto.Jwk(
         kty: 'RSA',
@@ -206,7 +206,7 @@ Future<web_crypto.CryptoKey> _rsaCryptoKeyFromPublicKey(
   // Import JWK key
   final jwkPrivateKey = publicKey as RsaJwkPublicKey;
   final jsCryptoKey = js.promiseToFuture<web_crypto.CryptoKey>(
-    web_crypto.subtle.importKey(
+    web_crypto.importKey(
       'jwk',
       web_crypto.Jwk(
         kty: 'RSA',

@@ -24,7 +24,7 @@ final _ecdsaCachingKeys = {
 Future<KeyPair> ecdsaNewKeyPair({@required String curve}) async {
   // Generate key
   final jsKeyPair = await js.promiseToFuture<web_crypto.CryptoKeyPair>(
-    web_crypto.subtle.generateKey(
+    web_crypto.generateKey(
       web_crypto.EcdhParams(
         name: 'ECDSA',
         namedCurve: curve,
@@ -35,7 +35,7 @@ Future<KeyPair> ecdsaNewKeyPair({@required String curve}) async {
   );
 
   final privateKeyJs = await js.promiseToFuture<web_crypto.Jwk>(
-    web_crypto.subtle.exportKey('jwk', jsKeyPair.privateKey),
+    web_crypto.exportKey('jwk', jsKeyPair.privateKey),
   );
   final privateKey = EcJwkPrivateKey(
     crv: curve,
@@ -46,7 +46,7 @@ Future<KeyPair> ecdsaNewKeyPair({@required String curve}) async {
 
   // Get public key.
   final publicKeyByteBuffer = await js.promiseToFuture<ByteBuffer>(
-    web_crypto.subtle.exportKey('raw', jsKeyPair.publicKey),
+    web_crypto.exportKey('raw', jsKeyPair.publicKey),
   );
   final publicKeyBytes = Uint8List.view(publicKeyByteBuffer);
   final publicKey = PublicKey(publicKeyBytes);
@@ -74,7 +74,7 @@ Future<Signature> ecdsaSign(
     curve: namedCurve,
   );
   final byteBuffer = await js.promiseToFuture<ByteBuffer>(
-    web_crypto.subtle.sign(
+    web_crypto.sign(
       web_crypto.EcdsaParams(
         name: 'ECDSA',
         hash: hashName,
@@ -99,7 +99,7 @@ Future<bool> ecdsaVerify(
     signature.publicKey,
     curve: namedCurve,
   );
-  return js.promiseToFuture<bool>(web_crypto.subtle.verify(
+  return js.promiseToFuture<bool>(web_crypto.verify(
     web_crypto.EcdsaParams(
       name: 'ECDSA',
       hash: hashName,
@@ -147,7 +147,7 @@ Future<web_crypto.CryptoKey> _ecdsaPrivateKeyToJs(
 
   final jwkPrivateKey = await EcJwkPrivateKey.from(privateKey);
   final result = js.promiseToFuture<web_crypto.CryptoKey>(
-    web_crypto.subtle.importKey(
+    web_crypto.importKey(
       'jwk',
       web_crypto.Jwk(
         crv: curve,
@@ -187,7 +187,7 @@ Future<web_crypto.CryptoKey> _ecdsaPublicKeyToJs(
   }
 
   final result = await js.promiseToFuture<web_crypto.CryptoKey>(
-    web_crypto.subtle.importKey(
+    web_crypto.importKey(
       'raw',
       _jsArrayBufferFrom(publicKey.bytes),
       web_crypto.EcKeyImportParams(

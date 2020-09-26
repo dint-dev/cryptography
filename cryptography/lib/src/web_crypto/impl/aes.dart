@@ -20,7 +20,7 @@ Future<SecretKey> aesNewSecretKey({
   @required int bits,
 }) async {
   final cryptoKey = await js.promiseToFuture<web_crypto.CryptoKey>(
-    web_crypto.subtle.generateKey(
+    web_crypto.generateKey(
       web_crypto.AesKeyGenParams(
         name: name,
         length: bits,
@@ -30,7 +30,7 @@ Future<SecretKey> aesNewSecretKey({
     ),
   );
   final byteBuffer = await js.promiseToFuture<ByteBuffer>(
-    web_crypto.subtle.exportKey(
+    web_crypto.exportKey(
       'raw',
       cryptoKey,
     ),
@@ -47,7 +47,7 @@ Future<Uint8List> aesCbcDecrypt(
   @required Nonce nonce,
 }) async {
   final byteBuffer = await js.promiseToFuture<ByteBuffer>(
-    web_crypto.subtle.decrypt(
+    web_crypto.decrypt(
       web_crypto.AesCbcParams(
         name: 'AES-CBC',
         iv: _jsArrayBufferFrom(nonce.bytes),
@@ -66,7 +66,7 @@ Future<Uint8List> aesCbcEncrypt(
   @required Nonce nonce,
 }) async {
   final byteBuffer = await js.promiseToFuture<ByteBuffer>(
-    web_crypto.subtle.encrypt(
+    web_crypto.encrypt(
       web_crypto.AesCbcParams(
         name: 'AES-CBC',
         iv: _jsArrayBufferFrom(nonce.bytes),
@@ -92,7 +92,7 @@ Future<web_crypto.CryptoKey> _aesCryptoKey(
   // Construct it
   final secretKeyBytes = await secretKey.extract();
   final result = await js.promiseToFuture<web_crypto.CryptoKey>(
-    web_crypto.subtle.importKey(
+    web_crypto.importKey(
       'raw',
       _jsArrayBufferFrom(secretKeyBytes),
       web_crypto.AesKeyGenParams(
@@ -122,7 +122,7 @@ Future<Uint8List> aesCtrDecrypt(
   var counterBytes = Uint8List(16);
   counterBytes.setAll(0, nonce.bytes);
   final byteBuffer = await js.promiseToFuture<ByteBuffer>(
-    web_crypto.subtle.decrypt(
+    web_crypto.decrypt(
       web_crypto.AesCtrParams(
         name: 'AES-CTR',
         counter: counterBytes.buffer,
@@ -147,7 +147,7 @@ Future<Uint8List> aesCtrEncrypt(
   var counterBytes = Uint8List(16);
   counterBytes.setAll(0, nonce.bytes);
   final byteBuffer = await js.promiseToFuture<ByteBuffer>(
-    web_crypto.subtle.encrypt(
+    web_crypto.encrypt(
       web_crypto.AesCtrParams(
         name: 'AES-CTR',
         counter: counterBytes.buffer,
@@ -172,7 +172,7 @@ Future<Uint8List> aesGcmDecrypt(
     ArgumentError.checkNotNull(nonce, 'nonce');
     aad ??= const <int>[];
     final byteBuffer = await js.promiseToFuture<ByteBuffer>(
-      web_crypto.subtle.decrypt(
+      web_crypto.decrypt(
         web_crypto.AesGcmParams(
           name: 'AES-GCM',
           iv: _jsArrayBufferFrom(nonce.bytes),
@@ -203,7 +203,7 @@ Future<Uint8List> aesGcmEncrypt(
   ArgumentError.checkNotNull(nonce, 'nonce');
   aad ??= const <int>[];
   final byteBuffer = await js.promiseToFuture<ByteBuffer>(
-    web_crypto.subtle.encrypt(
+    web_crypto.encrypt(
       web_crypto.AesGcmParams(
         name: 'AES-GCM',
         iv: _jsArrayBufferFrom(nonce.bytes),
