@@ -77,14 +77,18 @@ class RsaPss extends SignatureAlgorithm {
   }
 
   @override
-  Future<Signature> sign(List<int> input, KeyPair keyPair) {
+  Future<Signature> sign(
+    List<int> input,
+    KeyPair keyPair, {
+    int saltLength = 32,
+  }) {
     if (web_crypto.isWebCryptoSupported) {
       final hashName = _webCryptoHashName;
       if (hashName != null) {
         return web_crypto.rsaPssSign(
           input,
           keyPair,
-          saltLength: 32,
+          saltLength: saltLength,
           hashName: hashName,
         );
       }
