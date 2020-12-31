@@ -196,7 +196,8 @@ dependencies:
   cryptography: ^2.0.0-nullsafety.2
 ```
 
-If you get dependency constraint errors, try the following `dependency_overrides`:
+If you get dependency constraint errors because other package authors have not upgraded their
+dependencies, try the following `dependency_overrides`:
 ```yaml
 dependency_overrides:
   crypto: ^3.0.0-nullsafety.0
@@ -218,7 +219,7 @@ Future<void> main() async {
   final keyPair = await algorithm.newKeyPair();
 
   // Sign
-  final signature = await ed25519.sign(
+  final signature = await algorithm.sign(
     message,
     keyPair: keyPair,
   );
@@ -226,7 +227,7 @@ Future<void> main() async {
   print('Public key: ${signature.publicKey.bytes}');
 
   // Verify signature
-  final isSignatureCorrect = await ed25519.verify(
+  final isSignatureCorrect = await algorithm.verify(
     message,
     signature: signature,
   );
@@ -241,8 +242,9 @@ In this example, we use [X25519](https://pub.dev/documentation/cryptography/2.0.
 import 'package:cryptography/cryptography.dart';
 
 Future<void> main() async {
-  // Alice chooses her key pair
   final algorithm = X25519();
+
+  // Alice chooses her key pair
   final aliceKeyPair = await algorithm.newKeyPair();
 
   // Alice knows Bob's public key
