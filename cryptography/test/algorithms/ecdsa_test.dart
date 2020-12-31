@@ -38,12 +38,21 @@ void _main() {
       expect(algorithm.keyPairType.ellipticBits, 256);
     });
 
-    test('generated key pair looks normal', () async {
+    test('extracting EcKeyPairData', () async {
       final keyPair = await algorithm.newKeyPair();
       final keyPairData = await keyPair.extract();
-      expect(keyPairData.d, isNotEmpty);
-      expect(keyPairData.x, isNotEmpty);
-      expect(keyPairData.y, isNotEmpty);
+      expect(keyPairData.type, KeyPairType.p256);
+      expect(keyPairData.d, hasLength(32));
+      expect(keyPairData.x, hasLength(32));
+      expect(keyPairData.y, hasLength(32));
+    });
+
+    test('extracting EcPublicKey', () async {
+      final keyPair = await algorithm.newKeyPair();
+      final publicKey = await keyPair.extractPublicKey();
+      expect(publicKey.type, KeyPairType.p256);
+      expect(publicKey.x, hasLength(32));
+      expect(publicKey.y, hasLength(32));
     });
 
     test('generated key pair can be used as ECDH key pair', () async {
@@ -74,6 +83,23 @@ void _main() {
       expect(algorithm.keyPairType.ellipticBits, 384);
     });
 
+    test('extracting EcKeyPairData', () async {
+      final keyPair = await algorithm.newKeyPair();
+      final keyPairData = await keyPair.extract();
+      expect(keyPairData.type, KeyPairType.p384);
+      expect(keyPairData.d, hasLength(48));
+      expect(keyPairData.x, hasLength(48));
+      expect(keyPairData.y, hasLength(48));
+    });
+
+    test('extracting EcPublicKey', () async {
+      final keyPair = await algorithm.newKeyPair();
+      final publicKey = await keyPair.extractPublicKey();
+      expect(publicKey.type, KeyPairType.p384);
+      expect(publicKey.x, hasLength(48));
+      expect(publicKey.y, hasLength(48));
+    });
+
     test('works in browser', () async {
       await _testSignature(algorithm);
     });
@@ -88,6 +114,23 @@ void _main() {
 
     test('information', () {
       expect(algorithm.keyPairType.ellipticBits, 521);
+    });
+
+    test('extracting EcKeyPairData', () async {
+      final keyPair = await algorithm.newKeyPair();
+      final keyPairData = await keyPair.extract();
+      expect(keyPairData.type, KeyPairType.p521);
+      expect(keyPairData.d, hasLength(66));
+      expect(keyPairData.x, hasLength(66));
+      expect(keyPairData.y, hasLength(66));
+    });
+
+    test('extracting EcPublicKey', () async {
+      final keyPair = await algorithm.newKeyPair();
+      final publicKey = await keyPair.extractPublicKey();
+      expect(publicKey.type, KeyPairType.p521);
+      expect(publicKey.x, hasLength(66));
+      expect(publicKey.y, hasLength(66));
     });
 
     test('works in browser', () async {
