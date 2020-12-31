@@ -12,272 +12,359 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'package:cryptography/browser.dart';
 import 'package:cryptography/cryptography.dart';
+import 'package:cryptography/dart.dart';
 import 'package:cryptography/src/utils.dart';
 import 'package:test/test.dart';
 
 void main() {
-  // Enable exceptions from Web Cryptography API in browsers.
-  webCryptoThrows = true;
-
-  final secretKey128 = SecretKey(List<int>.filled(16, 2));
-  final secretKey256 = SecretKey(List<int>.filled(32, 2));
-
-  group('aesCbc:', () {
-    final algorithm = aesCbc;
-
-    test('information', () {
-      expect(algorithm.name, 'aesCbc');
-      expect(algorithm.isAuthenticated, isFalse);
-      expect(algorithm.secretKeyLength, 32);
-      expect(algorithm.secretKeyValidLengths, unorderedEquals({16, 24, 32}));
-      expect(algorithm.nonceLength, 16);
-      expect(algorithm.supportsAad, isFalse);
+  group('AesCbc:', () {
+    group('DartCryptography:', () {
+      setUp(() {
+        Cryptography.instance = DartCryptography.defaultInstance;
+      });
+      _main();
     });
+    group('BrowserCryptography:', () {
+      setUp(() {
+        Cryptography.instance = BrowserCryptography.defaultInstance;
+      });
+      _main();
+    });
+  });
+}
 
-    test('newSecretKey()', () async {
+void _main() {
+  late AesCbc algorithm;
+  setUp(() {
+    algorithm = AesCbc.with256bits(macAlgorithm: Hmac.sha256());
+  });
+
+  final secretKey128 = SecretKeyData(List<int>.filled(16, 2));
+  final secretKey256 = SecretKeyData(List<int>.filled(32, 2));
+
+  test('== / hashCode', () {
+    final clone = AesCbc.with256bits(
+      macAlgorithm: Hmac.sha256(),
+    );
+    final other0 = AesCbc.with128bits(
+      macAlgorithm: Hmac.sha256(),
+    );
+    final other1 = AesCbc.with256bits(
+      macAlgorithm: Hmac.sha512(),
+    );
+    final other2 = AesCtr.with256bits(
+      macAlgorithm: Hmac.sha256(),
+    );
+    expect(algorithm, clone);
+    expect(algorithm, isNot(other0));
+    expect(algorithm, isNot(other1));
+    expect(algorithm, isNot(other2));
+    expect(algorithm.hashCode, clone.hashCode);
+    expect(algorithm.hashCode, isNot(other0.hashCode));
+    expect(algorithm.hashCode, isNot(other1.hashCode));
+    expect(algorithm.hashCode, isNot(other2.hashCode));
+  });
+
+  test('toString', () {
+    expect(
+      algorithm.toString(),
+      'AesCbc.with256bits(macAlgorithm: Hmac.sha256())',
+    );
+  });
+
+  test('information', () {
+    expect(algorithm.macAlgorithm, Hmac.sha256());
+    expect(algorithm.secretKeyLength, 32);
+    expect(algorithm.nonceLength, 16);
+  });
+
+  test('Encrypted without specifying nonce: two results are different',
+      () async {
+    // Encrypt
+    final clearText = [1, 2, 3];
+    final secretKey = await algorithm.newSecretKey();
+    final secretBox = await algorithm.encrypt(
+      clearText,
+      secretKey: secretKey,
+    );
+    final otherSecretBox = await algorithm.encrypt(
+      clearText,
+      secretKey: secretKey,
+    );
+    expect(secretBox.nonce, isNot(otherSecretBox.nonce));
+    expect(secretBox.cipherText, isNot(otherSecretBox.cipherText));
+    expect(secretBox.mac, isNot(otherSecretBox.mac));
+  });
+
+  test('Encrypted without specifying nonce: decrypted correctly', () async {
+    // Encrypt
+    final clearText = [1, 2, 3];
+    final secretKey = await algorithm.newSecretKey();
+    final secretBox = await algorithm.encrypt(
+      clearText,
+      secretKey: secretKey,
+    );
+
+    // Check MAC
+    final expectedMac = await Hmac.sha256().calculateMac(
+      secretBox.cipherText,
+      secretKey: secretKey,
+      nonce: secretBox.nonce,
+    );
+    expect(secretBox.mac, expectedMac);
+
+    // Decrypt
+    final decryptedSecretBox = await algorithm.decrypt(
+      secretBox,
+      secretKey: secretKey,
+    );
+    expect(decryptedSecretBox, clearText);
+  });
+
+  test('Encrypt without specifying nonce + decrypt', () async {
+    // Encrypt
+    final clearText = [1, 2, 3];
+    final secretKey = await algorithm.newSecretKey();
+    final secretBox = await algorithm.encrypt(
+      clearText,
+      secretKey: secretKey,
+    );
+    final anotherSecretBox = await algorithm.encrypt(
+      clearText,
+      secretKey: secretKey,
+    );
+    expect(secretBox.nonce, isNot(anotherSecretBox.nonce));
+
+    // Decrypt
+    final decryptedSecretBox = await algorithm.decrypt(
+      secretBox,
+      secretKey: secretKey,
+    );
+    expect(decryptedSecretBox, clearText);
+  });
+
+  test('newSecretKey(): length is 32', () async {
+    final secretKey = await algorithm.newSecretKey();
+    final secretKeyData = await secretKey.extract();
+    expect(
+      secretKeyData.bytes,
+      hasLength(32),
+    );
+  });
+
+  test('newSecretKey(): two results are not equal', () async {
+    final secretKey = await algorithm.newSecretKey();
+    final otherSecretKey = await algorithm.newSecretKey();
+    final bytes = await secretKey.extract();
+    final otherBytes = await otherSecretKey.extract();
+    expect(bytes, isNot(otherBytes));
+  });
+
+  test('newNonce(): length is 16', () async {
+    final nonce = await algorithm.newNonce();
+    expect(nonce, hasLength(16));
+  });
+
+  test('newNonce(): two results are not equal', () async {
+    final nonce = await algorithm.newNonce();
+    final otherNonce = await algorithm.newNonce();
+    expect(nonce, isNot(otherNonce));
+    expect(nonce.hashCode, isNot(otherNonce.hashCode));
+  });
+
+  test('encrypt/decrypt input lengths 0...1000', () async {
+    for (var i = 0; i < 1000; i++) {
+      final clearText = List<int>.filled(i, 1);
       final secretKey = await algorithm.newSecretKey();
-      expect(secretKey.extractSync().length, 32);
-    });
-
-    test('newNonce', () async {
-      final secretKey = await algorithm.newNonce();
-      expect(secretKey.bytes.length, 16);
-    });
-
-    test('encrypt/decrypt input lengths 0...1000', () async {
-      for (var i = 0; i < 1000; i++) {
-        final plainText = List<int>.filled(i, 1);
-        final secretKey = secretKey128;
-        final nonce = Nonce(List<int>.filled(16, 1));
-
-        // encrypt(...)
-        final encrypted = await algorithm.encrypt(
-          plainText,
-          secretKey: secretKey,
-          nonce: nonce,
-        );
-
-        // decrypt(...)
-        final decrypted = await algorithm.decrypt(
-          encrypted,
-          secretKey: secretKey,
-          nonce: nonce,
-        );
-        expect(decrypted, plainText);
-      }
-    });
-
-    test('128-bit key, 0 bytes', () async {
-      final plainText = <int>[];
-      final secretKey = secretKey128;
-      final nonce = Nonce(List<int>.filled(16, 1));
-      final cipherText = hexToBytes(
-        'f8 f9 57 22 63 9b 89 51 82 04 86 47 2e 45 a3 e7',
-      );
-      expect(cipherText, hasLength(16));
+      final nonce = List<int>.filled(16, 1);
 
       // encrypt(...)
-      {
-        final encrypted = await algorithm.encrypt(
-          plainText,
-          secretKey: secretKey,
-          nonce: nonce,
-        );
-        expect(
-          hexFromBytes(encrypted),
-          hexFromBytes(cipherText),
-        );
-      }
-
-      // encryptSync(...)
-      {
-        final encrypted = algorithm.encryptSync(
-          plainText,
-          secretKey: secretKey,
-          nonce: nonce,
-        );
-        expect(
-          hexFromBytes(encrypted),
-          hexFromBytes(cipherText),
-        );
-      }
+      final secretBox = await algorithm.encrypt(
+        clearText,
+        secretKey: secretKey,
+        nonce: nonce,
+      );
+      final expectedMac = await Hmac.sha256().calculateMac(
+        secretBox.cipherText,
+        secretKey: secretKey,
+        nonce: nonce,
+      );
+      expect(
+        hexFromBytes(secretBox.mac.bytes),
+        hexFromBytes(expectedMac.bytes),
+      );
 
       // decrypt(...)
-      {
-        final decrypted = await algorithm.decrypt(
-          cipherText,
-          secretKey: secretKey,
-          nonce: nonce,
-        );
-        expect(decrypted, plainText);
-      }
+      final decrypted = await algorithm.decrypt(
+        secretBox,
+        secretKey: secretKey,
+      );
+      expect(decrypted, clearText);
+    }
+  });
 
-      // decryptSync(...)
-      {
-        final decrypted = algorithm.decryptSync(
-          cipherText,
-          secretKey: secretKey,
-          nonce: nonce,
-        );
-        expect(decrypted, plainText);
-      }
+  group('128-bit key, 0 bytes', () {
+    late AesCbc algorithm;
+    final clearText = <int>[];
+    final secretKey = secretKey128;
+    final nonce = List<int>.filled(16, 1);
+    final cipherText = hexToBytes(
+      'f8 f9 57 22 63 9b 89 51 82 04 86 47 2e 45 a3 e7',
+    );
+    late Mac mac;
+    setUp(() async {
+      algorithm = AesCbc.with128bits(macAlgorithm: Hmac.sha256());
+      mac = await algorithm.macAlgorithm.calculateMac(
+        cipherText,
+        secretKey: secretKey,
+        nonce: nonce,
+      );
     });
 
-    group('128-bit key, 31 bytes:', () {
-      final plainText = List<int>.generate(31, (i) => 1 + i);
-      final secretKey = secretKey128;
-      final nonce = Nonce(List<int>.filled(16, 1));
-      final cipherText = hexToBytes(
-        '68 4f a0 20 8c 9f 75 f3 71 b9 77 cc 4d 4f 04 4b'
-        '84 9a f4 46 1f 00 e0 ac 7c 2f d2 24 1c 71 14 e8',
+    test('encrypt', () async {
+      final secretBox = await algorithm.encrypt(
+        clearText,
+        secretKey: secretKey,
+        nonce: nonce,
       );
-
-      test('encrypt', () async {
-        final encrypted = await algorithm.encrypt(
-          plainText,
-          secretKey: secretKey,
-          nonce: nonce,
-        );
-        expect(
-          hexFromBytes(encrypted),
-          hexFromBytes(cipherText),
-        );
-      });
-
-      test('encryptSync', () {
-        final encrypted = algorithm.encryptSync(
-          plainText,
-          secretKey: secretKey,
-          nonce: nonce,
-        );
-        expect(
-          hexFromBytes(encrypted),
-          hexFromBytes(cipherText),
-        );
-      });
-
-      test('decrypt', () async {
-        final decrypted = await algorithm.decrypt(
-          cipherText,
-          secretKey: secretKey,
-          nonce: nonce,
-        );
-        expect(decrypted, plainText);
-      });
-
-      test('decryptSync', () {
-        final decrypted = algorithm.decryptSync(
-          cipherText,
-          secretKey: secretKey,
-          nonce: nonce,
-        );
-        expect(decrypted, plainText);
-      });
+      expect(hexFromBytes(secretBox.cipherText), hexFromBytes(cipherText));
+      expect(secretBox.mac, mac);
     });
 
-    group('128-bit key, 32 bytes', () {
-      final plainText = List<int>.generate(32, (i) => 1 + i);
-      final secretKey = secretKey128;
-      final nonce = Nonce(List<int>.filled(16, 1));
-      final cipherText = hexToBytes(
-        '68 4f a0 20 8c 9f 75 f3 71 b9 77 cc 4d 4f 04 4b'
-        '62 11 8f 13 ae 07 60 1d 28 15 e9 cc 4c 8a b6 84'
-        '31 b2 2a 1a 9d fa f2 f5 77 8c c6 28 65 51 e3 fe',
+    test('decrypt', () async {
+      final decrypted = await algorithm.decrypt(
+        SecretBox(cipherText, nonce: nonce, mac: mac),
+        secretKey: secretKey,
       );
+      expect(decrypted, clearText);
+    });
+  });
 
-      test('encrypt', () async {
-        final encrypted = await algorithm.encrypt(
-          plainText,
-          secretKey: secretKey,
-          nonce: nonce,
-        );
-        expect(
-          hexFromBytes(encrypted),
-          hexFromBytes(cipherText),
-        );
-      });
-
-      test('encryptSync', () {
-        final encrypted = algorithm.encryptSync(
-          plainText,
-          secretKey: secretKey,
-          nonce: nonce,
-        );
-        expect(
-          hexFromBytes(encrypted),
-          hexFromBytes(cipherText),
-        );
-      });
-
-      test('decrypt', () async {
-        final decrypted = await algorithm.decrypt(
-          cipherText,
-          secretKey: secretKey,
-          nonce: nonce,
-        );
-        expect(decrypted, plainText);
-      });
-
-      test('decryptSync', () {
-        final decrypted = algorithm.decryptSync(
-          cipherText,
-          secretKey: secretKey,
-          nonce: nonce,
-        );
-        expect(decrypted, plainText);
-      });
+  group('128-bit key, 31 bytes:', () {
+    late AesCbc algorithm;
+    final clearText = List<int>.generate(31, (i) => 1 + i);
+    final secretKey = secretKey128;
+    final nonce = List<int>.filled(16, 1);
+    final cipherText = hexToBytes(
+      '68 4f a0 20 8c 9f 75 f3 71 b9 77 cc 4d 4f 04 4b'
+      '84 9a f4 46 1f 00 e0 ac 7c 2f d2 24 1c 71 14 e8',
+    );
+    late Mac mac;
+    setUp(() async {
+      algorithm = AesCbc.with128bits(macAlgorithm: Hmac.sha256());
+      mac = await algorithm.macAlgorithm.calculateMac(
+        cipherText,
+        secretKey: secretKey,
+        nonce: nonce,
+      );
     });
 
-    group('256-bit key, 3 bytes', () {
-      final plainText = <int>[1, 2, 3];
-      final secretKey = secretKey256;
-      final nonce = Nonce(List<int>.filled(16, 1));
-      final cipherText = hexToBytes(
-        '45 4c 0d c4 53 02 f3 62 d2 4c 5c a0 37 ee 67 66',
+    test('encrypt', () async {
+      final secretBox = await algorithm.encrypt(
+        clearText,
+        secretKey: secretKey,
+        nonce: nonce,
       );
+      expect(hexFromBytes(secretBox.cipherText), hexFromBytes(cipherText));
+      expect(secretBox.mac, mac);
+    });
 
-      test('encrypt', () async {
-        final encrypted = await algorithm.encrypt(
-          plainText,
-          secretKey: secretKey,
-          nonce: nonce,
-        );
-        expect(
-          hexFromBytes(encrypted),
-          hexFromBytes(cipherText),
-        );
-      });
-
-      test('encryptSync', () {
-        final encrypted = algorithm.encryptSync(
-          plainText,
-          secretKey: secretKey,
-          nonce: nonce,
-        );
-        expect(
-          hexFromBytes(encrypted),
-          hexFromBytes(cipherText),
-        );
-      });
-
-      test('decrypt', () async {
-        final decrypted = await algorithm.decrypt(
+    test('decrypt', () async {
+      final decrypted = await algorithm.decrypt(
+        SecretBox(
           cipherText,
-          secretKey: secretKey,
           nonce: nonce,
-        );
-        expect(decrypted, plainText);
-      });
+          mac: mac,
+        ),
+        secretKey: secretKey,
+      );
+      expect(decrypted, clearText);
+    });
+  });
 
-      test('decryptSync', () {
-        final decrypted = algorithm.decryptSync(
+  group('128-bit key, 32 bytes', () {
+    late AesCbc algorithm;
+    final clearText = List<int>.generate(32, (i) => 1 + i);
+    final secretKey = secretKey128;
+    final nonce = List<int>.filled(16, 1);
+    final cipherText = hexToBytes(
+      '68 4f a0 20 8c 9f 75 f3 71 b9 77 cc 4d 4f 04 4b'
+      '62 11 8f 13 ae 07 60 1d 28 15 e9 cc 4c 8a b6 84'
+      '31 b2 2a 1a 9d fa f2 f5 77 8c c6 28 65 51 e3 fe',
+    );
+    late Mac mac;
+    setUp(() async {
+      algorithm = AesCbc.with128bits(macAlgorithm: Hmac.sha256());
+      mac = await algorithm.macAlgorithm.calculateMac(
+        cipherText,
+        secretKey: secretKey,
+        nonce: nonce,
+      );
+    });
+
+    test('encrypt', () async {
+      final secretBox = await algorithm.encrypt(
+        clearText,
+        secretKey: secretKey,
+        nonce: nonce,
+      );
+      expect(hexFromBytes(secretBox.cipherText), hexFromBytes(cipherText));
+      expect(secretBox.mac, mac);
+    });
+
+    test('decrypt', () async {
+      final decrypted = await algorithm.decrypt(
+        SecretBox(
           cipherText,
-          secretKey: secretKey,
           nonce: nonce,
-        );
-        expect(decrypted, plainText);
-      });
+          mac: mac,
+        ),
+        secretKey: secretKey,
+      );
+      expect(decrypted, clearText);
+    });
+  });
+
+  group('256-bit key, 3 bytes', () {
+    late AesCbc algorithm;
+    final clearText = List<int>.unmodifiable([1, 2, 3]);
+    final secretKey = secretKey256;
+    final nonce = List<int>.unmodifiable(List<int>.filled(16, 1));
+    final cipherText = hexToBytes(
+      '45 4c 0d c4 53 02 f3 62 d2 4c 5c a0 37 ee 67 66',
+    );
+    late Mac mac;
+    setUp(() async {
+      algorithm = AesCbc.with256bits(macAlgorithm: Hmac.sha256());
+      mac = await algorithm.macAlgorithm.calculateMac(
+        cipherText,
+        secretKey: secretKey,
+        nonce: nonce,
+      );
+    });
+
+    test('encrypt', () async {
+      final encrypted = await algorithm.encrypt(
+        clearText,
+        secretKey: secretKey,
+        nonce: nonce,
+      );
+      expect(hexFromBytes(encrypted.cipherText), hexFromBytes(cipherText));
+      expect(encrypted.mac, mac);
+    });
+
+    test('decrypt', () async {
+      final decrypted = await algorithm.decrypt(
+        SecretBox(
+          cipherText,
+          nonce: nonce,
+          mac: mac,
+        ),
+        secretKey: secretKey,
+      );
+      expect(decrypted, clearText);
     });
   });
 }

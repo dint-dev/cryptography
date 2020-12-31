@@ -1,20 +1,26 @@
-name: cryptography_flutter_example
-description: Demonstrates how to use the cryptography_flutter plugin.
-publish_to: none
+name: example
+description: A new Flutter project.
+publish_to: 'none'
+version: 1.0.0+1
 
 environment:
   sdk: ">=2.7.0 <3.0.0"
 
 dependencies:
-  cryptography_flutter:
-    path: ../
   flutter:
     sdk: flutter
+  cryptography_flutter:
+    path: ../
+  cupertino_icons: ^1.0.1
 
 dev_dependencies:
-  e2e: any
   flutter_test:
     sdk: flutter
+  integration_test: ^1.0.1
+  pedantic: ^1.10.0-nullsafety.3
+
+flutter:
+  uses-material-design: true
 
 dependency_overrides:
   cryptography:

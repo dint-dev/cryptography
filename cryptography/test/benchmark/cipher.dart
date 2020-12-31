@@ -24,67 +24,96 @@ Future<void> main() async {
     const messageLength = 100;
 
     print('10k x 100b messages:');
-    await _Encrypt(chacha20, MB, messageLength).report();
-    await _EncryptSync(chacha20, MB, messageLength).report();
-    await _Encrypt(chacha20Poly1305Aead, MB, messageLength).report();
-    await _Encrypt(aesCbc, MB, messageLength).report();
-    await _EncryptSync(aesCbc, MB, messageLength).report();
     await _Encrypt(
-            CipherWithAppendedMac(aesCbc, Hmac(sha256)), MB, messageLength)
-        .report();
-    await _EncryptSync(
-            CipherWithAppendedMac(aesCbc, Hmac(sha256)), MB, messageLength)
-        .report();
-    await _Encrypt(aesCtr, MB, messageLength).report();
-    await _EncryptSync(aesCtr, MB, messageLength).report();
+      Chacha20(macAlgorithm: MacAlgorithm.empty),
+      MB,
+      messageLength,
+    ).report();
     await _Encrypt(
-            CipherWithAppendedMac(aesCtr, Hmac(sha256)), MB, messageLength)
-        .report();
-
-    await _Encrypt(aesGcm, MB, messageLength).report();
-    await _EncryptSync(aesGcm, MB, messageLength).report();
+      Chacha20.poly1305Aead(),
+      MB,
+      messageLength,
+    ).report();
+    await _Encrypt(
+      AesCbc.with256bits(macAlgorithm: MacAlgorithm.empty),
+      MB,
+      messageLength,
+    ).report();
+    await _Encrypt(
+      AesCbc.with256bits(macAlgorithm: Hmac(Sha256())),
+      MB,
+      messageLength,
+    ).report();
+    await _Encrypt(
+      AesCtr.with256bits(macAlgorithm: MacAlgorithm.empty),
+      MB,
+      messageLength,
+    ).report();
+    await _Encrypt(
+      AesCtr.with256bits(macAlgorithm: Hmac(Sha256())),
+      MB,
+      messageLength,
+    ).report();
+    await _Encrypt(
+      AesGcm.with256bits(),
+      MB,
+      messageLength,
+    ).report();
     print('');
   }
 
   {
     print('1 MB messages:');
-    await _Encrypt(chacha20, MB).report();
-    await _EncryptSync(chacha20, MB).report();
-    await _Encrypt(chacha20Poly1305Aead, MB).report();
+    await _Encrypt(
+      Chacha20(macAlgorithm: MacAlgorithm.empty),
+      MB,
+    ).report();
+    await _Encrypt(
+      Chacha20.poly1305Aead(),
+      MB,
+    ).report();
 
-    await _Encrypt(aesCbc, MB).report();
-    await _EncryptSync(aesCbc, MB).report();
-    await _Encrypt(CipherWithAppendedMac(aesCbc, Hmac(sha256)), MB).report();
-    await _EncryptSync(CipherWithAppendedMac(aesCbc, Hmac(sha256)), MB)
-        .report();
-
-    await _Encrypt(aesCtr, MB).report();
-    await _EncryptSync(aesCtr, MB).report();
-    await _Encrypt(CipherWithAppendedMac(aesCtr, Hmac(sha256)), MB).report();
-
-    await _Encrypt(aesGcm, MB).report();
-    await _EncryptSync(aesGcm, MB).report();
+    await _Encrypt(
+      AesCbc.with256bits(macAlgorithm: MacAlgorithm.empty),
+      MB,
+    ).report();
+    await _Encrypt(
+      AesCbc.with256bits(macAlgorithm: Hmac(Sha256())),
+      MB,
+    ).report();
+    await _Encrypt(
+      AesCtr.with256bits(macAlgorithm: MacAlgorithm.empty),
+      MB,
+    ).report();
+    await _Encrypt(
+      AesCtr.with256bits(macAlgorithm: Hmac(Sha256())),
+      MB,
+    ).report();
+    await _Encrypt(
+      AesGcm.with256bits(),
+      MB,
+    ).report();
     print('');
   }
 }
 
 class _Encrypt extends SimpleBenchmark {
-  final Cipher cipher;
+  final Cipher algorithm;
   final int totalLength;
   final int messageLength;
-  SecretKey secretKey;
-  Nonce nonce;
-  Uint8List cleartext;
-  Uint8List result;
+  late SecretKey secretKey;
+  late List<int> nonce;
+  late Uint8List cleartext;
+  Uint8List? result;
 
-  _Encrypt(this.cipher, this.totalLength, [int messageLength])
+  _Encrypt(this.algorithm, this.totalLength, [int? messageLength])
       : messageLength = messageLength ?? totalLength,
-        super('${cipher.name}.encrypt()');
+        super('$algorithm.encrypt()');
 
   @override
   Future<void> run() async {
     for (var i = 0; i < totalLength ~/ messageLength; i++) {
-      await cipher.encrypt(
+      await algorithm.encrypt(
         cleartext,
         secretKey: secretKey,
         nonce: nonce,
@@ -93,49 +122,13 @@ class _Encrypt extends SimpleBenchmark {
   }
 
   @override
-  void setup() {
+  void setup() async {
     cleartext = Uint8List(messageLength);
     for (var i = 0; i < cleartext.lengthInBytes; i++) {
       cleartext[i] = 0xFF & i;
     }
-    secretKey = cipher.newSecretKeySync();
-    nonce = cipher.newNonce();
-    result = Uint8List(cleartext.lengthInBytes);
-  }
-}
-
-class _EncryptSync extends SimpleBenchmark {
-  final Cipher cipher;
-  final int totalLength;
-  final int messageLength;
-  SecretKey secretKey;
-  Nonce nonce;
-  Uint8List cleartext;
-  Uint8List result;
-
-  _EncryptSync(this.cipher, this.totalLength, [int messageLength])
-      : messageLength = messageLength ?? totalLength,
-        super('${cipher.name}.encryptSync()');
-
-  @override
-  Future<void> run() async {
-    for (var i = 0; i < totalLength ~/ messageLength; i++) {
-      await cipher.encryptSync(
-        cleartext,
-        secretKey: secretKey,
-        nonce: nonce,
-      );
-    }
-  }
-
-  @override
-  void setup() {
-    cleartext = Uint8List(messageLength);
-    for (var i = 0; i < cleartext.lengthInBytes; i++) {
-      cleartext[i] = 0xFF & i;
-    }
-    secretKey = cipher.newSecretKeySync();
-    nonce = cipher.newNonce();
+    secretKey = await algorithm.newSecretKey();
+    nonce = algorithm.newNonce();
     result = Uint8List(cleartext.lengthInBytes);
   }
 }

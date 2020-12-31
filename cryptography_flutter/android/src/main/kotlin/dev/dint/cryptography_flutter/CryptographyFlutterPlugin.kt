@@ -14,54 +14,261 @@
 
 package dev.dint.cryptography_flutter
 
-import androidx.annotation.NonNull;
-
+import android.os.Build
+import androidx.annotation.RequiresApi
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
 import io.flutter.plugin.common.PluginRegistry.Registrar
+import java.math.BigInteger
+import java.security.AlgorithmParameters
+import java.security.KeyFactory
+import java.security.NoSuchAlgorithmException
+import java.security.Signature
+import java.security.interfaces.ECPrivateKey
+import java.security.interfaces.ECPublicKey
+import java.security.spec.*
+import javax.crypto.AEADBadTagException
+import javax.crypto.Cipher
+import javax.crypto.spec.GCMParameterSpec
+import javax.crypto.spec.IvParameterSpec
+import javax.crypto.spec.SecretKeySpec
 
 /** CryptographyFlutterPlugin */
-public class CryptographyFlutterPlugin: FlutterPlugin, MethodCallHandler {
-  /// The MethodChannel that will the communication between Flutter and native Android
-  ///
-  /// This local reference serves to register the plugin with the Flutter Engine and unregister it
-  /// when the Flutter Engine is detached from the Activity
-  private lateinit var channel : MethodChannel
+class CryptographyFlutterPlugin : FlutterPlugin, MethodCallHandler {
+    private lateinit var channel: MethodChannel
 
-  override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
-    channel = MethodChannel(flutterPluginBinding.getFlutterEngine().getDartExecutor(), "cryptography_flutter")
-    channel.setMethodCallHandler(this);
-  }
-
-  // This static function is optional and equivalent to onAttachedToEngine. It supports the old
-  // pre-Flutter-1.12 Android projects. You are encouraged to continue supporting
-  // plugin registration via this function while apps migrate to use the new Android APIs
-  // post-flutter-1.12 via https://flutter.dev/go/android-project-migration.
-  //
-  // It is encouraged to share logic between onAttachedToEngine and registerWith to keep
-  // them functionally equivalent. Only one of onAttachedToEngine or registerWith will be called
-  // depending on the user's project. onAttachedToEngine or registerWith must both be defined
-  // in the same class.
-  companion object {
-    @JvmStatic
-    fun registerWith(registrar: Registrar) {
-      val channel = MethodChannel(registrar.messenger(), "cryptography_flutter")
-      channel.setMethodCallHandler(CryptographyFlutterPlugin())
+    override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
+        channel = MethodChannel(flutterPluginBinding.binaryMessenger, "cryptography_flutter")
+        channel.setMethodCallHandler(this)
     }
-  }
 
-  override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
-    if (call.method == "getPlatformVersion") {
-      result.success("Android ${android.os.Build.VERSION.RELEASE}")
-    } else {
-      result.notImplemented()
+    override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
+        channel.setMethodCallHandler(null)
     }
-  }
 
-  override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
-    channel.setMethodCallHandler(null)
-  }
+    override fun onMethodCall(call: MethodCall, result: Result) {
+        when (call.method) {
+            "decrypt" -> {
+                decrypt(call, result)
+            }
+            "encrypt" -> {
+                encrypt(call, result)
+            }
+            "Ecdsa.KeyPair" -> {
+                ecNewKeyPair(call, result)
+            }
+            "Ecdsa.sign" -> {
+                ecdsaSign(call, result)
+            }
+            "Ecdsa.verify" -> {
+                ecdsaVerify(call, result)
+            }
+            else -> {
+                result.notImplemented()
+            }
+        }
+    }
+
+    private fun decrypt(call: MethodCall, result: Result) {
+        val dartAlgo = call.argument<String>("algo")!!
+        val algo = when (dartAlgo) {
+            "AesCbc" -> "AES"
+            "AesCtr" -> "AES"
+            "AesGcm" -> "AES"
+            "Chacha20" -> "Chacha20"
+            "Chacha20.poly1305Aead" -> "Chacha20"
+            else -> null
+        }
+        if (algo == null) {
+            result.success("unsupported_algorithm: $dartAlgo")
+            return
+        }
+        val mode = when (dartAlgo) {
+            "AesCbc" -> "CBC"
+            "AesCtr" -> "CTR"
+            "AesGcm" -> "GCM"
+            "Chacha20.poly1305Aead" -> "Poly1305"
+            else -> null
+        }
+        val cipherText = call.argument<ByteArray>("cipherText")!!
+        val secretKey = call.argument<ByteArray>("secretKey")!!
+        val nonce = call.argument<ByteArray>("nonce")!!
+        val mac = call.argument<ByteArray>("mac")!!
+        val input = cipherText + mac
+
+        // Handle the request
+        val params = if (mode == "GCM") {
+            GCMParameterSpec(16 * 8, nonce)
+        } else {
+            IvParameterSpec(nonce)
+        }
+        var cipher: Cipher;
+        val instanceId = "$algo/$mode/NoPadding"
+        try {
+            cipher = Cipher.getInstance(instanceId)
+        } catch (error: NoSuchAlgorithmException) {
+            result.success("unsupported_algorithm: Android does not support ${instanceId}")
+            return
+        }
+        cipher.init(
+                Cipher.DECRYPT_MODE,
+                SecretKeySpec(secretKey, algo),
+                params,
+        )
+        val clearText: ByteArray
+        try {
+            clearText = cipher.doFinal(input)
+        } catch (e: AEADBadTagException) {
+            result.success("incorrect_mac")
+            return
+        }
+        result.success(hashMapOf(
+                "clearText" to clearText,
+        ))
+    }
+
+    private fun encrypt(call: MethodCall, result: Result) {
+        val dartAlgo = call.argument<String>("algo")!!
+        val algo = when (dartAlgo) {
+            "AesCbc" -> "AES"
+            "AesCtr" -> "AES"
+            "AesGcm" -> "AES"
+            "Chacha20" -> "ChaCha20"
+            "Chacha20.poly1305Aead" -> "ChaCha20"
+            else -> null
+        }
+        if (algo == null) {
+            result.success("unsupported_algorithm")
+            return
+        }
+        val mode = when (dartAlgo) {
+            "AesCbc" -> "CBC"
+            "AesCtr" -> "CTR"
+            "AesGcm" -> "GCM"
+            "Chacha20.poly1305Aead" -> "Poly1305"
+            else -> "None"
+        }
+        val macLength = when (dartAlgo) {
+            "AesGcm" -> 16
+            "Chacha20.poly1305Aead" -> 16
+            else -> 0
+        }
+        val clearText = call.argument<ByteArray>("clearText")!!
+        val secretKey = call.argument<ByteArray>("secretKey")!!
+        val nonce = call.argument<ByteArray>("nonce")!!
+
+        // Handle the request
+        val params = if (mode == "GCM") {
+            GCMParameterSpec(macLength * 8, nonce)
+        } else {
+            IvParameterSpec(nonce)
+        }
+        var cipher: Cipher
+        val instanceId = "$algo/$mode/NoPadding"
+        try {
+            cipher = Cipher.getInstance(instanceId)
+        } catch (error: NoSuchAlgorithmException) {
+            result.success("unsupported_algorithm: Android does not support ${instanceId}")
+            return
+        }
+        cipher.init(
+                Cipher.ENCRYPT_MODE,
+                SecretKeySpec(secretKey, algo),
+                params,
+        )
+        val cipherTextAndMac = cipher.doFinal(clearText)
+        val cipherText = cipherTextAndMac.copyOfRange(0, cipherTextAndMac.size - macLength)
+        val mac = cipherTextAndMac.copyOfRange(cipherTextAndMac.size - macLength, cipherTextAndMac.size)
+        result.success(hashMapOf(
+                "cipherText" to cipherText,
+                "mac" to mac,
+        ))
+    }
+
+    private fun ecNewKeyPair(call: MethodCall, result: Result) {
+        val dartAlgo = call.argument<String>("algo")!!
+        val curve = when (dartAlgo) {
+            "Ecdsa.p256" -> "P-256"
+            "Ecdsa.p384" -> "P-384"
+            "Ecdsa.p521" -> "P-521"
+            else -> null
+        }
+        if (curve == null) {
+            result.success("unsupported_algorithm: $curve")
+            return
+        }
+
+    }
+
+    private fun ecdsaSign(call: MethodCall, result: Result) {
+        val curve = when (call.argument<String>("algo")!!) {
+            "Ecdsa.p256" -> "P-256"
+            "Ecdsa.p384" -> "P-384"
+            "Ecdsa.p521" -> "P-521"
+            else -> null
+        }
+        if (curve == null) {
+            result.success("unsupported_algorithm: $curve")
+            return
+        }
+        val hash = call.argument<String>("hash")!!.replace("-", "")
+        val data = call.argument<ByteArray>("data")!!
+        val privateKey = call.argument<ByteArray>("privateKey")!!
+
+        // Handle the request
+        val parameters = AlgorithmParameters.getInstance("EC")
+        parameters.init(ECGenParameterSpec("secp256r1"))
+        val ecParameters = parameters.getParameterSpec(ECParameterSpec::class.java)
+        val privateSpec = ECPrivateKeySpec(BigInteger(privateKey), ecParameters)
+        val kf = KeyFactory.getInstance("EC")
+        val key = kf.generatePrivate(privateSpec) as ECPrivateKey
+        val dsa = Signature.getInstance(hash + "withECDSA")
+        dsa.initSign(key);
+        dsa.update(data)
+        val signature = dsa.sign()
+
+        // Set result
+        result.success(hashMapOf(
+                "signature" to signature,
+        ))
+    }
+
+    private fun ecdsaVerify(call: MethodCall, result: Result) {
+        val curve = when (call.argument<String>("algo")!!) {
+            "Ecdsa.p256" -> "P-256"
+            "Ecdsa.p384" -> "P-384"
+            "Ecdsa.p521" -> "P-521"
+            else -> null
+        }
+        if (curve == null) {
+            result.success("unsupported_algorithm")
+            return
+        }
+        val hash = call.argument<String>("hash")!!.replace("-", "")
+        val message = call.argument<ByteArray>("data")!!
+        val x = BigInteger(call.argument<String>("x")!!)
+        val y = BigInteger(call.argument<String>("y")!!)
+        val signature = call.argument<ByteArray>("signature")!!
+
+        // Handle the request
+        val publicPoint = ECPoint(x, y)
+        val parameters = AlgorithmParameters.getInstance("EC")
+        parameters.init(ECGenParameterSpec(curve))
+        val ecParameters = parameters.getParameterSpec(ECParameterSpec::class.java)
+        val publicSpec = ECPublicKeySpec(publicPoint, ecParameters)
+        val kf = KeyFactory.getInstance("EC")
+        val key = kf.generatePublic(publicSpec) as ECPublicKey
+        val dsa = Signature.getInstance(hash + "withECDSA")
+        dsa.initVerify(key)
+        dsa.update(message)
+        val ok = dsa.verify(signature)
+
+        // Set result
+        result.success(hashMapOf(
+                "ok" to ok,
+        ))
+    }
 }

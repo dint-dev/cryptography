@@ -3,15 +3,18 @@
 
 # Overview
 Popular cryptographic algorithms for [Dart](https://dart.dev) / [Flutter](https://flutter.dev)
-developers. Copyright 2019-2020 Gohilla Ltd. Licensed under the [Apache License 2.0](LICENSE).
+developers.
+
+This package was developed by Gohilla Ltd (Finland) and open-sourced under the
+[Apache License 2.0](LICENSE).
 
 This package is:
-  * __Safe__. Plenty of tests. No license risks. Used in commercial products.
-  * __Fast.__ For example, SHA-512 in browsers can be 100 times faster than _package:crypto_.
+  * __Easy to use__. The API is easy to understand and encourages good defaults.
+  * __Multi-platform__. It's easy to customize implementation of X in platform Y.
+  * __Fast.__ By default, we use platform APIs when available. For example, SHA-512 is over 100
+    times faster than _package:crypto_ in browsers.
 
 Any feedback, issue reports, or pull requests are appreciated!
-
-See [our Github repository](https://github.com/dint-dev/cryptography).
 
 ## Links
   * [Github project](https://github.com/dint-dev/cryptography)
@@ -19,153 +22,196 @@ See [our Github repository](https://github.com/dint-dev/cryptography).
   * [Pub package](https://pub.dev/packages/cryptography)
   * [API reference](https://pub.dev/documentation/cryptography/latest/)
 
-## Related packages
+## Some packages that depend on this
+  * [cryptography_flutter](https://pub.dev/packages/cryptography_flutter).
+    * Android / iOS cryptography support.
+  * [jwk](https://pub.dev/packages/jwk)
+    * JWK (JSON Web Key) support.
   * [kms](https://pub.dev/packages/kms)
-    * A Dart package for hardware-based or cloud-based key management solutions.
-  * [kms_flutter](https://pub.dev/packages/kms_flutter)
-    * Uses native APIs for storing cryptographic keys in Android and iOS.
+    * KMS (Key Management Service) support.
   * [noise_protocol](https://pub.dev/packages/noise_protocol)
-    * An implementation of Noise handshake protocol.
-  * _Add your project here?_
+    * Noise handshake support.
 
-## Some things to know
-  * SHA1 and SHA2 implementations use the package [crypto](https://pub.dev/packages/crypto), which
-    is maintained by Google and contains only hash functions and HMAC.
-  * We wrote pure Dart implementations for X25519, ED25519, RSA-PSS, ChaCha20 / XChacha20, AES-CBC,
-    AES-CTR, AES-GCM, HKDF, HMAC, Poly1305, BLAKE2S, and BLAKE2B.
-  * We implemented automatic use of [Web Cryptography API](https://www.w3.org/TR/WebCryptoAPI/)
-    (_crypto.subtle_) when you use SHA1, SHA2, AES, ECDH, ECDSA, or RSA in browsers.
-  * The APIs generally include both _asynchronous_ and _synchronous_ methods.  Only the
-    asynchronous methods are able to use Web Crypto APIs. For instance, you can calculate a SHA-512
-    hash with `sha512.hash(bytes)` or `sha512.hashSync(bytes)`. In browsers, asynchronous version
-    can be as much as 100 times faster. In other platforms the synchronous version is slightly
-    faster. We recommend that developers use asynchronous methods.
-  * If Dart SDK decides to expose _BoringSSL_ functions ([SDK issue](https://github.com/dart-lang/sdk/issues/34659)),
-    we will use them as much as possible.
+# Key concepts
+## Cryptography implementations
+The abstract class [Cryptography](https://pub.dev/documentation/cryptography/latest/cryptography/Cryptography-class.html)
+has factory methods that return implementations of cryptographic algorithms. The default
+implementation is _BrowserCryptography_ (which works in all platforms, not just browser). You can
+write your own _Cryptography_ subclass if you need to.
 
-## Using operating system APIs of Android, iOS, and Mac OS X
-The package [cryptography_flutter](https://pub.dev/packages/cryptography_flutter) optimizes
-performance of some cryptographic algorithms by using native APIs of Android, iOS, and Mac OS X.
-You must use asynchronous methods to get the performance boost.
+We wrote the following three implementations of `Cryptography`:
+  * [DartCryptography](https://pub.dev/documentation/cryptography/latest/cryptography.dart/DartCryptography-class.html)
+    * Gives you implementations written in pure Dart implementations. They work in all platforms.
+    * In all platforms supported by Dart, gives you:
+      * AesCbc
+      * AesCtr
+      * AesGcm
+      * Blake2b
+      * Blake2s
+      * Chacha20
+      * Chacha20.poly1305Aead
+      * Ed25519
+      * Hkdf
+      * Hmac
+      * Pbkdf2
+      * Poly1305
+      * Sha1
+      * Sha224
+      * Sha256
+      * Sha384
+      * Sha512
+      * X25519
+      * Xchacha20
+      * Xchacha20.poly1305Aead
+    * SHA1 / SHA2 uses implementation in [package:crypto](https://pub.dev/packages/crypto), which
+      is maintained by Google. Relevant parts are copy-pasted to this version because of
+      [issue #105](https://github.com/dart-lang/crypto/issues/105) in the original package.
+    * The rest of the algorithms in _DartCryptography_ are written and tested by us.
+    * Implementations written in pure Dart have been exposed to vastly less testing and review by
+      dedicated specialists in cryptography than platform-provided implementations (in Android, iOS,
+      browsers, etc). That's we highly recommend that you call
+      [FlutterCryptography.enable()](https://pub.dev/documentation/cryptography_flutter/latest/cryptography_flutter/FlutterCryptography/enable.html)
+      in the `main` function of applications.
+  * [BrowserCryptography](https://pub.dev/documentation/cryptography/latest/cryptography.browser/BrowserCryptography-class.html)
+    * Extends _DartCryptography_.
+    * Uses [Web Cryptography API](https://www.w3.org/TR/WebCryptoAPI/) (_crypto.subtle_).the
+    * In browsers, gives you:
+      * AesCbc
+      * AesCtr
+      * AesGcm
+      * Ecdh.p256
+      * Ecdh.p384
+      * Ecdh.p512
+      * Ecdsa.p256
+      * Ecdsa.p384
+      * Ecdsa.p512
+      * Hkdf
+      * Hmac
+      * Pbkdf2
+      * RsaPss
+      * RsaSsaPkcs1v15
+      * Sha1
+      * Sha256
+      * Sha384
+      * Sha512
+  * [FlutterCryptography](https://pub.dev/documentation/cryptography_flutter/latest/cryptography_flutter/FlutterCryptography-class.html)
+    * A Flutter plugin available in [cryptography_flutter](https://pub.dev/packages/cryptography_flutter).
+    * Extends _BrowserCryptography_.
+    * Enabled with [FlutterCryptography.enable()](https://pub.dev/documentation/cryptography_flutter/latest/cryptography_flutter/FlutterCryptography/enable.html).
+   * In Android, gives you:
+      * AesCbc
+      * AesCtr
+      * AesGcm
+      * Chacha20
+      * Chacha20.poly1305Aead
+   * In iOS, gives you:
+      * AesGcm
+      * Chacha20
+      * Chacha20.poly1305Aead
 
-## Cryptographic material classes
-  * [SecretKey](https://pub.dev/documentation/cryptography/latest/cryptography/SecretKey-class.html)
-    is used by symmetric cryptography.
-  * [KeyPair](https://pub.dev/documentation/cryptography/latest/cryptography/KeyPair-class.html)
-    ([PrivateKey](https://pub.dev/documentation/cryptography/latest/cryptography/PrivateKey-class.html)
-    and [PublicKey](https://pub.dev/documentation/cryptography/latest/cryptography/PublicKey-class.html))
-    is used by asymmetric cryptography.
-    * Many data formats exist for storing RSA and elliptic curve keys. This package contains
-      JSON Web Key (JWK) implementations [JwkPrivateKey](https://pub.dev/documentation/cryptography/latest/cryptography/JwkPrivateKey-class.html)
-      and [JwkPublicKey](https://pub.dev/documentation/cryptography/latest/cryptography/JwkPublicKey-class.html).
+## Arguments to algorithms
+The usual arguments to algorithms are:
+  * [SecretKeyData](https://pub.dev/documentation/cryptography/latest/cryptography/SecretKeyData-class.html)
+    is used by ciphers, message authentication codes, and KDFs.
+  * [KeyPair](https://pub.dev/documentation/cryptography/latest/cryptography/KeyPair-class.html) and
+    [PublicKey](https://pub.dev/documentation/cryptography/latest/cryptography/PublicKey-class.html)
+    are used by key exchange and signature algorithms.
+      * [SimpleKeyPairData](https://pub.dev/documentation/cryptography/latest/cryptography/SimpleKeyPairData-class.html)
+        and [SimplePublicKey](https://pub.dev/documentation/cryptography/latest/cryptography/SimplePublicKey-class.html)
+        enable to pass octet private/public keys.
+      * [EcKeyPairData](https://pub.dev/documentation/cryptography/latest/cryptography/EcKeyPairData-class.html)
+        and [EcPublicKey](https://pub.dev/documentation/cryptography/latest/cryptography/EcPublicKey-class.html)
+        enable to pass elliptic curve parameters.
+      * [RsaKeyPairData](https://pub.dev/documentation/cryptography/latest/cryptography/RsaKeyPairData-class.html)
+        and [RsaPublicKey](https://pub.dev/documentation/cryptography/latest/cryptography/RsaPublicKey-class.html)
+        enable to pass RSA parameters.
+      * For encoding/decoding private/public keys in JWK (JSON Web Key) format, use
+        [package:jwk](https://pub.dev/packages/jwk).
+      * For encoding/decoding X.509, PKCS12, and other formats, we don't have recommended packages
+        at the moment.
   * [Nonce](https://pub.dev/documentation/cryptography/latest/cryptography/Nonce-class.html)
-    ("initialization vector", "IV", or "salt") is some non-secret, unique value required by many
-    functions.
+    ("initialization vector", "IV", or "salt") is a value that does not need to be kept secret. It's
+    required by many algorithms.
 
-## Available algorithms
-### Symmetric encryption
-The following [Cipher](https://pub.dev/documentation/cryptography/latest/cryptography/Cipher-class.html) implementations are available:
-  * [CipherWithAppendedMac](https://pub.dev/documentation/cryptography/latest/cryptography/CipherWithAppendedMac-class.html)
-    adds authentication (such as HMAC-SHA256) to ciphers without built-in authentication.
-  * AES ([read about the algorithm](https://en.wikipedia.org/wiki/Advanced_Encryption_Standard))
-    * [aesCbc](https://pub.dev/documentation/cryptography/latest/cryptography/aesCbc-constant.html) (AES-CBC)
-    * [aesCtr](https://pub.dev/documentation/cryptography/latest/cryptography/aesCtr-constant.html) (AES-CTR)
-    * [aesGcm](https://pub.dev/documentation/cryptography/latest/cryptography/aesGcm-constant.html) (AES-GCM)
+## Algorithms by type
+### Ciphers
+The following [Cipher](https://pub.dev/documentation/cryptography/latest/cryptography/Cipher-class.html)
+implementations are available:
+  * AES
+    * [AesCbc](https://pub.dev/documentation/cryptography/latest/cryptography/AesCbc-class.html) (AES-CBC)
+    * [AesCtr](https://pub.dev/documentation/cryptography/latest/cryptography/AesCtr-class.html) (AES-CTR)
+    * [AesGcm](https://pub.dev/documentation/cryptography/latest/cryptography/AesGcm-class.html) (AES-GCM)
+    * Throughputs of the pure Dart implementations are about 50 MB/s, AES-GCM about 5-10 MB/s.
+    * Throughputs of the [BrowserCryptography](https://pub.dev/documentation/cryptography/latest/browser/BrowserCryptography-class.html)
+      implementations are about 400 - 700 MB/s.
+  * ChaCha20 / XChaCha20
+    * [Chacha20](https://pub.dev/documentation/cryptography/latest/cryptography/Chacha20-class.html)
+    * [Chacha20.poly1305Aead](https://pub.dev/documentation/cryptography/latest/cryptography/Chacha20/poly1305Aead.html) (AEAD_CHACHA20_POLY1305)
+    * [Xchacha20](https://pub.dev/documentation/cryptography/latest/cryptography/Xchacha20-class.html)
+    * [Xchacha20.poly1305Aead](https://pub.dev/documentation/cryptography/latest/cryptography/Xchacha20/poly1305Aead.html) (AEAD_XCHACHA20_POLY1305)
     * In our benchmarks, the performance is around:
-      * 10-70 MB/s in VM.
-      * About 400MB - 700MB/s in browsers.
-      * [cryptography_flutter](https://pub.dev/packages/cryptography_flutter) maximizes AES-GCM
-        performance in iOS and Mac OS X by using operating system APIs.
-  * Chacha20 family ([read about the algorithm](https://en.wikipedia.org/wiki/Salsa20))
-    * [chacha20](https://pub.dev/documentation/cryptography/latest/cryptography/chacha20-constant.html)
-    * [chacha20Poly1305Aead](https://pub.dev/documentation/cryptography/latest/cryptography/chacha20Poly1305Aead-constant.html) (AEAD_CHACHA20_POLY1305)
-    * [xchacha20](https://pub.dev/documentation/cryptography/latest/cryptography/xchacha20-constant.html)
-    * [xchacha20Poly1305Aead](https://pub.dev/documentation/cryptography/latest/cryptography/xchacha20Poly1305Aead-constant.html) (AEAD_XCHACHA20_POLY1305)
-    * In our benchmarks, the performance is around:
-      * 40-140MB/s in VM.
-      * [cryptography_flutter](https://pub.dev/packages/cryptography_flutter) maximizes performance
-        in iOS and Mac OS X by using operating system APIs.
+      * Throughput of the pure Dart implementation is 40 - 140 MB/s in VM.
 
 ### Digital signature algorithms
-The following [SignatureAlgorithm](https://pub.dev/documentation/cryptography/latest/cryptography/SignatureAlgorithm-class.html) implementations are available:
-  * [ed25519](https://pub.dev/documentation/cryptography/latest/cryptography/ed25519-constant.html) (curve25519 EdDSA)
-    * In our benchmarks, the performance is around 200 signatures or verifications per second in VM
-      (about 50 in browsers).
-  * Elliptic curves approved by NIST ([read about the algorithm](https://en.wikipedia.org/wiki/Elliptic-curve_cryptography))
-    * [ecdsaP256Sha256](https://pub.dev/documentation/cryptography/latest/cryptography/ecdsaP256Sha256-constant.html) (ECDSA P256 / secp256r1 / prime256v1 + SHA256)
-    * [ecdsaP384Sha256](https://pub.dev/documentation/cryptography/latest/cryptography/ecdsaP384Sha256-constant.html) (ECDSA P384 / secp384r1 / prime384v1 + SHA256)
-    * [ecdsaP384Sha384](https://pub.dev/documentation/cryptography/latest/cryptography/ecdsaP384Sha384-constant.html) (ECDSA P384 / secp384r1 / prime384v1 + SHA384)
-    * [ecdsaP521Sha256](https://pub.dev/documentation/cryptography/latest/cryptography/ecdsaP521Sha256-constant.html) (ECDSA P521 / secp521r1 / prime521v1 + SHA256)
-    * [ecdsaP521Sha512](https://pub.dev/documentation/cryptography/latest/cryptography/ecdsaP521Sha512-constant.html) (ECDSA P521 / secp521r1 / prime521v1 + SHA512)
-    * Currently implemented only in browsers.
+The following [SignatureAlgorithm](https://pub.dev/documentation/cryptography/latest/cryptography/SignatureAlgorithm-class.html)
+implementations are available:
+  * [Ed25519](https://pub.dev/documentation/cryptography/latest/cryptography/Ed25519-class.html) (curve25519 EdDSA)
+    * Performance of the pure Dart implementation is around 200 (signatures or verifications) per second
+      in VM and about 50 in browsers.
+  * Elliptic curves approved by NIST
+    * [Ecdsa.p256](https://pub.dev/documentation/cryptography/latest/cryptography/Ecdsa/p256.html) (ECDSA P256 / secp256r1 / prime256v1 + SHA256)
+    * [Ecdsa.p384](https://pub.dev/documentation/cryptography/latest/cryptography/Ecdsa/p384.html) (ECDSA P384 / secp384r1 / prime384v1 + SHA384)
+    * [Ecdsa.p521](https://pub.dev/documentation/cryptography/latest/cryptography/Ecdsa/p521.html) (ECDSA P521 / secp521r1 / prime521v1 + SHA256)
+    * We don't have implementations of these in pure Dart.
   * RSA
     * [RsaPss](https://pub.dev/documentation/cryptography/latest/cryptography/RsaPss-class.html) (RSA-PSS)
     * [RsaSsaPkcs1v15](https://pub.dev/documentation/cryptography/latest/cryptography/RsaSsaPkcs1v15-class.html) (RSASSA-PKCS1v15)
-    * Currently implemented only in browsers.
+    * We don't have implementations of these in pure Dart.
 
 ### Key exchange algorithms
-The following [KeyExchangeAlgorithm](https://pub.dev/documentation/cryptography/latest/cryptography/KeyExchangeAlgorithm-class.html) implementations are available:
-  * Elliptic curves approved by NIST ([read about the algorithm](https://en.wikipedia.org/wiki/Elliptic-curve_cryptography))
-    * [ecdhP256](https://pub.dev/documentation/cryptography/latest/cryptography/ecdhP256-constant.html) (ECDH P256 / secp256r1 / prime256v1)
-    * [ecdhP384](https://pub.dev/documentation/cryptography/latest/cryptography/ecdhP384-constant.html) (ECDH P384 / secp384r1 / prime384v1)
-    * [ecdhP521](https://pub.dev/documentation/cryptography/latest/cryptography/ecdhP521-constant.html) (ECDH P521 / secp521r1 / prime521v1)
-    * Currently implemented only in browsers.
-  * [x25519](https://pub.dev/documentation/cryptography/latest/cryptography/x25519-constant.html) (curve25519 Diffie-Hellman)
-    * In our benchmarks, the performance is around 1k operations per second in VM.
+The following [KeyExchangeAlgorithm](https://pub.dev/documentation/cryptography/latest/cryptography/KeyExchangeAlgorithm-class.html)
+implementations are available:
+  * Elliptic curves approved by NIST
+    * [Ecdh.p256](https://pub.dev/documentation/cryptography/latest/cryptography/Ecdh/p256.html) (ECDH P256 / secp256r1 / prime256v1)
+    * [Ecdh.p384](https://pub.dev/documentation/cryptography/latest/cryptography/Ecdh/p384.html) (ECDH P384 / secp384r1 / prime384v1)
+    * [Ecdh.p521](https://pub.dev/documentation/cryptography/latest/cryptography/Ecdh/p521.html) (ECDH P521 / secp521r1 / prime521v1)
+    * We don't have implementations of these in pure Dart.
+  * [X25519](https://pub.dev/documentation/cryptography/latest/cryptography/X25519-class.html) (curve25519 Diffie-Hellman)
+    * Throughput of the pure Dart implementation is around 1k key agreements per second (in VM).
 
 ### Key derivation algorithms
-  * [HChacha20](https://pub.dev/documentation/cryptography/latest/cryptography/HChacha20-class.html)
+The following implementations are available:
+  * [Hchacha20](https://pub.dev/documentation/cryptography/latest/cryptography/Hchacha20-clas.html)
   * [Hkdf](https://pub.dev/documentation/cryptography/latest/cryptography/Hkdf-class.html) (HKDF)
   * [Pbkdf2](https://pub.dev/documentation/cryptography/latest/cryptography/Pbkdf2-class.html) (PBKDF2)
 
 ### Message authentication codes
-The following [MacAlgorithm](https://pub.dev/documentation/cryptography/latest/cryptography/MacAlgorithm-class.html) implementations are available:
+The following [MacAlgorithm](https://pub.dev/documentation/cryptography/latest/cryptography/MacAlgorithm-class.html)
+implementations are available:
   * [Hmac](https://pub.dev/documentation/cryptography/latest/cryptography/Hmac-class.html)
-  * [poly1305](https://pub.dev/documentation/cryptography/latest/cryptography/poly1305-constant.html)
+  * [Poly1305](https://pub.dev/documentation/cryptography/latest/cryptography/Poly1305-class.html)
 
 ### Cryptographic hash functions
-The following [HashAlgorithm](https://pub.dev/documentation/cryptography/latest/cryptography/HashAlgorithm-class.html) implementations are available:
-  * [blake2b](https://pub.dev/documentation/cryptography/latest/cryptography/blake2b-constant.html) (BLAKE2B)
-  * [blake2s](https://pub.dev/documentation/cryptography/latest/cryptography/blake2s-constant.html) (BLAKE2S)
-  * [sha1](https://pub.dev/documentation/cryptography/latest/cryptography/sha1-constant.html) (SHA1)
-  * [sha224](https://pub.dev/documentation/cryptography/latest/cryptography/sha224-constant.html) (SHA2-224)
-  * [sha256](https://pub.dev/documentation/cryptography/latest/cryptography/sha256-constant.html) (SHA2-256)
-  * [sha384](https://pub.dev/documentation/cryptography/latest/cryptography/sha384-constant.html) (SHA2-384)
-  * [sha512](https://pub.dev/documentation/cryptography/latest/cryptography/sha512-constant.html) (SHA2-512)
+The following [HashAlgorithm](https://pub.dev/documentation/cryptography/latest/cryptography/HashAlgorithm-class.html)
+implementations are available:
+  * [Blake2b](https://pub.dev/documentation/cryptography/latest/cryptography/Blake2b-class.html) (BLAKE2B)
+  * [Blake2s](https://pub.dev/documentation/cryptography/latest/cryptography/Blake2s-class.html) (BLAKE2S)
+  * [Sha1](https://pub.dev/documentation/cryptography/latest/cryptography/Sha1-class.html) (SHA1)
+  * [Sha224](https://pub.dev/documentation/cryptography/latest/cryptography/Sha224-class.html) (SHA2-224)
+  * [Sha256](https://pub.dev/documentation/cryptography/latest/cryptography/Sha256-class.html) (SHA2-256)
+  * [Sha384](https://pub.dev/documentation/cryptography/latest/cryptography/Sha384-class.html) (SHA2-384)
+  * [Sha512](https://pub.dev/documentation/cryptography/latest/cryptography/Sha512-class.html) (SHA2-512)
 
 # Getting started
 In _pubspec.yaml_:
 ```yaml
 dependencies:
-  cryptography: ^1.4.0
+  cryptography: ^2.0.0-nullsafety.0
 ```
 
 # Examples
-## Key agreement with X25519
-In this example, we use [x25519](https://pub.dev/documentation/cryptography/latest/cryptography/x25519-constant.html).
-
-```dart
-import 'package:cryptography/cryptography.dart';
-
-Future<void> main() async {
-  // Let's generate two X25519 keypairs.
-  final localKeyPair = await x25519.newKeyPair();
-  final remoteKeyPair = await x25519.newKeyPair();
-
-  // We can now calculate a shared 256-bit secret
-  final secretKey = await x25519.sharedSecret(
-    localPrivateKey: localKeyPair.privateKey,
-    remotePublicKey: remoteKeyPair.publicKey,
-  );
-
-  final secretBytes = await secretKey.extract();
-  print('Shared secret: $secretBytes');
-}
-```
-
-
-## Digital signature with ED25519
-In this example, we use [ed25519](https://pub.dev/documentation/cryptography/latest/cryptography/ed25519-constant.html).
+## Digital signature
+In this example, we use [Ed25519](https://pub.dev/documentation/cryptography/latest/cryptography/Ed25519-class.html).
 
 ```dart
 import 'package:cryptography/cryptography.dart';
@@ -174,73 +220,54 @@ Future<void> main() async {
   // The message that we will sign
   final message = <int>[1,2,3];
 
-  // Generate a random ED25519 keypair
-  final keyPair = await ed25519.newKeyPair();
+  // Generate a keypair.
+  final algorithm = Ed25519();
+  final keyPair = await algorithm.newKeyPair();
 
   // Sign
   final signature = await ed25519.sign(
     message,
-    keyPair,
+    keyPair: keyPair,
   );
-
   print('Signature: ${signature.bytes}');
   print('Public key: ${signature.publicKey.bytes}');
 
   // Verify signature
   final isSignatureCorrect = await ed25519.verify(
     message,
-    signature,
+    signature: signature,
   );
-
-  print('Is the signature correct: $isSignatureCorrect');
+  print('Correct signature: $isSignatureCorrect');
 }
 ```
 
-
-## Authenticated encryption with Chacha20 + Poly1305
-In this example, we use [chacha20Poly1305Aead](https://pub.dev/documentation/cryptography/latest/cryptography/chacha20Poly1305Aead-constant.html),
-a standard that uses ChaCha20 and Poly1305.
+## Key agreement
+In this example, we use [X25519](https://pub.dev/documentation/cryptography/latest/cryptography/X25519-class.html).
 
 ```dart
 import 'package:cryptography/cryptography.dart';
 
 Future<void> main() async {
-  // Choose the cipher
-  final cipher = chacha20Poly1305Aead;
+  // Alice chooses her key pair
+  final algorithm = X25519();
+  final aliceKeyPair = await algorithm.newKeyPair();
 
-  // Choose some 256-bit secret key
-  final secretKey = SecretKey.randomBytes(32);
+  // Alice knows Bob's public key
+  final bobKeyPair = await algorithm.newKeyPair();
+  final bobPublicKey = await bobKeyPair.extractPublicKey();
 
-  // Choose some unique (non-secret) 96-bit nonce.
-  // The same (secretKey, nonce) combination should not be used twice!
-  final nonce = Nonce.randomBytes(12);
-
-  // Our message
-  final message = utf8.encode('encrypted message');
-
-  // Encrypt
-  final encrypted = await cipher.encrypt(
-    message,
-    secretKey: secretKey,
-    nonce: nonce,
+  // Alice calculates the shared secret.
+  final sharedSecret = await algorithm.sharedSecretKey(
+    keyPair: aliceKeyPair,
+    remotePublicKey: bobPublicKey,
   );
-
-  print('Encrypted: $encrypted');
-
-  // Decrypt
-  final decrypted = await cipher.decrypt(
-    encrypted,
-    secretKey: secretKey,
-    nonce: nonce,
-  );
-
-  print('Decrypted: $decrypted');
+  final sharedSecretBytes = await aliceKeyPair.extractBytes();
+  print('Shared secret: $sharedSecretBytes');
 }
 ```
 
-
-## Authenticated encryption with AES-CTR + HMAC-SHA256
-In this example, we encrypt a message with [aesCtr](https://pub.dev/documentation/cryptography/latest/cryptography/aesCtr-constant.html)
+## Authenticated encryption
+In this example, we encrypt a message with [AesCtr](https://pub.dev/documentation/cryptography/latest/cryptography/AesCtr-class.html)
 and append a [Hmac](https://pub.dev/documentation/cryptography/latest/cryptography/Hmac-class.html)
 message authentication code.
 
@@ -249,63 +276,55 @@ import 'package:cryptography/cryptography.dart';
 
 Future<void> main() async {
   // Choose the cipher
-  final cipher = CipherWithAppendedMac(aesCtr, Hmac(sha256));
+  final algorithm = AesCtr(macAlgorithm: Hmac(Sha256()));
 
-  // Choose some 256-bit secret key
-  final secretKey = SecretKey.randomBytes(16);
+  // Generate a random secret key.
+  final secretKey = algorithm.newSecretKey();
 
-  // Choose some unique (non-secret) nonce (max 16 bytes).
-  // The same (secretKey, nonce) combination should not be used twice!
-  final nonce = Nonce.randomBytes(12);
+  // Generate a random nonce. A nonce is not secret.
+  final nonce = algorithm.newNonce();
 
   // Our message
   final message = utf8.encode('encrypted message');
 
   // Encrypt
-  final encrypted = await cipher.encrypt(
+  final secretBox = await algorithm.encrypt(
     message,
     secretKey: secretKey,
     nonce: nonce,
   );
-
-  print('Encrypted: $encrypted');
+  print('Ciphertext: ${secretBox.cipherText}');
+  print('MAC: ${secretBox.mac.bytes}');
 
   // Decrypt
-  final decrypted = await cipher.decrypt(
-    encrypted,
+  final clearText = await algorithm.decrypt(
+    secretBox,
     secretKey: secretKey,
     nonce: nonce,
   );
-
-  print('Decrypted: $decrypted');
+  print('Decrypted: $clearText');
 }
 ```
 
-
-## Message authentication with HMAC-BLAKE2S
-In this example, we use [Hmac](https://pub.dev/documentation/cryptography/latest/cryptography/Hmac-class.html)
-and [blake2s](https://pub.dev/documentation/cryptography/latest/cryptography/blake2s-constant.html).
+## Hashing
+In this example, we use [Sha512](https://pub.dev/documentation/cryptography/latest/cryptography/Sha512-class.html).
 
 ```dart
 import 'package:cryptography/cryptography.dart';
 import 'dart:convert';
 
-Future<void> main() {
-  // Choose a secret key
-  final secretKey = SecretKey(utf8.encode('authentication secret'));
-
-  // Create a HMAC-BLAKE2S sink
-  final macAlgorithm = const Hmac(blake2s);
-  final sink = macAlgorithm.newSink(secretKey: secretKey);
+Future<void> main() async {
+  // Create a Sha512 sink
+  final sink = Sha512().newSink();
 
   // Add all parts of the authenticated message
   sink.add([1,2,3]);
   sink.add([4,5]);
 
-  // Calculate MAC
+  // Calculate hash
   sink.close();
-  final macBytes = sink.mac.bytes;
+  final hash = await sink.hash();
 
-  print('Message authentication code: $macBytes');
+  print('SHA-512 hash: ${hash.bytes}');
 }
 ```

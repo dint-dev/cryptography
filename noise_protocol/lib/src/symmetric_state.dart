@@ -21,20 +21,19 @@ class SymmetricState {
   final CipherState cipherState;
 
   /// The Noise specification uses identifier _ck_ for this.
-  List<int> _chainingKey;
+  List<int>? _chainingKey;
 
   /// The Noise specification uses identifier _h_ for this.
-  Hash _hash;
+  Hash? _hash;
 
-  SymmetricState({@required this.protocol})
-      : assert(protocol != null),
-        cipherState = CipherState(cipher: protocol.cipher);
+  SymmetricState({required this.protocol})
+      : cipherState = CipherState(cipher: protocol.cipher);
 
   /// Chaining key. The Noise specification uses identifier _ck_ for this.
-  List<int> get chainingKey => _chainingKey;
+  List<int>? get chainingKey => _chainingKey;
 
   /// Current hash. The Noise specification uses identifier _h_ for this.
-  Hash get hash => _hash;
+  Hash? get hash => _hash;
 
   /// See the [specification](https://noiseprotocol.org/noise.html).
   Future<List<int>> decryptAndHash(List<int> cipherText) async {
@@ -46,9 +45,9 @@ class SymmetricState {
   }
 
   /// See the [specification](https://noiseprotocol.org/noise.html).
-  Future<List<int>> encryptAndHash(List<int> plainText) async {
+  Future<List<int>> encryptAndHash(List<int> clearText) async {
     final cipherText = await cipherState.encrypt(
-      plainText,
+      clearText,
     );
     await mixHash(cipherText);
     return cipherText;
@@ -68,27 +67,29 @@ class SymmetricState {
 
   /// See the [specification](https://noiseprotocol.org/noise.html).
   Future<void> mixHash(List<int> data) async {
-    final sink = protocol.hashAlgorithm.implementation.newSink();
-    sink.add(_hash.bytes);
+    final sink = protocol.hashAlgorithm.implementation.newHashSink();
+    sink.add(_hash!.bytes);
     sink.add(data);
     sink.close();
-    _hash = sink.hash;
+    _hash = await sink.hash();
   }
 
   /// See the [specification](https://noiseprotocol.org/noise.html).
   Future<void> mixKey(List<int> key) async {
     final hashAlgorithm = protocol.hashAlgorithm.implementation;
     final hashLength = hashAlgorithm.hashLengthInBytes;
-    final hkdf = Hkdf(Hmac(hashAlgorithm));
-    final hkdfOutput = await hkdf.deriveKey(
-      SecretKey(_chainingKey),
-      nonce: Nonce(key),
+    final hkdf = Hkdf(
+      hmac: Hmac(hashAlgorithm),
       outputLength: 2 * hashAlgorithm.hashLengthInBytes,
     );
-    final temp = await hkdfOutput.extractSync();
+    final hkdfOutput = await hkdf.deriveKey(
+      secretKey: SecretKeyData(_chainingKey!),
+      nonce: key,
+    );
+    final temp = (await hkdfOutput.extract()).bytes;
     _chainingKey = temp.sublist(0, 32);
     cipherState.initialize(
-      SecretKey(temp.sublist(hashLength, hashLength + 32)),
+      SecretKeyData(temp.sublist(hashLength, hashLength + 32)),
     );
   }
 
@@ -96,12 +97,15 @@ class SymmetricState {
   Future<void> mixKeyAndHash(SecretKey secretKey) async {
     final hashAlgorithm = protocol.hashAlgorithm.implementation;
     final hashLength = hashAlgorithm.hashLengthInBytes;
-    final hkdf = Hkdf(Hmac(hashAlgorithm));
-    final hkdfOutput = await hkdf.deriveKey(
-      SecretKey(_chainingKey),
+    final hkdf = Hkdf(
+      hmac: Hmac(hashAlgorithm),
       outputLength: 3 * hashAlgorithm.hashLengthInBytes,
     );
-    final temp = await hkdfOutput.extractSync();
+    final hkdfOutput = await hkdf.deriveKey(
+      secretKey: SecretKeyData(_chainingKey!),
+      nonce: const <int>[],
+    );
+    final temp = (await hkdfOutput.extract()).bytes;
 
     // First segment is truncated to 32 bytes
     _chainingKey = temp.sublist(0, 32);
@@ -122,12 +126,15 @@ class SymmetricState {
     final hashAlgorithm = protocol.hashAlgorithm.implementation;
     final hashLength = hashAlgorithm.hashLengthInBytes;
     assert(hashLength >= 32);
-    final hkdf = Hkdf(Hmac(hashAlgorithm));
-    final hkdfOutput = await hkdf.deriveKey(
-      SecretKey(_chainingKey),
+    final hkdf = Hkdf(
+      hmac: Hmac(hashAlgorithm),
       outputLength: 2 * hashAlgorithm.hashLengthInBytes,
     );
-    final temp = await hkdfOutput.extractSync();
+    final hkdfOutput = await hkdf.deriveKey(
+      secretKey: SecretKeyData(_chainingKey!),
+      nonce: const <int>[],
+    );
+    final temp = (await hkdfOutput.extract()).bytes;
     final temp0 = temp.sublist(0, 32);
     final temp1 = temp.sublist(hashLength, hashLength + 32);
     final encrypter = CipherState(
@@ -136,12 +143,8 @@ class SymmetricState {
     final decrypter = CipherState(
       cipher: protocol.cipher,
     );
-    encrypter.initialize(
-      SecretKey(isInitiator ? temp0 : temp1),
-    );
-    decrypter.initialize(
-      SecretKey(isInitiator ? temp1 : temp0),
-    );
+    encrypter.initialize(SecretKeyData(isInitiator ? temp0 : temp1));
+    decrypter.initialize(SecretKeyData(isInitiator ? temp1 : temp0));
     return HandshakeResult(
       encryptingState: decrypter,
       decryptingState: encrypter,

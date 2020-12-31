@@ -16,163 +16,163 @@ part of noise_protocol;
 
 /// A handshake pattern defines pre-existing knowledge and instructions for
 /// performing the handshake.
-class HandshakePattern {
+class NoiseHandshakePattern {
   /// _IK_ pattern.
-  static const HandshakePattern ik = HandshakePattern(
+  static const NoiseHandshakePattern ik = NoiseHandshakePattern(
     name: 'IK',
     isInitiatorKnown: false,
     isResponderKnown: true,
-    messagePatterns: [
-      MessagePattern([
-        MessageToken.e,
-        MessageToken.ee,
-        MessageToken.s,
-        MessageToken.se,
+    noiseMessagePatterns: [
+      NoiseMessagePattern([
+        NoiseMessageToken.e,
+        NoiseMessageToken.ee,
+        NoiseMessageToken.s,
+        NoiseMessageToken.se,
       ]),
-      MessagePattern([
-        MessageToken.e,
-        MessageToken.es,
+      NoiseMessagePattern([
+        NoiseMessageToken.e,
+        NoiseMessageToken.es,
       ]),
     ],
   );
 
   /// _K_ pattern.
-  static const HandshakePattern k = HandshakePattern(
+  static const NoiseHandshakePattern k = NoiseHandshakePattern(
     name: 'K',
     isInitiatorKnown: true,
     isResponderKnown: true,
-    messagePatterns: [
-      MessagePattern([
-        MessageToken.e,
-        MessageToken.es,
-        MessageToken.ss,
+    noiseMessagePatterns: [
+      NoiseMessagePattern([
+        NoiseMessageToken.e,
+        NoiseMessageToken.es,
+        NoiseMessageToken.ss,
       ]),
     ],
   );
 
   /// _KK_ pattern.
-  static const HandshakePattern kk = HandshakePattern(
+  static const NoiseHandshakePattern kk = NoiseHandshakePattern(
     name: 'KK',
     isInitiatorKnown: true,
     isResponderKnown: true,
-    messagePatterns: [
-      MessagePattern([
-        MessageToken.e,
-        MessageToken.es,
-        MessageToken.ss,
+    noiseMessagePatterns: [
+      NoiseMessagePattern([
+        NoiseMessageToken.e,
+        NoiseMessageToken.es,
+        NoiseMessageToken.ss,
       ]),
-      MessagePattern([
-        MessageToken.e,
-        MessageToken.ee,
-        MessageToken.es,
+      NoiseMessagePattern([
+        NoiseMessageToken.e,
+        NoiseMessageToken.ee,
+        NoiseMessageToken.es,
       ]),
     ],
   );
 
   /// _N_ pattern.
-  static const HandshakePattern n = HandshakePattern(
+  static const NoiseHandshakePattern n = NoiseHandshakePattern(
     name: 'N',
     isInitiatorKnown: false,
     isResponderKnown: true,
-    messagePatterns: [
-      MessagePattern([
-        MessageToken.e,
-        MessageToken.es,
+    noiseMessagePatterns: [
+      NoiseMessagePattern([
+        NoiseMessageToken.e,
+        NoiseMessageToken.es,
       ]),
     ],
   );
 
   /// _NK_ pattern.
-  static const HandshakePattern nk = HandshakePattern(
+  static const NoiseHandshakePattern nk = NoiseHandshakePattern(
     name: 'NK',
     isInitiatorKnown: false,
     isResponderKnown: true,
-    messagePatterns: [
-      MessagePattern([
-        MessageToken.e,
-        MessageToken.es,
+    noiseMessagePatterns: [
+      NoiseMessagePattern([
+        NoiseMessageToken.e,
+        NoiseMessageToken.es,
       ]),
-      MessagePattern([
-        MessageToken.e,
-        MessageToken.ee,
+      NoiseMessagePattern([
+        NoiseMessageToken.e,
+        NoiseMessageToken.ee,
       ]),
     ],
   );
 
   /// _NK1_ pattern.
-  static const HandshakePattern nk1 = HandshakePattern(
+  static const NoiseHandshakePattern nk1 = NoiseHandshakePattern(
     name: 'NK1',
     isInitiatorKnown: false,
     isResponderKnown: true,
-    messagePatterns: [
-      MessagePattern([
-        MessageToken.e,
+    noiseMessagePatterns: [
+      NoiseMessagePattern([
+        NoiseMessageToken.e,
       ]),
-      MessagePattern([
-        MessageToken.e,
-        MessageToken.ee,
-        MessageToken.es,
+      NoiseMessagePattern([
+        NoiseMessageToken.e,
+        NoiseMessageToken.ee,
+        NoiseMessageToken.es,
       ]),
     ],
   );
 
   /// _X_ pattern.
-  static const HandshakePattern x = HandshakePattern(
+  static const NoiseHandshakePattern x = NoiseHandshakePattern(
     name: 'X',
     isInitiatorKnown: false,
     isResponderKnown: true,
-    messagePatterns: [
-      MessagePattern([
-        MessageToken.e,
-        MessageToken.es,
-        MessageToken.s,
-        MessageToken.ss,
+    noiseMessagePatterns: [
+      NoiseMessagePattern([
+        NoiseMessageToken.e,
+        NoiseMessageToken.es,
+        NoiseMessageToken.s,
+        NoiseMessageToken.ss,
       ]),
     ],
   );
 
   /// _XX_ pattern.
-  static const HandshakePattern xx = HandshakePattern(
+  static const NoiseHandshakePattern xx = NoiseHandshakePattern(
     name: 'XX',
     isInitiatorKnown: false,
     isResponderKnown: false,
-    messagePatterns: [
-      MessagePattern([
-        MessageToken.e,
+    noiseMessagePatterns: [
+      NoiseMessagePattern([
+        NoiseMessageToken.e,
       ]),
-      MessagePattern([
-        MessageToken.e,
-        MessageToken.ee,
-        MessageToken.s,
-        MessageToken.es,
+      NoiseMessagePattern([
+        NoiseMessageToken.e,
+        NoiseMessageToken.ee,
+        NoiseMessageToken.s,
+        NoiseMessageToken.es,
       ]),
-      MessagePattern([
-        MessageToken.s,
-        MessageToken.se,
+      NoiseMessagePattern([
+        NoiseMessageToken.s,
+        NoiseMessageToken.se,
       ]),
     ],
   );
 
   /// _X1X_ pattern.
-  static const HandshakePattern x1x = HandshakePattern(
+  static const NoiseHandshakePattern x1x = NoiseHandshakePattern(
     name: 'X1X',
     isInitiatorKnown: false,
     isResponderKnown: false,
-    messagePatterns: [
-      MessagePattern([
-        MessageToken.e,
+    noiseMessagePatterns: [
+      NoiseMessagePattern([
+        NoiseMessageToken.e,
       ]),
-      MessagePattern([
-        MessageToken.e,
-        MessageToken.ee,
-        MessageToken.s,
-        MessageToken.es,
+      NoiseMessagePattern([
+        NoiseMessageToken.e,
+        NoiseMessageToken.ee,
+        NoiseMessageToken.s,
+        NoiseMessageToken.es,
       ]),
-      MessagePattern([
-        MessageToken.s,
+      NoiseMessagePattern([
+        NoiseMessageToken.s,
       ]),
-      MessagePattern([
-        MessageToken.se,
+      NoiseMessagePattern([
+        NoiseMessageToken.se,
       ]),
     ],
   );
@@ -188,58 +188,33 @@ class HandshakePattern {
 
   /// List of message patterns. The first one is sent by initiator, the second
   /// by the responder, and so on.
-  final List<MessagePattern> messagePatterns;
+  final List<NoiseMessagePattern> noiseMessagePatterns;
 
-  const HandshakePattern({
-    @required this.name,
-    @required this.isInitiatorKnown,
-    @required this.isResponderKnown,
-    @required this.messagePatterns,
-  })  : assert(name != null),
-        assert(isInitiatorKnown != null),
-        assert(isResponderKnown != null),
-        assert(messagePatterns != null);
+  const NoiseHandshakePattern({
+    required this.name,
+    required this.isInitiatorKnown,
+    required this.isResponderKnown,
+    required this.noiseMessagePatterns,
+  });
 
-  /// Tells whether the pattern has a [MessageToken.psk] token.
+  /// Tells whether the pattern has a [NoiseMessageToken.psk] token.
   bool get usesPresharedKey {
-    return messagePatterns.any((p) => p.tokens.contains(MessageToken.psk));
+    return noiseMessagePatterns.any((p) => p.tokens.contains(NoiseMessageToken.psk));
   }
 
   @override
   int get hashCode =>
-      const ListEquality<MessagePattern>().hash(messagePatterns);
+      const ListEquality<NoiseMessagePattern>().hash(noiseMessagePatterns);
 
   @override
   bool operator ==(other) =>
-      other is HandshakePattern &&
+      other is NoiseHandshakePattern &&
       name == other.name &&
       isInitiatorKnown == other.isInitiatorKnown &&
       isResponderKnown == other.isResponderKnown &&
-      const ListEquality<MessagePattern>()
-          .equals(messagePatterns, other.messagePatterns);
-}
-
-class MessagePattern {
-  final List<MessageToken> tokens;
-
-  const MessagePattern(this.tokens);
+      const ListEquality<NoiseMessagePattern>()
+          .equals(noiseMessagePatterns, other.noiseMessagePatterns);
 
   @override
-  int get hashCode => const ListEquality<MessageToken>().hash(tokens);
-
-  @override
-  bool operator ==(other) =>
-      other is MessagePattern &&
-      const ListEquality<MessageToken>().equals(tokens, other.tokens);
-}
-
-/// A message token.
-enum MessageToken {
-  e,
-  s,
-  ee,
-  es,
-  se,
-  ss,
-  psk,
+  String toString() => 'NoiseHandshakePattern.${name.toLowerCase()}';
 }

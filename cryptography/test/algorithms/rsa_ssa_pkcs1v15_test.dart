@@ -17,38 +17,59 @@ import 'package:test/test.dart';
 
 void main() {
   group('RsaSsaPkcs1v15:', () {
-    final algorithm = RsaSsaPkcs1v15(sha256);
-
-    test('name', () async {
-      expect(algorithm.name, 'rsaSsaPkcs1v15');
-    });
-
-    test('key pair length is 4096 bits', () async {
-      final keyPair = await algorithm.newKeyPair();
-      expect(keyPair.publicKey.bytes, hasLength(greaterThan(500)));
-
-      final rsaPrivateKey = keyPair.privateKey as RsaJwkPrivateKey;
-      expect(rsaPrivateKey.n, hasLength(4096 ~/ 8));
-    });
-
-    test('default exponent is [1,0,1]', () async {
-      final keyPair = await algorithm.newKeyPair();
-      final rsaPrivateKey = keyPair.privateKey as RsaJwkPrivateKey;
-      expect(rsaPrivateKey.e, [1, 0, 1]);
-    });
-
-    test('generate key pair, sign, verify (sha256)', () async {
-      await _testHashAlgorithm(sha256);
-    });
-
-    test('generate key pair, sign, verify (sha384)', () async {
-      await _testHashAlgorithm(sha256);
-    });
-
-    test('generate key pair, sign, verify (sha512)', () async {
-      await _testHashAlgorithm(sha256);
-    });
+    _main();
   }, testOn: 'chrome');
+}
+
+void _main() {
+  late RsaSsaPkcs1v15 algorithm;
+  setUp(() {
+    algorithm = RsaSsaPkcs1v15(Sha256());
+  });
+
+  test('equality / hashCode', () async {
+    final clone = RsaSsaPkcs1v15(Sha256());
+    final other = RsaSsaPkcs1v15(Sha1());
+    expect(algorithm, clone);
+    expect(algorithm, isNot(other));
+    expect(algorithm.hashCode, clone.hashCode);
+    expect(algorithm.hashCode, isNot(other.hashCode));
+  });
+
+  test('"n" is a random 4096 bit number', () async {
+    final secretKey0 = await algorithm.newKeyPair();
+    final secretKey1 = await algorithm.newKeyPair();
+    final rsaSecretKey0 = await secretKey0.extract();
+    final rsaSecretKey1 = await secretKey1.extract();
+    expect(rsaSecretKey0.n, hasLength(4096 / 8));
+    expect(rsaSecretKey0.n, isNot(rsaSecretKey1.n));
+    expect(rsaSecretKey0, isNot(rsaSecretKey1));
+    expect(secretKey0, isNot(secretKey1));
+  });
+
+  test('default exponent is [1,0,1]', () async {
+    final secretKey = await algorithm.newKeyPair();
+    final rsaSecretKey = await secretKey.extract();
+    final publicKey = await secretKey.extractPublicKey();
+    expect(rsaSecretKey.e, [1, 0, 1]);
+    expect(publicKey.e, [1, 0, 1]);
+  });
+
+  test('generate key pair, sign, verify (sha1)', () async {
+    await _testHashAlgorithm(Sha1());
+  });
+
+  test('generate key pair, sign, verify (sha256)', () async {
+    await _testHashAlgorithm(Sha256());
+  });
+
+  test('generate key pair, sign, verify (sha384)', () async {
+    await _testHashAlgorithm(Sha384());
+  });
+
+  test('generate key pair, sign, verify (sha512)', () async {
+    await _testHashAlgorithm(Sha512());
+  });
 }
 
 Future<void> _testHashAlgorithm(HashAlgorithm hashAlgorithm) async {
@@ -56,45 +77,37 @@ Future<void> _testHashAlgorithm(HashAlgorithm hashAlgorithm) async {
 
   // Generate key pair
   final keyPair = await algorithm.newKeyPair();
-  expect(keyPair, isNotNull);
-  keyPair.privateKey.cachedValues.clear();
-  keyPair.publicKey.cachedValues.clear();
-
-  final privateKey = keyPair.privateKey as RsaJwkPrivateKey;
-  expect(privateKey.n, isNotEmpty);
-  expect(privateKey.e, isNotEmpty);
-  expect(privateKey.d, isNotEmpty);
-  expect(privateKey.p, isNotEmpty);
-  expect(privateKey.q, isNotEmpty);
-  expect(privateKey.dp, isNotEmpty);
-  expect(privateKey.dq, isNotEmpty);
-  expect(privateKey.qi, isNotEmpty);
+  final extractedKeyPair = await keyPair.extract();
+  expect(extractedKeyPair.n, isNotEmpty);
+  expect(extractedKeyPair.e, isNotEmpty);
+  expect(extractedKeyPair.d, isNotEmpty);
+  expect(extractedKeyPair.p, isNotEmpty);
+  expect(extractedKeyPair.q, isNotEmpty);
+  expect(extractedKeyPair.dp, isNotEmpty);
+  expect(extractedKeyPair.dq, isNotEmpty);
+  expect(extractedKeyPair.qi, isNotEmpty);
 
   // Sign
   const message = <int>[1, 2, 3];
   final signature = await algorithm.sign(
     message,
-    keyPair,
+    keyPair: extractedKeyPair,
   );
 
   // Verify the signature
   {
     final isSignatureOk = await algorithm.verify(
       message,
-      signature,
+      signature: signature,
     );
     expect(isSignatureOk, isTrue);
   }
-
-  // Clear cached CryptoKey
-  keyPair.privateKey.cachedValues.clear();
-  keyPair.publicKey.cachedValues.clear();
 
   // Verify the signature
   {
     final isSignatureOk = await algorithm.verify(
       message,
-      signature,
+      signature: signature,
     );
     expect(isSignatureOk, isTrue);
   }
@@ -102,7 +115,7 @@ Future<void> _testHashAlgorithm(HashAlgorithm hashAlgorithm) async {
   // Try verify another message with the same signature
   final isWrongSignatureOk = await algorithm.verify(
     [...message, 4],
-    signature,
+    signature: signature,
   );
   expect(isWrongSignatureOk, isFalse);
 }

@@ -48,7 +48,12 @@
 /// ```
 library kms_flutter;
 
+import 'package:cryptography/cryptography.dart';
 import 'package:kms/kms.dart';
 
-export 'src/flutter_kms.dart';
-export 'src/plugin_kms.dart';
+class FlutterKms extends Kms {
+  static void enable() {
+    final kms = FlutterKms();
+    Cryptography.instance = KmsCryptography(kms, Cryptography.instance);
+  }
+}

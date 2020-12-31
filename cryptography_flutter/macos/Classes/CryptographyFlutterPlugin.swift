@@ -13,77 +13,110 @@
 // limitations under the License.
 
 import Cocoa
-import FlutterMacOS
 import CryptoKit
+import FlutterMacOS
 
-public class CryptographyFlutterPlugin: NSObject, FlutterPlugin {
-  public static func register(with registrar: FlutterPluginRegistrar) {
-    let channel = FlutterMethodChannel(name: "cryptography_flutter", binaryMessenger: registrar.messenger)
-    let instance = CryptographyFlutterPlugin()
-    registrar.addMethodCallDelegate(instance, channel: channel)
-  }
-
-  public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-    if call.method == "ping" {
-      result("ok")
-      return
+public class SwiftCryptographyFlutterPlugin: NSObject, FlutterPlugin {
+    public static func register(with registrar: FlutterPluginRegistrar) {
+        let channel = FlutterMethodChannel(name: "cryptography_flutter", binaryMessenger: registrar.messenger())
+        let instance = SwiftCryptographyFlutterPlugin()
+        registrar.addMethodCallDelegate(instance, channel: channel)
     }
-    let args = call.arguments as! [String: Any];
-    if #available(iOS 13.0, OSX 15.0, tvOS 13.0, watchOS 6.0, *) {
-    switch call.method {
-      case "aes_gcm_encrypt":
-        let input = (args["data"] as! FlutterStandardTypedData).data
-        let symmetricKeyBytes = (args["key"] as! FlutterStandardTypedData).data
-        let symmetricKey = SymmetricKey(data: symmetricKeyBytes)
-        let nonceBytes = (args["nonce"] as! FlutterStandardTypedData).data
-        let nonce = try! AES.GCM.Nonce(data: nonceBytes)
-        let sealedBox = try! AES.GCM.seal(input, using:symmetricKey, nonce:nonce)
-        let response: [String: Any] = [
-          "cipherText": sealedBox.ciphertext,
-          "tag": sealedBox.tag,
-        ]
-        result(response)
 
-      case "aes_gcm_decrypt":
-        let input = (args["data"] as! FlutterStandardTypedData).data
-        let symmetricKeyBytes = (args["key"] as! FlutterStandardTypedData).data
-        let symmetricKey = SymmetricKey(data: symmetricKeyBytes)
-        let nonceBytes = (args["nonce"] as! FlutterStandardTypedData).data
-        let nonce = try! AES.GCM.Nonce(data: nonceBytes)
-        let tag = (args["tag"] as! FlutterStandardTypedData).data
-        let sealedBox = try! AES.GCM.SealedBox(nonce:nonce, ciphertext:input, tag:tag)
-        let output = try! AES.GCM.open(sealedBox, using:symmetricKey)
-        result(output)
+    public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+        if #available(iOS 13.0, OSX 15.0, tvOS 13.0, watchOS 6.0, *) {
+            switch call.method {
+            case "ping":
+                result("ok")
+                return
 
-      case "chacha20_poly1305_encrypt":
-        let input = (args["data"] as! FlutterStandardTypedData).data
-        let symmetricKeyBytes = (args["key"] as! FlutterStandardTypedData).data
-        let symmetricKey = SymmetricKey(data: symmetricKeyBytes)
-        let nonceBytes = (args["nonce"] as! FlutterStandardTypedData).data
-        let nonce = try! ChaChaPoly.Nonce(data: nonceBytes)
-        let sealedBox = try! ChaChaPoly.seal(input, using:symmetricKey, nonce:nonce)
-        let response: [String: Any] = [
-          "cipherText": sealedBox.ciphertext,
-          "tag": sealedBox.tag,
-        ]
-        result(response)
+            case "encrypt":
+                let args = call.arguments as! [String: Any];
+                let algorithm = args["algo"] as! String
+                let clearText = [UInt8]((args["clearText"] as! FlutterStandardTypedData).data)
+                let secretKey = [UInt8]((args["secretKey"] as! FlutterStandardTypedData).data)
+                let nonce = [UInt8]((args["nonce"] as! FlutterStandardTypedData).data)
+                encrypt(call:call, result:result, algorithm:algorithm, clearText:clearText, secretKey:secretKey, nonce:nonce)
+                return
 
-      case "chacha20_poly1305_decrypt":
-        let input = (args["data"] as! FlutterStandardTypedData).data
-        let symmetricKeyBytes = (args["key"] as! FlutterStandardTypedData).data
-        let symmetricKey = SymmetricKey(data: symmetricKeyBytes)
-        let nonceBytes = (args["nonce"] as! FlutterStandardTypedData).data
-        let nonce = try! ChaChaPoly.Nonce(data: nonceBytes)
-        let tag = (args["tag"] as! FlutterStandardTypedData).data
-        let sealedBox = try! ChaChaPoly.SealedBox(nonce:nonce, ciphertext:input, tag:tag)
-        let output = try! ChaChaPoly.open(sealedBox, using:symmetricKey)
-        result(output)
+            case "decrypt":
+                let args = call.arguments as! [String: Any];
+                let algorithm = args["algo"] as! String
+                let cipherText = [UInt8]((args["cipherText"] as! FlutterStandardTypedData).data)
+                let secretKey = [UInt8]((args["secretKey"] as! FlutterStandardTypedData).data)
+                let nonce = [UInt8]((args["nonce"] as! FlutterStandardTypedData).data)
+                let mac = [UInt8]((args["mac"] as! FlutterStandardTypedData).data)
+                decrypt(call:call, result:result, algorithm:algorithm, cipherText:cipherText, secretKey:secretKey, nonce:nonce, mac:mac)
+                return
 
-      default:
-        result("Unsupported method: \(call.method)")
-      }
-    } else {
-      result("old_operating_system")
+            default:
+                result("Unsupported method: \(call.method)")
+                return
+            }
+        } else {
+            result("old_operating_system")
+        }
     }
-  }
+
+    func encrypt(call: FlutterMethodCall, result: @escaping FlutterResult, algorithm: String, clearText: [UInt8], secretKey: [UInt8], nonce: [UInt8]) -> Void {
+        if #available(iOS 13.0, OSX 15.0, tvOS 13.0, watchOS 6.0, *) {
+            let symmetricKey = SymmetricKey(data: secretKey)
+            switch algorithm {
+            case "AesGcm":
+                let sealedBox = try! AES.GCM.seal(
+                    clearText,
+                    using: symmetricKey,
+                    nonce: AES.GCM.Nonce(data: nonce))
+                result([
+                    "cipherText": FlutterStandardTypedData(bytes: sealedBox.ciphertext),
+                    "mac": FlutterStandardTypedData(bytes: sealedBox.tag),
+                ])
+                return
+
+            case "Chacha20.poly1305Aead":
+                let sealedBox = try! ChaChaPoly.seal(
+                    clearText,
+                    using: symmetricKey,
+                    nonce: ChaChaPoly.Nonce(data: nonce))
+                result([
+                    "cipherText": FlutterStandardTypedData(bytes: sealedBox.ciphertext),
+                    "mac": FlutterStandardTypedData(bytes: sealedBox.tag),
+                ])
+                return
+
+            default:
+                break
+            }
+        }
+        result(["error": "Unsupported algorithm: \(algorithm)"])
+    }
+
+    func decrypt(call: FlutterMethodCall, result: @escaping FlutterResult, algorithm: String, cipherText: [UInt8], secretKey: [UInt8], nonce: [UInt8], mac: [UInt8]) -> Void {
+        if #available(iOS 13.0, OSX 15.0, tvOS 13.0, watchOS 6.0, *) {
+            let symmetricKey = SymmetricKey(data: secretKey)
+            switch algorithm {
+            case "AesGcm":
+                let sealedBox = try! AES.GCM.SealedBox(
+                    nonce: AES.GCM.Nonce(data: nonce),
+                    ciphertext: cipherText,
+                    tag: mac)
+                let clearText = try! AES.GCM.open(sealedBox, using:symmetricKey)
+                result(["clearText": FlutterStandardTypedData(bytes: clearText)])
+                return
+
+            case "Chacha20.poly1305Aead":
+                let sealedBox = try! ChaChaPoly.SealedBox(
+                    nonce: ChaChaPoly.Nonce(data: nonce),
+                    ciphertext: cipherText,
+                    tag: mac)
+                let clearText = try! ChaChaPoly.open(sealedBox, using:symmetricKey)
+                result(["clearText": FlutterStandardTypedData(bytes: clearText)])
+                return
+
+            default:
+                break
+            }
+        }
+        result(["error": "Unsupported algorithm: \(algorithm)"])
+    }
 }

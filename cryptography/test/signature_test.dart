@@ -22,22 +22,22 @@ void main() {
     test('"==" / hashCode', () {
       final value = Signature(
         Uint8List.fromList([3, 1, 4]),
-        publicKey: PublicKey([]),
+        publicKey: SimplePublicKey([], type: KeyPairType.ed25519),
       );
 
       final clone = Signature(
         Uint8List.fromList([3, 1, 4]),
-        publicKey: PublicKey([]),
+        publicKey: SimplePublicKey([], type: KeyPairType.ed25519),
       );
 
       final other0 = Signature(
         Uint8List.fromList([3, 1, 999]),
-        publicKey: PublicKey([]),
+        publicKey: SimplePublicKey([], type: KeyPairType.ed25519),
       );
 
       final other1 = Signature(
         Uint8List.fromList([3, 1, 4]),
-        publicKey: PublicKey([999]),
+        publicKey: SimplePublicKey([999], type: KeyPairType.ed25519),
       );
 
       expect(value, clone);

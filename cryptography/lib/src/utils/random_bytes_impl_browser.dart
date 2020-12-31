@@ -17,9 +17,9 @@ import 'dart:math';
 import 'dart:typed_data';
 
 // Store the function so it can't be mutated by Javascript libraries.
-final _webCryptoRandom = html.window.crypto.getRandomValues;
+final _webCryptoRandom = html.window.crypto!.getRandomValues;
 
-void fillBytesWithSecureRandomNumbers(Uint8List bytes, {Random random}) {
+void fillBytesWithSecureRandom(Uint8List bytes, {Random? random}) {
   if (random == null) {
     // Use Web Cryptography API directly (instead of Random.secure()).
     _webCryptoRandom(bytes);

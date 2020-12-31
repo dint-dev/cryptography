@@ -1,3 +1,7 @@
+## 0.5.0
+  * Upgrades to _package:cryptography_ version 2.x.
+  * New API for this package.
+
 ## 0.4.1
   * Fixes version constraints.
 

@@ -17,54 +17,30 @@ import 'package:cryptography/cryptography.dart';
 import 'benchmark_helpers.dart';
 
 Future<void> main() async {
-  await _SharedSecret(x25519).report();
-  await _SharedSecretSync(x25519).report();
+  final cryptography = Cryptography.instance;
+  await _SharedSecret(cryptography.x25519()).report();
 }
 
 class _SharedSecret extends SimpleBenchmark {
   final KeyExchangeAlgorithm implementation;
 
   _SharedSecret(this.implementation)
-      : super('${implementation.name}.sharedSecret()');
+      : super('$implementation.sharedSecretKey(...)');
 
-  KeyPair keypair1;
-  KeyPair keypair2;
+  late KeyPair keyPair0;
+  late KeyPair keyPair1;
 
   @override
-  void setup() {
-    keypair1 = implementation.newKeyPairSync();
-    keypair2 = implementation.newKeyPairSync();
+  Future<void> setup() async {
+    keyPair0 = await implementation.newKeyPair();
+    keyPair1 = await implementation.newKeyPair();
   }
 
   @override
-  void run() {
-    implementation.sharedSecret(
-      localPrivateKey: keypair1.privateKey,
-      remotePublicKey: keypair2.publicKey,
-    );
-  }
-}
-
-class _SharedSecretSync extends SimpleBenchmark {
-  final KeyExchangeAlgorithm implementation;
-
-  _SharedSecretSync(this.implementation)
-      : super('${implementation.name}.sharedSecretSync()');
-
-  KeyPair keypair1;
-  KeyPair keypair2;
-
-  @override
-  void setup() {
-    keypair1 = implementation.newKeyPairSync();
-    keypair2 = implementation.newKeyPairSync();
-  }
-
-  @override
-  void run() {
-    implementation.sharedSecretSync(
-      localPrivateKey: keypair1.privateKey,
-      remotePublicKey: keypair2.publicKey,
+  Future<void> run() async {
+    await implementation.sharedSecretKey(
+      keyPair: keyPair0,
+      remotePublicKey: await keyPair1.extractPublicKey(),
     );
   }
 }

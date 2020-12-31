@@ -37,7 +37,7 @@ implementation supports:
     * X25519
   * Ciphers:
     * AES-GCM
-    * ChaCha20-Poly1305 AEAD
+    * Chacha20-Poly1305 AEAD
   * Hashes:
     * BLAKE2s
     * SHA2-256

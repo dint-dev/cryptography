@@ -23,11 +23,23 @@ import 'package:collection/collection.dart';
 /// The implementation of [hash] produces a 16-bit hash by using XOR.
 ///
 const Equality<List<int>> constantTimeBytesEquality =
-    // ignore: deprecated_member_use_from_same_package
+// ignore: deprecated_member_use_from_same_package
     _ConstantTimeBytesEquality();
 
 class _ConstantTimeBytesEquality implements Equality<List<int>> {
   const _ConstantTimeBytesEquality();
+
+  @override
+  bool equals(List<int> left, List<int> right) {
+    if (left.length != right.length) {
+      return false;
+    }
+    var result = 0;
+    for (var i = 0; i < left.length; i++) {
+      result |= (left[i] ^ right[i]);
+    }
+    return result == 0;
+  }
 
   @override
   int hash(List<int> e) {
@@ -40,19 +52,7 @@ class _ConstantTimeBytesEquality implements Equality<List<int>> {
   }
 
   @override
-  bool isValidKey(Object o) {
+  bool isValidKey(Object? o) {
     return o is List<int>;
-  }
-
-  @override
-  bool equals(List<int> left, List<int> right) {
-    if (left == null || right == null || left.length != right.length) {
-      return false;
-    }
-    var result = 0;
-    for (var i = 0; i < left.length; i++) {
-      result |= (left[i] ^ right[i]);
-    }
-    return result == 0;
   }
 }

@@ -17,26 +17,29 @@ import 'package:cryptography/src/utils.dart';
 import 'package:test/test.dart';
 
 void main() {
-  test('HChacha20(...)', () {
+  test('HChacha20(...)', () async {
     // -----------------------------------------------------------------------
     // The following constants are from:
     // https://tools.ietf.org/html/draft-arciszewski-xchacha-03
     // -----------------------------------------------------------------------
-    final secretKey = SecretKey(hexToBytes(
+    final secretKey = SecretKeyData(hexToBytes(
       '00:01:02:03:04:05:06:07:08:09:0a:0b:0c:0d:0e:0f:10:11:12:13:14:15:16:17:18:19:1a:1b:1c:1d:1e:1f',
     ));
 
-    final nonce = Nonce(hexToBytes(
+    final nonce = hexToBytes(
       '00:00:00:09:00:00:00:4a:00:00:00:00:31:41:59:27',
-    ));
+    );
 
     final expected = hexToBytes(
       '82413b42 27b27bfe d30e4250 8a877d73 a0f9e4d5 8a74a853 c12ec413 26d3ecdc',
     );
-    final hchacha20 = const HChacha20();
-    final output = hchacha20.deriveKeySync(secretKey: secretKey, nonce: nonce);
+    final hchacha20 = Cryptography.instance.hchacha20();
+    final output = await hchacha20.deriveKey(
+      secretKey: secretKey,
+      nonce: nonce,
+    );
     expect(
-      hexFromBytes(output.extractSync()),
+      hexFromBytes((await output.extract()).bytes),
       hexFromBytes(expected),
     );
   });

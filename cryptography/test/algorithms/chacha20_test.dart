@@ -19,171 +19,270 @@ import 'package:cryptography/src/utils.dart';
 import 'package:test/test.dart';
 
 void main() {
+  final algorithm = Chacha20(macAlgorithm: Hmac.sha256());
+
   group('Chacha20:', () {
-    const algorithm = chacha20;
+    test('== / hashCode', () {
+      final clone = Chacha20(
+        macAlgorithm: Hmac.sha256(),
+      );
+      final other0 = Chacha20(
+        macAlgorithm: Hmac.sha512(),
+      );
+      final other1 = AesCtr.with256bits(
+        macAlgorithm: Hmac.sha256(),
+      );
+      expect(algorithm, clone);
+      expect(algorithm, isNot(other0));
+      expect(algorithm, isNot(other1));
+      expect(algorithm.hashCode, clone.hashCode);
+      expect(algorithm.hashCode, isNot(other0.hashCode));
+      expect(algorithm.hashCode, isNot(other1.hashCode));
+    });
+
+    test('toString', () {
+      expect(
+        algorithm.toString(),
+        'Chacha20(macAlgorithm: Hmac.sha256())',
+      );
+    });
 
     test('information', () {
-      expect(algorithm.name, 'chacha20');
-      expect(algorithm.isAuthenticated, isFalse);
+      expect(algorithm.macAlgorithm, Hmac.sha256());
       expect(algorithm.secretKeyLength, 32);
-      expect(algorithm.secretKeyValidLengths, unorderedEquals({32}));
       expect(algorithm.nonceLength, 12);
     });
 
-    test('1000 random inputs encrypted and decrypted', () {
+    test('Checks MAC', () async {
+      // Encrypt
+      final secretKey = await algorithm.newSecretKey();
+      final secretBox = await algorithm.encrypt(
+        [1, 2, 3],
+        secretKey: secretKey,
+      );
+
+      // Change MAC
+      final badMac = Mac(secretBox.mac.bytes.map((e) => 0xFF ^ e).toList());
+      final badSecretBox = SecretBox(
+        secretBox.cipherText,
+        nonce: secretBox.nonce,
+        mac: badMac,
+      );
+
+      // Decrypting should fail
+      await expectLater(
+        algorithm.decrypt(badSecretBox, secretKey: secretKey),
+        throwsA(
+          isA<SecretBoxAuthenticationError>(),
+        ),
+      );
+    });
+
+    test('Encrypted without specifying nonce: two results are different',
+        () async {
+      // Encrypt
+      final clearText = [1, 2, 3];
+      final secretKey = await algorithm.newSecretKey();
+      final secretBox = await algorithm.encrypt(
+        clearText,
+        secretKey: secretKey,
+      );
+      final otherSecretBox = await algorithm.encrypt(
+        clearText,
+        secretKey: secretKey,
+      );
+      expect(secretBox.nonce, isNot(otherSecretBox.nonce));
+      expect(secretBox.cipherText, isNot(otherSecretBox.cipherText));
+      expect(secretBox.mac, isNot(otherSecretBox.mac));
+    });
+
+    test('Encrypted without specifying nonce: decrypted correctly', () async {
+      // Encrypt
+      final clearText = [1, 2, 3];
+      final secretKey = await algorithm.newSecretKey();
+      final secretBox = await algorithm.encrypt(
+        clearText,
+        secretKey: secretKey,
+      );
+
+      // Check MAC
+      final expectedMac = await Hmac.sha256().calculateMac(
+        secretBox.cipherText,
+        secretKey: secretKey,
+        nonce: secretBox.nonce,
+      );
+      expect(secretBox.mac, expectedMac);
+
+      // Decrypt
+      final decryptedSecretBox = await algorithm.decrypt(
+        secretBox,
+        secretKey: secretKey,
+      );
+      expect(decryptedSecretBox, clearText);
+    });
+
+    test('1000 random inputs encrypted and decrypted', () async {
       for (var i = 0; i < 1000; i++) {
-        final secretKey = chacha20.newSecretKeySync();
-        final nonce = chacha20.newNonce();
-        final plainText = SecretKey.randomBytes(i % 127).extractSync();
+        final secretKey = await algorithm.newSecretKey();
+        final nonce = algorithm.newNonce();
+        final clearText = Uint8List(i % 127);
         final offset = i % 123;
-        final encrypted = chacha20.encryptSync(
-          plainText,
+        final secretBox = await algorithm.encrypt(
+          clearText,
           secretKey: secretKey,
           nonce: nonce,
           keyStreamIndex: offset,
         );
-        final decrypted = chacha20.decryptSync(
-          encrypted,
+        final expectedMac = await Hmac.sha256().calculateMac(
+          secretBox.cipherText,
           secretKey: secretKey,
           nonce: nonce,
+        );
+        expect(
+          hexFromBytes(secretBox.mac.bytes),
+          hexFromBytes(expectedMac.bytes),
+        );
+        final decrypted = await algorithm.decrypt(
+          secretBox,
+          secretKey: secretKey,
           keyStreamIndex: offset,
         );
-        expect(decrypted, plainText);
+        expect(decrypted, clearText);
       }
     });
 
-    test('newSecretKeySync(): two results are not equal', () {
-      final secretKey = chacha20.newSecretKeySync();
-      expect(secretKey.extractSync(), hasLength(32));
-      expect(secretKey, isNot(chacha20.newSecretKeySync()));
+    test('newSecretKey(): length is 32', () async {
+      final secretKey = await algorithm.newSecretKey();
+      final secretKeyData = await secretKey.extract();
+      expect(secretKeyData.bytes, hasLength(32));
     });
 
-    test('newNonce(): two results are not equal', () {
-      final nonce = chacha20.newNonce();
-      expect(nonce.bytes, hasLength(12));
-      expect(nonce, isNot(chacha20.newNonce()));
+    test('newSecretKey(): two results are not equal', () async {
+      final secretKey = await algorithm.newSecretKey();
+      final otherSecretKey = await algorithm.newSecretKey();
+      final secretKeyData = await secretKey.extract();
+      final otherSecretKeyData = await otherSecretKey.extract();
+      expect(secretKeyData, isNot(otherSecretKeyData));
     });
 
-    group('encryptSync(...):', () {
-      test("throws ArgumentError when 'secretKey' is null", () {
-        expect(() {
-          chacha20.encryptSync(
+    test('newNonce(): length is ${algorithm.nonceLength}', () async {
+      final nonce = await algorithm.newNonce();
+      expect(nonce, hasLength(algorithm.nonceLength));
+    });
+
+    test('newNonce(): two results are not equal', () async {
+      final nonce = await algorithm.newNonce();
+      final otherNonce = await algorithm.newNonce();
+      expect(nonce, isNot(otherNonce));
+    });
+
+    group('encrypt(...):', () {
+      test("throws ArgumentError when 'secretKey' has a wrong length",
+          () async {
+        await expectLater(
+          algorithm.encrypt(
             <int>[],
-            secretKey: null,
-            nonce: chacha20.newNonce(),
-          );
-        }, throwsA(const TypeMatcher<ArgumentError>()));
+            secretKey: SecretKeyData(Uint8List(31)),
+          ),
+          throwsA(const TypeMatcher<ArgumentError>()),
+        );
+        await expectLater(
+          algorithm.encrypt(
+            <int>[],
+            secretKey: SecretKeyData(Uint8List(33)),
+          ),
+          throwsA(const TypeMatcher<ArgumentError>()),
+        );
       });
 
-      test("throws ArgumentError when 'secretKey' has a wrong length", () {
-        expect(() {
-          chacha20.encryptSync(
+      test("throws ArgumentError when 'nonce' has a wrong length", () async {
+        await expectLater(
+          algorithm.encrypt(
             <int>[],
-            secretKey: SecretKey(Uint8List(31)),
-            nonce: chacha20.newNonce(),
-          );
-        }, throwsA(const TypeMatcher<ArgumentError>()));
-        expect(() {
-          chacha20.encryptSync(
+            secretKey: await algorithm.newSecretKey(),
+            nonce: Uint8List(11),
+          ),
+          throwsA(const TypeMatcher<ArgumentError>()),
+        );
+        await expectLater(
+          algorithm.encrypt(
             <int>[],
-            secretKey: SecretKey(Uint8List(33)),
-            nonce: chacha20.newNonce(),
-          );
-        }, throwsA(const TypeMatcher<ArgumentError>()));
-      });
-
-      test("throws ArgumentError when 'nonce' has a wrong length", () {
-        expect(() {
-          chacha20.encryptSync(
-            <int>[],
-            secretKey: chacha20.newSecretKeySync(),
-            nonce: Nonce(Uint8List(11)),
-          );
-        }, throwsA(const TypeMatcher<ArgumentError>()));
-        expect(() {
-          chacha20.encryptSync(
-            <int>[],
-            secretKey: chacha20.newSecretKeySync(),
-            nonce: Nonce(Uint8List(13)),
-          );
-        }, throwsA(const TypeMatcher<ArgumentError>()));
+            secretKey: await algorithm.newSecretKey(),
+            nonce: Uint8List(13),
+          ),
+          throwsA(const TypeMatcher<ArgumentError>()),
+        );
       });
     });
 
-    group('decryptSync(...):', () {
-      test("throws ArgumentError when 'secretKey' is null", () {
-        expect(() {
-          chacha20.decryptSync(
-            <int>[],
-            secretKey: null,
-            nonce: chacha20.newNonce(),
-          );
-        }, throwsA(const TypeMatcher<ArgumentError>()));
+    group('decrypt(...):', () {
+      test("throws ArgumentError when 'secretKey' has a wrong length",
+          () async {
+        final secretBox = await algorithm.encrypt(
+          [1, 2, 3],
+          secretKey: await algorithm.newSecretKey(),
+        );
+        await expectLater(
+          algorithm.decrypt(
+            secretBox,
+            secretKey: SecretKeyData(Uint8List(31)),
+          ),
+          throwsArgumentError,
+        );
+        await expectLater(
+          algorithm.decrypt(
+            secretBox,
+            secretKey: SecretKeyData(Uint8List(33)),
+          ),
+          throwsArgumentError,
+        );
       });
 
-      test("throws ArgumentError when 'secretKey' has a wrong length", () {
-        expect(() {
-          chacha20.decryptSync(
-            <int>[],
-            secretKey: SecretKey(Uint8List(31)),
-            nonce: chacha20.newNonce(),
-          );
-        }, throwsA(const TypeMatcher<ArgumentError>()));
-        expect(() {
-          chacha20.decryptSync(
-            <int>[],
-            secretKey: SecretKey(Uint8List(33)),
-            nonce: chacha20.newNonce(),
-          );
-        }, throwsA(const TypeMatcher<ArgumentError>()));
-      });
-
-      test("throws ArgumentError when 'nonce' has a wrong length", () {
-        expect(() {
-          chacha20.decryptSync(
-            <int>[],
-            secretKey: chacha20.newSecretKeySync(),
-            nonce: Nonce(Uint8List(11)),
-          );
-        }, throwsA(const TypeMatcher<ArgumentError>()));
-        expect(() {
-          chacha20.decryptSync(
-            <int>[],
-            secretKey: chacha20.newSecretKeySync(),
-            nonce: Nonce(Uint8List(13)),
-          );
-        }, throwsA(const TypeMatcher<ArgumentError>()));
+      test("throws ArgumentError when 'nonce' has a wrong length", () async {
+        await expectLater(
+          algorithm.decrypt(
+            SecretBox(<int>[], nonce: Uint8List(11), mac: Mac.empty),
+            secretKey: await algorithm.newSecretKey(),
+          ),
+          throwsA(const TypeMatcher<ArgumentError>()),
+        );
+        await expectLater(
+          algorithm.decrypt(
+            SecretBox(<int>[], nonce: Uint8List(13), mac: Mac.empty),
+            secretKey: await algorithm.newSecretKey(),
+          ),
+          throwsA(const TypeMatcher<ArgumentError>()),
+        );
       });
     });
   });
 
   test('encrypt/decrypt inputs with lengths from 0 to 1000', () async {
     // 1000 'a' letters
-    final plainText = Uint8List(1000);
-    plainText.fillRange(0, plainText.length, 'a'.codeUnits.single);
-    final secretKey = chacha20.newSecretKeySync();
-    final nonce = chacha20.newNonce();
+    final clearText = Uint8List(1000);
+    clearText.fillRange(0, clearText.length, 'a'.codeUnits.single);
+    final secretKey = await algorithm.newSecretKey();
+    final nonce = algorithm.newNonce();
 
     for (var sliceEnd = 0; sliceEnd < 1000; sliceEnd++) {
       final sliceStart = sliceEnd < 129 ? 0 : sliceEnd % 129;
       final slice = Uint8List.view(
-        plainText.buffer,
+        clearText.buffer,
         sliceStart,
         sliceEnd - sliceStart,
       );
 
       // Encrypt
-      final encrypted = chacha20.encryptSync(
+      final encrypted = await algorithm.encrypt(
         slice,
         secretKey: secretKey,
         nonce: nonce,
       );
 
       // Decrypt
-      final decrypted = chacha20.decryptSync(
+      final decrypted = await algorithm.decrypt(
         encrypted,
         secretKey: secretKey,
-        nonce: nonce,
       );
 
       // Test that the decrypted matches clear text.
@@ -205,13 +304,13 @@ void main() {
             .runes
             .toList();
 
-    final secretKey = SecretKey(hexToBytes(
+    final secretKey = SecretKeyData(hexToBytes(
       '00:01:02:03:04:05:06:07:08:09:0a:0b:0c:0d:0e:0f:10:11:12:13:14:15:16:17:18:19:1a:1b:1c:1d:1e:1f',
     ));
 
-    final nonce = Nonce(hexToBytes(
+    final nonce = hexToBytes(
       '00:00:00:00:00:00:00:4a:00:00:00:00',
-    ));
+    );
 
     final initialKeyStreamIndex = 64;
 
@@ -231,49 +330,32 @@ void main() {
     // -----------------------------------------------------------------------
 
     test('encrypt', () async {
-      expect(
-        hexFromBytes(await chacha20.encrypt(
-          cleartext,
-          secretKey: secretKey,
-          nonce: nonce,
-          keyStreamIndex: initialKeyStreamIndex,
-        )),
-        hexFromBytes(expectedCipherText),
+      final secretBox = await algorithm.encrypt(
+        cleartext,
+        secretKey: secretKey,
+        nonce: nonce,
+        keyStreamIndex: initialKeyStreamIndex,
       );
-    });
-
-    test('encryptSync', () {
       expect(
-        hexFromBytes(chacha20.encryptSync(
-          cleartext,
-          secretKey: secretKey,
-          nonce: nonce,
-          keyStreamIndex: initialKeyStreamIndex,
-        )),
+        hexFromBytes(secretBox.cipherText),
         hexFromBytes(expectedCipherText),
       );
     });
 
     test('decrypt', () async {
-      expect(
-        hexFromBytes(await chacha20.decrypt(
-          expectedCipherText,
-          secretKey: secretKey,
-          nonce: nonce,
-          keyStreamIndex: initialKeyStreamIndex,
-        )),
-        hexFromBytes(cleartext),
+      final algorithm = Chacha20(macAlgorithm: MacAlgorithm.empty);
+      final secretBox = SecretBox(
+        expectedCipherText,
+        nonce: nonce,
+        mac: Mac.empty,
       );
-    });
-
-    test('decryptSync', () {
+      final decrypted = await algorithm.decrypt(
+        secretBox,
+        secretKey: secretKey,
+        keyStreamIndex: initialKeyStreamIndex,
+      );
       expect(
-        hexFromBytes(chacha20.decryptSync(
-          expectedCipherText,
-          secretKey: secretKey,
-          nonce: nonce,
-          keyStreamIndex: initialKeyStreamIndex,
-        )),
+        hexFromBytes(decrypted),
         hexFromBytes(cleartext),
       );
     });

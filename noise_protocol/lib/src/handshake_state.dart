@@ -20,108 +20,99 @@ class HandshakeState {
   final NoiseProtocol protocol;
 
   /// Handshake algorithms.
-  final NoiseAuthenticator authenticator;
+  final NoiseAuthenticationParameters authenticator;
 
   /// Symmetric state.
   @visibleForTesting
   final SymmetricState symmetricState;
 
   /// Optional rekey function.
-  final FutureOr<SecretKey> Function(SecretKey secretKey) rekey;
+  final FutureOr<SecretKey> Function(SecretKey secretKey)? rekey;
 
   // Remaining message patterns for this handshake.
-  Queue<MessagePattern> _messagePatterns;
+  late Queue<NoiseMessagePattern> _messagePatterns;
 
   // Are we an initiator or responder?
-  bool _isInitiator;
+  bool? _isInitiator;
 
   // Is it our turn to send or receive?
-  bool _isSending;
+  bool? _isSending;
 
   // Local ephemeral key pair.
-  KeyPair _localEphemeralKeyPair;
+  SimpleKeyPair? _localEphemeralKeyPair;
 
   /// Optional local static key pair. Some handshake patterns require this.
   ///
   /// The default value is obtained from [authenticator].
-  KeyPair localStaticKeyPair;
+  SimpleKeyPair? localStaticKeyPair;
 
   /// Optional pre-shared key. Some handshake patterns require this.
   ///
   /// The default value is obtained from [authenticator].
-  SecretKey presharedKey;
+  SecretKeyData? presharedKey;
 
   // Remote ephemeral public key.
-  PublicKey _remoteEphemeralPublicKey;
+  SimplePublicKey? _remoteEphemeralPublicKey;
 
   // Remote static public key.
-  PublicKey _remoteStaticPublicKey;
+  SimplePublicKey? _remoteStaticPublicKey;
 
   HandshakeState({
-    @required this.protocol,
-    @required this.authenticator,
+    required this.protocol,
+    required this.authenticator,
     this.rekey,
-  })  : assert(protocol != null),
-        assert(authenticator != null),
-        symmetricState = SymmetricState(protocol: protocol) {
+  }) : symmetricState = SymmetricState(protocol: protocol) {
     final publicKeyLength = protocol.publicKeyLength;
-    if (authenticator.localStaticKeyPair != null &&
-        authenticator.localStaticKeyPair.publicKey.bytes.length !=
-            publicKeyLength) {
-      throw ArgumentError(
-        'local static public key must have $publicKeyLength bytes',
-      );
-    }
     if (authenticator.remoteStaticPublicKey != null &&
-        authenticator.remoteStaticPublicKey.bytes.length != publicKeyLength) {
+        authenticator.remoteStaticPublicKey!.bytes.length != publicKeyLength) {
       throw ArgumentError.value(
         'remote static public key must have $publicKeyLength bytes',
       );
     }
     final presharedKey = authenticator.presharedKey;
     if (presharedKey == null &&
-        authenticator.onRemotePublicKey == null &&
+        authenticator.onValidateRemotePublicKey == null &&
         protocol.handshakePattern.usesPresharedKey) {
       throw ArgumentError(
         'pattern uses pre-shared key, thus authenticator must have either presharedKey or onRemotePublicKey',
       );
     }
-    if (presharedKey != null && presharedKey.extractSync().length != 32) {
+    if (presharedKey != null && presharedKey.bytes.length != 32) {
       throw ArgumentError('pre-shared key must have 32 bytes');
     }
   }
 
   /// Whether the local party is initiator.
-  bool get isInitiator => _isInitiator;
+  bool? get isInitiator => _isInitiator;
 
   /// Local ephemeral key pair.
-  KeyPair get localEphemeralKeyPair => _localEphemeralKeyPair;
+  SimpleKeyPair? get localEphemeralKeyPair => _localEphemeralKeyPair;
 
   /// Remote static ephemeral public key.
-  PublicKey get remoteEphemeralPublicKey => _remoteEphemeralPublicKey;
+  SimplePublicKey? get remoteEphemeralPublicKey => _remoteEphemeralPublicKey;
 
   /// Remote static public key.
-  PublicKey get remoteStaticPublicKey => _remoteStaticPublicKey;
+  SimplePublicKey? get remoteStaticPublicKey => _remoteStaticPublicKey;
 
   /// See the [specification](https://noiseprotocol.org/noise.html).
-  void initialize({
-    @required bool isInitiator,
+  Future<void> initialize({
+    required bool isInitiator,
     List<int> prologue = const <int>[],
-    KeyPair localEphemeralKeyPair,
+    SimpleKeyPair? localEphemeralKeyPair,
   }) async {
-    ArgumentError.checkNotNull(isInitiator);
-    ArgumentError.checkNotNull(prologue);
-    if (protocol.handshakePattern.messagePatterns
-        .any((p) => p.tokens.contains(MessageToken.e))) {
-      localEphemeralKeyPair ??=
-          protocol.keyExchangeAlgorithm.implementation.newKeyPairSync();
+    if (protocol.handshakePattern.noiseMessagePatterns
+        .any((p) => p.tokens.contains(NoiseMessageToken.e))) {
+      if (_localEphemeralKeyPair == null) {
+        final newKeyPair = await protocol.noiseKeyExchangeAlgorithm.implementation.newKeyPair();
+        localEphemeralKeyPair = (await newKeyPair.extract()) as SimpleKeyPairData;
+      }
     }
 
     //
     // Initialize
     //
-    _messagePatterns = Queue<MessagePattern>.from(
-      protocol.handshakePattern.messagePatterns,
+    _messagePatterns = Queue<NoiseMessagePattern>.from(
+      protocol.handshakePattern.noiseMessagePatterns,
     );
     _isInitiator = isInitiator;
 
@@ -129,9 +120,12 @@ class HandshakeState {
     await symmetricState.initializeSymmetric();
 
     // Set keys
+    final authenticator = this.authenticator;
     localStaticKeyPair = authenticator.localStaticKeyPair;
-    _localEphemeralKeyPair = localEphemeralKeyPair;
-    _remoteStaticPublicKey = authenticator.remoteStaticPublicKey;
+    if (localEphemeralKeyPair != null) {
+      _localEphemeralKeyPair = await localEphemeralKeyPair.extract();
+    }
+    _remoteStaticPublicKey = authenticator.remoteStaticPublicKey!;
     _remoteEphemeralPublicKey = null;
 
     // Mix prologue
@@ -144,20 +138,24 @@ class HandshakeState {
       // This is initiator
       //
       if (handshakePattern.isInitiatorKnown) {
-        await symmetricState.mixHash(localStaticKeyPair.publicKey.bytes);
+        // Mix local public key
+        final publicKey = await localStaticKeyPair!.extractPublicKey();
+        await symmetricState.mixHash(publicKey.bytes);
       }
       if (handshakePattern.isResponderKnown) {
-        await symmetricState.mixHash(remoteStaticPublicKey.bytes);
+        // Mix remote public key
+        await symmetricState.mixHash(remoteStaticPublicKey!.bytes);
       }
     } else {
       //
       // This is responder
       //
       if (handshakePattern.isInitiatorKnown) {
-        await symmetricState.mixHash(remoteStaticPublicKey.bytes);
+        await symmetricState.mixHash(remoteStaticPublicKey!.bytes);
       }
       if (handshakePattern.isResponderKnown) {
-        await symmetricState.mixHash(localStaticKeyPair.publicKey.bytes);
+        final publicKey = await localStaticKeyPair!.extractPublicKey();
+        await symmetricState.mixHash(publicKey.bytes);
       }
     }
 
@@ -169,10 +167,10 @@ class HandshakeState {
   /// If this is the last handshake message, the method returns
   /// [HandshakeResult] and you can discard the handshake state.
   /// Otherwise returns null.
-  Future<HandshakeResult> readMessage({
-    @required List<int> message,
-    List<int> payloadBuffer,
-    void Function(List<int> payload) onPayload,
+  Future<HandshakeResult?> readMessage({
+    required List<int> message,
+    List<int>? payloadBuffer,
+    void Function(List<int> payload)? onPayload,
   }) async {
     if (_isSending == null) {
       throw StateError(
@@ -181,7 +179,7 @@ class HandshakeState {
     }
 
     // Is it our turn to read?
-    if (_isSending) {
+    if (_isSending!) {
       throw StateError(
         'Expecting to write a message (not read)',
       );
@@ -191,11 +189,11 @@ class HandshakeState {
     final messagePattern = _messagePatterns.removeFirst();
 
     // Handle each token in the message pattern
-    final keyExchangeAlgorithm = protocol.keyExchangeAlgorithm.implementation;
+    final keyExchangeAlgorithm = protocol.noiseKeyExchangeAlgorithm.implementation;
     var messageStart = 0;
     for (var token in messagePattern.tokens) {
       switch (token) {
-        case MessageToken.e:
+        case NoiseMessageToken.e:
           // ------------------------------------------------------------------
           // Read remote ephemeral public key
           // ------------------------------------------------------------------
@@ -211,13 +209,16 @@ class HandshakeState {
             messageStart + publicKeyLength,
           );
           messageStart += publicKeyLength;
-          _remoteEphemeralPublicKey = PublicKey(publicKey);
+          _remoteEphemeralPublicKey = SimplePublicKey(
+            publicKey,
+            type: keyExchangeAlgorithm.keyPairType,
+          );
 
           // Call mixHash
           await symmetricState.mixHash(publicKey);
           break;
 
-        case MessageToken.s:
+        case NoiseMessageToken.s:
           // ------------------------------------------------------------------
           // Read remote static public key (possibly encrypted)
           // ------------------------------------------------------------------
@@ -235,7 +236,10 @@ class HandshakeState {
               messageStart + n,
             );
             messageStart += n;
-            _remoteStaticPublicKey = PublicKey(bytes);
+            _remoteStaticPublicKey = SimplePublicKey(
+              bytes,
+              type: keyExchangeAlgorithm.keyPairType,
+            );
           } else {
             // The bytes are encrypted
             final n = publicKeyLength + 16;
@@ -245,87 +249,90 @@ class HandshakeState {
             );
             messageStart += n;
             bytes = await symmetricState.decryptAndHash(bytes);
-            _remoteStaticPublicKey = PublicKey(bytes);
+            _remoteStaticPublicKey = SimplePublicKey(
+              bytes,
+              type: keyExchangeAlgorithm.keyPairType,
+            );
           }
-          final onReceivedPublicKey = authenticator.onRemotePublicKey;
+          final onReceivedPublicKey = authenticator.onValidateRemotePublicKey;
           if (onReceivedPublicKey != null) {
             await onReceivedPublicKey(this);
           }
           break;
 
-        case MessageToken.ee:
+        case NoiseMessageToken.ee:
           // ------------------------------------------------------------------
           // Mix key with DH(ephemeral, ephemeral)
           // ------------------------------------------------------------------
-          final secretKey = await keyExchangeAlgorithm.sharedSecret(
-            localPrivateKey: _localEphemeralKeyPair.privateKey,
-            remotePublicKey: _remoteEphemeralPublicKey,
+          final secretKey = await keyExchangeAlgorithm.sharedSecretKey(
+            keyPair: _localEphemeralKeyPair!,
+            remotePublicKey: _remoteEphemeralPublicKey!,
           );
-          await symmetricState.mixKey(secretKey.extractSync());
+          final extractedSecretKey = await secretKey.extract();
+          await symmetricState.mixKey(extractedSecretKey.bytes);
           break;
 
-        case MessageToken.es:
+        case NoiseMessageToken.es:
           // ------------------------------------------------------------------
           // Mix key with DH(ephemeral, static)
           // ------------------------------------------------------------------
           SecretKey secretKey;
-          if (isInitiator) {
-            secretKey = await keyExchangeAlgorithm.sharedSecret(
-              localPrivateKey: _localEphemeralKeyPair.privateKey,
-              remotePublicKey: _remoteStaticPublicKey,
+          if (isInitiator!) {
+            secretKey = await keyExchangeAlgorithm.sharedSecretKey(
+              keyPair: _localEphemeralKeyPair!,
+              remotePublicKey: _remoteStaticPublicKey!,
             );
           } else {
-            secretKey = await keyExchangeAlgorithm.sharedSecret(
-              localPrivateKey: localStaticKeyPair.privateKey,
-              remotePublicKey: _remoteEphemeralPublicKey,
+            secretKey = await keyExchangeAlgorithm.sharedSecretKey(
+              keyPair: localStaticKeyPair!,
+              remotePublicKey: _remoteEphemeralPublicKey!,
             );
           }
-          await symmetricState.mixKey(
-            secretKey.extractSync(),
-          );
+          final extractedSecretKey = await secretKey.extract();
+          await symmetricState.mixKey(extractedSecretKey.bytes);
           break;
 
-        case MessageToken.se:
+        case NoiseMessageToken.se:
           // ------------------------------------------------------------------
           // Mix key with DH(static, ephemeral)
           // ------------------------------------------------------------------
           SecretKey secretKey;
-          if (isInitiator) {
-            secretKey = await keyExchangeAlgorithm.sharedSecret(
-              localPrivateKey: localStaticKeyPair.privateKey,
-              remotePublicKey: _remoteEphemeralPublicKey,
+          if (isInitiator!) {
+            secretKey = await keyExchangeAlgorithm.sharedSecretKey(
+              keyPair: localStaticKeyPair!,
+              remotePublicKey: _remoteEphemeralPublicKey!,
             );
           } else {
-            secretKey = await keyExchangeAlgorithm.sharedSecret(
-              localPrivateKey: localEphemeralKeyPair.privateKey,
-              remotePublicKey: _remoteStaticPublicKey,
+            secretKey = await keyExchangeAlgorithm.sharedSecretKey(
+              keyPair: localEphemeralKeyPair!,
+              remotePublicKey: _remoteStaticPublicKey!,
             );
           }
-          await symmetricState.mixKey(
-            secretKey.extractSync(),
-          );
+          final extractedSecretKey = await secretKey.extract();
+          await symmetricState.mixKey(extractedSecretKey.bytes);
           break;
 
-        case MessageToken.ss:
+        case NoiseMessageToken.ss:
           // ------------------------------------------------------------------
           // Mix key with DH(static, static)
           // ------------------------------------------------------------------
-          final secretKey = await keyExchangeAlgorithm.sharedSecret(
-            localPrivateKey: localStaticKeyPair.privateKey,
-            remotePublicKey: _remoteStaticPublicKey,
+          final secretKey = await keyExchangeAlgorithm.sharedSecretKey(
+            keyPair: localStaticKeyPair!,
+            remotePublicKey: _remoteStaticPublicKey!,
           );
-          await symmetricState.mixKey(secretKey.extractSync());
+          final extractedSecretKey = await secretKey.extract();
+          await symmetricState.mixKey(extractedSecretKey.bytes);
           break;
 
-        case MessageToken.psk:
+        case NoiseMessageToken.psk:
           // ------------------------------------------------------------------
           // Mix key with psk
           // ------------------------------------------------------------------
-          final presharedKey = await authenticator.presharedKey.extractSync();
-          if (presharedKey.length != 32) {
+          final presharedKey = await authenticator.presharedKey!.extract();
+          if (presharedKey.bytes.length != 32) {
             throw StateError('onPresharedKey must return 32 bytes');
           }
-          await symmetricState.mixKey(presharedKey);
+          await symmetricState.mixKey(presharedKey.bytes);
           break;
 
         default:
@@ -350,7 +357,7 @@ class HandshakeState {
     }
 
     // No, this was the last message.
-    return symmetricState.split(isInitiator: isInitiator);
+    return symmetricState.split(isInitiator: isInitiator!);
   }
 
   /// See the [specification](https://noiseprotocol.org/noise.html).
@@ -358,9 +365,9 @@ class HandshakeState {
   /// If this is the last handshake message, the method returns
   /// [HandshakeResult] and you can discard the handshake state.
   /// Otherwise returns null.
-  Future<HandshakeResult> writeMessage({
-    @required List<int> messageBuffer,
-    List<int> payload = const <int>[],
+  Future<HandshakeResult?> writeMessage({
+    required List<int> messageBuffer,
+    List<int>? payload = const <int>[],
   }) async {
     if (_isSending == null) {
       throw StateError(
@@ -369,7 +376,7 @@ class HandshakeState {
     }
 
     // Is it our turn to send?
-    if (!_isSending) {
+    if (!_isSending!) {
       throw StateError(
         'Expecting to read a message (not write)',
       );
@@ -379,87 +386,93 @@ class HandshakeState {
     final messagePattern = _messagePatterns.removeFirst();
 
     // Handle each token in the message pattern
-    final keyExchangeAlgorithm = protocol.keyExchangeAlgorithm.implementation;
+    final keyExchangeAlgorithm = protocol.noiseKeyExchangeAlgorithm.implementation;
     for (var token in messagePattern.tokens) {
       switch (token) {
-        case MessageToken.e:
+        case NoiseMessageToken.e:
           // ------------------------------------------------------------------
           // Write local ephemeral public key.
           // ------------------------------------------------------------------
           // In the specification, ephemeral key should be generated at this
           // point, but we have already generated it at initialize().
-          final bytes = localEphemeralKeyPair.publicKey.bytes;
+          final publicKey = await localEphemeralKeyPair!.extractPublicKey();
+          final bytes = publicKey.bytes;
           messageBuffer.addAll(bytes);
           await symmetricState.mixHash(bytes);
           break;
 
-        case MessageToken.s:
+        case NoiseMessageToken.s:
           // ------------------------------------------------------------------
           // Write static public key (possibly encrypted).
           // ------------------------------------------------------------------
-          var bytes = localStaticKeyPair.publicKey.bytes;
+          final publicKey = await localStaticKeyPair!.extractPublicKey();
+          var bytes = publicKey.bytes;
           bytes = await symmetricState.encryptAndHash(bytes);
           messageBuffer.addAll(bytes);
           break;
 
-        case MessageToken.ee:
+        case NoiseMessageToken.ee:
           // ------------------------------------------------------------------
           // Mix key with DH(ephemeral, ephemeral)
           // ------------------------------------------------------------------
-          final secretKey = await keyExchangeAlgorithm.sharedSecret(
-            localPrivateKey: _localEphemeralKeyPair.privateKey,
-            remotePublicKey: _remoteEphemeralPublicKey,
+          final secretKey = await keyExchangeAlgorithm.sharedSecretKey(
+            keyPair: _localEphemeralKeyPair!,
+            remotePublicKey: _remoteEphemeralPublicKey!,
           );
-          await symmetricState.mixKey(secretKey.extractSync());
+          final extractedSecretKey = await secretKey.extract();
+          await symmetricState.mixKey(extractedSecretKey.bytes);
           break;
 
-        case MessageToken.es:
+        case NoiseMessageToken.es:
           // ------------------------------------------------------------------
           // Mix key with DH(ephemeral, static)
           // ------------------------------------------------------------------
           SecretKey secretKey;
-          if (isInitiator) {
-            secretKey = await keyExchangeAlgorithm.sharedSecret(
-              localPrivateKey: _localEphemeralKeyPair.privateKey,
-              remotePublicKey: _remoteStaticPublicKey,
+          if (isInitiator!) {
+            secretKey = await keyExchangeAlgorithm.sharedSecretKey(
+              keyPair: _localEphemeralKeyPair!,
+              remotePublicKey: _remoteStaticPublicKey!,
             );
           } else {
-            secretKey = await keyExchangeAlgorithm.sharedSecret(
-              localPrivateKey: localStaticKeyPair.privateKey,
-              remotePublicKey: _remoteEphemeralPublicKey,
+            secretKey = await keyExchangeAlgorithm.sharedSecretKey(
+              keyPair: localStaticKeyPair!,
+              remotePublicKey: _remoteEphemeralPublicKey!,
             );
           }
-          await symmetricState.mixKey(secretKey.extractSync());
+          final extractedSecretKey = await secretKey.extract();
+          await symmetricState.mixKey(extractedSecretKey.bytes);
           break;
 
-        case MessageToken.se:
+        case NoiseMessageToken.se:
           // ------------------------------------------------------------------
           // Mix key with DH(static, ephemeral)
           // ------------------------------------------------------------------
           SecretKey secretKey;
-          if (isInitiator) {
-            secretKey = await keyExchangeAlgorithm.sharedSecret(
-              localPrivateKey: localStaticKeyPair.privateKey,
-              remotePublicKey: _remoteEphemeralPublicKey,
+          if (isInitiator!) {
+            secretKey = await keyExchangeAlgorithm.sharedSecretKey(
+              keyPair: localStaticKeyPair!,
+              remotePublicKey: _remoteEphemeralPublicKey!,
             );
           } else {
-            secretKey = await keyExchangeAlgorithm.sharedSecret(
-              localPrivateKey: _localEphemeralKeyPair.privateKey,
-              remotePublicKey: _remoteStaticPublicKey,
+            secretKey = await keyExchangeAlgorithm.sharedSecretKey(
+              keyPair: _localEphemeralKeyPair!,
+              remotePublicKey: _remoteStaticPublicKey!,
             );
           }
-          await symmetricState.mixKey(secretKey.extractSync());
+          final extractedSecretKey = await secretKey.extract();
+          await symmetricState.mixKey(extractedSecretKey.bytes);
           break;
 
-        case MessageToken.ss:
+        case NoiseMessageToken.ss:
           // ------------------------------------------------------------------
           // Mix key with DH(static, static)
           // ------------------------------------------------------------------
-          final secretKey = await keyExchangeAlgorithm.sharedSecret(
-            localPrivateKey: localStaticKeyPair.privateKey,
-            remotePublicKey: _remoteStaticPublicKey,
+          final secretKey = await keyExchangeAlgorithm.sharedSecretKey(
+            keyPair: localStaticKeyPair!,
+            remotePublicKey: _remoteStaticPublicKey!,
           );
-          await symmetricState.mixKey(secretKey.extractSync());
+          final extractedSecretKey = await secretKey.extract();
+          await symmetricState.mixKey(extractedSecretKey.bytes);
           break;
 
         default:
@@ -468,7 +481,7 @@ class HandshakeState {
     }
 
     // Do we have a payload?
-    if (payload.isNotEmpty) {
+    if (payload!.isNotEmpty) {
       // Encrypt it
       payload = await symmetricState.cipherState.encrypt(payload);
 
@@ -485,6 +498,6 @@ class HandshakeState {
     }
 
     // No, this was the last message.
-    return symmetricState.split(isInitiator: isInitiator);
+    return symmetricState.split(isInitiator: isInitiator!);
   }
 }

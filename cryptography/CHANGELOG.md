@@ -1,3 +1,9 @@
+## 2.0.0-nullsafety.0
+  * BREAKING CHANGES: Many breaking API changes that make the API easier to understand and use.
+  * IMPORTANT FIXES: Improves tests and fixes a number of bugs we spotted. We don't plan to support
+    the 1.x API. We highly recommend you migrate to the 2.x API.
+  * The first null-safe version.
+
 ## 1.4.1
   * Improves Web Cryptography support internally.
     * The implementation is now easier to read.
@@ -18,9 +24,9 @@
 
 ## 1.2.0
   * Adds `RsaPss` and `RsaPkcs1v15` (Web Cryptography only).
-  * BREAKING CHANGE: Recently added `JwkPrivateKey` is now `EcJwkPrivateKey`.
-  * Adds `EcJwkPrivateKey` and `EcJwkPublicKey`.
-  * Adds `RsaJwkPrivateKey` and `RsaJwkPublicKey`.
+  * BREAKING CHANGE: Recently added `JwkSecretKey` is now `EcJwkSecretKey`.
+  * Adds `EcJwkSecretKey` and `EcJwkPublicKey`.
+  * Adds `RsaJwkSecretKey` and `RsaJwkPublicKey`.
 
 ## 1.1.1
   * Small fixes to documentation and internal declarations.
@@ -34,12 +40,12 @@
   * `Cipher` has new getters `nonceLengthMin` and `nonceLengthMax`.
   * AES-GCM is supported in the VM too.
   * AES performance is improved significantly.
-  * Adds `JwkPrivateKey`.
-  * BREAKING CHANGE: JwkPrivateKey (instead of previous unspecified format) becomes the private key
+  * Adds `JwkSecretKey`.
+  * BREAKING CHANGE: JwkSecretKey (instead of previous unspecified format) becomes the private key
     storage format for P-256/P-384/P-521. Any attempt to use the previous unspecified format will
     lead to errors. It's unlikely that anyone is affected by this change so we don't bump the major
     version.
-  * `SecretKey` and `PrivateKey` now have property `Map<Object,Object> cachedValues`, which can
+  * `SecretKey` and `SecretKey` now have property `Map<Object,Object> cachedValues`, which can
     be used for caching objects needed for cryptographic operations (such as handles to Web
     Cryptography API objects).
   * Hides utils from developers.
@@ -65,7 +71,7 @@
   * Better documentation and benchmarks.
 
 ## 1.0.1
-  * Implements `ed25519.newKeyPairFromSeed(seed)`.
+  * Implements `ed25519.newKeyFromSeed(seed)`.
   * Significantly improves ED25519 performance.
   * Small fixes in documentation.
 
@@ -76,7 +82,7 @@
   * Documentation fixes.
 
 ## 0.3.5
-  * Adds _XChaCha20_ cipher.
+  * Adds _Xchacha20_ cipher.
   * When authenticated ciphers encounter incorrect MACs, they now throw `MacValidationException`
     (instead of returning null, which developers may ignore in some situations).
 
@@ -103,7 +109,7 @@
 
 ## 0.2.6
   * Fixed an issue with dependency constraints that conflict with Flutter SDK.
-  * PrivateKey / SecretKey property `bytes` is deprecated and replaced with `extract()` and
+  * SecretKey / SecretKey property `bytes` is deprecated and replaced with `extract()` and
     `extractSync()` to better support implementations that protect the underlying bytes such as
     Web Cryptography API.
   * Improves documentation.

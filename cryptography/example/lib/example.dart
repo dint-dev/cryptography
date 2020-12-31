@@ -1,20 +1,21 @@
 import 'package:cryptography/cryptography.dart';
 
 Future<void> main() async {
+  final algorithm = AesGcm.with256bits();
+
   // Generate a random 256-bit secret key
-  final secretKey = await chacha20.newSecretKey();
+  final secretKey = await algorithm.newSecretKey();
 
   // Generate a random 96-bit nonce.
-  final nonce = chacha20.newNonce();
+  final nonce = algorithm.newNonce();
 
   // Encrypt
-  final plainText = [1, 2, 3];
-  final cipherText = await chacha20Poly1305Aead.encrypt(
-    plainText,
+  final clearText = [1, 2, 3];
+  final secretBox = await algorithm.encrypt(
+    clearText,
     secretKey: secretKey,
     nonce: nonce,
   );
-
-  print('Bytes: ${chacha20Poly1305Aead.getDataInCipherText(cipherText)}');
-  print('MAC: ${chacha20Poly1305Aead.getMacInCipherText(cipherText)}');
+  print('Ciphertext: ${secretBox.cipherText}');
+  print('MAC: ${secretBox.mac}');
 }

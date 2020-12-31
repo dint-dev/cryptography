@@ -22,8 +22,8 @@ class HandshakeResult {
   final CipherState decryptingState;
 
   HandshakeResult({
-    @required this.encryptingState,
-    @required this.decryptingState,
+    required this.encryptingState,
+    required this.decryptingState,
   });
 
   @override

@@ -16,9 +16,6 @@ import 'dart:typed_data';
 
 /// Converts a list of bytes to a hexadecimal string.
 String hexFromBytes(Iterable<int> iterable) {
-  if (iterable == null) {
-    return 'null';
-  }
   final list = iterable.toList();
   final sb = StringBuffer();
   for (var i = 0; i < list.length; i++) {
@@ -34,11 +31,8 @@ String hexFromBytes(Iterable<int> iterable) {
   return sb.toString();
 }
 
-/// Converts a hexadecimal string to a list of bytes.
-Uint8List hexToBytes(String input) {
-  if (input == null) {
-    return null;
-  }
+/// Converts a hexadecimal string to an unmodifiable list of bytes.
+List<int> hexToBytes(String input) {
   final s = input.replaceAll(' ', '').replaceAll(':', '').replaceAll('\n', '');
   if (s.length % 2 != 0) {
     throw ArgumentError.value(input);
@@ -51,5 +45,5 @@ Uint8List hexToBytes(String input) {
     }
     result[i ~/ 2] = value;
   }
-  return Uint8List.fromList(result);
+  return List<int>.unmodifiable(Uint8List.fromList(result));
 }

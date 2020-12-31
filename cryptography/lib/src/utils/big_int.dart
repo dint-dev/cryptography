@@ -26,16 +26,16 @@ BigInt bigIntFromBytes(List<int> bytes) {
 }
 
 /// Converts [BigInt] to bytes. Uses little-endian byte order.
-Uint8List bigIntToBytes(BigInt value, List<int> result,
-    [int start = 0, int length]) {
+Uint8List bigIntToBytes(BigInt? value, List<int> result,
+    [int start = 0, int? length]) {
   final original = value;
   length ??= result.length - start;
   for (var i = 0; i < length; i++) {
-    result[start + i] = (_byteMask & value).toInt();
+    result[start + i] = (_byteMask & value!).toInt();
     value >>= 8;
   }
   if (value != BigInt.zero) {
     throw ArgumentError.value(original);
   }
-  return result;
+  return result as Uint8List;
 }

@@ -22,10 +22,8 @@ import 'dart:typed_data';
 
 import 'package:collection/collection.dart';
 import 'package:cryptography/cryptography.dart';
-import 'package:cryptography/cryptography.dart' as cryptography;
 import 'package:cryptography/src/utils.dart';
 import 'package:meta/meta.dart';
-import 'package:typed_data/typed_buffers.dart';
 
 part 'src/cipher_state.dart';
 part 'src/handshake_pattern.dart';
@@ -33,5 +31,5 @@ part 'src/handshake_protocol.dart';
 part 'src/handshake_result.dart';
 part 'src/handshake_state.dart';
 part 'src/noise_authenticator.dart';
-part 'src/noise_connection.dart';
+part 'src/message_pattern.dart';
 part 'src/symmetric_state.dart';

@@ -19,10 +19,5 @@ export 'utils/bytes.dart';
 export 'utils/bytes.dart';
 export 'utils/constant_time_equality.dart';
 export 'utils/hex.dart';
-export 'utils/parameters.dart';
 export 'utils/random_bytes.dart';
 export 'utils/rotate.dart';
-
-/// Determines whether Web Crypto exceptions are not ignored. Default is
-/// false.
-bool webCryptoThrows = false;

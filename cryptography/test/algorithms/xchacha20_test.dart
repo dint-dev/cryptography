@@ -17,15 +17,81 @@ import 'package:cryptography/src/utils.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group('XChaCha20:', () {
-    const algorithm = xchacha20;
+  group('Xchacha20:', () {
+    final algorithm = Xchacha20(macAlgorithm: Hmac.sha256());
 
     test('information', () {
-      expect(algorithm.name, 'xchacha20');
-      expect(algorithm.isAuthenticated, isFalse);
+      expect(algorithm.macAlgorithm, Hmac.sha256());
       expect(algorithm.secretKeyLength, 32);
-      expect(algorithm.secretKeyValidLengths, unorderedEquals({32}));
       expect(algorithm.nonceLength, 24);
+    });
+
+    test('Checks MAC', () async {
+      // Encrypt
+      final secretKey = await algorithm.newSecretKey();
+      final secretBox = await algorithm.encrypt(
+        [1, 2, 3],
+        secretKey: secretKey,
+      );
+
+      // Change MAC
+      final badMac = Mac(secretBox.mac.bytes.map((e) => 0xFF ^ e).toList());
+      final badSecretBox = SecretBox(
+        secretBox.cipherText,
+        nonce: secretBox.nonce,
+        mac: badMac,
+      );
+
+      // Decrypting should fail
+      await expectLater(
+        algorithm.decrypt(badSecretBox, secretKey: secretKey),
+        throwsA(
+          isA<SecretBoxAuthenticationError>(),
+        ),
+      );
+    });
+
+    test('Encrypted without specifying nonce: two results are different',
+        () async {
+      // Encrypt
+      final clearText = [1, 2, 3];
+      final secretKey = await algorithm.newSecretKey();
+      final secretBox = await algorithm.encrypt(
+        clearText,
+        secretKey: secretKey,
+      );
+      final otherSecretBox = await algorithm.encrypt(
+        clearText,
+        secretKey: secretKey,
+      );
+      expect(secretBox.nonce, isNot(otherSecretBox.nonce));
+      expect(secretBox.cipherText, isNot(otherSecretBox.cipherText));
+      expect(secretBox.mac, isNot(otherSecretBox.mac));
+    });
+
+    test('Encrypted without specifying nonce: decrypted correctly', () async {
+      // Encrypt
+      final clearText = [1, 2, 3];
+      final secretKey = await algorithm.newSecretKey();
+      final secretBox = await algorithm.encrypt(
+        clearText,
+        secretKey: secretKey,
+      );
+
+      // Check MAC
+      final expectedMac = await Hmac.sha256().calculateMac(
+        secretBox.cipherText,
+        secretKey: secretKey,
+        nonce: secretBox.nonce,
+      );
+      expect(secretBox.mac, expectedMac);
+
+      // Decrypt
+      final decryptedSecretBox = await algorithm.decrypt(
+        secretBox,
+        secretKey: secretKey,
+      );
+      expect(decryptedSecretBox, clearText);
     });
 
     group('example', () {
@@ -55,13 +121,13 @@ void main() {
 20 66 61 6d 69 6c 79 20 43 61 6e 69 64 61 65 2e
 ''');
 
-      final secretKey = SecretKey(hexToBytes(
+      final secretKey = SecretKeyData(hexToBytes(
         '80 81 82 83 84 85 86 87 88 89 8a 8b 8c 8d 8e 8f 90 91 92 93 94 95 96 97 98 99 9a 9b 9c 9d 9e 9f',
       ));
 
-      final nonce = Nonce(hexToBytes(
+      final nonce = hexToBytes(
         '40 41 42 43 44 45 46 47 48 49 4a 4b 4c 4d 4e 4f 50 51 52 53 54 55 56 58',
-      ));
+      );
 
       final initialKeyStreamIndex = 64;
 
@@ -92,47 +158,32 @@ d0 f5 bb dc 27 0c 65 b1 74 9a 6e ff f1 fb aa 09
       // -----------------------------------------------------------------------
 
       test('encrypt', () async {
-        expect(
-          hexFromBytes(await xchacha20.encrypt(
-            cleartext,
-            secretKey: secretKey,
-            nonce: nonce,
-            keyStreamIndex: initialKeyStreamIndex,
-          )),
-          hexFromBytes(expectedCipherText),
+        final secretBox = await algorithm.encrypt(
+          cleartext,
+          secretKey: secretKey,
+          nonce: nonce,
+          keyStreamIndex: initialKeyStreamIndex,
         );
-      });
-
-      test('encryptSync', () {
         expect(
-          hexFromBytes(xchacha20.encryptSync(
-            cleartext,
-            secretKey: secretKey,
-            nonce: nonce,
-            keyStreamIndex: initialKeyStreamIndex,
-          )),
+          hexFromBytes(secretBox.cipherText),
           hexFromBytes(expectedCipherText),
         );
       });
 
       test('decrypt', () async {
-        expect(
-          hexFromBytes(await xchacha20.decrypt(
-            expectedCipherText,
-            secretKey: secretKey,
-            nonce: nonce,
-            keyStreamIndex: initialKeyStreamIndex,
-          )),
-          hexFromBytes(cleartext),
+        final mac = await Hmac.sha256().calculateMac(
+          expectedCipherText,
+          secretKey: secretKey,
+          nonce: nonce,
         );
-      });
-
-      test('decryptSync', () {
         expect(
-          hexFromBytes(xchacha20.decryptSync(
-            expectedCipherText,
+          hexFromBytes(await algorithm.decrypt(
+            SecretBox(
+              expectedCipherText,
+              nonce: nonce,
+              mac: mac,
+            ),
             secretKey: secretKey,
-            nonce: nonce,
             keyStreamIndex: initialKeyStreamIndex,
           )),
           hexFromBytes(cleartext),

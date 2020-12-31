@@ -9,11 +9,14 @@ Mac OS X. You must use asynchronous methods to get the performance boost.
 
 ## Optimized algorithms
 ### In Android
-  * None yet.
+  * AES_CBC
+  * AES_CTR
+  * AES_GCM
+  * CHACHA20_POLY1305_AEAD
 
-### In iOS / Mac OS X
-  * aesGcm (AES-GCM)
-  * chacha20Poly1305Aead
+### In iOS and Mac OS X
+  * AES_GCM
+  * CHACHA20_POLY1305_AEAD
 
 ## Links
   * [Github project](https://github.com/dint-dev/cryptography)
@@ -25,25 +28,24 @@ Mac OS X. You must use asynchronous methods to get the performance boost.
 In _pubspec.yaml_:
 ```yaml
 dependencies:
-  cryptography_flutter: ^1.0.0
+  cryptography: ^2.0.0-nullsafety.0
+  cryptography_flutter: ^2.0.0-nullsafety.0
 ```
 
 Then just use:
 ```dart
-import 'package:cryptography_flutter/cryptography.dart';
+import 'package:cryptography_flutter/cryptography_flutter.dart';
+
+void main() {
+  // Enable Flutter cryptography
+  FlutterCryptography.enable();
+
+  // ....
+}
 ```
 
-For more instructions, read documentation for [cryptography](https://pub.dev/packages/cryptography).
+For APIs, read documentation for [package:cryptography](https://pub.dev/packages/cryptography).
 
 # Contributing?
-## Testing
-Run "no plugin available" tests:
-```
-flutter test
-```
-
-Run e2e tests:
-```
-cd example
-flutter driver test/cryptography_flutter_e2e.dart
-```
+Test the plugin by running integration tests in
+_cryptography_flutter/example/_ (see README in the directory).

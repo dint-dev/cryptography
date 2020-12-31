@@ -13,84 +13,148 @@
 // limitations under the License.
 
 import 'package:cryptography/cryptography.dart';
+import 'package:cryptography/dart.dart';
 import 'package:cryptography/src/utils.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group('chacha20_poly1305_aead', () {
-    const algorithm = chacha20Poly1305Aead;
+  late Chacha20 algorithm;
+  setUp(() {
+    algorithm = Chacha20.poly1305Aead();
+  });
+
+  group('Chacha20.poly1305Aead():', () {
+    test('== / hashCode', () {
+      final clone = Chacha20(
+        macAlgorithm: DartChacha20Poly1305AeadMacAlgorithm(),
+      );
+      final other0 = Chacha20(
+        macAlgorithm: Hmac.sha256(),
+      );
+      expect(algorithm, clone);
+      expect(algorithm, isNot(other0));
+      expect(algorithm.hashCode, clone.hashCode);
+      expect(algorithm.hashCode, isNot(other0.hashCode));
+    });
+
+    test('toString', () {
+      expect(
+        algorithm.toString(),
+        'Chacha20.poly1305Aead()',
+      );
+    });
 
     test('information', () {
-      expect(algorithm.name, 'chacha20Poly1305Aead');
-      expect(algorithm.isAuthenticated, isTrue);
-      expect(algorithm.nonceLength, 12);
-      expect(algorithm.secretKeyLength, 32);
-      expect(algorithm.secretKeyValidLengths, unorderedEquals({32}));
-    });
-
-    test('contains MAC (async)', () async {
-      final secretKey = await algorithm.newSecretKey();
-      final nonce = algorithm.newNonce();
-      final plainText = [1, 2, 3];
-      final cipherText = await algorithm.encrypt(
-        plainText,
-        secretKey: secretKey,
-        nonce: nonce,
-      );
-      expect(cipherText, hasLength(3 + 16));
-    });
-
-    test('contains MAC (sync)', () {
-      final secretKey = algorithm.newSecretKeySync();
-      final nonce = algorithm.newNonce();
-      final plainText = [1, 2, 3];
-      final cipherText = algorithm.encryptSync(
-        plainText,
-        secretKey: secretKey,
-        nonce: nonce,
-      );
-      expect(cipherText, hasLength(3 + 16));
-    });
-
-    test('decrypt() throws if the MAC is invalid', () async {
-      final secretKey = algorithm.newSecretKeySync();
-      final nonce = algorithm.newNonce();
-      final plainText = [1, 2, 3];
-      final cipherText = algorithm.encryptSync(
-        plainText,
-        secretKey: secretKey,
-        nonce: nonce,
-      );
-      cipherText[cipherText.length - 1] ^= 0xFF;
-      await expectLater(
-        algorithm.decrypt(cipherText, secretKey: secretKey, nonce: nonce),
-        throwsA(isA<MacValidationException>()),
-      );
-    });
-
-    test('decryptSync() throws if the MAC is invalid', () {
-      final secretKey = algorithm.newSecretKeySync();
-      final nonce = algorithm.newNonce();
-      final plainText = [1, 2, 3];
-      final cipherText = algorithm.encryptSync(
-        plainText,
-        secretKey: secretKey,
-        nonce: nonce,
-      );
-      cipherText[cipherText.length - 1] ^= 0xFF;
       expect(
-        () => algorithm.decryptSync(cipherText,
-            secretKey: secretKey, nonce: nonce),
-        throwsA(isA<MacValidationException>()),
+        algorithm.macAlgorithm,
+        isA<DartChacha20Poly1305AeadMacAlgorithm>(),
+      );
+      expect(algorithm.macAlgorithm.supportsAad, isTrue);
+      expect(algorithm.secretKeyLength, 32);
+      expect(algorithm.nonceLength, 12);
+    });
+
+    test('Checks MAC', () async {
+      final secretKey = await algorithm.newSecretKey();
+      final secretBox = await algorithm.encrypt(
+        [1, 2, 3],
+        secretKey: secretKey,
+      );
+      final badMac = Mac(secretBox.mac.bytes.map((e) => 0xFF ^ e).toList());
+      final badSecretBox = SecretBox(
+        secretBox.cipherText,
+        nonce: secretBox.nonce,
+        mac: badMac,
+      );
+      await expectLater(
+        algorithm.decrypt(badSecretBox, secretKey: secretKey),
+        throwsA(isA<SecretBoxAuthenticationError>()),
       );
     });
 
-    group('example:', () {
+    test(
+        'RFC 7539 test vectors for generating Poly1305 key from Chacha20 key/nonce',
+        () async {
       // -------------------------------------------------------------------------
       // The following input/output constants are copied from the RFC 7539:
       // https://tools.ietf.org/html/rfc7539
       // -------------------------------------------------------------------------
-      final plainText =
+
+      final secretKey = SecretKeyData(
+        hexToBytes(
+          '80 81 82 83 84 85 86 87 88 89 8a 8b 8c 8d 8e 8f'
+          '90 91 92 93 94 95 96 97 98 99 9a 9b 9c 9d 9e 9f',
+        ),
+      );
+
+      final nonce = hexToBytes(
+        '00 00 00 00 00 01 02 03 04 05 06 07',
+      );
+
+      final expectedExtracted = SecretKeyData(
+        hexToBytes(
+          '8a d5 a0 8b 90 5f 81 cc 81 50 40 27 4a b2 94 71'
+          'a8 33 b6 37 e3 fd 0d a5 08 db b8 e2 fd d1 a6 46',
+        ),
+      );
+
+      final algorithm = DartChacha20Poly1305AeadMacAlgorithm();
+      // ignore: invalid_use_of_protected_member
+      final poly1305Key = await algorithm.poly1305SecretKeyFromChacha20(
+        secretKey: secretKey,
+        nonce: nonce,
+      );
+      final actualExtracted = await poly1305Key.extract();
+
+      expect(
+        hexFromBytes(actualExtracted.bytes),
+        hexFromBytes(expectedExtracted.bytes),
+      );
+      expect(
+        actualExtracted,
+        expectedExtracted,
+      );
+    });
+
+    test('SecretBox contains MAC', () async {
+      final secretKey = await algorithm.newSecretKey();
+      final nonce = algorithm.newNonce();
+      final clearText = [1, 2, 3];
+      final secretBox = await algorithm.encrypt(
+        clearText,
+        secretKey: secretKey,
+        nonce: nonce,
+      );
+      expect(secretBox.cipherText, hasLength(3));
+      expect(secretBox.mac.bytes, hasLength(16));
+    });
+
+    test('decrypt() throws if the MAC is invalid', () async {
+      final secretKey = await algorithm.newSecretKey();
+      final nonce = algorithm.newNonce();
+      final clearText = [1, 2, 3];
+      final secretBox = await algorithm.encrypt(
+        clearText,
+        secretKey: secretKey,
+        nonce: nonce,
+      );
+      final cipherText = secretBox.cipherText;
+      cipherText[cipherText.length - 1] ^= 0xFF;
+      await expectLater(
+        algorithm.decrypt(
+          secretBox,
+          secretKey: secretKey,
+        ),
+        throwsA(isA<SecretBoxAuthenticationError>()),
+      );
+    });
+
+    group('RFC 7539: test vectors', () {
+      // -------------------------------------------------------------------------
+      // The following input/output constants are copied from the RFC 7539:
+      // https://tools.ietf.org/html/rfc7539
+      // -------------------------------------------------------------------------
+      final clearText =
           "Ladies and Gentlemen of the class of '99: If I could offer you only one tip for the future, sunscreen would be it."
               .runes
               .toList();
@@ -99,14 +163,14 @@ void main() {
         '50 51 52 53 c0 c1 c2 c3 c4 c5 c6 c7',
       );
 
-      final secretKey = SecretKey(hexToBytes(
+      final secretKey = SecretKeyData(hexToBytes(
         '80 81 82 83 84 85 86 87 88 89 8a 8b 8c 8d 8e 8f'
         '90 91 92 93 94 95 96 97 98 99 9a 9b 9c 9d 9e 9f',
       ));
 
-      final nonce = Nonce(hexToBytes(
+      final nonce = hexToBytes(
         '07 00 00 00 40 41 42 43 44 45 46 47',
-      ));
+      );
 
       final expectedCipherText = hexToBytes('''
 d3 1a 8d 34 64 8e 60 db 7b 86 af bc 53 ef 7e c2
@@ -123,87 +187,41 @@ fa b3 24 e4 fa d6 75 94 55 85 80 8b 48 31 d7 bc
         '1a:e1:0b:59:4f:09:e2:6a:7e:90:2e:cb:d0:60:06:91',
       ));
 
-      List<int> expectedOutput;
-
-      setUp(() {
-        expectedOutput = chacha20Poly1305Aead.encryptSync(
-          plainText,
-          secretKey: secretKey,
-          nonce: nonce,
-          aad: aad,
-        );
-      });
-
       // -----------------------------------------------------------------------
       // End of constants from RFC 7539
       // -----------------------------------------------------------------------
 
-      //
-      // Encrypt.
-      //
       test('encrypt(...)', () async {
-        final encrypted = await chacha20Poly1305Aead.encrypt(
-          plainText,
+        final secretBox = await algorithm.encrypt(
+          clearText,
           secretKey: secretKey,
           nonce: nonce,
           aad: aad,
         );
         expect(
-          hexFromBytes(encrypted),
-          hexFromBytes([...expectedCipherText, ...expectedMac.bytes]),
-        );
-        expect(
-          hexFromBytes(algorithm.getDataInCipherText(encrypted)),
+          hexFromBytes(secretBox.cipherText),
           hexFromBytes(expectedCipherText),
         );
         expect(
-          hexFromBytes(algorithm.getMacInCipherText(encrypted).bytes),
+          hexFromBytes(secretBox.mac.bytes),
           hexFromBytes(expectedMac.bytes),
         );
-        expect(encrypted, expectedOutput);
-      });
-
-      test('encryptSync(...)', () {
-        final encrypted = algorithm.encryptSync(
-          plainText,
-          aad: aad,
-          secretKey: secretKey,
-          nonce: nonce,
-        );
-        expect(
-          hexFromBytes(algorithm.getDataInCipherText(encrypted)),
-          hexFromBytes(expectedCipherText),
-        );
-        expect(
-          hexFromBytes(algorithm.getMacInCipherText(encrypted).bytes),
-          hexFromBytes(expectedMac.bytes),
-        );
-        expect(encrypted, expectedOutput);
       });
 
       test('decrypt(...)', () async {
-        final decrypted = await algorithm.decrypt(
-          expectedOutput,
-          aad: aad,
-          secretKey: secretKey,
+        final secretBox = SecretBox(
+          expectedCipherText,
           nonce: nonce,
+          mac: expectedMac,
+        );
+        final actualClearText = await algorithm.decrypt(
+          secretBox,
+          secretKey: secretKey,
+          aad: aad,
         );
         expect(
-          hexFromBytes(decrypted),
-          hexFromBytes(plainText),
-        );
-      });
-
-      test('decryptSync(...)', () {
-        final decrypted = algorithm.decryptSync(
-          expectedOutput,
-          aad: aad,
-          secretKey: secretKey,
-          nonce: nonce,
-        );
-        expect(
-          hexFromBytes(decrypted),
-          hexFromBytes(plainText),
+          hexFromBytes(actualClearText),
+          hexFromBytes(clearText),
         );
       });
     });

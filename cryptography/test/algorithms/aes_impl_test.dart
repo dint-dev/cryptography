@@ -15,9 +15,8 @@
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
-import 'package:cryptography/src/algorithms/aes_impl.dart' as aes;
-import 'package:cryptography/src/algorithms/aes_impl_constants.dart'
-    as constants;
+import 'package:cryptography/src/dart/aes_impl.dart' as aes;
+import 'package:cryptography/src/dart/aes_impl_constants.dart' as constants;
 import 'package:cryptography/src/utils/hex.dart';
 import 'package:test/test.dart';
 
@@ -55,7 +54,7 @@ void main() {
     final key = hexToBytes(
       '2b 7e 15 16 28 ae d2 a6 ab f7 15 88 09 cf 4f 3c',
     );
-    final expandedKey = aes.aesExpandKeyForEncrypting(SecretKey(key), key);
+    final expandedKey = aes.aesExpandKeyForEncrypting(SecretKeyData(key));
 
     _expectHex(expandedKey[0], 0x2b7e1516);
     _expectHex(expandedKey[1], 0x28aed2a6);
@@ -79,7 +78,7 @@ void main() {
     final key = hexToBytes(
       '000102030405060708090a0b0c0d0e0f',
     );
-    final expandedKey = aes.aesExpandKeyForDecrypting(SecretKey(key), key);
+    final expandedKey = aes.aesExpandKeyForDecrypting(SecretKeyData(key));
 
     _expectHex(expandedKey[0], 0x13111d7f);
     _expectHex(expandedKey[1], 0xe3944a17);
@@ -98,27 +97,27 @@ void main() {
     group('128-bit key:', () {
       // From appendix of the AES specification:
       // https://csrc.nist.gov/csrc/media/publications/fips/197/final/documents/fips-197.pdf
-      final plainText = Uint32List.view(hexToBytes(
+      final clearText = hexToBytes(
         '00112233445566778899aabbccddeeff',
-      ).buffer);
+      );
       final key = hexToBytes(
         '000102030405060708090a0b0c0d0e0f',
       );
-      final cipherText = Uint32List.view(hexToBytes(
+      final cipherText = hexToBytes(
         '69c4e0d86a7b0430d8cdb78070b4c55a',
-      ).buffer);
+      );
 
       test('encrypt', () {
         final encrypted = Uint32List(cipherText.length);
         aes.aesEncryptBlock(
           encrypted,
           0,
-          plainText,
+          aes.aesBlocksFromBytes(clearText),
           0,
-          aes.aesExpandKeyForEncrypting(null, key),
+          aes.aesExpandKeyForEncrypting(SecretKeyData(key)),
         );
         expect(
-          hexFromBytes(encrypted),
+          hexFromBytes(Uint8List.view(encrypted.buffer, 0, cipherText.length)),
           hexFromBytes(cipherText),
         );
       });
@@ -128,13 +127,13 @@ void main() {
         aes.aesDecryptBlock(
           decrypted,
           0,
-          cipherText,
+          aes.aesBlocksFromBytes(cipherText),
           0,
-          aes.aesExpandKeyForDecrypting(null, key),
+          aes.aesExpandKeyForDecrypting(SecretKeyData(key)),
         );
         expect(
-          hexFromBytes(decrypted),
-          hexFromBytes(plainText),
+          hexFromBytes(Uint8List.view(decrypted.buffer, 0, cipherText.length)),
+          hexFromBytes(clearText),
         );
       });
     });
@@ -142,28 +141,28 @@ void main() {
     group('192-bit key:', () {
       // From appendix of the AES specification:
       // https://csrc.nist.gov/csrc/media/publications/fips/197/final/documents/fips-197.pdf
-      final plainText = Uint32List.view(hexToBytes(
+      final clearText = hexToBytes(
         '00112233445566778899aabbccddeeff',
-      ).buffer);
+      );
       final key = hexToBytes(
         '000102030405060708090a0b0c0d0e0f1011121314151617',
       );
-      final cipherText = Uint32List.view(hexToBytes(
+      final cipherText = hexToBytes(
         'dda97ca4864cdfe06eaf70a0ec0d7191',
-      ).buffer);
+      );
 
       test('encrypt', () {
         final encrypted = Uint32List(cipherText.length);
-        encrypted.setAll(0, plainText);
+        encrypted.setAll(0, clearText);
         aes.aesEncryptBlock(
           encrypted,
           0,
-          plainText,
+          aes.aesBlocksFromBytes(clearText),
           0,
-          aes.aesExpandKeyForEncrypting(null, key),
+          aes.aesExpandKeyForEncrypting(SecretKeyData(key)),
         );
         expect(
-          hexFromBytes(encrypted),
+          hexFromBytes(Uint8List.view(encrypted.buffer, 0, cipherText.length)),
           hexFromBytes(cipherText),
         );
       });
@@ -173,13 +172,13 @@ void main() {
         aes.aesDecryptBlock(
           decrypted,
           0,
-          cipherText,
+          aes.aesBlocksFromBytes(cipherText),
           0,
-          aes.aesExpandKeyForDecrypting(null, key),
+          aes.aesExpandKeyForDecrypting(SecretKeyData(key)),
         );
         expect(
-          hexFromBytes(decrypted),
-          hexFromBytes(plainText),
+          hexFromBytes(Uint8List.view(decrypted.buffer, 0, cipherText.length)),
+          hexFromBytes(clearText),
         );
       });
     });
@@ -187,27 +186,27 @@ void main() {
     group('256-bit key:', () {
       // From appendix of the AES specification:
       // https://csrc.nist.gov/csrc/media/publications/fips/197/final/documents/fips-197.pdf
-      final plainText = Uint32List.view(hexToBytes(
+      final clearText = hexToBytes(
         '00112233445566778899aabbccddeeff',
-      ).buffer);
+      );
       final key = hexToBytes(
         '000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f',
       );
-      final cipherText = Uint32List.view(hexToBytes(
+      final cipherText = hexToBytes(
         '8ea2b7ca516745bfeafc49904b496089',
-      ).buffer);
+      );
 
       test('encrypt', () {
         final encrypted = Uint32List(cipherText.length);
         aes.aesEncryptBlock(
           encrypted,
           0,
-          plainText,
+          aes.aesBlocksFromBytes(clearText),
           0,
-          aes.aesExpandKeyForEncrypting(null, key),
+          aes.aesExpandKeyForEncrypting(SecretKeyData(key)),
         );
         expect(
-          hexFromBytes(encrypted),
+          hexFromBytes(Uint8List.view(encrypted.buffer, 0, cipherText.length)),
           hexFromBytes(cipherText),
         );
       });
@@ -216,13 +215,13 @@ void main() {
         aes.aesDecryptBlock(
           decrypted,
           0,
-          cipherText,
+          aes.aesBlocksFromBytes(cipherText),
           0,
-          aes.aesExpandKeyForDecrypting(null, key),
+          aes.aesExpandKeyForDecrypting(SecretKeyData(key)),
         );
         expect(
-          hexFromBytes(decrypted),
-          hexFromBytes(plainText),
+          hexFromBytes(Uint8List.view(decrypted.buffer, 0, cipherText.length)),
+          hexFromBytes(clearText),
         );
       });
     });

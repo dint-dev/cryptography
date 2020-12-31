@@ -90,7 +90,7 @@ Future<void> main() async {
   final remotePublicKey = x25519.newKeyPairSync().publicKey;
 
   // Request a shared secret from the KMS.
-  final secretKey = await document.sharedSecret(
+  final secretKey = await document.sharedSecretKey(
     remotePublicKey: remotePublicKey,
   );
 

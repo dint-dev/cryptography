@@ -15,16 +15,16 @@ jobs:
 
       - name: Install dependencies (cryptography)
         working-directory: cryptography
-        run: pub get
+        run: dart pub get
 
-      - name: Install dependencies (kms)
-        working-directory: kms
-        run: pub get
+      - name: Install dependencies (jwk)
+        working-directory: jwk
+        run: dart pub get
 
       - name: Run tests (cryptography)
         working-directory: cryptography
-        run: pub run test --platform=vm
+        run: dart test --platform=vm
 
-      - name: Run tests (kms)
-        working-directory: kms
-        run: pub run test --platform=vm
+      - name: Run tests (jwk)
+        working-directory: jwk
+        run: dart test --platform=vm

@@ -14,26 +14,28 @@
 
 part of noise_protocol;
 
-/// Authentication information. The required information depends on the
-/// [HandshakePattern] that you use.
-class NoiseAuthenticator {
-  /// Optional fixed local static key pair.
-  final KeyPair localStaticKeyPair;
+/// Authentication information for [HandshakeState].
+///
+/// The required information depends on the [NoiseHandshakePattern] that you
+/// use.
+class NoiseAuthenticationParameters {
+  /// Optional fixed local static secret key pair.
+  final SimpleKeyPair? localStaticKeyPair;
 
   /// Optional fixed remote static key pair.
-  final PublicKey remoteStaticPublicKey;
+  final SimplePublicKey? remoteStaticPublicKey;
 
   /// Optional fixed preshared key.
-  final SecretKey presharedKey;
+  final SecretKeyData? presharedKey;
 
   /// An optional function that rejects state or changes it depending when
   /// remote public key is received.
-  final FutureOr<void> Function(HandshakeState state) onRemotePublicKey;
+  final FutureOr<void> Function(HandshakeState state)? onValidateRemotePublicKey;
 
-  const NoiseAuthenticator({
+  const NoiseAuthenticationParameters({
     this.localStaticKeyPair,
     this.remoteStaticPublicKey,
     this.presharedKey,
-    this.onRemotePublicKey,
+    this.onValidateRemotePublicKey,
   });
 }

@@ -1,0 +1,19 @@
+name: jwk
+version: 0.1.0-nullsafety.0
+homepage: https://github.com/dint-dev/cryptography
+description: JWK (JSON Web Key) encoding and decoding (for package:cryptography).
+
+environment:
+  sdk: '>=2.12.0-133.2.beta <3.0.0'
+
+dependencies:
+  collection: ^1.15.0-nullsafety.5
+  cryptography: ^2.0.0-nullsafety.0
+
+dev_dependencies:
+  pedantic: ^1.10.0-nullsafety.3
+  test: ^1.16.0-nullsafety.13
+
+dependency_overrides:
+  cryptography:
+    path: ../cryptography

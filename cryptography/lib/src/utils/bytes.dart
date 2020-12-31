@@ -14,20 +14,30 @@
 
 import 'dart:typed_data';
 
-/// Interpret bytes a big endian integer and add an [int].
-void bytesAsBigEndianAddInt(List<int> list, int n) {
+/// Interprets the bytes a big endian integer and increments them by [int].
+///
+/// # Example
+/// ```
+/// final bytes = [0,2,255];
+/// bytesIncrementBigEndian(bytes, 5);
+/// // bytes become [0,3,4]
+/// ```
+void bytesIncrementBigEndian(Uint8List bytes, int n) {
   if (n < 0) {
-    throw ArgumentError.value(n);
+    throw ArgumentError.value(n, 'n');
   }
-  for (var i = list.length - 1; n != 0 && i >= 0; i--) {
-    final newByte = list[i] + n;
-    list[i] = 0xFF & newByte;
-    n = newByte >> 8;
+  // For each byte from the beginning
+  for (var i = bytes.length - 1; n != 0 && i >= 0; i--) {
+    final newByte = bytes[i] + n;
+    bytes[i] = newByte % 0x100;
+
+    // Carry
+    n = newByte ~/ 0x100;
   }
 }
 
 Uint8List bytesToUint8ListWithLength(List<int> bytes, int length) {
-  if (length == null || length == bytes.length) {
+  if (length == bytes.length) {
     return bytes is Uint8List ? bytes : Uint8List.fromList(bytes);
   }
   if (length < bytes.length) {

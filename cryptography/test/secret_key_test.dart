@@ -19,18 +19,15 @@ import 'package:test/test.dart';
 
 void main() {
   group('SecretKey:', () {
-    test('SecretKey.randomBytes()', () {
-      final a = SecretKey.randomBytes(32);
-      final b = SecretKey.randomBytes(32);
-      expect(a, isNot(b));
-      expect(a.hashCode, isNot(b.hashCode));
-    });
+    final f = (List<int> value) => SecretKeyData(
+          value,
+        );
 
     test('"==" / hashCode', () {
-      final value = SecretKey(Uint8List.fromList([3, 1, 4]));
-      final clone = SecretKey(Uint8List.fromList([3, 1, 4]));
-      final other0 = SecretKey(Uint8List.fromList([3, 1, 999]));
-      final other1 = SecretKey(Uint8List.fromList([3, 1, 4, 999]));
+      final value = f([3, 1, 4]);
+      final clone = f([3, 1, 4]);
+      final other0 = f([3, 1, 999]);
+      final other1 = f([3, 1, 4, 999]);
 
       expect(value, clone);
       expect(value, isNot(other0));
@@ -42,8 +39,37 @@ void main() {
     });
 
     test('toString() does not expose actual bytes', () {
-      final a = SecretKey(Uint8List(3));
-      expect(a.toString(), isNot(contains('0')));
+      final a = f([0, 0, 0]);
+      expect(a, isNot(contains('0')));
+    });
+  });
+
+  group('SecretKeyData:', () {
+    test('SecretKeyData.random()', () {
+      final a = SecretKeyData.random(lengthInBytes: 32);
+      final b = SecretKeyData.random(lengthInBytes: 32);
+      expect(a, isNot(b));
+      expect(a.hashCode, isNot(b.hashCode));
+    });
+
+    test('"==" / hashCode', () {
+      final value = SecretKeyData(Uint8List.fromList([3, 1, 4]));
+      final clone = SecretKeyData(Uint8List.fromList([3, 1, 4]));
+      final other0 = SecretKeyData(Uint8List.fromList([3, 1, 999]));
+      final other1 = SecretKeyData(Uint8List.fromList([3, 1, 4, 999]));
+
+      expect(value, clone);
+      expect(value, isNot(other0));
+      expect(value, isNot(other1));
+
+      expect(value.hashCode, clone.hashCode);
+      expect(value.hashCode, isNot(other0.hashCode));
+      expect(value.hashCode, isNot(other1.hashCode));
+    });
+
+    test('toString()', () {
+      final a = SecretKeyData([0, 0, 0]);
+      expect(a.toString(), 'SecretKeyData(...)');
     });
   });
 }

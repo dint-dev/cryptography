@@ -16,22 +16,20 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
-import 'package:cryptography/src/algorithms/blake2b_impl_browser.dart' as impl;
+import 'package:cryptography/src/dart/blake2b_impl_browser.dart' as impl;
 import 'package:cryptography/src/utils.dart';
 import 'package:test/test.dart';
 
 void main() {
   group('blake2b', () {
-    test('name', () {
-      expect(blake2b.name, 'blake2b');
-    });
+    final algorithm = Blake2b();
 
     test('hash length', () {
-      expect(blake2b.hashLengthInBytes, 64);
+      expect(algorithm.hashLengthInBytes, 64);
     });
 
     test('block length', () {
-      expect(blake2b.blockLengthInBytes, 64);
+      expect(algorithm.blockLengthInBytes, 64);
     });
 
     group('sum in browsers:', () {
@@ -141,7 +139,7 @@ BA 80 A5 3F 98 1C 4D 0D 6A 27 97 B6 9F 12 F6 E9
 ''');
       // hash()
       {
-        final hash = await blake2b.hash(utf8.encode('abc'));
+        final hash = await algorithm.hash(utf8.encode('abc'));
         expect(
           hexFromBytes(hash.bytes),
           hexFromBytes(expectedBytes),
@@ -150,7 +148,7 @@ BA 80 A5 3F 98 1C 4D 0D 6A 27 97 B6 9F 12 F6 E9
 
       // hashSync()
       {
-        final hash = blake2b.hashSync(utf8.encode('abc'));
+        final hash = await algorithm.hash(utf8.encode('abc'));
         expect(
           hexFromBytes(hash.bytes),
           hexFromBytes(expectedBytes),
@@ -159,12 +157,12 @@ BA 80 A5 3F 98 1C 4D 0D 6A 27 97 B6 9F 12 F6 E9
 
       // newSink()
       {
-        final sink = await blake2b.newSink();
+        final sink = algorithm.newHashSink();
         sink.add('a'.codeUnits);
         sink.addSlice('bc'.codeUnits, 0, 2, false);
         sink.close();
         expect(
-          hexFromBytes(sink.hash.bytes),
+          hexFromBytes((await sink.hash()).bytes),
           hexFromBytes(expectedBytes),
         );
       }
@@ -177,7 +175,7 @@ BA 80 A5 3F 98 1C 4D 0D 6A 27 97 B6 9F 12 F6 E9
         '90 3a 68 5b 14 48 b7 55 d5 6f 70 1a fe 9b e2 ce',
       );
       {
-        final hash = await blake2b.hash(<int>[]);
+        final hash = await algorithm.hash(<int>[]);
         expect(
           hexFromBytes(hash.bytes),
           hexFromBytes(expectedBytes),

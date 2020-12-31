@@ -12,163 +12,157 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'package:cryptography/browser.dart';
 import 'package:cryptography/cryptography.dart';
+import 'package:cryptography/dart.dart';
 import 'package:cryptography/src/utils.dart';
 import 'package:test/test.dart';
 
 void main() {
-  // Enable exceptions from Web Cryptography API in browsers.
-  webCryptoThrows = true;
-
   group('Pbkdf2:', () {
-    test('deriveBits(...): Hmac(sha256), 1 iteration', () async {
-      final macAlgorithm = Hmac(sha256);
-      final input = <int>[1, 2, 3];
-      final nonce = Nonce([4, 5, 6]);
-      final bits = 128;
-      final iterations = 1;
-      final expected = hexToBytes(
-        '3f 22 41 8b c0 47 83 9f b5 54 b5 c6 16 ef 35 55',
-      );
-
-      final pbkdf2 = Pbkdf2(
-        macAlgorithm: macAlgorithm,
-        bits: bits,
-        iterations: iterations,
-      );
-      final actual = await pbkdf2.deriveBits(
-        input,
-        nonce: nonce,
-      );
-      expect(
-        hexFromBytes(actual),
-        hexFromBytes(expected),
-      );
+    group('DartCryptography:', () {
+      setUp(() {
+        Cryptography.instance = DartCryptography.defaultInstance;
+      });
+      _main();
     });
-
-    test('deriveBits(...): Hmac(sha256), 2 iterations', () async {
-      final macAlgorithm = Hmac(sha256);
-      final input = <int>[1, 2, 3];
-      final nonce = Nonce([4, 5, 6]);
-      final bits = 128;
-      final iterations = 2;
-      final expected = hexToBytes(
-        '43 bb 42 58 d4 54 0e d2 45 c3 87 78 8b 60 5d 95',
-      );
-
-      final pbkdf2 = Pbkdf2(
-        macAlgorithm: macAlgorithm,
-        bits: bits,
-        iterations: iterations,
-      );
-      final actual = await pbkdf2.deriveBits(
-        input,
-        nonce: nonce,
-      );
-      expect(
-        hexFromBytes(actual),
-        hexFromBytes(expected),
-      );
+    group('BrowserCryptography:', () {
+      setUp(() {
+        Cryptography.instance = BrowserCryptography.defaultInstance;
+      });
+      _main();
     });
+  });
+}
 
-    test('deriveBits(...): Hmac(sha256), 3 iterations', () async {
-      final macAlgorithm = Hmac(sha256);
-      final input = <int>[1, 2, 3];
-      final nonce = Nonce([4, 5, 6]);
-      final bits = 128;
-      final iterations = 3;
-      final expected = hexToBytes(
-        '00 4b 50 3c 32 a1 b7 44 ca 98 a9 ce 2e 17 23 18',
-      );
+void _main() {
+  test('deriveKey(...): Hmac(sha256), 1 iteration', () async {
+    final macAlgorithm = Hmac(Sha256());
+    const input = <int>[1, 2, 3];
+    const nonce = [4, 5, 6];
+    final bits = 128;
+    final iterations = 1;
+    final expectedBytes = hexToBytes(
+      '3f 22 41 8b c0 47 83 9f b5 54 b5 c6 16 ef 35 55',
+    );
 
-      final pbkdf2 = Pbkdf2(
-        macAlgorithm: macAlgorithm,
-        bits: bits,
-        iterations: iterations,
-      );
-      final actual = await pbkdf2.deriveBits(
-        input,
-        nonce: nonce,
-      );
-      expect(
-        hexFromBytes(actual),
-        hexFromBytes(expected),
-      );
-    });
+    final pbkdf2 = Pbkdf2(
+      macAlgorithm: macAlgorithm,
+      bits: bits,
+      iterations: iterations,
+    );
+    final opaque = await pbkdf2.deriveKey(
+      secretKey: SecretKeyData(input),
+      nonce: nonce,
+    );
+    final actual = await opaque.extract();
+    expect(
+      hexFromBytes(actual.bytes),
+      hexFromBytes(expectedBytes),
+    );
+  });
 
-    test('deriveBitsSync(...): Hmac(sha256)', () async {
-      final macAlgorithm = Hmac(sha256);
-      final input = <int>[1, 2];
-      final nonce = Nonce([3, 4]);
-      final bits = 128;
-      final iterations = 3;
-      final expected = hexToBytes(
-        '4b 15 52 46 08 c4 32 7a c9 72 42 54 cb 15 9a 67',
-      );
+  test('deriveKey(...): Hmac(sha256), 2 iterations', () async {
+    final macAlgorithm = Hmac(Sha256());
+    const input = <int>[1, 2, 3];
+    const nonce = [4, 5, 6];
+    final bits = 128;
+    final iterations = 2;
+    final expectedBytes = hexToBytes(
+      '43 bb 42 58 d4 54 0e d2 45 c3 87 78 8b 60 5d 95',
+    );
 
-      final pbkdf2 = Pbkdf2(
-        macAlgorithm: macAlgorithm,
-        bits: bits,
-        iterations: iterations,
-      );
-      final actual = pbkdf2.deriveBitsSync(
-        input,
-        nonce: nonce,
-      );
-      expect(
-        hexFromBytes(actual),
-        hexFromBytes(expected),
-      );
-    });
+    final pbkdf2 = Pbkdf2(
+      macAlgorithm: macAlgorithm,
+      bits: bits,
+      iterations: iterations,
+    );
+    final opaque = await pbkdf2.deriveKey(
+      secretKey: SecretKeyData(input),
+      nonce: nonce,
+    );
+    final actual = await opaque.extract();
+    expect(
+      hexFromBytes(actual.bytes),
+      hexFromBytes(expectedBytes),
+    );
+  });
 
-    test('deriveBits(...): Hmac(sha384)', () async {
-      final macAlgorithm = Hmac(sha512);
-      final input = <int>[1, 2];
-      final nonce = Nonce([3, 4]);
-      final bits = 128;
-      final iterations = 3;
-      final expected = hexToBytes(
-        'c9 70 19 df 29 5a 18 e9 c4 39 63 76 d3 c9 4d 96',
-      );
+  test('deriveKey(...): Hmac(sha256), 3 iterations', () async {
+    final macAlgorithm = Hmac(Sha256());
+    const input = <int>[1, 2, 3];
+    const nonce = [4, 5, 6];
+    final bits = 128;
+    final iterations = 3;
+    final expectedBytes = hexToBytes(
+      '00 4b 50 3c 32 a1 b7 44 ca 98 a9 ce 2e 17 23 18',
+    );
 
-      final pbkdf2 = Pbkdf2(
-        macAlgorithm: macAlgorithm,
-        bits: bits,
-        iterations: iterations,
-      );
-      final actual = await pbkdf2.deriveBits(
-        input,
-        nonce: nonce,
-      );
-      expect(
-        hexFromBytes(actual),
-        hexFromBytes(expected),
-      );
-    });
+    final pbkdf2 = Pbkdf2(
+      macAlgorithm: macAlgorithm,
+      bits: bits,
+      iterations: iterations,
+    );
+    final opaque = await pbkdf2.deriveKey(
+      secretKey: SecretKeyData(input),
+      nonce: nonce,
+    );
+    final actual = await opaque.extract();
+    expect(
+      hexFromBytes(actual.bytes),
+      hexFromBytes(expectedBytes),
+    );
+  });
 
-    test('deriveBits(...): Hmac(sha512)', () async {
-      final macAlgorithm = Hmac(sha512);
-      final input = <int>[1, 2];
-      final nonce = Nonce([3, 4]);
-      final bits = 128;
-      final iterations = 3;
-      final expected = hexToBytes(
-        'c9 70 19 df 29 5a 18 e9 c4 39 63 76 d3 c9 4d 96',
-      );
+  test('deriveKey(...): Hmac(sha384), 3 iterations', () async {
+    final macAlgorithm = Hmac(Sha384());
+    const input = <int>[1, 2];
+    const nonce = <int>[3, 4];
+    final bits = 128;
+    final iterations = 3;
+    final expectedBytes = hexToBytes(
+      'c0 db 36 72 53 83 f6 e5 01 b5 3d 3d fb 3b 43 64',
+    );
 
-      final pbkdf2 = Pbkdf2(
-        macAlgorithm: macAlgorithm,
-        bits: bits,
-        iterations: iterations,
-      );
-      final actual = await pbkdf2.deriveBits(
-        input,
-        nonce: nonce,
-      );
-      expect(
-        hexFromBytes(actual),
-        hexFromBytes(expected),
-      );
-    });
+    final pbkdf2 = Pbkdf2(
+      macAlgorithm: macAlgorithm,
+      bits: bits,
+      iterations: iterations,
+    );
+    final opaque = await pbkdf2.deriveKey(
+      secretKey: SecretKeyData(input),
+      nonce: nonce,
+    );
+    final actual = await opaque.extract();
+    expect(
+      hexFromBytes(actual.bytes),
+      hexFromBytes(expectedBytes),
+    );
+  });
+
+  test('deriveKey(...): Hmac(sha512), 3 iterations', () async {
+    final macAlgorithm = Hmac(Sha512());
+    const input = <int>[1, 2];
+    const nonce = [3, 4];
+    final bits = 128;
+    final iterations = 3;
+    final expectedBytes = hexToBytes(
+      'c9 70 19 df 29 5a 18 e9 c4 39 63 76 d3 c9 4d 96',
+    );
+
+    final pbkdf2 = Pbkdf2(
+      macAlgorithm: macAlgorithm,
+      bits: bits,
+      iterations: iterations,
+    );
+    final opaque = await pbkdf2.deriveKey(
+      secretKey: SecretKeyData(input),
+      nonce: nonce,
+    );
+    final actual = await opaque.extract();
+    expect(
+      hexFromBytes(actual.bytes),
+      hexFromBytes(expectedBytes),
+    );
   });
 }

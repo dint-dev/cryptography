@@ -19,43 +19,50 @@ class CipherState {
   /// Exclusive max for counter.
   static const int _maxCounter = 1 << 47;
 
-  // Cipher used for encrypting/decrypting.
+  /// Cipher used for encrypting/decrypting.
   final NoiseCipher cipher;
 
-  // The Noise specification refers to this with _k_.
-  SecretKey _secretKey;
+  // In the Noise specification, this is known as _k_.
+  SecretKeyData? _secretKey;
 
-  // The Noise specification refers to this with _n_.
-  int _counter;
+  // In the Noise specification, this is known as _n_.
+  int _counter = 0;
 
-  CipherState({@required this.cipher}) : assert(cipher != null);
+  CipherState({required this.cipher});
 
   /// 64-bit counter. We throw an exception if it becomes too high to be
   /// represented as double.
   ///
-  /// The [Noise specification](https://noiseprotocol.org/noise.html) refers to
-  /// this with _n_.
+  /// In the [Noise protocol specification](https://noiseprotocol.org/noise.html),
+  /// this is known as _n_.
   int get counter => _counter;
 
   /// Secret key.
   ///
-  /// The [Noise specification](https://noiseprotocol.org/noise.html) refers to
-  /// this with _k_.
-  SecretKey get secretKey => _secretKey;
+  /// In the [Noise protocol specification](https://noiseprotocol.org/noise.html),
+  /// this is known as _k_.
+  SecretKeyData? get secretKey => _secretKey;
 
   /// Decrypts the bytes and increments the nonce. You can optionally give
   /// Associated Authenticated Data (AAD).
   ///
-  /// The [Noise specification](https://noiseprotocol.org/noise.html) refers to
-  /// this with _decryptAd_.
-  Future<List<int>> decrypt(List<int> cipherText, {List<int> aad}) async {
-    if (_secretKey == null) {
+  /// In the [Noise protocol specification](https://noiseprotocol.org/noise.html),
+  /// this is known as _decryptAd_.
+  Future<List<int>> decrypt(
+    List<int> cipherText, {
+    List<int> aad = const <int>[],
+  }) async {
+    final secretKey = _secretKey;
+    if (secretKey == null) {
       return cipherText;
     }
     final result = await cipher.implementation.decrypt(
-      cipherText,
-      secretKey: _secretKey,
-      nonce: cipher.nonce(counter),
+      SecretBox(
+        cipherText,
+        nonce: cipher.nonce(counter),
+        mac: Mac.empty,
+      ),
+      secretKey: secretKey,
       aad: aad,
     );
     _counter++;
@@ -68,15 +75,19 @@ class CipherState {
   /// Encrypts the bytes and increments the nonce. You can optionally give
   /// Associated Authenticated Data (AAD).
   ///
-  /// The [Noise specification](https://noiseprotocol.org/noise.html) refers to
-  /// this with _encryptAd_.
-  Future<List<int>> encrypt(List<int> plainText, {List<int> aad}) async {
-    if (_secretKey == null) {
-      return plainText;
+  /// In the [Noise protocol specification](https://noiseprotocol.org/noise.html),
+  /// this is known as _encryptAd_.
+  Future<List<int>> encrypt(
+    List<int> clearText, {
+    List<int> aad = const <int>[],
+  }) async {
+    final secretKey = _secretKey;
+    if (secretKey == null) {
+      return clearText;
     }
     final result = await cipher.implementation.encrypt(
-      plainText,
-      secretKey: _secretKey,
+      clearText,
+      secretKey: secretKey,
       nonce: cipher.nonce(counter),
       aad: aad,
     );
@@ -84,19 +95,19 @@ class CipherState {
     if (counter == _maxCounter) {
       throw StateError('Counter is too high');
     }
-    return result;
+    return result.cipherText;
   }
 
   /// Initializes the cipher state.
   ///
-  /// The [Noise specification](https://noiseprotocol.org/noise.html) refers to
-  /// this with _initializeKey_.
-  void initialize(SecretKey secretKey) {
+  /// In the [Noise protocol specification](https://noiseprotocol.org/noise.html),
+  /// this is known as _initializeKey_.
+  void initialize(SecretKeyData? secretKey) {
     _secretKey = secretKey;
     _counter = 0;
   }
 
-  /// See the [specification](https://noiseprotocol.org/noise.html).
+  /// See the [Noise protocol specification](https://noiseprotocol.org/noise.html).
   Future<void> rekey() async {
     throw UnimplementedError();
   }

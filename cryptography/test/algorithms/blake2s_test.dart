@@ -21,22 +21,20 @@ import 'package:test/test.dart';
 
 void main() {
   group('blake2s:', () {
-    test('name', () {
-      expect(blake2s.name, 'blake2s');
-    });
+    final algorithm = Blake2s();
 
     test('hash length', () {
-      expect(blake2s.hashLengthInBytes, 32);
+      expect(algorithm.hashLengthInBytes, 32);
     });
 
     test('block length', () {
-      expect(blake2s.blockLengthInBytes, 32);
+      expect(algorithm.blockLengthInBytes, 32);
     });
 
-    test('10 000 cycles', () {
+    test('10 000 cycles', () async {
       var actual = <int>[];
       for (var i = 0; i < 10000; i++) {
-        actual = blake2s.hashSync(actual).bytes;
+        actual = (await algorithm.hash(actual)).bytes;
       }
 
       // Obtained from a Go program
@@ -50,18 +48,18 @@ void main() {
       );
     });
 
-    test('10 000 cycles, different lengths', () {
+    test('10 000 cycles, different lengths', () async {
       final data = Uint8List(10000);
       for (var i = 0; i < data.length; i++) {
         data[i] = i % 256;
       }
       var actual = <int>[];
       for (var i = 0; i < 10000; i++) {
-        final sink = blake2s.newSink();
+        final sink = algorithm.newHashSink();
         sink.add(actual);
         sink.add(data.sublist(0, i));
         sink.close();
-        actual = sink.hash.bytes;
+        actual = (await sink.hash()).bytes;
       }
 
       // Obtained from a Go program
@@ -84,7 +82,7 @@ void main() {
 ''');
       // hash()
       {
-        final hash = await blake2s.hash(utf8.encode('abc'));
+        final hash = await algorithm.hash(utf8.encode('abc'));
         expect(
           hexFromBytes(hash.bytes),
           hexFromBytes(expectedBytes),
@@ -93,7 +91,7 @@ void main() {
 
       // hashSync()
       {
-        final hash = blake2s.hashSync(utf8.encode('abc'));
+        final hash = await algorithm.hash(utf8.encode('abc'));
         expect(
           hexFromBytes(hash.bytes),
           hexFromBytes(expectedBytes),
@@ -102,26 +100,26 @@ void main() {
 
       // newSink()
       {
-        final sink = await blake2s.newSink();
+        final sink = algorithm.newHashSink();
         sink.add('a'.codeUnits);
         sink.addSlice('bc'.codeUnits, 0, 2, false);
         sink.close();
         expect(
-          hexFromBytes(sink.hash.bytes),
+          hexFromBytes((await sink.hash()).bytes),
           hexFromBytes(expectedBytes),
         );
       }
 
       // newSink() again
       {
-        final sink = await blake2s.newSink();
+        final sink = await algorithm.newHashSink();
         sink.add('a'.codeUnits);
         sink.add(''.codeUnits);
         sink.addSlice('b'.codeUnits, 0, 1, false);
         sink.addSlice('c'.codeUnits, 0, 1, true);
         sink.close();
         expect(
-          hexFromBytes(sink.hash.bytes),
+          hexFromBytes((await sink.hash()).bytes),
           hexFromBytes(expectedBytes),
         );
       }

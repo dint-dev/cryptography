@@ -5,13 +5,16 @@
 
 Cryptographic packages for [Dart](https://dart.dev) / [Flutter](https://flutter.dev) developers.
 
+This package is maintained by Gohilla Ltd (Finland) and open-sourced under the
+[Apache License 2.0](LICENSE).
+
 Want to contribute? Please share feedback / issue reports in the
 [issue tracker](https://github.com/dint-dev/cryptography/issues). Pull requests are welcome.
 
 ## Packages
   * [cryptography](cryptography)
     * Covers:
-      * Ciphers (AES, ChaCha20/XChaCha20)
+      * Ciphers (AES, Chacha20/Xchacha20)
       * Digital signature algorithms (ED25519, P256/P384/P521, RSA-PSS, RSASSA-PKCS1-V15)
       * Key exchange algorithms (P256/P384/P521, X25519)
       * Message authentication codes (HMAC, Poly1305)

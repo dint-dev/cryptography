@@ -12,48 +12,41 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/// Cryptographic algorithms implemented in Dart.
+/// A cryptography API for Dart.
 ///
-/// ## Algorithm types
+/// Implementations of algorithms are obtained from [Cryptography.instance].
+///
+/// The following algorithm types are supported:
 ///   * [Cipher]
 ///   * [KeyExchangeAlgorithm]
+///   * [SignatureAlgorithm]
 ///   * [HashAlgorithm]
 ///   * [MacAlgorithm]
 ///   * [SignatureAlgorithm]
+///
 library cryptography;
 
-export 'src/algorithms/aes_cbc.dart';
-export 'src/algorithms/aes_ctr.dart';
-export 'src/algorithms/aes_gcm.dart';
-export 'src/algorithms/blake2b.dart';
-export 'src/algorithms/blake2s.dart';
-export 'src/algorithms/chacha20.dart';
-export 'src/algorithms/chacha20_poly1305_aead.dart';
-export 'src/algorithms/ec_dh.dart';
-export 'src/algorithms/ec_dsa.dart';
-export 'src/algorithms/ec_ed25519.dart';
-export 'src/algorithms/ec_x25519.dart';
-export 'src/algorithms/hchacha20.dart';
-export 'src/algorithms/hkdf.dart';
-export 'src/algorithms/hmac.dart';
-export 'src/algorithms/pbkdf2.dart';
-export 'src/algorithms/poly1305.dart';
-export 'src/algorithms/rsa_pss.dart';
-export 'src/algorithms/rsa_ssa_pkcs1v15.dart';
-export 'src/algorithms/sha1_sha2.dart';
-export 'src/algorithms/xchacha20.dart';
-export 'src/cipher.dart';
-export 'src/cipher_with_appended_mac.dart';
-export 'src/hash.dart';
-export 'src/hash_algorithm.dart';
-export 'src/jwk.dart';
-export 'src/key_exchange_algorithm.dart';
-export 'src/key_pair.dart';
-export 'src/mac.dart';
-export 'src/mac_algorithm.dart';
-export 'src/nonce.dart';
-export 'src/private_key.dart';
-export 'src/public_key.dart';
-export 'src/secret_key.dart';
-export 'src/signature.dart';
-export 'src/signature_algorithm.dart';
+import 'package:cryptography/cryptography.dart';
+
+export 'src/cryptography/algorithms.dart';
+export 'src/cryptography/cipher.dart';
+export 'src/cryptography/cryptography.dart';
+export 'src/cryptography/ec_key_pair.dart';
+export 'src/cryptography/ec_public_key.dart';
+export 'src/cryptography/hash.dart';
+export 'src/cryptography/hash_algorithm.dart';
+export 'src/cryptography/kdf_algorithm.dart';
+export 'src/cryptography/key_exchange_algorithm.dart';
+export 'src/cryptography/key_pair.dart';
+export 'src/cryptography/key_pair_type.dart';
+export 'src/cryptography/mac.dart';
+export 'src/cryptography/mac_algorithm.dart';
+export 'src/cryptography/rsa_key_pair.dart';
+export 'src/cryptography/rsa_public_key.dart';
+export 'src/cryptography/secret_box.dart';
+export 'src/cryptography/secret_key.dart';
+export 'src/cryptography/secret_key_type.dart';
+export 'src/cryptography/signature.dart';
+export 'src/cryptography/signature_algorithm.dart';
+export 'src/cryptography/simple_key_pair.dart';
+export 'src/cryptography/simple_public_key.dart';

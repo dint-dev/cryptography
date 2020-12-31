@@ -18,37 +18,37 @@ part of noise_protocol;
 ///
 /// Possible values are:
 ///   * [NoiseCipher.aesGcm] (AES-GCM)
-///   * [NoiseCipher.chachaPoly] (ChaCha20-Poly1305-AEAD)
+///   * [NoiseCipher.chachaPoly] (Chacha20-Poly1305-AEAD)
 ///
 class NoiseCipher {
   /// AES-GCM
-  static const NoiseCipher aesGcm = NoiseCipher._(
+  static final NoiseCipher aesGcm = NoiseCipher._(
     'AESGCM',
-    cryptography.aesGcm,
+    AesGcm.with256bits(),
   );
 
-  /// ChaCha20-Poly1305-AEAD
-  static const NoiseCipher chachaPoly = NoiseCipher._(
-    'ChaChaPoly',
-    cryptography.chacha20Poly1305Aead,
+  /// Chacha20-Poly1305-AEAD
+  static final NoiseCipher chachaPoly = NoiseCipher._(
+    'ChachaPoly',
+    Chacha20.poly1305Aead(),
   );
 
   /// Name of the algorithm.
   final String name;
 
   /// Implementation.
-  final Cipher implementation;
+  final StreamingCipher implementation;
 
   const NoiseCipher._(this.name, this.implementation);
 
   /// Generates a nonce from a counter value.
-  Nonce nonce(int counter) {
+  List<int> nonce(int counter) {
     // 4 bytes of zeroes + 8 byte LITTLE endian encoding of the counter.
     // We can't use setUint64() because it's unsupported in browsers.
     final byteData = ByteData(12);
     byteData.setUint32(4, counter ~/ (uint32mask + 1), Endian.little);
     byteData.setUint32(8, uint32mask & counter, Endian.little);
-    return Nonce(Uint8List.view(byteData.buffer));
+    return Uint8List.view(byteData.buffer);
   }
 }
 
@@ -60,15 +60,15 @@ class NoiseCipher {
 ///
 class NoiseHashAlgorithm {
   /// BLAKE2s
-  static const NoiseHashAlgorithm blake2s = NoiseHashAlgorithm._(
+  static final NoiseHashAlgorithm blake2s = NoiseHashAlgorithm._(
     'BLAKE2s',
-    cryptography.blake2s,
+    Blake2s(),
   );
 
   /// SHA2-256
-  static const NoiseHashAlgorithm sha256 = NoiseHashAlgorithm._(
+  static final NoiseHashAlgorithm sha256 = NoiseHashAlgorithm._(
     'SHA256',
-    cryptography.sha256,
+    Sha256(),
   );
 
   /// Name of the algorithm.
@@ -87,9 +87,9 @@ class NoiseHashAlgorithm {
 ///
 class NoiseKeyExchangeAlgorithm {
   /// X25519
-  static const NoiseKeyExchangeAlgorithm x25519 = NoiseKeyExchangeAlgorithm._(
+  static final NoiseKeyExchangeAlgorithm x25519 = NoiseKeyExchangeAlgorithm._(
     'X25519',
-    cryptography.x25519,
+    X25519(),
   );
 
   /// Name of the algorithm.
@@ -101,7 +101,7 @@ class NoiseKeyExchangeAlgorithm {
   const NoiseKeyExchangeAlgorithm._(this.name, this.implementation);
 }
 
-/// Defines [handshakePattern], [keyExchangeAlgorithm], [cipher], and
+/// Defines [handshakePattern], [noiseKeyExchangeAlgorithm], [cipher], and
 /// [hashAlgorithm].
 ///
 /// Example:
@@ -115,10 +115,10 @@ class NoiseKeyExchangeAlgorithm {
 /// ```
 class NoiseProtocol {
   /// Handshake pattern.
-  final HandshakePattern handshakePattern;
+  final NoiseHandshakePattern handshakePattern;
 
   /// Key exchange algorithm.
-  final NoiseKeyExchangeAlgorithm keyExchangeAlgorithm;
+  final NoiseKeyExchangeAlgorithm noiseKeyExchangeAlgorithm;
 
   /// Hash algorithm.
   final NoiseHashAlgorithm hashAlgorithm;
@@ -127,18 +127,15 @@ class NoiseProtocol {
   final NoiseCipher cipher;
 
   const NoiseProtocol({
-    @required this.handshakePattern,
-    @required this.keyExchangeAlgorithm,
-    @required this.hashAlgorithm,
-    @required this.cipher,
-  })  : assert(handshakePattern != null),
-        assert(keyExchangeAlgorithm != null),
-        assert(hashAlgorithm != null),
-        assert(cipher != null);
+    required this.handshakePattern,
+    required this.noiseKeyExchangeAlgorithm,
+    required this.hashAlgorithm,
+    required this.cipher,
+  });
 
   /// Returns public key length.
   int get publicKeyLength =>
-      keyExchangeAlgorithm.implementation.publicKeyLength;
+      noiseKeyExchangeAlgorithm.implementation.keyPairType.publicKeyLength;
 
   /// Returns Noise protocol string.
   @override
@@ -147,7 +144,7 @@ class NoiseProtocol {
     sb.write('Noise_');
     sb.write(handshakePattern.name);
     sb.write('_');
-    sb.write(keyExchangeAlgorithm.name);
+    sb.write(noiseKeyExchangeAlgorithm.name);
     sb.write('_');
     sb.write(cipher.name);
     sb.write('_');
