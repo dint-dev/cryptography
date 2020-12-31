@@ -54,7 +54,7 @@ void main() {
       expect(algorithm.nonceLength, 12);
     });
 
-    group('Checks MAC (message length 0)', () async {
+    group('Checks MAC', () {
       Future<void> f(List<int> message) async {
         final secretKey = await algorithm.newSecretKey();
         final secretBox = await algorithm.encrypt(
