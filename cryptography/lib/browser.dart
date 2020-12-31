@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/// Enables applications to take advantage of Web Cryptography API in browsers.
+/// Cryptographic algorithms implemented with browser APIs (_Web Cryptography_).
 ///
-/// For more documentation, see [BrowserCryptography].
+/// See [BrowserCryptography].
 ///
 library cryptography.browser;
 

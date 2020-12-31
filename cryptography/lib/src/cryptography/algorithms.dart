@@ -18,7 +18,7 @@ import 'package:meta/meta.dart';
 ///     * [AesGcm.with128bits()]
 ///     * [AesGcm.with192bits()]
 ///     * [AesGcm.with256bits()]
-///   * Nonce is 12 bytes by default.
+///   * [nonceLength] is 12 bytes by default.
 ///   * The algorithm is non-authenticated (you must choose some [MacAlgorithm]).
 ///
 /// ## Example
@@ -120,7 +120,7 @@ abstract class AesCbc extends Cipher {
 ///     * [AesGcm.with128bits()]
 ///     * [AesGcm.with192bits()]
 ///     * [AesGcm.with256bits()]
-///   * Nonce is 12 bytes by default.
+///   * [nonceLength] is 12 bytes by default.
 ///   * The algorithm is non-authenticated (you should choose some [MacAlgorithm]).
 ///
 /// ## Example
@@ -234,8 +234,8 @@ abstract class AesCtr extends StreamingCipher {
 ///     * [AesGcm.with128bits()]
 ///     * [AesGcm.with192bits()]
 ///     * [AesGcm.with256bits()]
-///   * Nonce is 12 bytes by default.
-///   * Generates a MAC that has 16 bytes.
+///   * [nonceLength] is 12 bytes by default.
+///   * The built-in [macAlgorithm] produces a MAC that has 16 bytes.
 ///
 /// ## Choosing key length
 ///
@@ -353,13 +353,13 @@ abstract class AesGcm extends StreamingCipher {
 ///     hashLength: 32,
 ///   );
 ///
-///   final secretKey = await algorithm.deriveKey(
-///     secretKey: SecretKeyData([1,2,3]),
+///   final newSecretKey = await algorithm.deriveKey(
+///     secretKey: SecretKey([1,2,3]),
 ///     nonce: [4,5,6],
 ///   );
-///   final secretKeyBytes = await secretKey.extractBytes();
+///   final newSecretKeyBytes = await newSecretKey.extractBytes();
 ///
-///   print('hashed password: $hash');
+///   print('hashed password: $newSecretKeyBytes');
 /// }
 /// ```
 ///
@@ -548,19 +548,18 @@ abstract class Blake2s extends HashAlgorithm {
   bool operator ==(other) => other is Blake2s;
 }
 
-/// _Chacha20_ ([RFC 7539](https://tools.ietf.org/html/rfc7539))
+/// _ChaCha20_ ([RFC 7539](https://tools.ietf.org/html/rfc7539))
 /// [StreamingCipher].
 ///
 /// We recommend you to use [Chacha20.poly1305Aead()],
-/// which has a standard AEAD authentication.
+/// which does message authentication with a standard AEAD construction for
+/// _ChaCha20_.
 ///
-/// ## Things to know
-///   * Key must be 32 bytes.
-///   * Nonce must be 12 bytes.
-///   * Make sure you don't use the same (key, nonce) combination twice.
-///   * Make sure you don't use the cipher without authentication.
+/// # About the algorithm
+///   * [secretKeyLength] is 32 bytes.
+///   * [nonceLength] is 12 bytes.\
 ///
-/// ## Example
+/// # Example
 /// ```dart
 /// import 'package:cryptography/cryptography.dart';
 ///
@@ -599,8 +598,13 @@ abstract class Chacha20 extends StreamingCipher {
   /// _AEAD_CHACHA20_POLY1305_ ([https://tools.ietf.org/html/rfc7539](RFC 7539))
   /// [Cipher].
   ///
-  /// [SecretBox.mac] contains a 128-bit MAC.
-  /// AAD (Associated Authenticated Data) is supported.
+  /// The returned cipher has-builtin [macAlgorithm] that calculates a 128-bit
+  /// MAC. AAD (Associated Authenticated Data) is supported by [encrypt()] and
+  /// [decrypt()].
+  ///
+  /// # About the algorithm
+  ///   * [secretKeyLength] is 32 bytes.
+  ///   * [nonceLength] is 12 bytes.\
   factory Chacha20.poly1305Aead() {
     return Cryptography.instance.chacha20Poly1305Aead();
   }
@@ -875,7 +879,7 @@ abstract class Hchacha20 {
 ///     hmac: Hmac(Sha256()),
 ///     outputLength: 32,
 ///   );
-///   final secretKey = SecretKeyData([1,2,3]);
+///   final secretKey = SecretKey([1,2,3]);
 ///   final nonce = [4,5,6];
 ///   final output = await algorithm.deriveKey(
 ///     secretKey: secretKey,
@@ -932,7 +936,7 @@ abstract class Hkdf extends KdfAlgorithm {
 ///
 /// void main() async {
 ///   final message = [1,2,3];
-///   final secretKey = SecretKeyData([4,5,6]);
+///   final secretKey = SecretKey([4,5,6]);
 ///
 ///   // In our example, we calculate HMAC-SHA256
 ///   final hmac = Hmac.sha256();
@@ -1000,16 +1004,16 @@ abstract class Hmac extends MacAlgorithm {
 ///
 /// Future<void> main() async {
 ///   final pbkdf2 = Pbkdf2(
-///     macAlgorithm: Hmac(sha256),
+///     macAlgorithm: Hmac.sha256(),
 ///     iterations: 100000,
 ///     bits: 128,
 ///   );
 ///
 ///   // Password we want to hash
-///   final secretKey = SecretKeyData([1,2,3]);
+///   final secretKey = SecretKey([1,2,3]);
 ///
 ///   // A random salt
-///   final nonce = SecretKeyData([4,5,6]);
+///   final nonce = [4,5,6];
 ///
 ///   // Calculate a hash that can be stored in the database
 ///   final newSecretKey = await pbkdf2.deriveKey(

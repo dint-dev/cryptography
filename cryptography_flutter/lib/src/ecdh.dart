@@ -103,7 +103,7 @@ class FlutterEcdh extends DelegatingEcdh {
           );
         }
         final bytes = result['bytes'] as Uint8List;
-        return SecretKeyData(bytes);
+        return SecretKey(bytes);
       } catch (error) {
         usePlugin = false;
         reportError(error);

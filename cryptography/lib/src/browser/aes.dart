@@ -25,7 +25,7 @@ Future<web_crypto.CryptoKey> jsCryptoKeyFromAesSecretKey(
   required String webCryptoAlgorithm,
 }) async {
   final secretKeyData = await secretKey.extract();
-  return js.promiseToFuture(web_crypto.subtle!.importKey(
+  return js.promiseToFuture(web_crypto.importKey(
     'raw',
     jsArrayBufferFrom(secretKeyData.bytes),
     webCryptoAlgorithm,
@@ -40,7 +40,7 @@ mixin BrowserAesMixin implements Cipher {
   @override
   Future<SecretKey> newSecretKey() async {
     final jsCryptoKeyFuture = js.promiseToFuture<web_crypto.CryptoKey>(
-      web_crypto.subtle!.generateKey(
+      web_crypto.generateKey(
         web_crypto.AesKeyGenParams(
           name: webCryptoName,
           length: secretKeyLength * 8,
@@ -52,7 +52,7 @@ mixin BrowserAesMixin implements Cipher {
 
     return SecretKey.lazy(() async {
       final byteBuffer = await js.promiseToFuture(
-        web_crypto.subtle!.exportKey('raw', await jsCryptoKeyFuture),
+        web_crypto.exportKey('raw', await jsCryptoKeyFuture),
       );
       final bytes = List<int>.unmodifiable(Uint8List.view(byteBuffer));
       return SecretKeyData(bytes);

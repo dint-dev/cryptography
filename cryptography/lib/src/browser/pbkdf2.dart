@@ -50,7 +50,7 @@ class BrowserPbkdf2 extends Pbkdf2 {
 
     // subtle.deriveBits(...)
     final byteBuffer = await js.promiseToFuture<ByteBuffer>(
-      web_crypto.subtle!.deriveBits(
+      web_crypto.deriveBits(
         web_crypto.Pkdf2Params(
           name: 'PBKDF2',
           hash: macAlgorithm.hashAlgorithmWebCryptoName,
@@ -62,7 +62,7 @@ class BrowserPbkdf2 extends Pbkdf2 {
       ),
     );
 
-    return SecretKeyData(List<int>.unmodifiable(
+    return SecretKey(List<int>.unmodifiable(
       Uint8List.view(byteBuffer),
     ));
   }
@@ -70,7 +70,7 @@ class BrowserPbkdf2 extends Pbkdf2 {
   Future<web_crypto.CryptoKey> _jsCryptoKey(SecretKey secretKey) async {
     final secretKeyData = await secretKey.extract();
     return js.promiseToFuture<web_crypto.CryptoKey>(
-      web_crypto.subtle!.importKey(
+      web_crypto.importKey(
         'raw',
         jsArrayBufferFrom(secretKeyData.bytes),
         'PBKDF2',

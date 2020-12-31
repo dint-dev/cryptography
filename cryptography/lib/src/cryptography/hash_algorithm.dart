@@ -34,8 +34,8 @@ import 'package:cryptography/cryptography.dart';
 ///
 /// void main() async {
 ///   final algorithm = Sha256();
-///   final hash = await algorithm.calculateHash([1,2,3]);
-///   print('Hash: $hash');
+///   final hash = await algorithm.hash([1,2,3]);
+///   print('Hash: ${hash.bytes}');
 /// }
 /// ```
 ///
@@ -54,7 +54,7 @@ import 'package:cryptography/cryptography.dart';
 ///
 ///   // Calculate hash
 ///   sink.close();
-///   final hash = sink.hash();
+///   final hash = await sink.hash();
 ///
 ///   print('Hash: ${hash.bytes}');
 /// }
@@ -78,33 +78,58 @@ abstract class HashAlgorithm {
   /// Calculates hash for the argument.
   Future<Hash> hash(List<int> input);
 
+  /// Constructs a sink for hashing chunks.
+  ///
+  /// # Example
+  /// An example with [Sha256]:
+  /// ```
+  /// import 'package:cryptography/cryptography.dart';
+  ///
+  /// void main() async {
+  ///   // Create a sink
+  ///   final algorithm = Sha256();
+  ///   final sink = algorithm.newHashSink();
+  ///
+  ///   // Add all parts
+  ///   sink.add(<int>[1,2,3]);
+  ///   sink.add(<int>[4,5]);
+  ///
+  ///   // Calculate hash
+  ///   sink.close();
+  ///   final hash = await sink.hash();
+  ///
+  ///   print('Hash: ${hash.bytes}');
+  /// }
+  /// ```
   HashSink newHashSink() => _HashSink(this);
+
+  /// {@nodoc}
+  @Deprecated('Use newHashSink() instead')
+  HashSink newSink() => newHashSink();
 
   @override
   String toString();
 }
 
-/// Enables calculation of [Hash] for inputs larger than fit in the memory.
+/// A sink for calculating [Hash] for long sequences.
 ///
 /// ## Example
-/// An example with [sha256]:
+/// An example with [Sha256]:
 /// ```
 /// import 'package:cryptography/cryptography.dart';
 ///
-/// void main() {
+/// void main() async {
 ///   // Create a sink
 ///   final algorithm = Sha256();
 ///   final sink = algorithm.newHashSink();
 ///
-///   // Add any number of chunks
-///   sink.add([1,2,3]);
-///   sink.add([4,5]);
+///   // Add all parts
+///   sink.add(<int>[1,2,3]);
+///   sink.add(<int>[4,5]);
 ///
-///   // Close
+///   // Calculate hash
 ///   sink.close();
-///
-///   // We have a hash
-///   final hash = sink.hash();
+///   final hash = await sink.hash();
 ///
 ///   print('Hash: ${hash.bytes}');
 /// }

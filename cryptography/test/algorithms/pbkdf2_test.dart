@@ -51,13 +51,13 @@ void _main() {
       bits: bits,
       iterations: iterations,
     );
-    final opaque = await pbkdf2.deriveKey(
-      secretKey: SecretKeyData(input),
+    final secretKey = await pbkdf2.deriveKey(
+      secretKey: SecretKey(input),
       nonce: nonce,
     );
-    final actual = await opaque.extract();
+    final actualBytes = await secretKey.extractBytes();
     expect(
-      hexFromBytes(actual.bytes),
+      hexFromBytes(actualBytes),
       hexFromBytes(expectedBytes),
     );
   });
@@ -77,13 +77,13 @@ void _main() {
       bits: bits,
       iterations: iterations,
     );
-    final opaque = await pbkdf2.deriveKey(
-      secretKey: SecretKeyData(input),
+    final secretKey = await pbkdf2.deriveKey(
+      secretKey: SecretKey(input),
       nonce: nonce,
     );
-    final actual = await opaque.extract();
+    final actualBytes = await secretKey.extractBytes();
     expect(
-      hexFromBytes(actual.bytes),
+      hexFromBytes(actualBytes),
       hexFromBytes(expectedBytes),
     );
   });
@@ -103,13 +103,13 @@ void _main() {
       bits: bits,
       iterations: iterations,
     );
-    final opaque = await pbkdf2.deriveKey(
-      secretKey: SecretKeyData(input),
+    final secretKey = await pbkdf2.deriveKey(
+      secretKey: SecretKey(input),
       nonce: nonce,
     );
-    final actual = await opaque.extract();
+    final actualBytes = await secretKey.extractBytes();
     expect(
-      hexFromBytes(actual.bytes),
+      hexFromBytes(actualBytes),
       hexFromBytes(expectedBytes),
     );
   });
@@ -129,13 +129,13 @@ void _main() {
       bits: bits,
       iterations: iterations,
     );
-    final opaque = await pbkdf2.deriveKey(
+    final secretKey = await pbkdf2.deriveKey(
       secretKey: SecretKeyData(input),
       nonce: nonce,
     );
-    final actual = await opaque.extract();
+    final actualBytes = await secretKey.extractBytes();
     expect(
-      hexFromBytes(actual.bytes),
+      hexFromBytes(actualBytes),
       hexFromBytes(expectedBytes),
     );
   });
@@ -155,13 +155,13 @@ void _main() {
       bits: bits,
       iterations: iterations,
     );
-    final opaque = await pbkdf2.deriveKey(
-      secretKey: SecretKeyData(input),
+    final secretKey = await pbkdf2.deriveKey(
+      secretKey: SecretKey(input),
       nonce: nonce,
     );
-    final actual = await opaque.extract();
+    final actualBytes = await secretKey.extractBytes();
     expect(
-      hexFromBytes(actual.bytes),
+      hexFromBytes(actualBytes),
       hexFromBytes(expectedBytes),
     );
   });

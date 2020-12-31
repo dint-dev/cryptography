@@ -112,7 +112,7 @@ class BrowserAesGcm extends AesGcm
     cipherTextAndMac.setAll(cipherText.length, macBytes);
     try {
       final byteBuffer = await js.promiseToFuture<ByteBuffer>(
-        web_crypto.subtle!.decrypt(
+        web_crypto.decrypt(
           web_crypto.AesGcmParams(
             name: 'AES-GCM',
             iv: jsArrayBufferFrom(secretBox.nonce),
@@ -165,7 +165,7 @@ class BrowserAesGcm extends AesGcm
       webCryptoAlgorithm: 'AES-GCM',
     );
     final byteBuffer = await js.promiseToFuture<ByteBuffer>(
-      web_crypto.subtle!.encrypt(
+      web_crypto.encrypt(
         web_crypto.AesGcmParams(
           name: 'AES-GCM',
           iv: jsArrayBufferFrom(nonce),

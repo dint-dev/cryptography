@@ -83,10 +83,10 @@ class SymmetricState {
       outputLength: 2 * hashAlgorithm.hashLengthInBytes,
     );
     final hkdfOutput = await hkdf.deriveKey(
-      secretKey: SecretKeyData(_chainingKey!),
+      secretKey: SecretKey(_chainingKey!),
       nonce: key,
     );
-    final temp = (await hkdfOutput.extract()).bytes;
+    final temp = await hkdfOutput.extractBytes();
     _chainingKey = temp.sublist(0, 32);
     cipherState.initialize(
       SecretKeyData(temp.sublist(hashLength, hashLength + 32)),
@@ -102,10 +102,10 @@ class SymmetricState {
       outputLength: 3 * hashAlgorithm.hashLengthInBytes,
     );
     final hkdfOutput = await hkdf.deriveKey(
-      secretKey: SecretKeyData(_chainingKey!),
+      secretKey: SecretKey(_chainingKey!),
       nonce: const <int>[],
     );
-    final temp = (await hkdfOutput.extract()).bytes;
+    final temp = await hkdfOutput.extractBytes();
 
     // First segment is truncated to 32 bytes
     _chainingKey = temp.sublist(0, 32);
@@ -131,10 +131,10 @@ class SymmetricState {
       outputLength: 2 * hashAlgorithm.hashLengthInBytes,
     );
     final hkdfOutput = await hkdf.deriveKey(
-      secretKey: SecretKeyData(_chainingKey!),
+      secretKey: SecretKey(_chainingKey!),
       nonce: const <int>[],
     );
-    final temp = (await hkdfOutput.extract()).bytes;
+    final temp = await hkdfOutput.extractBytes();
     final temp0 = temp.sublist(0, 32);
     final temp1 = temp.sublist(hashLength, hashLength + 32);
     final encrypter = CipherState(

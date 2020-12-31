@@ -1,3 +1,11 @@
+## 2.0.0-nullsafety.2
+  * For ease of use and backwards compatibility with 1.x, adds `SecretKey(bytes)` factory that
+    just redirects to `SecretKeyData(bytes)`.
+  * Renames a few identifiers in _package:cryptography_ for consistency.
+    Adds deprecation warnings to the old identifiers.
+  * Some small internal fixes.
+  * Improves documentation.
+
 ## 2.0.0-nullsafety.1
   * Re-introduces _package:crypto_ as dependency now that a null-safe version exists.
   * Better documentation.

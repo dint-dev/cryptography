@@ -320,8 +320,8 @@ class HandshakeState {
             keyPair: localStaticKeyPair!,
             remotePublicKey: _remoteStaticPublicKey!,
           );
-          final extractedSecretKey = await secretKey.extract();
-          await symmetricState.mixKey(extractedSecretKey.bytes);
+          final secretKeyBytes = await secretKey.extractBytes();
+          await symmetricState.mixKey(secretKeyBytes);
           break;
 
         case NoiseMessageToken.psk:

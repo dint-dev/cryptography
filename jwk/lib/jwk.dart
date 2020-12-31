@@ -439,7 +439,7 @@ class Jwk {
   SecretKey toSecretKey() {
     switch (kty) {
       case 'OCK':
-        return SecretKeyData(
+        return SecretKey(
           List<int>.unmodifiable(x ?? const <int>[])
         );
 

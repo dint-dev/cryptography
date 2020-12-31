@@ -68,7 +68,7 @@ class BrowserAesCtr extends AesCtr with BrowserAesMixin {
       webCryptoAlgorithm: 'AES-CTR',
     );
     final byteBuffer = await js.promiseToFuture<ByteBuffer>(
-      web_crypto.subtle!.decrypt(
+      web_crypto.decrypt(
         web_crypto.AesCtrParams(
           name: 'AES-CTR',
           counter: counterBytes.buffer,
@@ -104,7 +104,7 @@ class BrowserAesCtr extends AesCtr with BrowserAesMixin {
       webCryptoAlgorithm: 'AES-CTR',
     );
     final byteBuffer = await js.promiseToFuture<ByteBuffer>(
-      web_crypto.subtle!.encrypt(
+      web_crypto.encrypt(
         web_crypto.AesCtrParams(
           name: 'AES-CTR',
           counter: counterBytes.buffer,

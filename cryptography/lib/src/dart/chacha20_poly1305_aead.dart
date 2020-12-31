@@ -16,7 +16,6 @@ import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/src/utils.dart';
-import 'package:meta/meta.dart';
 
 /// A pure Dart implementation of _AEAD_CHACHA20_POLY1305_ message
 /// authentication.
@@ -57,11 +56,11 @@ class DartChacha20Poly1305AeadMacAlgorithm extends MacAlgorithm {
     List<int> nonce = const <int>[],
     List<int> aad = const <int>[],
   }) async {
-    final secretKeyForPoly1305 = await poly1305SecretKeyFromChacha20(
+    final secretKeyForPoly1305 = await _poly1305SecretKeyFromChacha20(
       secretKey: secretKey,
       nonce: nonce,
     );
-    final sink = await _poly1305.newSink(
+    final sink = await _poly1305.newMacSink(
       secretKey: secretKeyForPoly1305,
     );
 
@@ -144,8 +143,7 @@ class DartChacha20Poly1305AeadMacAlgorithm extends MacAlgorithm {
   }
 
   /// A function needed by _AEAD_CHACHA20_POLY1305_.
-  @protected
-  Future<SecretKeyData> poly1305SecretKeyFromChacha20({
+  Future<SecretKeyData> _poly1305SecretKeyFromChacha20({
     required SecretKey secretKey,
     required List<int> nonce,
   }) async {

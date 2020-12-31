@@ -182,14 +182,14 @@ void main() {
         await expectLater(
           algorithm.encrypt(
             <int>[],
-            secretKey: SecretKeyData(Uint8List(31)),
+            secretKey: SecretKey(Uint8List(31)),
           ),
           throwsA(const TypeMatcher<ArgumentError>()),
         );
         await expectLater(
           algorithm.encrypt(
             <int>[],
-            secretKey: SecretKeyData(Uint8List(33)),
+            secretKey: SecretKey(Uint8List(33)),
           ),
           throwsA(const TypeMatcher<ArgumentError>()),
         );
@@ -225,14 +225,14 @@ void main() {
         await expectLater(
           algorithm.decrypt(
             secretBox,
-            secretKey: SecretKeyData(Uint8List(31)),
+            secretKey: SecretKey(Uint8List(31)),
           ),
           throwsArgumentError,
         );
         await expectLater(
           algorithm.decrypt(
             secretBox,
-            secretKey: SecretKeyData(Uint8List(33)),
+            secretKey: SecretKey(Uint8List(33)),
           ),
           throwsArgumentError,
         );
@@ -304,7 +304,7 @@ void main() {
             .runes
             .toList();
 
-    final secretKey = SecretKeyData(hexToBytes(
+    final secretKey = SecretKey(hexToBytes(
       '00:01:02:03:04:05:06:07:08:09:0a:0b:0c:0d:0e:0f:10:11:12:13:14:15:16:17:18:19:1a:1b:1c:1d:1e:1f',
     ));
 

@@ -1,12 +1,12 @@
 name: cryptography
-version: 2.0.0-nullsafety.1
+version: 2.0.0-nullsafety.2
 homepage: https://github.com/dint-dev/cryptography
 description:
   Cryptographic algorithms for encryption, digital signatures, key agreement, authentication, and
   hashing. AES, Chacha20, ED25519, X25519, and more. Web Crypto support.
 
 environment:
-  sdk: '>=2.12.0-133.2.beta <3.0.0'
+  sdk: '>=2.12.0-0 <3.0.0'
 
 dependencies:
   collection: ^1.15.0-nullsafety.5

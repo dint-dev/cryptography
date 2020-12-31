@@ -35,7 +35,7 @@ Future<web_crypto.CryptoKey> jsCryptoKeyFromEcdhKeyPair(
   }
   try {
     return await js.promiseToFuture<web_crypto.CryptoKey>(
-      web_crypto.subtle!.importKey(
+      web_crypto.importKey(
         'jwk',
         web_crypto.Jwk(
           kty: 'EC',
@@ -74,7 +74,7 @@ Future<web_crypto.CryptoKey> jsCryptoKeyFromEcdhPublicKey(
   }
   try {
     return js.promiseToFuture<web_crypto.CryptoKey>(
-      web_crypto.subtle!.importKey(
+      web_crypto.importKey(
         'jwk',
         web_crypto.Jwk(
           kty: 'EC',
@@ -138,7 +138,7 @@ class BrowserEcdh extends Ecdh {
     try {
       final jsCryptoKeyPair =
           await js.promiseToFuture<web_crypto.CryptoKeyPair>(
-        web_crypto.subtle!.generateKey(
+        web_crypto.generateKey(
           web_crypto.EcdhParams(
             name: 'ECDH',
             namedCurve: keyPairType.webCryptoCurve!,
@@ -187,7 +187,7 @@ class BrowserEcdh extends Ecdh {
     final jsPrivateKey = await jsPrivateKeyFuture;
     final jsPublicKey = await jsPublicKeyFuture;
     final byteBuffer = await js.promiseToFuture<ByteBuffer>(
-      web_crypto.subtle!.deriveBits(
+      web_crypto.deriveBits(
         web_crypto.EcdhKeyDeriveParams(
           name: 'ECDH',
           public: jsPublicKey,
@@ -196,7 +196,7 @@ class BrowserEcdh extends Ecdh {
         8 * length,
       ),
     );
-    return SecretKeyData(Uint8List.view(byteBuffer));
+    return SecretKey(Uint8List.view(byteBuffer));
   }
 }
 
@@ -212,7 +212,7 @@ class _BrowserEcdhKeyPair extends KeyPair implements EcKeyPair {
   Future<EcKeyPairData> extract() {
     return _keyPairData ??= js
         .promiseToFuture<web_crypto.Jwk>(
-      web_crypto.subtle!.exportKey('jwk', jsCryptoKeyPair.privateKey),
+      web_crypto.exportKey('jwk', jsCryptoKeyPair.privateKey),
     )
         .then(
       (jwk) => EcKeyPairData(
@@ -233,7 +233,7 @@ class _BrowserEcdhKeyPair extends KeyPair implements EcKeyPair {
   Future<EcPublicKey> extractPublicKey() {
     return _publicKey ??= js
         .promiseToFuture<web_crypto.Jwk>(
-      web_crypto.subtle!.exportKey('jwk', jsCryptoKeyPair.publicKey),
+      web_crypto.exportKey('jwk', jsCryptoKeyPair.publicKey),
     )
         .then(
       (jwk) => EcPublicKey(

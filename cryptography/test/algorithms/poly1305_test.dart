@@ -26,7 +26,7 @@ void main() {
       final secretKeyBytes = Uint8List(32)
         ..[0] = 1
         ..[2] = 2;
-      var k = SecretKeyData(secretKeyBytes);
+      var k = SecretKey(secretKeyBytes);
       var state = utf8.encode('Hello world');
       for (var i = 0; i < 100000; i++) {
         final mac = await algorithm.calculateMac(
@@ -43,7 +43,7 @@ void main() {
         for (var i = 0; i < kBytes.length; i++) {
           kBytes[i] = (kBytes[i] + i) % 256;
         }
-        k = SecretKeyData(kBytes);
+        k = SecretKey(kBytes);
       }
       expect(
         hexFromBytes(state),
@@ -55,7 +55,7 @@ void main() {
 
     test('Empty message', () async {
       final inputBytes = hexToBytes('');
-      final secretKey = SecretKeyData(hexToBytes(
+      final secretKey = SecretKey(hexToBytes(
         '85:d6:be:78:57:55:6d:33:7f:44:52:fe:42:d5:06:a8:01:03:80:8a:fb:0d:b2:fd:4a:bf:f6:af:41:49:f5:1b',
       ));
       final expectedMac = Mac(hexToBytes(
@@ -80,7 +80,7 @@ void main() {
       // -------------------------------------------------------------------------
       final inputBytes = utf8.encode('Cryptographic Forum Research Group');
 
-      final secretKey = SecretKeyData(hexToBytes(
+      final secretKey = SecretKey(hexToBytes(
         '85:d6:be:78:57:55:6d:33:7f:44:52:fe:42:d5:06:a8:01:03:80:8a:fb:0d:b2:fd:4a:bf:f6:af:41:49:f5:1b',
       ));
 

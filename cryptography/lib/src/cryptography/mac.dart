@@ -16,7 +16,8 @@ import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/helpers.dart';
 import 'package:meta/meta.dart';
 
-/// A Message Authentication Code (MAC) calculated with some [MacAlgorithm].
+/// A Message Authentication Code (MAC). Usually obtained from some
+/// [MacAlgorithm].
 ///
 /// Two instances of this class are equal if the bytes are equal.
 ///

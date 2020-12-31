@@ -17,6 +17,7 @@ import 'dart:typed_data';
 
 final _defaultSecureRandom = Random.secure();
 
+/// Fills a list with random bytes (using [Random.secure]).
 void fillBytesWithSecureRandom(Uint8List bytes, {Random? random}) {
   random ??= _defaultSecureRandom;
   for (var i = 0; i < bytes.length; i++) {

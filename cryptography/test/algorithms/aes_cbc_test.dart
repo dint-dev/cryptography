@@ -41,8 +41,8 @@ void _main() {
     algorithm = AesCbc.with256bits(macAlgorithm: Hmac.sha256());
   });
 
-  final secretKey128 = SecretKeyData(List<int>.filled(16, 2));
-  final secretKey256 = SecretKeyData(List<int>.filled(32, 2));
+  final secretKey128 = SecretKey(List<int>.filled(16, 2));
+  final secretKey256 = SecretKey(List<int>.filled(32, 2));
 
   test('== / hashCode', () {
     final clone = AesCbc.with256bits(
@@ -157,8 +157,8 @@ void _main() {
   test('newSecretKey(): two results are not equal', () async {
     final secretKey = await algorithm.newSecretKey();
     final otherSecretKey = await algorithm.newSecretKey();
-    final bytes = await secretKey.extract();
-    final otherBytes = await otherSecretKey.extract();
+    final bytes = await secretKey.extractBytes();
+    final otherBytes = await otherSecretKey.extractBytes();
     expect(bytes, isNot(otherBytes));
   });
 

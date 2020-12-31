@@ -55,7 +55,7 @@ class BrowserAesCbc extends AesCbc with BrowserAesMixin {
       webCryptoAlgorithm: 'AES-CBC',
     );
     final byteBuffer = await js.promiseToFuture<ByteBuffer>(
-      web_crypto.subtle!.decrypt(
+      web_crypto.decrypt(
         web_crypto.AesCbcParams(
           name: 'AES-CBC',
           iv: jsArrayBufferFrom(secretBox.nonce),
@@ -82,7 +82,7 @@ class BrowserAesCbc extends AesCbc with BrowserAesMixin {
       webCryptoAlgorithm: 'AES-CBC',
     );
     final byteBuffer = await js.promiseToFuture<ByteBuffer>(
-      web_crypto.subtle!.encrypt(
+      web_crypto.encrypt(
         web_crypto.AesCbcParams(
           name: 'AES-CBC',
           iv: jsArrayBufferFrom(nonce),

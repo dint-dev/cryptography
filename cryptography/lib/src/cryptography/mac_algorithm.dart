@@ -70,7 +70,7 @@ abstract class MacAlgorithm {
   ///   final secretKey = SecretKey([1,2,3]);
   ///
   ///   // Create a sink
-  ///   final sink = Hmac(Sha256()).newSink(
+  ///   final sink = await Hmac.sha256().newMacSink(
   ///     secretKey: secretKey,
   ///   );
   ///
@@ -82,18 +82,18 @@ abstract class MacAlgorithm {
   ///   sink.close();
   ///
   ///   // We now have a MAC
-  ///   final mac = sink.mac;
+  ///   final mac = await sink.mac();
   ///
   ///   print('MAC: ${mac.bytes');
   /// }
   /// ```
-  Future<MacSink> newSink({
+  Future<MacSink> newMacSink({
     required SecretKey secretKey,
     List<int> nonce = const <int>[],
     List<int> aad = const <int>[],
   }) async {
-    final secretKeyData = await secretKey.extract();
-    if (secretKeyData.bytes.isEmpty) {
+    final secretKeyBytes = await secretKey.extractBytes();
+    if (secretKeyBytes.isEmpty) {
       throw ArgumentError.value(
         secretKey,
         'secretKey',
@@ -102,6 +102,20 @@ abstract class MacAlgorithm {
     }
     return _MacSink(
       this,
+      secretKey: secretKey,
+      nonce: nonce,
+      aad: aad,
+    );
+  }
+
+  /// {@nodoc}
+  @Deprecated('Use newMacSink()')
+  Future<MacSink> newSink({
+    required SecretKey secretKey,
+    List<int> nonce = const <int>[],
+    List<int> aad = const <int>[],
+  }) {
+    return newMacSink(
       secretKey: secretKey,
       nonce: nonce,
       aad: aad,

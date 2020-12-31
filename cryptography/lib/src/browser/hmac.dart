@@ -39,7 +39,7 @@ class BrowserHmac extends Hmac {
   static const BrowserHmac sha512 = BrowserHmac._(BrowserSha512(), 'SHA-512');
 
   @override
-  final BrowserHashAlgorithm hashAlgorithm;
+  final BrowserHashAlgorithmMixin hashAlgorithm;
 
   final String hashAlgorithmWebCryptoName;
 
@@ -58,7 +58,7 @@ class BrowserHmac extends Hmac {
     }
     final jsCryptoKey = await _jsCryptoKey(secretKey);
     final byteBuffer = await js.promiseToFuture<ByteBuffer>(
-      web_crypto.subtle!.sign(
+      web_crypto.sign(
         'HMAC',
         jsCryptoKey,
         jsArrayBufferFrom(bytes),
@@ -70,8 +70,8 @@ class BrowserHmac extends Hmac {
   }
 
   Future<web_crypto.CryptoKey> _jsCryptoKey(SecretKey secretKey) async {
-    final secretKeyData = await secretKey.extract();
-    if (secretKeyData.bytes.isEmpty) {
+    final secretKeyBytes = await secretKey.extractBytes();;
+    if (secretKeyBytes.isEmpty) {
       throw ArgumentError.value(
         secretKey,
         'secretKey',
@@ -79,9 +79,9 @@ class BrowserHmac extends Hmac {
       );
     }
     return await js.promiseToFuture<web_crypto.CryptoKey>(
-      web_crypto.subtle!.importKey(
+      web_crypto.importKey(
         'raw',
-        web_crypto.jsArrayBufferFrom(secretKeyData.bytes),
+        web_crypto.jsArrayBufferFrom(secretKeyBytes),
         web_crypto.HmacImportParams(
           name: 'HMAC',
           hash: hashAlgorithmWebCryptoName,

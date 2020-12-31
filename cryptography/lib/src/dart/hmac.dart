@@ -71,7 +71,7 @@ class DartHmac extends Hmac {
   }
 
   @override
-  Future<MacSink> newSink({
+  Future<MacSink> newMacSink({
     required SecretKey secretKey,
     List<int> nonce = const <int>[],
     List<int> aad = const <int>[],

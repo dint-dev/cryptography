@@ -28,7 +28,7 @@ class BrowserRsaSsaPkcs1v15 extends RsaSsaPkcs1v15 {
   static const _webCryptoAlgorithm = 'RSASSA-PKCS1-v1_5';
 
   @override
-  final BrowserHashAlgorithm hashAlgorithm;
+  final BrowserHashAlgorithmMixin hashAlgorithm;
 
   const BrowserRsaSsaPkcs1v15(this.hashAlgorithm) : super.constructor();
 
@@ -58,7 +58,7 @@ class BrowserRsaSsaPkcs1v15 extends RsaSsaPkcs1v15 {
   }) async {
     // Generate CryptoKeyPair
     final jsCryptoKeyPair = await js.promiseToFuture<web_crypto.CryptoKeyPair>(
-        web_crypto.subtle!.generateKey(
+        web_crypto.generateKey(
       web_crypto.RsaHashedKeyGenParams(
         name: _webCryptoAlgorithm,
         modulusLength: modulusLength,
@@ -91,7 +91,7 @@ class BrowserRsaSsaPkcs1v15 extends RsaSsaPkcs1v15 {
       webCryptoAlgorithm: _webCryptoAlgorithm,
       webCryptoHash: webCryptoHash,
     );
-    final byteBuffer = await js.promiseToFuture(web_crypto.subtle!.sign(
+    final byteBuffer = await js.promiseToFuture(web_crypto.sign(
       _webCryptoAlgorithm,
       jsCryptoKey,
       web_crypto.jsArrayBufferFrom(message),
@@ -119,7 +119,7 @@ class BrowserRsaSsaPkcs1v15 extends RsaSsaPkcs1v15 {
       webCryptoAlgorithm: _webCryptoAlgorithm,
       webCryptoHash: webCryptoHash,
     );
-    return js.promiseToFuture<bool>(web_crypto.subtle!.verify(
+    return js.promiseToFuture<bool>(web_crypto.verify(
       _webCryptoAlgorithm,
       jsCryptoKey,
       web_crypto.jsArrayBufferFrom(signature.bytes),
@@ -146,7 +146,7 @@ class BrowserRsaSsaPkcs1v15 extends RsaSsaPkcs1v15 {
     }
     // Import JWK key
     return js.promiseToFuture<web_crypto.CryptoKey>(
-      web_crypto.subtle!.importKey(
+      web_crypto.importKey(
         'jwk',
         web_crypto.Jwk(
           kty: 'RSA',
@@ -187,7 +187,7 @@ class BrowserRsaSsaPkcs1v15 extends RsaSsaPkcs1v15 {
       );
     }
     return js.promiseToFuture<web_crypto.CryptoKey>(
-      web_crypto.subtle!.importKey(
+      web_crypto.importKey(
         'jwk',
         web_crypto.Jwk(
           kty: 'RSA',
@@ -219,7 +219,7 @@ class _BrowserRsaKeyPair extends KeyPair implements RsaKeyPair {
   @override
   Future<RsaKeyPairData> extract() async {
     final jsJwk = await js.promiseToFuture<web_crypto.Jwk>(
-      web_crypto.subtle!.exportKey('jwk', jsCryptoKeyPair.privateKey),
+      web_crypto.exportKey('jwk', jsCryptoKeyPair.privateKey),
     );
     return RsaKeyPairData(
       n: List<int>.unmodifiable(base64UrlDecode(jsJwk.n!)!),
@@ -236,7 +236,7 @@ class _BrowserRsaKeyPair extends KeyPair implements RsaKeyPair {
   @override
   Future<RsaPublicKey> extractPublicKey() async {
     final jsJwk = await js.promiseToFuture<web_crypto.Jwk>(
-      web_crypto.subtle!.exportKey('jwk', jsCryptoKeyPair.publicKey),
+      web_crypto.exportKey('jwk', jsCryptoKeyPair.publicKey),
     );
     return _BrowserRsaPublicKey(
       jsCryptoKey: jsCryptoKeyPair.publicKey,

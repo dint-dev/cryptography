@@ -54,66 +54,30 @@ void main() {
       expect(algorithm.nonceLength, 12);
     });
 
-    test('Checks MAC', () async {
-      final secretKey = await algorithm.newSecretKey();
-      final secretBox = await algorithm.encrypt(
-        [1, 2, 3],
-        secretKey: secretKey,
-      );
-      final badMac = Mac(secretBox.mac.bytes.map((e) => 0xFF ^ e).toList());
-      final badSecretBox = SecretBox(
-        secretBox.cipherText,
-        nonce: secretBox.nonce,
-        mac: badMac,
-      );
-      await expectLater(
-        algorithm.decrypt(badSecretBox, secretKey: secretKey),
-        throwsA(isA<SecretBoxAuthenticationError>()),
-      );
-    });
-
-    test(
-        'RFC 7539 test vectors for generating Poly1305 key from Chacha20 key/nonce',
-        () async {
-      // -------------------------------------------------------------------------
-      // The following input/output constants are copied from the RFC 7539:
-      // https://tools.ietf.org/html/rfc7539
-      // -------------------------------------------------------------------------
-
-      final secretKey = SecretKeyData(
-        hexToBytes(
-          '80 81 82 83 84 85 86 87 88 89 8a 8b 8c 8d 8e 8f'
-          '90 91 92 93 94 95 96 97 98 99 9a 9b 9c 9d 9e 9f',
-        ),
-      );
-
-      final nonce = hexToBytes(
-        '00 00 00 00 00 01 02 03 04 05 06 07',
-      );
-
-      final expectedExtracted = SecretKeyData(
-        hexToBytes(
-          '8a d5 a0 8b 90 5f 81 cc 81 50 40 27 4a b2 94 71'
-          'a8 33 b6 37 e3 fd 0d a5 08 db b8 e2 fd d1 a6 46',
-        ),
-      );
-
-      final algorithm = DartChacha20Poly1305AeadMacAlgorithm();
-      // ignore: invalid_use_of_protected_member
-      final poly1305Key = await algorithm.poly1305SecretKeyFromChacha20(
-        secretKey: secretKey,
-        nonce: nonce,
-      );
-      final actualExtracted = await poly1305Key.extract();
-
-      expect(
-        hexFromBytes(actualExtracted.bytes),
-        hexFromBytes(expectedExtracted.bytes),
-      );
-      expect(
-        actualExtracted,
-        expectedExtracted,
-      );
+    group('Checks MAC (message length 0)', () async {
+      Future<void> f(List<int> message) async {
+        final secretKey = await algorithm.newSecretKey();
+        final secretBox = await algorithm.encrypt(
+          [],
+          secretKey: secretKey,
+        );
+        final badMac = Mac(secretBox.mac.bytes.map((e) => 0xFF ^ e).toList());
+        final badSecretBox = SecretBox(
+          secretBox.cipherText,
+          nonce: secretBox.nonce,
+          mac: badMac,
+        );
+        await expectLater(
+            algorithm.decrypt(badSecretBox, secretKey: secretKey),
+            throwsA(isA<SecretBoxAuthenticationError>()),
+        );
+      }
+      test('message: []', () async {
+        await f([]);
+      });
+      test('message: [1,2,3]', () async {
+        await f([1,2,3]);
+      });
     });
 
     test('SecretBox contains MAC', () async {
@@ -127,26 +91,6 @@ void main() {
       );
       expect(secretBox.cipherText, hasLength(3));
       expect(secretBox.mac.bytes, hasLength(16));
-    });
-
-    test('decrypt() throws if the MAC is invalid', () async {
-      final secretKey = await algorithm.newSecretKey();
-      final nonce = algorithm.newNonce();
-      final clearText = [1, 2, 3];
-      final secretBox = await algorithm.encrypt(
-        clearText,
-        secretKey: secretKey,
-        nonce: nonce,
-      );
-      final cipherText = secretBox.cipherText;
-      cipherText[cipherText.length - 1] ^= 0xFF;
-      await expectLater(
-        algorithm.decrypt(
-          secretBox,
-          secretKey: secretKey,
-        ),
-        throwsA(isA<SecretBoxAuthenticationError>()),
-      );
     });
 
     group('RFC 7539: test vectors', () {
@@ -163,7 +107,7 @@ void main() {
         '50 51 52 53 c0 c1 c2 c3 c4 c5 c6 c7',
       );
 
-      final secretKey = SecretKeyData(hexToBytes(
+      final secretKey = SecretKey(hexToBytes(
         '80 81 82 83 84 85 86 87 88 89 8a 8b 8c 8d 8e 8f'
         '90 91 92 93 94 95 96 97 98 99 9a 9b 9c 9d 9e 9f',
       ));

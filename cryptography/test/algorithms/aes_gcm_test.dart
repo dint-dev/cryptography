@@ -113,8 +113,8 @@ void _main() {
     final algorithm = AesGcm.with256bits();
     expect(algorithm.secretKeyLength, 32);
     final secretKey = await algorithm.newSecretKey();
-    final secretKeyData = await secretKey.extract();
-    expect(secretKeyData.bytes, hasLength(32));
+    final secretKeyBytes = await secretKey.extractBytes();
+    expect(secretKeyBytes, hasLength(32));
   });
 
   test('secretKeyLength: can be 192 bits', () async {
@@ -129,8 +129,8 @@ void _main() {
     final algorithm = AesGcm.with128bits();
     expect(algorithm.secretKeyLength, 16);
     final secretKey = await algorithm.newSecretKey();
-    final secretKeyData = await secretKey.extract();
-    expect(secretKeyData.bytes, hasLength(16));
+    final secretKeyBytes = await secretKey.extractBytes();
+    expect(secretKeyBytes, hasLength(16));
   });
 
   test('newSecretKey(): two results are not equal', () async {
@@ -165,7 +165,7 @@ void _main() {
   group('clearText is 0 bytes, secretKey is 16 bytes, nonce is 12 bytes', () {
     late AesGcm algorithm;
     late List<int> clearText;
-    late SecretKeyData secretKey;
+    late SecretKey secretKey;
     late List<int> nonce;
     late List<int> cipherText;
     late Mac mac;
@@ -173,7 +173,7 @@ void _main() {
     setUp(() {
       algorithm = AesGcm.with128bits();
       clearText = <int>[];
-      secretKey = SecretKeyData(List<int>.filled(16, 2));
+      secretKey = SecretKey(List<int>.filled(16, 2));
       nonce = List<int>.filled(12, 1);
 
       // Test vectors calculated with Web Cryptography API
@@ -206,7 +206,7 @@ void _main() {
   group('clearText is 3 bytes, secretKey is 16 bytes, nonce is 12 bytes:', () {
     late AesGcm algorithm;
     late List<int> clearText;
-    late SecretKeyData secretKey;
+    late SecretKey secretKey;
     late List<int> nonce;
     late List<int> cipherText;
     late Mac mac;
@@ -214,7 +214,7 @@ void _main() {
     setUp(() {
       algorithm = AesGcm.with128bits();
       clearText = <int>[1, 2, 3];
-      secretKey = SecretKeyData(List<int>.filled(16, 2));
+      secretKey = SecretKey(List<int>.filled(16, 2));
       nonce = List<int>.filled(12, 1);
 
       // Test vectors calculated with Web Cryptography API
@@ -258,14 +258,14 @@ void _main() {
 
   group('clearText is 0 bytes, secretKey is 16 bytes, nonce is 16 bytes:', () {
     late List<int> clearText;
-    late SecretKeyData secretKey;
+    late SecretKey secretKey;
     late List<int> nonce;
     late List<int> cipherText;
     late Mac mac;
 
     setUp(() {
       clearText = <int>[];
-      secretKey = SecretKeyData(List<int>.filled(32, 2));
+      secretKey = SecretKey(List<int>.filled(32, 2));
       nonce = List<int>.filled(16, 1);
 
       // Test vectors calculated with Web Cryptography API
@@ -297,14 +297,14 @@ void _main() {
 
   group('clearText is 3 bytes, secretKey is 32 bytes, nonce is 16 bytes:', () {
     late List<int> clearText;
-    late SecretKeyData secretKey;
+    late SecretKey secretKey;
     late List<int> nonce;
     late List<int> cipherText;
     late Mac mac;
 
     setUp(() {
       clearText = <int>[1, 2, 3];
-      secretKey = SecretKeyData(List<int>.filled(32, 2));
+      secretKey = SecretKey(List<int>.filled(32, 2));
       nonce = List<int>.filled(16, 1);
 
       // Test vectors calculated with Web Cryptography API
@@ -356,7 +356,7 @@ void _main() {
     final clearText = List<int>.unmodifiable(
       hexToBytes('010203040506'),
     );
-    final secretKey = SecretKeyData(List<int>.unmodifiable(
+    final secretKey = SecretKey(List<int>.unmodifiable(
       hexToBytes('02020202020202020202020202020202'),
     ));
     final nonce = List<int>.unmodifiable(
@@ -414,9 +414,9 @@ void _main() {
 
   test('1 000 cycles of encryption', () async {
     final algorithm = AesGcm.with128bits();
-    var secretKey = SecretKeyData(List<int>.unmodifiable(
+    var secretKeyBytes = List<int>.unmodifiable(
       hexToBytes('02020202020202020202020202020202'),
-    ));
+    );
     var nonce = List<int>.unmodifiable(
       hexToBytes('03030303030303030303030303030303'),
     );
@@ -427,14 +427,14 @@ void _main() {
       // Encrypt
       final secretBox = await algorithm.encrypt(
         data,
-        secretKey: secretKey,
+        secretKey: SecretKey(secretKeyBytes),
         nonce: nonce,
       );
 
       // Test that decryption works
       final decryptedSecretBox = await algorithm.decrypt(
         secretBox,
-        secretKey: secretKey,
+        secretKey: SecretKey(secretKeyBytes),
       );
       expect(decryptedSecretBox, data);
 
@@ -447,11 +447,10 @@ void _main() {
       data = data.sublist(1);
 
       // Change  secret key
-      secretKey =
-          SecretKeyData((await hashAlgorithm.hash(data)).bytes.sublist(0, 16));
+      secretKeyBytes = (await hashAlgorithm.hash(data)).bytes.sublist(0, 16);
 
       // Change nonce
-      nonce = (await hashAlgorithm.hash(secretKey.bytes)).bytes.sublist(0, 12);
+      nonce = (await hashAlgorithm.hash(secretKeyBytes)).bytes.sublist(0, 12);
     }
 
     final hash = await hashAlgorithm.hash(data);

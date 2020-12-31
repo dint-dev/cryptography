@@ -330,6 +330,9 @@ int _uint32ChangeEndian(int v) {
 mixin DartAesMixin implements Cipher {
   @override
   Future<SecretKey> newSecretKeyFromBytes(List<int> bytes) {
+    if (bytes.length != secretKeyLength) {
+      throw ArgumentError('Invalid secret key length');
+    }
     return Future<_DartAesSecretKeyData>.value(_DartAesSecretKeyData(bytes));
   }
 }

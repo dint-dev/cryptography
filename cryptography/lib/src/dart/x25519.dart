@@ -81,7 +81,7 @@ class DartX25519 extends X25519 with DartKeyExchangeAlgorithmMixin {
       privateKeyBytes,
       Uint8List.fromList(remotePublicKey.bytes),
     );
-    return SecretKeyData(List<int>.unmodifiable(result));
+    return SecretKey(List<int>.unmodifiable(result));
   }
 
   /// Modifies certain bits of seed so that the result is a valid secret key.

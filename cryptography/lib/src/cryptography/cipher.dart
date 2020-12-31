@@ -137,7 +137,7 @@ abstract class Cipher {
     if (bytes.length != secretKeyLength) {
       throw ArgumentError('Invalid secret key length');
     }
-    return SecretKeyData(List<int>.unmodifiable(bytes));
+    return SecretKey(List<int>.unmodifiable(bytes));
   }
 
   @override

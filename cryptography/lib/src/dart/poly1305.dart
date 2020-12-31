@@ -27,7 +27,7 @@ class DartPoly1305 extends Poly1305 {
     List<int> nonce = const <int>[],
     List<int> aad = const <int>[],
   }) async {
-    final sink = await newSink(
+    final sink = await newMacSink(
       secretKey: secretKey,
       nonce: nonce,
       aad: aad,
@@ -38,7 +38,7 @@ class DartPoly1305 extends Poly1305 {
   }
 
   @override
-  Future<MacSink> newSink({
+  Future<MacSink> newMacSink({
     required SecretKey secretKey,
     List<int> nonce = const <int>[],
     List<int> aad = const <int>[],
@@ -46,13 +46,12 @@ class DartPoly1305 extends Poly1305 {
     if (aad.isNotEmpty) {
       throw ArgumentError.value(aad, 'aad', 'AAD is not supported');
     }
-    final localSecretKey = await secretKey.extract();
-    final bytes = localSecretKey.bytes;
+    final secretKeyBytes = await secretKey.extractBytes();
 
     // RFC variable `r`
     final r = ByteData(20);
     for (var i = 0; i < 16; i++) {
-      r.setUint8(i, bytes[i]);
+      r.setUint8(i, secretKeyBytes[i]);
     }
     r.setUint8(3, 15 & r.getUint8(3));
     r.setUint8(4, 252 & r.getUint8(4));
@@ -65,7 +64,7 @@ class DartPoly1305 extends Poly1305 {
     // RFC variable `s`
     final s = ByteData(20);
     for (var i = 0; i < 16; i++) {
-      s.setUint8(i, bytes[16 + i]);
+      s.setUint8(i, secretKeyBytes[16 + i]);
     }
 
     return _Poly1305Sink(r, s);

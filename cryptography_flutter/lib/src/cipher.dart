@@ -27,13 +27,13 @@ Future<List<int>> _decryptWithPlugin(
   required SecretKey secretKey,
   required List<int> aad,
 }) async {
-  final secretKeyData = await secretKey.extract();
+  final secretKeyBytes = await secretKey.extractBytes();
   final result = await invokeMethod(
     'decrypt',
     <String, Object>{
       'algo': cipher.pluginCipherName,
       'cipherText': Uint8List.fromList(secretBox.cipherText),
-      'secretKey': Uint8List.fromList(secretKeyData.bytes),
+      'secretKey': Uint8List.fromList(secretKeyBytes),
       'nonce': Uint8List.fromList(secretBox.nonce),
       'mac': Uint8List.fromList(secretBox.mac.bytes),
     },

@@ -178,7 +178,7 @@ void _main() {
     test('encrypt/decrypt input lengths 0...1000', () async {
       for (var i = 0; i < 1000; i++) {
         final clearText = List<int>.filled(i, 1);
-        final secretKey = SecretKeyData(List<int>.filled(32, 2));
+        final secretKey = SecretKey(List<int>.filled(32, 2));
         final nonce = List<int>.filled(16, 1);
 
         // encrypt(...)
@@ -251,7 +251,7 @@ void _main() {
     group('128-bit key, 12 byte nonce, 3 byte message', () {
       late AesCtr algorithm;
       final clearText = <int>[1, 2, 3];
-      final secretKey = SecretKeyData(List<int>.filled(16, 2));
+      final secretKey = SecretKey(List<int>.filled(16, 2));
       final nonce = List<int>.filled(12, 1);
       final cipherText = hexToBytes(
         '38 1f 47',
@@ -294,7 +294,7 @@ void _main() {
     group('128-bit key, 16 byte nonce, 33 byte message', () {
       late AesCtr algorithm;
       final clearText = List<int>.generate(33, (i) => 1 + i);
-      final secretKey = SecretKeyData(List<int>.filled(16, 2));
+      final secretKey = SecretKey(List<int>.filled(16, 2));
       final nonce = List<int>.filled(16, 1);
       final cipherText = hexToBytes(
         '8e 40 c1 4f eb 68 64 4f 22 1c 51 a5 4c 3f 20 6c'
@@ -339,7 +339,7 @@ void _main() {
     group('256-bit key, 12 byte nonce, 3 byte message', () {
       late AesCtr algorithm;
       final clearText = <int>[1, 2, 3];
-      final secretKey = SecretKeyData(List<int>.filled(32, 2));
+      final secretKey = SecretKey(List<int>.filled(32, 2));
       final nonce = List<int>.filled(12, 1);
       final cipherText = hexToBytes(
         'd2 9b 79',

@@ -12,10 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/// Enables application to use pure Dart implementations of cryptographic
-/// algorithms.
+/// Cryptographic algorithms implemented in pure Dart.
 ///
-/// For more documentation, see [DartCryptography].
+/// See [DartCryptography].
 ///
 library cryptography.dart;
 

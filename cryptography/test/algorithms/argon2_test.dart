@@ -34,7 +34,7 @@ void _main() {
 
   test('Throws UnimplementedError', () async {
     final future = algorithm.deriveKey(
-      secretKey: SecretKeyData(List<int>.filled(32, 0x1)),
+      secretKey: SecretKey(List<int>.filled(32, 0x1)),
       nonce: List<int>.filled(16, 0x2),
       k: List<int>.filled(8, 0x3),
       ad: List<int>.filled(12, 0x4),

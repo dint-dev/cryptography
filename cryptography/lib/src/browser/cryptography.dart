@@ -107,7 +107,7 @@ class BrowserCryptography extends DartCryptography {
 
   @override
   Ecdsa ecdsaP256(HashAlgorithm hashAlgorithm) {
-    if (hashAlgorithm is BrowserHashAlgorithm) {
+    if (hashAlgorithm is BrowserHashAlgorithmMixin) {
       return BrowserEcdsa.p256(hashAlgorithm);
     }
     return super.ecdsaP256(hashAlgorithm);
@@ -115,7 +115,7 @@ class BrowserCryptography extends DartCryptography {
 
   @override
   Ecdsa ecdsaP384(HashAlgorithm hashAlgorithm) {
-    if (hashAlgorithm is BrowserHashAlgorithm) {
+    if (hashAlgorithm is BrowserHashAlgorithmMixin) {
       return BrowserEcdsa.p384(hashAlgorithm);
     }
     return super.ecdsaP384(hashAlgorithm);
@@ -123,7 +123,7 @@ class BrowserCryptography extends DartCryptography {
 
   @override
   Ecdsa ecdsaP521(HashAlgorithm hashAlgorithm) {
-    if (hashAlgorithm is BrowserHashAlgorithm) {
+    if (hashAlgorithm is BrowserHashAlgorithmMixin) {
       return BrowserEcdsa.p521(hashAlgorithm);
     }
     return super.ecdsaP521(hashAlgorithm);
@@ -182,7 +182,7 @@ class BrowserCryptography extends DartCryptography {
     HashAlgorithm hashAlgorithm, {
     required int nonceLengthInBytes,
   }) {
-    if (hashAlgorithm is BrowserHashAlgorithm) {
+    if (hashAlgorithm is BrowserHashAlgorithmMixin) {
       return BrowserRsaPss(
         hashAlgorithm,
         nonceLengthInBytes: nonceLengthInBytes,

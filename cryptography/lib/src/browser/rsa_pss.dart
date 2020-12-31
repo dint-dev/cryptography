@@ -30,7 +30,7 @@ class BrowserRsaPss extends RsaPss {
   final int nonceLengthInBytes;
 
   @override
-  final BrowserHashAlgorithm hashAlgorithm;
+  final BrowserHashAlgorithmMixin hashAlgorithm;
 
   const BrowserRsaPss(
     this.hashAlgorithm, {
@@ -63,7 +63,7 @@ class BrowserRsaPss extends RsaPss {
   }) async {
     // Generate CryptoKeyPair
     final jsCryptoKeyPair = await js.promiseToFuture<web_crypto.CryptoKeyPair>(
-        web_crypto.subtle!.generateKey(
+        web_crypto.generateKey(
       web_crypto.RsaHashedKeyGenParams(
         name: _webCryptoAlgorithm,
         modulusLength: modulusLength,
@@ -99,7 +99,7 @@ class BrowserRsaPss extends RsaPss {
       webCryptoAlgorithm: _webCryptoAlgorithm,
       webCryptoHash: webCryptoHash,
     );
-    final byteBuffer = await js.promiseToFuture(web_crypto.subtle!.sign(
+    final byteBuffer = await js.promiseToFuture(web_crypto.sign(
       web_crypto.RsaPssParams(
         name: _webCryptoAlgorithm,
         saltLength: nonceLengthInBytes,
@@ -133,7 +133,7 @@ class BrowserRsaPss extends RsaPss {
       webCryptoAlgorithm: _webCryptoAlgorithm,
       webCryptoHash: webCryptoHash,
     );
-    return js.promiseToFuture<bool>(web_crypto.subtle!.verify(
+    return js.promiseToFuture<bool>(web_crypto.verify(
       web_crypto.RsaPssParams(
         name: _webCryptoAlgorithm,
         saltLength: nonceLengthInBytes,
@@ -163,7 +163,7 @@ class BrowserRsaPss extends RsaPss {
     }
     // Import JWK key
     return js.promiseToFuture<web_crypto.CryptoKey>(
-      web_crypto.subtle!.importKey(
+      web_crypto.importKey(
         'jwk',
         web_crypto.Jwk(
           kty: 'RSA',
@@ -204,7 +204,7 @@ class BrowserRsaPss extends RsaPss {
       );
     }
     return js.promiseToFuture<web_crypto.CryptoKey>(
-      web_crypto.subtle!.importKey(
+      web_crypto.importKey(
         'jwk',
         web_crypto.Jwk(
           kty: 'RSA',
@@ -236,7 +236,7 @@ class _BrowserRsaKeyPair extends KeyPair implements RsaKeyPair {
   @override
   Future<RsaKeyPairData> extract() async {
     final jsJwk = await js.promiseToFuture<web_crypto.Jwk>(
-      web_crypto.subtle!.exportKey('jwk', jsCryptoKeyPair.privateKey),
+      web_crypto.exportKey('jwk', jsCryptoKeyPair.privateKey),
     );
     return RsaKeyPairData(
       n: List<int>.unmodifiable(base64UrlDecode(jsJwk.n!)!),
@@ -253,7 +253,7 @@ class _BrowserRsaKeyPair extends KeyPair implements RsaKeyPair {
   @override
   Future<RsaPublicKey> extractPublicKey() async {
     final jsJwk = await js.promiseToFuture<web_crypto.Jwk>(
-      web_crypto.subtle!.exportKey('jwk', jsCryptoKeyPair.publicKey),
+      web_crypto.exportKey('jwk', jsCryptoKeyPair.publicKey),
     );
     return _BrowserRsaPublicKey(
       jsCryptoKey: jsCryptoKeyPair.publicKey,

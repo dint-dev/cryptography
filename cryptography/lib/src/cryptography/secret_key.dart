@@ -19,9 +19,6 @@ import 'package:meta/meta.dart';
 
 import '../utils.dart';
 
-/// Thrown by [SecretKey] is extraction is disallowed.
-class KeyExtractionDisallowedException implements Exception {}
-
 /// An opaque reference to a secret sequence of bytes.
 ///
 /// Secret keys are required by [Cipher], [MacAlgorithm], and
@@ -34,20 +31,26 @@ class KeyExtractionDisallowedException implements Exception {}
 /// Note that public-key cryptographic algorithms use [SimpleKeyPair] /
 /// [SimplePublicKey] instead of this class.
 abstract class SecretKey {
+  /// Constructs a secret key with the given bytes.
+  // ignore: deprecated_member_use_from_same_package
+  factory SecretKey(List<int> bytes) = SecretKeyData;
+
   SecretKey.constructor();
 
   factory SecretKey.lazy(Future<SecretKeyData> Function() f) = _LazySecretKey;
 
-  /// Extracts this secret key to the heap.
+  /// Returns [SecretKeyData].
   ///
-  /// Throws [KeyExtractionDisallowedException] if extraction is disallowed.
+  /// Throws [UnsupportedError] if extraction is not possible.
   Future<SecretKeyData> extract();
 
+  /// Returns bytes of the secret key.
+  ///
+  /// Throws [UnsupportedError] if extraction is not possible.
   Future<List<int>> extractBytes() => extract().then((value) => value.bytes);
 }
 
-/// A [SecretKey] that is stored in memory (instead of some more secure external
-/// system).
+/// A [SecretKey] that is stored in memory.
 @sealed
 class SecretKeyData extends SecretKey {
   final List<int> bytes;
@@ -69,9 +72,9 @@ class SecretKeyData extends SecretKey {
   /// final key = SecretKey.randomBytes(32);
   /// ```
   factory SecretKeyData.random({
-    required int lengthInBytes,
+    required int length,
   }) {
-    final bytes = Uint8List(lengthInBytes);
+    final bytes = Uint8List(length);
     fillBytesWithSecureRandom(bytes);
     return SecretKeyData(List<int>.unmodifiable(bytes));
   }

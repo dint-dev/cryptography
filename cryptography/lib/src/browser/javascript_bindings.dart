@@ -12,18 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-@JS('crypto')
+@JS()
 library web_crypto_api;
 
 import 'dart:convert' show base64Url;
 import 'dart:typed_data';
 
 import 'package:js/js.dart';
-
-final bool isWebCryptoSupported = subtle != null;
-
-@JS()
-external Subtle? get subtle;
 
 List<int>? base64UrlDecode(String? s) {
   if (s == null) {
@@ -51,6 +46,64 @@ String base64UrlEncode(List<int> data) {
   return s.substring(0, length);
 }
 
+@JS('crypto.subtle.decrypt')
+external Promise<ByteBuffer> decrypt(
+  dynamic algorithm,
+  CryptoKey key,
+  ByteBuffer data,
+);
+
+@JS('crypto.subtle.deriveBits')
+external Promise deriveBits(
+  dynamic algorithm,
+  CryptoKey cryptoKey,
+  int bits,
+);
+
+@JS('crypto.subtle.deriveKey')
+external Promise deriveKey(
+  dynamic algorithm,
+  CryptoKey baseKey,
+  dynamic derivedKeyAlgorithm,
+  dynamic extractable,
+  List<String> keyUsages,
+);
+
+@JS('crypto.subtle.digest')
+external Promise<ByteBuffer> digest(
+  String name,
+  ByteBuffer data,
+);
+
+@JS('crypto.subtle.encrypt')
+external Promise<ByteBuffer> encrypt(
+  dynamic algorithm,
+  CryptoKey key,
+  ByteBuffer data,
+);
+
+@JS('crypto.subtle.exportKey')
+external Promise<CryptoKey> exportKey(
+  String format,
+  CryptoKey key,
+);
+
+@JS('crypto.subtle.generateKey')
+external Promise<dynamic> generateKey(
+  Object algorithm,
+  bool extractable,
+  List<String> keyUsages,
+);
+
+@JS('crypto.subtle.importKey')
+external Promise<CryptoKey> importKey(
+  String format,
+  dynamic keyData,
+  dynamic algorithm,
+  bool extractable,
+  List<String> keyUsages,
+);
+
 ByteBuffer jsArrayBufferFrom(List<int> data) {
   // Avoid copying if possible
   if (data is Uint8List &&
@@ -62,6 +115,35 @@ ByteBuffer jsArrayBufferFrom(List<int> data) {
   // Copy
   return Uint8List.fromList(data).buffer;
 }
+
+@JS('crypto.subtle.sign')
+external Promise<ByteBuffer> sign(
+  dynamic algorithm,
+  CryptoKey key,
+  ByteBuffer data,
+);
+
+@JS('crypto.subtle.unwrap')
+external Promise<bool> unwrap(
+  String format,
+  ByteBuffer wrappedKey,
+  ByteBuffer data,
+);
+
+@JS('crypto.subtle.verify')
+external Promise<bool> verify(
+  dynamic algorithm,
+  CryptoKey key,
+  ByteBuffer signature,
+  ByteBuffer data,
+);
+
+@JS('crypto.subtle.wrap')
+external Promise<bool> wrap(
+  String format,
+  ByteBuffer wrappedKey,
+  ByteBuffer data,
+);
 
 @JS()
 @anonymous
@@ -102,14 +184,7 @@ class AesKeyGenParams {
   });
 }
 
-@JS()
-class Crypto {
-  external factory Crypto._();
-
-  external Subtle get subtle;
-}
-
-@JS()
+@JS('CryptoKey')
 class CryptoKey {
   external factory CryptoKey._();
 
@@ -122,7 +197,7 @@ class CryptoKey {
   external List<String> get usages;
 }
 
-@JS()
+@JS('CryptoKeyPair')
 class CryptoKeyPair {
   external factory CryptoKeyPair._();
 
@@ -267,7 +342,7 @@ class Pkdf2Params {
   });
 }
 
-@JS()
+@JS('Promise')
 class Promise<T> {
   external factory Promise._();
 }
@@ -307,86 +382,6 @@ class SignParams {
   external factory SignParams({
     required String name,
   });
-}
-
-@JS()
-class Subtle {
-  external factory Subtle._();
-
-  external Promise<ByteBuffer> decrypt(
-    dynamic algorithm,
-    CryptoKey key,
-    ByteBuffer data,
-  );
-
-  external Promise deriveBits(
-    dynamic algorithm,
-    CryptoKey cryptoKey,
-    int bits,
-  );
-
-  external Promise deriveKey(
-    dynamic algorithm,
-    CryptoKey baseKey,
-    dynamic derivedKeyAlgorithm,
-    dynamic extractable,
-    List<String> keyUsages,
-  );
-
-  external Promise<ByteBuffer> digest(
-    String name,
-    ByteBuffer data,
-  );
-
-  external Promise<ByteBuffer> encrypt(
-    dynamic algorithm,
-    CryptoKey key,
-    ByteBuffer data,
-  );
-
-  external Promise<CryptoKey> exportKey(
-    String format,
-    CryptoKey key,
-  );
-
-  external Promise<dynamic> generateKey(
-    Object algorithm,
-    bool extractable,
-    List<String> keyUsages,
-  );
-
-  external Promise<CryptoKey> importKey(
-    String format,
-    dynamic keyData,
-    dynamic algorithm,
-    bool extractable,
-    List<String> keyUsages,
-  );
-
-  external Promise<ByteBuffer> sign(
-    dynamic algorithm,
-    CryptoKey key,
-    ByteBuffer data,
-  );
-
-  external Promise<bool> unwrap(
-    String format,
-    ByteBuffer wrappedKey,
-    ByteBuffer data,
-  );
-
-  external Promise<bool> verify(
-    dynamic algorithm,
-    CryptoKey key,
-    ByteBuffer signature,
-    ByteBuffer data,
-  );
-
-  external Promise<bool> wrap(
-    String format,
-    ByteBuffer wrappedKey,
-    ByteBuffer data,
-  );
 }
 
 @JS()

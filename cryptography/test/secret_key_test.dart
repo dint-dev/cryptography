@@ -19,7 +19,7 @@ import 'package:test/test.dart';
 
 void main() {
   group('SecretKey:', () {
-    final f = (List<int> value) => SecretKeyData(
+    final f = (List<int> value) => SecretKey(
           value,
         );
 
@@ -46,17 +46,17 @@ void main() {
 
   group('SecretKeyData:', () {
     test('SecretKeyData.random()', () {
-      final a = SecretKeyData.random(lengthInBytes: 32);
-      final b = SecretKeyData.random(lengthInBytes: 32);
+      final a = SecretKeyData.random(length: 32);
+      final b = SecretKeyData.random(length: 32);
       expect(a, isNot(b));
       expect(a.hashCode, isNot(b.hashCode));
     });
 
     test('"==" / hashCode', () {
-      final value = SecretKeyData(Uint8List.fromList([3, 1, 4]));
-      final clone = SecretKeyData(Uint8List.fromList([3, 1, 4]));
-      final other0 = SecretKeyData(Uint8List.fromList([3, 1, 999]));
-      final other1 = SecretKeyData(Uint8List.fromList([3, 1, 4, 999]));
+      final value = SecretKey(Uint8List.fromList([3, 1, 4]));
+      final clone = SecretKey(Uint8List.fromList([3, 1, 4]));
+      final other0 = SecretKey(Uint8List.fromList([3, 1, 999]));
+      final other1 = SecretKey(Uint8List.fromList([3, 1, 4, 999]));
 
       expect(value, clone);
       expect(value, isNot(other0));
@@ -68,7 +68,7 @@ void main() {
     });
 
     test('toString()', () {
-      final a = SecretKeyData([0, 0, 0]);
+      final a = SecretKey([0, 0, 0]);
       expect(a.toString(), 'SecretKeyData(...)');
     });
   });

@@ -12,17 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/// A cryptography API for Dart.
+/// Cryptographic algorithms for Dart / Flutter developers.
 ///
-/// Implementations of algorithms are obtained from [Cryptography.instance].
-///
-/// The following algorithm types are supported:
+/// # Algorithm types
 ///   * [Cipher]
 ///   * [KeyExchangeAlgorithm]
-///   * [SignatureAlgorithm]
+///   * [KdfAlgorithm]
 ///   * [HashAlgorithm]
 ///   * [MacAlgorithm]
 ///   * [SignatureAlgorithm]
+///
+/// # Implementation factory
+///
+/// [Cryptography.instance] determines which implementation of an algorithm is
+/// used when you call factory method such as [Sha256()].
 ///
 library cryptography;
 

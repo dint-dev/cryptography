@@ -47,9 +47,8 @@ class DartPbkdf2 extends Pbkdf2 {
     );
 
     // Subsequent blocks
-    final nonceBytes = nonce;
-    final firstInput = Uint8List(nonceBytes.length + 4);
-    firstInput.setAll(0, nonceBytes);
+    final firstInput = Uint8List(nonce.length + 4);
+    firstInput.setAll(0, nonce);
     for (var i = 0; i < result.lengthInBytes ~/ macLength; i++) {
       final block = await _f(secretKey, nonce, firstInput, i);
       result.setAll(macLength * i, block);
@@ -57,9 +56,9 @@ class DartPbkdf2 extends Pbkdf2 {
 
     // Return bytes
     if (numberOfBytes == result.lengthInBytes) {
-      return SecretKeyData(result);
+      return SecretKey(result);
     }
-    return SecretKeyData(List<int>.unmodifiable(Uint8List.view(
+    return SecretKey(List<int>.unmodifiable(Uint8List.view(
       result.buffer,
       result.offsetInBytes,
       numberOfBytes,

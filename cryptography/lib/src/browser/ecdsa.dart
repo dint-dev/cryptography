@@ -62,7 +62,7 @@ Future<web_crypto.CryptoKey> jsCryptoKeyFromEcdsaKeyPair(
   );
   try {
     return await js.promiseToFuture<web_crypto.CryptoKey>(
-      web_crypto.subtle!.importKey(
+      web_crypto.importKey(
         'jwk',
         jsJwk,
         web_crypto.EcKeyImportParams(
@@ -93,7 +93,7 @@ Future<web_crypto.CryptoKey> jsCryptoKeyFromEcdsaPublicKey(
     );
   }
   return js.promiseToFuture<web_crypto.CryptoKey>(
-    web_crypto.subtle!.importKey(
+    web_crypto.importKey(
       'jwk',
       web_crypto.Jwk(
         kty: 'EC',
@@ -115,18 +115,18 @@ Future<web_crypto.CryptoKey> jsCryptoKeyFromEcdsaPublicKey(
 
 class BrowserEcdsa extends Ecdsa {
   @override
-  final BrowserHashAlgorithm hashAlgorithm;
+  final BrowserHashAlgorithmMixin hashAlgorithm;
 
   @override
   final KeyPairType keyPairType;
 
-  BrowserEcdsa.p256(BrowserHashAlgorithm hashAlgorithm)
+  BrowserEcdsa.p256(BrowserHashAlgorithmMixin hashAlgorithm)
       : this._(KeyPairType.p256, hashAlgorithm);
 
-  BrowserEcdsa.p384(BrowserHashAlgorithm hashAlgorithm)
+  BrowserEcdsa.p384(BrowserHashAlgorithmMixin hashAlgorithm)
       : this._(KeyPairType.p384, hashAlgorithm);
 
-  BrowserEcdsa.p521(BrowserHashAlgorithm hashAlgorithm)
+  BrowserEcdsa.p521(BrowserHashAlgorithmMixin hashAlgorithm)
       : this._(KeyPairType.p521, hashAlgorithm);
 
   BrowserEcdsa._(this.keyPairType, this.hashAlgorithm) : super.constructor();
@@ -134,7 +134,7 @@ class BrowserEcdsa extends Ecdsa {
   @override
   Future<EcKeyPair> newKeyPair() async {
     final jsCryptoKeyPair = await js.promiseToFuture<web_crypto.CryptoKeyPair>(
-      web_crypto.subtle!.generateKey(
+      web_crypto.generateKey(
         web_crypto.EcKeyGenParams(
           name: 'ECDSA',
           namedCurve: keyPairType.webCryptoCurve!,
@@ -169,7 +169,7 @@ class BrowserEcdsa extends Ecdsa {
       keyPair,
     );
     final byteBuffer = await js.promiseToFuture<ByteBuffer>(
-      web_crypto.subtle!.sign(
+      web_crypto.sign(
         web_crypto.EcdsaParams(
           name: 'ECDSA',
           hash: hashAlgorithm.webCryptoName,
@@ -202,7 +202,7 @@ class BrowserEcdsa extends Ecdsa {
       webCryptoCurve: keyPairType.webCryptoCurve!,
       webCryptoHash: hashAlgorithm.webCryptoName,
     );
-    return js.promiseToFuture<bool>(web_crypto.subtle!.verify(
+    return js.promiseToFuture<bool>(web_crypto.verify(
       web_crypto.EcdsaParams(
         name: 'ECDSA',
         hash: hashAlgorithm.webCryptoName,
@@ -229,7 +229,7 @@ class _BrowserEcdsaKeyPair extends KeyPair implements EcKeyPair {
   Future<EcKeyPairData> extract() {
     return _keyPairData ??= js
         .promiseToFuture<web_crypto.Jwk>(
-      web_crypto.subtle!.exportKey(
+      web_crypto.exportKey(
         'jwk',
         jsCryptoKeyPair.privateKey,
       ),
@@ -253,7 +253,7 @@ class _BrowserEcdsaKeyPair extends KeyPair implements EcKeyPair {
   Future<EcPublicKey> extractPublicKey() {
     return _publicKey ??= js
         .promiseToFuture<web_crypto.Jwk>(
-      web_crypto.subtle!.exportKey('jwk', jsCryptoKeyPair.publicKey),
+      web_crypto.exportKey('jwk', jsCryptoKeyPair.publicKey),
     )
         .then(
       (jwk) => EcPublicKey(

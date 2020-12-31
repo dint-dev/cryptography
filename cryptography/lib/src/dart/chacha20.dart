@@ -70,7 +70,7 @@ class DartChacha20 extends Chacha20 {
         throw ArgumentError.value(
           keyStreamIndex,
           'keyStreamIndex',
-          'Must be zero',
+          'Must be zero when AEAD is used',
         );
       }
       keyStreamIndex = 64;

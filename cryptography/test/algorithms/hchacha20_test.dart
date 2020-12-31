@@ -22,7 +22,7 @@ void main() {
     // The following constants are from:
     // https://tools.ietf.org/html/draft-arciszewski-xchacha-03
     // -----------------------------------------------------------------------
-    final secretKey = SecretKeyData(hexToBytes(
+    final secretKey = SecretKey(hexToBytes(
       '00:01:02:03:04:05:06:07:08:09:0a:0b:0c:0d:0e:0f:10:11:12:13:14:15:16:17:18:19:1a:1b:1c:1d:1e:1f',
     ));
 

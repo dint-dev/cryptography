@@ -14,18 +14,25 @@
 
 import 'package:cryptography/cryptography.dart';
 
-/// A key pair composed of a private key and [PublicKey].
+/// A key pair composed of a private key ([KeyPairData]) and [PublicKey].
 abstract class KeyPair {
-  /// Extracts [KeyPairData].
+  /// Returns [KeyPairData].
+  ///
+  /// Throws [UnsupportedError] if extraction is not possible.
   Future<KeyPairData> extract();
 
-  /// Extracts [PublicKey].
+  /// Returns [PublicKey].
   Future<PublicKey> extractPublicKey() {
     return extract().then((value) => value.extractPublicKey());
   }
 }
 
 /// Extracted data of a [KeyPair].
+///
+/// # Subclasses
+///   * [EcKeyPairData]
+///   * [SimpleKeyPairData]
+///   * [RsaKeyPairData]
 abstract class KeyPairData extends KeyPair {
   /// Type of the key pair.
   final KeyPairType type;
@@ -42,6 +49,11 @@ abstract class KeyPairData extends KeyPair {
 }
 
 /// A public key of some [KeyPair].
+///
+/// # Subclasses
+///   * [EcPublicKey]
+///   * [SimplePublicKey]
+///   * [RsaPublicKey]
 abstract class PublicKey {
   /// A constructor for subclasses.
   PublicKey();

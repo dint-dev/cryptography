@@ -34,18 +34,15 @@ class DartHkdf extends Hkdf {
     List<int> info = const <int>[],
   }) async {
     // Calculate a pseudorandom key
-    final secretKeyData = await secretKey.extract();
-    final secretKeyBytes = secretKeyData.bytes;
-
-    final nonceAsSecretKey = SecretKeyData(nonce);
-
+    final secretKeyBytes = await secretKey.extractBytes();
+    final nonceAsSecretKey = SecretKey(nonce);
     final prkMac = await hmac.calculateMac(
       secretKeyBytes,
       secretKey: nonceAsSecretKey,
       nonce: nonce,
     );
 
-    final prk = SecretKeyData(prkMac.bytes);
+    final prk = SecretKey(prkMac.bytes);
 
     // T(0)
     var bytes = const <int>[];
@@ -55,7 +52,7 @@ class DartHkdf extends Hkdf {
     final n = outputLength ~/ hashLength;
     final result = Uint8List(outputLength);
     for (var i = 0; i <= n; i++) {
-      final sink = await hmac.newSink(secretKey: prk);
+      final sink = await hmac.newMacSink(secretKey: prk);
       sink.add(bytes);
       if (info.isNotEmpty) {
         sink.add(info);
@@ -72,6 +69,6 @@ class DartHkdf extends Hkdf {
         result.setAll(offset, bytes.take(result.length - offset));
       }
     }
-    return SecretKeyData(result);
+    return SecretKey(result);
   }
 }

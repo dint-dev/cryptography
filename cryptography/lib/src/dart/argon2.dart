@@ -48,7 +48,7 @@ class DartArgon2id extends Argon2id {
     List<int> ad = const <int>[],
   }) async {
     // h0
-    final secretKeyBytes = (await secretKey.extract()).bytes;
+    final secretKeyBytes = await secretKey.extractBytes();
     final h0Sink = Blake2b().newHashSink();
     _addUint32(h0Sink, parallelism);
     _addUint32(h0Sink, hashLength);
@@ -97,7 +97,7 @@ class DartArgon2id extends Argon2id {
     }
 
     // Final hash
-    SecretKeyData(Uint8List.fromList(await _hash(c!, hashLength)));
+    SecretKey(Uint8List.fromList(await _hash(c!, hashLength)));
 
     throw UnimplementedError('Does not pass tests yet.');
   }

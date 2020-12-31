@@ -42,7 +42,7 @@ class BrowserHkdf extends Hkdf {
   }) async {
     final jsCryptoKey = await _jsCryptoKey(secretKey);
     final byteBuffer = await js.promiseToFuture<ByteBuffer>(
-      web_crypto.subtle!.deriveBits(
+      web_crypto.deriveBits(
         web_crypto.HkdfParams(
           name: 'HKDF',
           hash: hmac.hashAlgorithmWebCryptoName,
@@ -53,15 +53,15 @@ class BrowserHkdf extends Hkdf {
         8 * outputLength,
       ),
     );
-    return SecretKeyData(Uint8List.view(byteBuffer));
+    return SecretKey(Uint8List.view(byteBuffer));
   }
 
   Future<web_crypto.CryptoKey> _jsCryptoKey(SecretKey secretKey) async {
-    final secretKeyData = await secretKey.extract();
+    final secretKeyBytes = await secretKey.extractBytes();
     return await js.promiseToFuture<web_crypto.CryptoKey>(
-      web_crypto.subtle!.importKey(
+      web_crypto.importKey(
         'raw',
-        web_crypto.jsArrayBufferFrom(secretKeyData.bytes),
+        web_crypto.jsArrayBufferFrom(secretKeyBytes),
         'HKDF',
         false,
         const ['deriveBits'],

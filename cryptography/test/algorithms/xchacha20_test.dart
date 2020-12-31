@@ -121,7 +121,7 @@ void main() {
 20 66 61 6d 69 6c 79 20 43 61 6e 69 64 61 65 2e
 ''');
 
-      final secretKey = SecretKeyData(hexToBytes(
+      final secretKey = SecretKey(hexToBytes(
         '80 81 82 83 84 85 86 87 88 89 8a 8b 8c 8d 8e 8f 90 91 92 93 94 95 96 97 98 99 9a 9b 9c 9d 9e 9f',
       ));
 

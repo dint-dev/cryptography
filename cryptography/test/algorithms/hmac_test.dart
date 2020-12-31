@@ -63,21 +63,21 @@ void _main() {
   });
 
   test('newSink(): empty key fails', () async {
-    final secretKey = SecretKeyData(<int>[]);
-    final future = hmac.newSink(secretKey: secretKey);
+    final secretKey = SecretKey(<int>[]);
+    final future = hmac.newMacSink(secretKey: secretKey);
     await expectLater(future, throwsArgumentError);
   });
 
   test('newSink(): closing twice is ok', () async {
-    final secretKey = SecretKeyData(<int>[1, 2, 3]);
-    final sink = await hmac.newSink(secretKey: secretKey);
+    final secretKey = SecretKey(<int>[1, 2, 3]);
+    final sink = await hmac.newMacSink(secretKey: secretKey);
     sink.close();
     sink.close();
   });
 
   test('newSink(): adding after closing fails', () async {
-    final secretKey = SecretKeyData(<int>[1, 2, 3]);
-    final sink = await hmac.newSink(secretKey: secretKey);
+    final secretKey = SecretKey(<int>[1, 2, 3]);
+    final sink = await hmac.newMacSink(secretKey: secretKey);
     sink.close();
     expect(() => sink.add([]), throwsStateError);
     expect(() => sink.addSlice([1], 0, 1, false), throwsStateError);
@@ -85,7 +85,7 @@ void _main() {
 
   test('calculateMac(...): different secretKey and data lengths', () async {
     for (var n = 1; n < 1024; n++) {
-      final secretKey = SecretKeyData(Uint8List(n));
+      final secretKey = SecretKey(Uint8List(n));
       final data = Uint8List(n);
       for (var i = 0; i < data.length; i++) {
         data[i] = 0xFF & i;
@@ -113,12 +113,12 @@ void _main() {
 
   test('newSink(): different secretKey and data lengths', () async {
     for (var n = 2; n < 1024; n++) {
-      final secretKey = SecretKeyData(Uint8List(n));
+      final secretKey = SecretKey(Uint8List(n));
       final data = Uint8List(n);
       for (var i = 0; i < data.length; i++) {
         data[i] = 0xFF & i;
       }
-      final sink = await hmac.newSink(
+      final sink = await hmac.newMacSink(
         secretKey: secretKey,
       );
       sink.addSlice(data, 0, 0, false);
@@ -149,7 +149,7 @@ void _main() {
       final input = hexToBytes(
         '4869205468657265',
       );
-      final secretKey = SecretKeyData(hexToBytes(
+      final secretKey = SecretKey(hexToBytes(
         '0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b'
         '0b0b0b0b',
       ));

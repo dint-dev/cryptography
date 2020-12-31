@@ -21,13 +21,14 @@ import 'package:meta/meta.dart';
 import 'javascript_bindings.dart' as web_crypto;
 import 'javascript_bindings.dart' show jsArrayBufferFrom;
 
-mixin BrowserHashAlgorithm implements HashAlgorithm {
+mixin BrowserHashAlgorithmMixin implements HashAlgorithm {
+  /// Web Cryptography API algorithm name ("SHA-256", etc.).
   String get webCryptoName;
 
   @override
   Future<Hash> hash(List<int> bytes) async {
     final byteBuffer = await js.promiseToFuture<ByteBuffer>(
-      web_crypto.subtle!.digest(webCryptoName, jsArrayBufferFrom(bytes)),
+      web_crypto.digest(webCryptoName, jsArrayBufferFrom(bytes)),
     );
     return Hash(List<int>.unmodifiable(
       Uint8List.view(byteBuffer),
@@ -38,7 +39,7 @@ mixin BrowserHashAlgorithm implements HashAlgorithm {
 /// [Sha1] implementation that uses _Web Cryptography API_ in browsers.
 ///
 /// See [BrowserCryptography].
-class BrowserSha1 extends Sha1 with BrowserHashAlgorithm {
+class BrowserSha1 extends Sha1 with BrowserHashAlgorithmMixin {
   @literal
   const BrowserSha1() : super.constructor();
 
@@ -49,7 +50,7 @@ class BrowserSha1 extends Sha1 with BrowserHashAlgorithm {
 /// [Sha256] implementation that uses _Web Cryptography API_ in browsers.
 ///
 /// See [BrowserCryptography].
-class BrowserSha256 extends Sha256 with BrowserHashAlgorithm {
+class BrowserSha256 extends Sha256 with BrowserHashAlgorithmMixin {
   @literal
   const BrowserSha256() : super.constructor();
 
@@ -60,7 +61,7 @@ class BrowserSha256 extends Sha256 with BrowserHashAlgorithm {
 /// [Sha384] implementation that uses _Web Cryptography API_ in browsers.
 ///
 /// See [BrowserCryptography].
-class BrowserSha384 extends Sha384 with BrowserHashAlgorithm {
+class BrowserSha384 extends Sha384 with BrowserHashAlgorithmMixin {
   @literal
   const BrowserSha384() : super.constructor();
 
@@ -71,7 +72,7 @@ class BrowserSha384 extends Sha384 with BrowserHashAlgorithm {
 /// [Sha512] implementation that uses _Web Cryptography API_ in browsers.
 ///
 /// See [BrowserCryptography].
-class BrowserSha512 extends Sha512 with BrowserHashAlgorithm {
+class BrowserSha512 extends Sha512 with BrowserHashAlgorithmMixin {
   @literal
   const BrowserSha512() : super.constructor();
 
