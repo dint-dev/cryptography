@@ -1,3 +1,7 @@
+## 2.0.0-nullsafety.1
+  * Re-introduces _package:crypto_ as dependency now that a null-safe version exists.
+  * Better documentation.
+
 ## 2.0.0-nullsafety.0
   * BREAKING CHANGES: Many breaking API changes that make the API easier to understand and use.
   * IMPORTANT FIXES: Improves tests and fixes a number of bugs we spotted. We don't plan to support

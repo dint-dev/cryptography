@@ -4,32 +4,25 @@
 # Overview
 
 Cryptographic packages for [Dart](https://dart.dev) / [Flutter](https://flutter.dev) developers.
-
-This package is maintained by Gohilla Ltd (Finland) and open-sourced under the
-[Apache License 2.0](LICENSE).
-
-Want to contribute? Please share feedback / issue reports in the
-[issue tracker](https://github.com/dint-dev/cryptography/issues). Pull requests are welcome.
+Open-sourced under the [Apache License 2.0](LICENSE).
 
 ## Packages
   * [cryptography](cryptography)
-    * Covers:
-      * Ciphers (AES, Chacha20/Xchacha20)
-      * Digital signature algorithms (ED25519, P256/P384/P521, RSA-PSS, RSASSA-PKCS1-V15)
-      * Key exchange algorithms (P256/P384/P521, X25519)
-      * Message authentication codes (HMAC, Poly1305)
-      * Hashes (SHA1, SHA2, BLAKE2B, BLAKE2S)
-    * [Pub package](https://pub.dev/packages/cryptography)
-    * [API reference](https://pub.dev/documentation/cryptography/latest/)
+    * Cryptography API for Dart / Flutter.
+    * Contains cryptography implementations written in pure Dart.
+    * Contains cryptography implementations that use Web Cryptography API in browsers.
   * [cryptography_flutter](cryptography_flutter)
-    * A version of _cryptography_ that delegates some asynchronous operations to operating system
-      APIs in Android, iOS, and Mac OS X.
-    * [Pub package](https://pub.dev/packages/cryptography_flutter)
+    * Contains cryptography implementations that use Android / iOS APIs.
+  * [jwk](jwk)
+    * JWK (JSON Web Key) encoding / decoding.
   * [kms](kms)
-    * A framework for Key Management Service (KMS) solutions.
-    * [Pub package](https://pub.dev/packages/kms)
-    * [API reference](https://pub.dev/documentation/kms/latest/)
+    * Key Management Service (KMS) API for Dart / Flutter.
   * [kms_flutter](kms_flutter)
-    * KMS for Flutter applications.
   * [noise_protocol](noise_protocol)
-    * A Dart implementation of Noise protocol.
+    * Noise protocol implemented in pure Dart.
+
+## Contributing
+Please share feedback / issue reports in the
+[issue tracker](https://github.com/dint-dev/cryptography/issues).
+
+Pull requests are welcome.

@@ -14,15 +14,10 @@
 
 import 'dart:convert';
 
+import 'package:crypto/crypto.dart' as impl;
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/dart.dart';
 import 'package:meta/meta.dart';
-
-import 'copied_from_package_crypto/digest.dart' as impl;
-import 'copied_from_package_crypto/hash.dart' as impl;
-import 'copied_from_package_crypto/sha1.dart' as impl;
-import 'copied_from_package_crypto/sha256.dart' as impl;
-import 'copied_from_package_crypto/sha512.dart' as impl;
 
 class DartSha1 extends Sha1 with DartHashAlgorithmMixin, _HashMixin {
   @literal

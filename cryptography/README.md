@@ -4,9 +4,7 @@
 # Overview
 Popular cryptographic algorithms for [Dart](https://dart.dev) / [Flutter](https://flutter.dev)
 developers.
-
-This package was developed by Gohilla Ltd (Finland) and open-sourced under the
-[Apache License 2.0](LICENSE).
+Maintained by Gohilla Ltd. Licensed under the [Apache License 2.0](LICENSE).
 
 This package is:
   * __Easy to use__. The API is easy to understand and encourages good defaults.
@@ -135,7 +133,9 @@ write your own _Cryptography_ subclass if you need to.
 We wrote the following three implementations of `Cryptography`:
   * [DartCryptography](https://pub.dev/documentation/cryptography/latest/cryptography.dart/DartCryptography-class.html)
     * Gives you implementations written in pure Dart implementations. They work in all platforms.
-    * In all platforms supported by Dart, gives you:
+    * SHA1 / SHA2 uses implementation in [package:crypto](https://pub.dev/packages/crypto), which
+      is maintained by Google. The rest of the algorithms in _DartCryptography_ are written and tested by us.
+    * _DartCryptography_ gives:
       * AesCbc
       * AesCtr
       * AesGcm
@@ -156,19 +156,10 @@ We wrote the following three implementations of `Cryptography`:
       * X25519
       * Xchacha20
       * Xchacha20.poly1305Aead
-    * SHA1 / SHA2 uses implementation in [package:crypto](https://pub.dev/packages/crypto), which
-      is maintained by Google. Relevant parts are copy-pasted to this version because of
-      [issue #105](https://github.com/dart-lang/crypto/issues/105) in the original package.
-    * The rest of the algorithms in _DartCryptography_ are written and tested by us.
-    * Implementations written in pure Dart have been exposed to vastly less testing and review by
-      dedicated specialists in cryptography than platform-provided implementations (in Android, iOS,
-      browsers, etc). That's we highly recommend that you call
-      [FlutterCryptography.enable()](https://pub.dev/documentation/cryptography_flutter/latest/cryptography_flutter/FlutterCryptography/enable.html)
-      in the `main` function of applications.
   * [BrowserCryptography](https://pub.dev/documentation/cryptography/latest/cryptography.browser/BrowserCryptography-class.html)
     * Extends _DartCryptography_.
     * Uses [Web Cryptography API](https://www.w3.org/TR/WebCryptoAPI/) (_crypto.subtle_).the
-    * In browsers, gives you:
+    * In browsers, _BrowserCryptography_ gives:
       * AesCbc
       * AesCtr
       * AesGcm
@@ -191,13 +182,13 @@ We wrote the following three implementations of `Cryptography`:
     * A Flutter plugin available in [cryptography_flutter](https://pub.dev/packages/cryptography_flutter).
     * Extends _BrowserCryptography_.
     * Enabled with [FlutterCryptography.enable()](https://pub.dev/documentation/cryptography_flutter/latest/cryptography_flutter/FlutterCryptography/enable.html).
-    * In Android, gives you:
+    * In Android, _FlutterCryptography_ gives:
       * AesCbc
       * AesCtr
       * AesGcm
       * Chacha20
       * Chacha20.poly1305Aead
-    * In iOS, gives you:
+    * In iOS, _FlutterCryptography_ gives:
       * AesGcm
       * Chacha20
       * Chacha20.poly1305Aead

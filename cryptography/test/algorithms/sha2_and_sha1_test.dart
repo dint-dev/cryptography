@@ -14,15 +14,11 @@
 
 import 'dart:typed_data';
 
+import 'package:crypto/crypto.dart'
+    as google_crypto;
 import 'package:cryptography/browser.dart';
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/dart.dart';
-import 'package:cryptography/src/dart/copied_from_package_crypto/sha1.dart'
-    as google_crypto;
-import 'package:cryptography/src/dart/copied_from_package_crypto/sha256.dart'
-    as google_crypto;
-import 'package:cryptography/src/dart/copied_from_package_crypto/sha512.dart'
-    as google_crypto;
 import 'package:cryptography/src/utils.dart';
 import 'package:test/test.dart';
 
