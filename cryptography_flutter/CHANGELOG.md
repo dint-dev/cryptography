@@ -1,4 +1,4 @@
-## 2.0.0
+## 2.0.0-nullsafety.0
 
 * Upgrades to _package:cryptography_ version 2.x.
 * Adds supports for AES and ChaCha20 in Android.

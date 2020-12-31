@@ -2,7 +2,7 @@ name: cryptography_flutter
 description:
   A version of 'package:cryptography' that speeds up asynchronous invocations with native APIs of
   Android, iOS, and Mac OS X.
-version: 1.0.0-nullsafety.0
+version: 2.0.0-nullsafety.0
 homepage: https://github.com/dint-dev/cryptography
 
 environment:
