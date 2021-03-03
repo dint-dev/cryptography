@@ -1,3 +1,7 @@
+## 2.0.0
+
+* Finishes null safety migration.
+
 ## 2.0.0-nullsafety.2
   * For ease of use and backwards compatibility with 1.x, adds `SecretKey(bytes)` factory that
     just redirects to `SecretKeyData(bytes)`.

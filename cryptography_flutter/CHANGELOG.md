@@ -1,3 +1,7 @@
+## 2.0.0
+
+* Finishes null safety migration.
+
 ## 2.0.0-nullsafety.1
 
 * Fixes SDK and dependency constraints.
