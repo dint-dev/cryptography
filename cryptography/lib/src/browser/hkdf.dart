@@ -37,7 +37,7 @@ class BrowserHkdf extends Hkdf {
   @override
   Future<SecretKey> deriveKey({
     required SecretKey secretKey,
-    required List<int> nonce,
+    List<int> nonce = const <int>[],
     List<int> info = const <int>[],
   }) async {
     final jsCryptoKey = await _jsCryptoKey(secretKey);

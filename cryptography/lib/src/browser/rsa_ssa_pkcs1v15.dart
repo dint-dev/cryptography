@@ -57,8 +57,8 @@ class BrowserRsaSsaPkcs1v15 extends RsaSsaPkcs1v15 {
     List<int> publicExponent = RsaSsaPkcs1v15.defaultPublicExponent,
   }) async {
     // Generate CryptoKeyPair
-    final jsCryptoKeyPair = await js.promiseToFuture<web_crypto.CryptoKeyPair>(
-        web_crypto.generateKey(
+    final jsCryptoKeyPair = await js
+        .promiseToFuture<web_crypto.CryptoKeyPair>(web_crypto.generateKey(
       web_crypto.RsaHashedKeyGenParams(
         name: _webCryptoAlgorithm,
         modulusLength: modulusLength,

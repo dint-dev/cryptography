@@ -162,13 +162,13 @@ void _main() {
   });
 
   test('newNonce(): length is 16', () async {
-    final nonce = await algorithm.newNonce();
+    final nonce = algorithm.newNonce();
     expect(nonce, hasLength(16));
   });
 
   test('newNonce(): two results are not equal', () async {
-    final nonce = await algorithm.newNonce();
-    final otherNonce = await algorithm.newNonce();
+    final nonce = algorithm.newNonce();
+    final otherNonce = algorithm.newNonce();
     expect(nonce, isNot(otherNonce));
     expect(nonce, isNot(otherNonce));
     expect(nonce.hashCode, isNot(otherNonce.hashCode));

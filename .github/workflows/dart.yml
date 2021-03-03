@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
 
     container:
-      image:  google/dart:dev
+      image:  google/dart:latest
 
     steps:
       - uses: actions/checkout@v1

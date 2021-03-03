@@ -30,13 +30,29 @@ class DartEd25519 extends Ed25519 {
         super.constructor();
 
   @override
+  KeyPairType get keyPairType => KeyPairType.ed25519;
+
+  @override
+  Future<SimpleKeyPair> newKeyPairFromSeed(List<int> seed) {
+    if (seed.length != 32) {
+      throw ArgumentError('Seed must have 32 bytes');
+    }
+    return Future<SimpleKeyPairData>.value(SimpleKeyPairData(
+      List<int>.unmodifiable(seed),
+      type: KeyPairType.ed25519,
+      publicKey: _publicKey(seed),
+    ));
+  }
+
+  // Compresses a point
+  @override
   Future<Signature> sign(
     List<int> message, {
     required KeyPair keyPair,
     PublicKey? publicKey,
   }) async {
     final keyPairData = (await keyPair.extract()) as SimpleKeyPairData;
-    final privateKeyBytes = await keyPairData.bytes;
+    final privateKeyBytes = keyPairData.bytes;
 
     // Take SHA512 hash of the private key.
     final privateKeyHash = await _sha512.hash(privateKeyBytes);
@@ -147,7 +163,24 @@ class DartEd25519 extends Ed25519 {
     return sB.equals(rhA);
   }
 
-  // Compresses a point
+  Future<SimplePublicKey> _publicKey(List<int> seed) async {
+    // Take SHA512 hash of the private key.
+    final hashOfPrivateKey = await _sha512.hash(seed);
+    final tmp = Uint8List.fromList(hashOfPrivateKey.bytes.sublist(0, 32));
+    DartEd25519._setPrivateKeyFixedBits(tmp);
+
+    // We get public key by multiplying the modified private key hash with G.
+    final publicKeyBytes = DartEd25519._pointCompress(DartEd25519._pointMul(
+      Register25519()..setBytes(tmp),
+      Ed25519Point.base,
+    ));
+
+    return SimplePublicKey(
+      List<int>.unmodifiable(publicKeyBytes),
+      type: KeyPairType.ed25519,
+    );
+  }
+
   static Uint8List _join(List<List<int>> parts) {
     final totalLength = parts.fold<int>(0, (a, b) => a + b.length);
     final buffer = Uint8List(totalLength);
@@ -379,38 +412,5 @@ class DartEd25519 extends Ed25519 {
 
     // The second highest bit must be 1
     list[31] |= 0x40;
-  }
-
-  @override
-  KeyPairType get keyPairType => KeyPairType.ed25519;
-
-  @override
-  Future<SimpleKeyPair> newKeyPairFromSeed(List<int> seed) {
-    if (seed.length != 32) {
-      throw ArgumentError('Seed must have 32 bytes');
-    }
-    return Future<SimpleKeyPairData>.value(SimpleKeyPairData(
-      List<int>.unmodifiable(seed),
-      type: KeyPairType.ed25519,
-      publicKey: _publicKey(seed),
-    ));
-  }
-
-  Future<SimplePublicKey> _publicKey(List<int> seed) async {
-    // Take SHA512 hash of the private key.
-    final hashOfPrivateKey = await _sha512.hash(seed);
-    final tmp = Uint8List.fromList(hashOfPrivateKey.bytes.sublist(0, 32));
-    DartEd25519._setPrivateKeyFixedBits(tmp);
-
-    // We get public key by multiplying the modified private key hash with G.
-    final publicKeyBytes = DartEd25519._pointCompress(DartEd25519._pointMul(
-      Register25519()..setBytes(tmp),
-      Ed25519Point.base,
-    ));
-
-    return SimplePublicKey(
-      List<int>.unmodifiable(publicKeyBytes),
-      type: KeyPairType.ed25519,
-    );
   }
 }

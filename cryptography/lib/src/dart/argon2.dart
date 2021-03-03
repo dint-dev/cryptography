@@ -15,6 +15,7 @@
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
+import 'package:cryptography/dart.dart';
 
 class DartArgon2id extends Argon2id {
   @override
@@ -116,10 +117,7 @@ class DartArgon2id extends Argon2id {
       if (i == 0 && inputIsFirstHash) {
         hash = input;
       } else {
-        final sink = Blake2b().newHashSink();
-        sink.add(previousHash);
-        sink.close();
-        hash = (await sink.hash()).bytes;
+        hash = const DartBlake2b().hashSync(previousHash).bytes;
       }
       if (size == 64) {
         return hash;

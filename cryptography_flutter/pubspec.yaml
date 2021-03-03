@@ -2,26 +2,25 @@ name: cryptography_flutter
 description:
   A version of 'package:cryptography' that speeds up asynchronous invocations with native APIs of
   Android, iOS, and Mac OS X.
-version: 2.0.0-nullsafety.1
+version: 2.0.0
 homepage: https://github.com/dint-dev/cryptography
 
 environment:
-  sdk: '>=2.12.0-0 <3.0.0'
-  flutter: ">=1.10.0"
+  sdk: '>=2.12.0 <3.0.0'
+  flutter: '>=2.0.0 <3.0.0'
 
 dependencies:
-  cryptography: ^2.0.0-nullsafety.2
+  cryptography: ^2.0.0
   flutter:
     sdk: flutter
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  pedantic: ^1.10.0-nullsafety.3
-  webcrypto: ^0.5.0-null-safety.0
+  pedantic: ^1.10.0
+  webcrypto: ^0.5.0
 
 dependency_overrides:
-  crypto: ^3.0.0-nullsafety.0
   cryptography:
     path: ../cryptography
 

@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:e2e/e2e.dart';
-import 'package:flutter_test/flutter_test.dart';
 import 'package:cryptography/cryptography.dart';
+import 'package:integration_test/integration_test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:kms/kms.dart';
 import 'package:kms_flutter/kms_flutter.dart';
 
 void main() {
-  E2EWidgetsFlutterBinding.ensureInitialized();
+  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   group('Example:', () {
     setUp(() {

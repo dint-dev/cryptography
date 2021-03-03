@@ -16,9 +16,12 @@
 library web_crypto_api;
 
 import 'dart:convert' show base64Url;
+import 'dart:html' show CryptoKey;
 import 'dart:typed_data';
 
 import 'package:js/js.dart';
+
+export 'dart:html' show CryptoKey;
 
 List<int>? base64UrlDecode(String? s) {
   if (s == null) {
@@ -182,19 +185,6 @@ class AesKeyGenParams {
     required String name,
     required int length,
   });
-}
-
-@JS('CryptoKey')
-class CryptoKey {
-  external factory CryptoKey._();
-
-  external dynamic get algorithm;
-
-  external bool get extractable;
-
-  external String get type;
-
-  external List<String> get usages;
 }
 
 @JS('CryptoKeyPair')

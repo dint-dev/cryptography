@@ -25,7 +25,7 @@ class NoiseMessagePattern {
   @override
   bool operator ==(other) =>
       other is NoiseMessagePattern &&
-          const ListEquality<NoiseMessageToken>().equals(tokens, other.tokens);
+      const ListEquality<NoiseMessageToken>().equals(tokens, other.tokens);
 
   @override
   String toString() => 'NoiseMessagePattern([${tokens.join(',')}])';

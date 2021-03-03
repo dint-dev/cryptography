@@ -24,15 +24,29 @@ import 'package:cryptography/src/utils.dart';
 ///  * [cipherText]
 ///  * [mac] (message authentication code)
 ///
+/// # Concatenating fields
+/// When you storing / loading secret boxes, you can use [concatenation] and
+/// [fromConcatenation]:
+/// ```
+/// // Returns nonce + cipherText + mac
+/// final bytes = secretBox.concatenation();
+///
+/// // Splits the bytes into nonce, ciphertext, and MAC.
+/// final newSecretBox = SecretBox.fromConcatenation(
+///   bytes,
+///   nonceLength:16,
+///   macLength: 16,
+/// );
+/// ```
 class SecretBox {
   /// Encrypted data.
   final List<int> cipherText;
 
-  /// Message authentication code (MAC).
+  /// Message authentication code (MAC) calculated by the encrypting party.
   final Mac mac;
 
-  /// Nonce ("initialization vector", "IV", "salt") is some random non-secret
-  /// sequence of bytes.
+  /// Nonce ("initialization vector", "IV", "salt") is a non-secret sequence of
+  /// bytes required by most algorithms.
   final List<int> nonce;
 
   SecretBox(

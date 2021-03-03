@@ -27,6 +27,9 @@ class DartAesCtr extends AesCtr with DartAesMixin {
   @override
   final int counterBits;
 
+  @override
+  final int secretKeyLength;
+
   const DartAesCtr({
     required this.macAlgorithm,
     this.secretKeyLength = 32,
@@ -35,9 +38,6 @@ class DartAesCtr extends AesCtr with DartAesMixin {
             secretKeyLength == 24 ||
             secretKeyLength == 32),
         super.constructor();
-
-  @override
-  final int secretKeyLength;
 
   @override
   Future<List<int>> decrypt(
@@ -54,7 +54,7 @@ class DartAesCtr extends AesCtr with DartAesMixin {
       throw ArgumentError.value(
         secretKey,
         'secretKey',
-        'Expected $secretKeyLength bytes, got ${actualSecretKeyLength} bytes',
+        'Expected $secretKeyLength bytes, got $actualSecretKeyLength bytes',
       );
     }
     if (keyStreamIndex < 0) {
@@ -96,7 +96,7 @@ class DartAesCtr extends AesCtr with DartAesMixin {
       throw ArgumentError.value(
         secretKey,
         'secretKey',
-        'Expected $secretKeyLength bytes, got ${actualSecretKeyLength} bytes',
+        'Expected $secretKeyLength bytes, got $actualSecretKeyLength bytes',
       );
     }
     final cipherText = _perform(

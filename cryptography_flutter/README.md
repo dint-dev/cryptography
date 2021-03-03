@@ -28,8 +28,8 @@ Mac OS X. You must use asynchronous methods to get the performance boost.
 In _pubspec.yaml_:
 ```yaml
 dependencies:
-  cryptography: ^2.0.0-nullsafety.0
-  cryptography_flutter: ^2.0.0-nullsafety.0
+  cryptography: ^2.0.0
+  cryptography_flutter: ^2.0.0
 ```
 
 Then just use:

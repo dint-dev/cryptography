@@ -25,10 +25,10 @@ void main() {
   final clearText = List<int>.filled(10000, 1);
 
   group('AesCbc():', () {
-    AesCbc algorithm;
-    SecretKey secretKey;
-    List<int> nonce;
-    SecretBox secretBox;
+    late AesCbc algorithm;
+    late SecretKey secretKey;
+    late List<int> nonce;
+    late SecretBox secretBox;
 
     setUp(() async {
       algorithm = AesCbc.with256bits(macAlgorithm: Hmac.sha256());
@@ -63,10 +63,10 @@ void main() {
   });
 
   group('AesCtr():', () {
-    AesCtr algorithm;
-    SecretKey secretKey;
-    List<int> nonce;
-    SecretBox secretBox;
+    late AesCtr algorithm;
+    late SecretKey secretKey;
+    late List<int> nonce;
+    late SecretBox secretBox;
 
     setUp(() async {
       algorithm = AesCtr.with256bits(macAlgorithm: Hmac.sha256());
@@ -101,10 +101,10 @@ void main() {
   });
 
   group('AesGcm():', () {
-    AesGcm algorithm;
-    SecretKey secretKey;
-    List<int> nonce;
-    SecretBox secretBox;
+    late AesGcm algorithm;
+    late SecretKey secretKey;
+    late List<int> nonce;
+    late SecretBox secretBox;
 
     setUp(() async {
       algorithm = AesGcm.with256bits();
@@ -142,9 +142,9 @@ void main() {
 
   group('Chacha20.poly1305Aead():', () {
     final algorithm = Chacha20.poly1305Aead();
-    SecretKey secretKey;
-    List<int> nonce;
-    SecretBox secretBox;
+    late SecretKey secretKey;
+    late List<int> nonce;
+    late SecretBox secretBox;
 
     setUp(() async {
       secretKey = await algorithm.newSecretKey();

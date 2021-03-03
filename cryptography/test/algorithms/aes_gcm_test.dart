@@ -144,20 +144,20 @@ void _main() {
 
   test('nonceLength: default is 12', () async {
     expect(algorithm.nonceLength, 12);
-    final nonce = await algorithm.newNonce();
+    final nonce = algorithm.newNonce();
     expect(nonce, hasLength(12));
   });
 
   test('nonceLength: can be set to 8', () async {
     final algorithm = AesGcm.with256bits(nonceLength: 8);
     expect(algorithm.nonceLength, 8);
-    final nonce = await algorithm.newNonce();
+    final nonce = algorithm.newNonce();
     expect(nonce, hasLength(8));
   });
 
   test('newNonce(): two results are not equal', () async {
-    final nonce = await algorithm.newNonce();
-    final otherNonce = await algorithm.newNonce();
+    final nonce = algorithm.newNonce();
+    final otherNonce = algorithm.newNonce();
     expect(nonce, isNot(otherNonce));
     expect(nonce.hashCode, isNot(otherNonce.hashCode));
   });

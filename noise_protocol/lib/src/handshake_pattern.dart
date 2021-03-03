@@ -199,7 +199,8 @@ class NoiseHandshakePattern {
 
   /// Tells whether the pattern has a [NoiseMessageToken.psk] token.
   bool get usesPresharedKey {
-    return noiseMessagePatterns.any((p) => p.tokens.contains(NoiseMessageToken.psk));
+    return noiseMessagePatterns
+        .any((p) => p.tokens.contains(NoiseMessageToken.psk));
   }
 
   @override

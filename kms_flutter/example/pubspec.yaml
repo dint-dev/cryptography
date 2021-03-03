@@ -3,8 +3,8 @@ version: 0.0.1
 publish_to: none
 
 environment:
-  sdk: '>=2.12.0-29.10.beta <3.0.0'
-  flutter: ">=1.10.0"
+  sdk: '>=2.12.0 <3.0.0'
+  flutter: '>=2.0.0 <3.0.0'
 
 dependencies:
   flutter:
@@ -13,14 +13,15 @@ dependencies:
     path: ../
 
 dev_dependencies:
-  integration_test: ^1.0.1
   flutter_driver:
     sdk: flutter
   flutter_test:
     sdk: flutter
-  pedantic: ^1.10.0-nullsafety.3
+  integration_test: ^1.0.2
+  pedantic: ^1.11.0
 
 dependency_overrides:
+  crypto: ^3.0.0
   cryptography:
     path: '../../cryptography'
   kms:

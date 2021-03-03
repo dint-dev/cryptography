@@ -439,9 +439,7 @@ class Jwk {
   SecretKey toSecretKey() {
     switch (kty) {
       case 'OCK':
-        return SecretKey(
-          List<int>.unmodifiable(x ?? const <int>[])
-        );
+        return SecretKey(List<int>.unmodifiable(x ?? const <int>[]));
 
       default:
         throw StateError('Not a secret key (kty: $kty)');
@@ -601,7 +599,8 @@ class Jwk {
     throw ArgumentError.value(publicKey);
   }
 
-  static Future<Jwk> fromSecretKey(SecretKey secretKey, {required Cipher cipher}) async {
+  static Future<Jwk> fromSecretKey(SecretKey secretKey,
+      {required Cipher cipher}) async {
     final data = await secretKey.extract();
     if (cipher is AesCbc || cipher is AesCtr || cipher is AesGcm) {
       return Jwk(

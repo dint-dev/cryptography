@@ -13,15 +13,18 @@ import 'package:meta/meta.dart';
 ///   * The package [cryptography_flutter](https://pub.dev/packages/cryptography_flutter)
 ///     supports native implementations available in Android and iOS.
 ///
-/// ## About the algorithm
-///   * The following key lengths are available:
-///     * [AesGcm.with128bits()]
-///     * [AesGcm.with192bits()]
-///     * [AesGcm.with256bits()]
-///   * [nonceLength] is 12 bytes by default.
-///   * The algorithm is non-authenticated (you must choose some [MacAlgorithm]).
+/// # About the algorithm
+///   * Three possible key lengths:
+///     * 128 bits: [AesCbc.with128bits]
+///     * 192 bits: [AesCbc.with192bits]
+///     * 256 bits: [AesCbc.with256bits]
+///   * Nonce is always 16 bytes. If you want to use a nonce with a different
+///     length (e.g. 12 bytes), you need to add zero bytes before/after your
+///     nonce.
+///   * You must choose some [macAlgorithm]. If you are sure that you don't need
+///     one, use [MacAlgorithm.empty].
 ///
-/// ## Example
+/// # Example
 /// ```dart
 /// import 'package:cryptography/cryptography.dart';
 ///
@@ -80,7 +83,7 @@ abstract class AesCbc extends Cipher {
 
   factory AesCbc._({
     required MacAlgorithm macAlgorithm,
-    int secretKeyLength = 32,
+    required int secretKeyLength,
   }) {
     return Cryptography.instance.aesCbc(
       macAlgorithm: macAlgorithm,
@@ -115,15 +118,21 @@ abstract class AesCbc extends Cipher {
 ///   * The package [cryptography_flutter](https://pub.dev/packages/cryptography_flutter)
 ///     supports native implementations available in Android and iOS.
 ///
-/// ## About the algorithm
-///   * The following key lengths are available:
-///     * [AesGcm.with128bits()]
-///     * [AesGcm.with192bits()]
-///     * [AesGcm.with256bits()]
-///   * [nonceLength] is 12 bytes by default.
-///   * The algorithm is non-authenticated (you should choose some [MacAlgorithm]).
+/// # About the algorithm
+///   * Three possible key lengths:
+///     * 128 bits: [AesCtr.with128bits]
+///     * 192 bits: [AesCtr.with192bits]
+///     * 256 bits: [AesCtr.with256bits]
+///   * Nonce length is 12 bytes by default. That means 4 bytes is used for
+///     block counter.
+///       * Because block is 16 bytes, maximum message size is 32 GB with a
+///         single nonce.
+///       * You can choose another nonce length in the constructor if you need
+///         to.
+///   * You must choose some [macAlgorithm]. If you are sure that you don't need
+///     one, use [MacAlgorithm.empty].
 ///
-/// ## Example
+/// # Example
 /// ```dart
 /// import 'package:cryptography/cryptography.dart';
 ///
@@ -161,7 +170,6 @@ abstract class AesCtr extends StreamingCipher {
 
   factory AesCtr.with128bits({
     required MacAlgorithm macAlgorithm,
-    int nonceLength = 12,
   }) {
     return AesCtr._(
       macAlgorithm: macAlgorithm,
@@ -171,7 +179,6 @@ abstract class AesCtr extends StreamingCipher {
 
   factory AesCtr.with192bits({
     required MacAlgorithm macAlgorithm,
-    int nonceLength = 12,
   }) {
     return AesCtr._(
       macAlgorithm: macAlgorithm,
@@ -181,7 +188,6 @@ abstract class AesCtr extends StreamingCipher {
 
   factory AesCtr.with256bits({
     required MacAlgorithm macAlgorithm,
-    int nonceLength = 12,
   }) {
     return AesCtr._(
       macAlgorithm: macAlgorithm,
@@ -191,7 +197,7 @@ abstract class AesCtr extends StreamingCipher {
 
   factory AesCtr._({
     required MacAlgorithm macAlgorithm,
-    int secretKeyLength = 32,
+    required int secretKeyLength,
   }) {
     return Cryptography.instance.aesCtr(
       macAlgorithm: macAlgorithm,
@@ -229,17 +235,18 @@ abstract class AesCtr extends StreamingCipher {
 ///   * The package [cryptography_flutter](https://pub.dev/packages/cryptography_flutter)
 ///     supports native implementations available in Android and iOS.
 ///
-/// ## About the algorithm
-///   * The following key lengths are available:
-///     * [AesGcm.with128bits()]
-///     * [AesGcm.with192bits()]
-///     * [AesGcm.with256bits()]
-///   * [nonceLength] is 12 bytes by default.
-///   * The built-in [macAlgorithm] produces a MAC that has 16 bytes.
+/// # About the algorithm
+///   * Three possible key lengths:
+///     * 128 bits: [AesGcm.with128bits]
+///     * 192 bits: [AesGcm.with192bits]
+///     * 256 bits: [AesGcm.with256bits]
+///   * By default, [nonceLength] is 12 bytes.
+///     * That means 4 bytes is used for block counter. Because AES block is 16
+///       bytes, maximum message size is 32 GB with a single nonce.
+///     * You can choose another nonce length in the constructor if you need to.
+///   * The built-in [macAlgorithm] produces a 16 bytes MAC.
 ///
-/// ## Choosing key length
-///
-/// ## Example
+/// # Example
 /// ```dart
 /// import 'package:cryptography/cryptography.dart';
 ///
@@ -270,7 +277,7 @@ abstract class AesCtr extends StreamingCipher {
 /// ```
 abstract class AesGcm extends StreamingCipher {
   /// MAC algorithm used by _AES-GCM_.
-  static const MacAlgorithm aesGcmMac = _AesGcmMacAlgorithm();
+  static const MacAlgorithm aesGcmMac = DartGcm();
 
   /// Constructor for classes that extend this class.
   @protected
@@ -341,7 +348,7 @@ abstract class AesGcm extends StreamingCipher {
 /// algorithm can provide much better security than older algorithms such as
 /// [Pbkdf2].
 ///
-/// ## Example
+/// # Example
 /// ```
 /// import 'package:cryptography/cryptography.dart';
 ///
@@ -362,6 +369,11 @@ abstract class AesGcm extends StreamingCipher {
 ///   print('hashed password: $newSecretKeyBytes');
 /// }
 /// ```
+///
+/// # In need of synchronous APIs?
+///
+/// If you need to perform operations synchronously, use [DartArgon2id] in
+/// _package:cryptography/dart.dart_.
 ///
 abstract class Argon2id extends KdfAlgorithm {
   factory Argon2id({
@@ -469,6 +481,12 @@ abstract class Argon2id extends KdfAlgorithm {
 ///   print('Hash: ${hash.bytes}');
 /// }
 /// ```
+///
+/// # In need of synchronous APIs?
+///
+/// If you need to perform operations synchronously, use [DartBlake2b] in
+/// _package:cryptography/dart.dart_.
+///
 abstract class Blake2b extends HashAlgorithm {
   factory Blake2b() {
     return Cryptography.instance.blake2b();
@@ -526,6 +544,12 @@ abstract class Blake2b extends HashAlgorithm {
 ///   print('Hash: ${hash.bytes}');
 /// }
 /// ```
+///
+/// # In need of synchronous APIs?
+///
+/// If you need to perform operations synchronously, use [DartBlake2s] in
+/// _package:cryptography/dart.dart_.
+///
 abstract class Blake2s extends HashAlgorithm {
   factory Blake2s() {
     return Cryptography.instance.blake2s();
@@ -586,6 +610,12 @@ abstract class Blake2s extends HashAlgorithm {
 ///   print('Cleartext: $clearText');
 /// }
 /// ```
+///
+/// # In need of synchronous APIs?
+///
+/// If you need to perform operations synchronously, use [DartChacha20] in
+/// _package:cryptography/dart.dart_.
+///
 abstract class Chacha20 extends StreamingCipher {
   factory Chacha20({required MacAlgorithm macAlgorithm}) {
     return Cryptography.instance.chacha20(macAlgorithm: macAlgorithm);
@@ -817,6 +847,12 @@ abstract class Ecdsa extends SignatureAlgorithm {
 ///   );
 /// }
 /// ```
+///
+/// # In need of synchronous APIs?
+///
+/// If you need to perform operations synchronously, use [DartEd25519] in
+/// _package:cryptography/dart.dart_.
+///
 abstract class Ed25519 extends SignatureAlgorithm {
   factory Ed25519() {
     return Cryptography.instance.ed25519();
@@ -845,6 +881,7 @@ abstract class Ed25519 extends SignatureAlgorithm {
 ///
 /// Hchacha20 produces a 256-bit secret key from 256-bit secret key and 96-bit
 /// nonce. The algorithm is used by [Xchacha20].
+///
 abstract class Hchacha20 {
   factory Hchacha20() {
     return Cryptography.instance.hchacha20();
@@ -913,7 +950,7 @@ abstract class Hkdf extends KdfAlgorithm {
   @override
   Future<SecretKey> deriveKey({
     required SecretKey secretKey,
-    required List<int> nonce,
+    List<int> nonce = const <int>[],
     List<int> info = const <int>[],
   });
 
@@ -1276,6 +1313,12 @@ abstract class RsaSsaPkcs1v15 extends SignatureAlgorithm {
 ///   print('Hash: ${hash.bytes}');
 /// }
 /// ```
+///
+/// # In need of synchronous APIs?
+///
+/// If you need to perform operations synchronously, use [DartSha1] in
+/// _package:cryptography/dart.dart_.
+///
 abstract class Sha1 extends HashAlgorithm {
   factory Sha1() => Cryptography.instance.sha1();
 
@@ -1334,6 +1377,12 @@ abstract class Sha1 extends HashAlgorithm {
 ///   print('Hash: ${hash.bytes}');
 /// }
 /// ```
+///
+/// # In need of synchronous APIs?
+///
+/// If you need to perform operations synchronously, use [DartSha224] in
+/// _package:cryptography/dart.dart_.
+///
 abstract class Sha224 extends HashAlgorithm {
   factory Sha224() => Cryptography.instance.sha224();
 
@@ -1392,6 +1441,12 @@ abstract class Sha224 extends HashAlgorithm {
 ///   print('Hash: ${hash.bytes}');
 /// }
 /// ```
+///
+/// # In need of synchronous APIs?
+///
+/// If you need to perform operations synchronously, use [DartSha256] in
+/// _package:cryptography/dart.dart_.
+///
 abstract class Sha256 extends HashAlgorithm {
   factory Sha256() => Cryptography.instance.sha256();
 
@@ -1450,6 +1505,12 @@ abstract class Sha256 extends HashAlgorithm {
 ///   print('Hash: ${hash.bytes}');
 /// }
 /// ```
+///
+/// # In need of synchronous APIs?
+///
+/// If you need to perform operations synchronously, use [DartSha384] in
+/// _package:cryptography/dart.dart_.
+///
 abstract class Sha384 extends HashAlgorithm {
   factory Sha384() => Cryptography.instance.sha384();
 
@@ -1508,6 +1569,12 @@ abstract class Sha384 extends HashAlgorithm {
 ///   print('Hash: ${hash.bytes}');
 /// }
 /// ```
+///
+/// # In need of synchronous APIs?
+///
+/// If you need to perform operations synchronously, use [DartSha512] in
+/// _package:cryptography/dart.dart_.
+///
 abstract class Sha512 extends HashAlgorithm {
   factory Sha512() => Cryptography.instance.sha512();
 
@@ -1593,6 +1660,12 @@ abstract class StreamingCipher extends Cipher {
 ///   );
 /// }
 /// ```
+///
+/// # In need of synchronous APIs?
+///
+/// If you need to perform operations synchronously, use [DartX25519] in
+/// _package:cryptography/dart.dart_.
+///
 abstract class X25519 extends KeyExchangeAlgorithm {
   factory X25519() {
     return Cryptography.instance.x25519();
@@ -1632,6 +1705,12 @@ abstract class X25519 extends KeyExchangeAlgorithm {
 /// ## Example
 ///
 /// See [chacha20].
+///
+/// # In need of synchronous APIs?
+///
+/// If you need to perform operations synchronously, use [DartXchacha20] in
+/// _package:cryptography/dart.dart_.
+///
 abstract class Xchacha20 extends StreamingCipher {
   factory Xchacha20({required MacAlgorithm macAlgorithm}) {
     return Cryptography.instance.xchacha20(macAlgorithm: macAlgorithm);
@@ -1661,30 +1740,4 @@ abstract class Xchacha20 extends StreamingCipher {
   @override
   bool operator ==(other) =>
       other is Xchacha20 && macAlgorithm == other.macAlgorithm;
-}
-
-/// Used by [AesGcm.aesGcmMac].
-class _AesGcmMacAlgorithm extends MacAlgorithm {
-  @override
-  final int macLength;
-
-  const _AesGcmMacAlgorithm({this.macLength = 16});
-
-  @override
-  bool get supportsAad => true;
-
-  @override
-  Future<Mac> calculateMac(
-    List<int> input, {
-    required SecretKey secretKey,
-    List<int> nonce = const <int>[],
-    List<int> aad = const <int>[],
-  }) {
-    throw UnsupportedError(
-      'AES-GCM MAC algorithm can NOT be called separately.',
-    );
-  }
-
-  @override
-  String toString() => 'AecGcm.aecGcmMac';
 }

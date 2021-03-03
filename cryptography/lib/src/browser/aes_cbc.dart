@@ -26,13 +26,13 @@ class BrowserAesCbc extends AesCbc with BrowserAesMixin {
   @override
   final MacAlgorithm macAlgorithm;
 
+  @override
+  final int secretKeyLength;
+
   const BrowserAesCbc({
     required this.macAlgorithm,
     this.secretKeyLength = 32,
   }) : super.constructor();
-
-  @override
-  final int secretKeyLength;
 
   @override
   String get webCryptoName => 'AES-CBC';

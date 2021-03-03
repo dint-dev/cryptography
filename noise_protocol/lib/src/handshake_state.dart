@@ -103,8 +103,11 @@ class HandshakeState {
     if (protocol.handshakePattern.noiseMessagePatterns
         .any((p) => p.tokens.contains(NoiseMessageToken.e))) {
       if (_localEphemeralKeyPair == null) {
-        final newKeyPair = await protocol.noiseKeyExchangeAlgorithm.implementation.newKeyPair();
-        localEphemeralKeyPair = (await newKeyPair.extract()) as SimpleKeyPairData;
+        final newKeyPair = await protocol
+            .noiseKeyExchangeAlgorithm.implementation
+            .newKeyPair();
+        localEphemeralKeyPair =
+            (await newKeyPair.extract()) as SimpleKeyPairData;
       }
     }
 
@@ -189,7 +192,8 @@ class HandshakeState {
     final messagePattern = _messagePatterns.removeFirst();
 
     // Handle each token in the message pattern
-    final keyExchangeAlgorithm = protocol.noiseKeyExchangeAlgorithm.implementation;
+    final keyExchangeAlgorithm =
+        protocol.noiseKeyExchangeAlgorithm.implementation;
     var messageStart = 0;
     for (var token in messagePattern.tokens) {
       switch (token) {
@@ -386,7 +390,8 @@ class HandshakeState {
     final messagePattern = _messagePatterns.removeFirst();
 
     // Handle each token in the message pattern
-    final keyExchangeAlgorithm = protocol.noiseKeyExchangeAlgorithm.implementation;
+    final keyExchangeAlgorithm =
+        protocol.noiseKeyExchangeAlgorithm.implementation;
     for (var token in messagePattern.tokens) {
       switch (token) {
         case NoiseMessageToken.e:

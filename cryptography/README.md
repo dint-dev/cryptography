@@ -193,14 +193,7 @@ We wrote the following three implementations of `Cryptography`:
 In _pubspec.yaml_:
 ```yaml
 dependencies:
-  cryptography: ^2.0.0-nullsafety.2
-```
-
-If you get dependency constraint errors because other package authors have not upgraded their
-dependencies, try the following `dependency_overrides`:
-```yaml
-dependency_overrides:
-  crypto: ^3.0.0-nullsafety.0
+  cryptography: ^2.0.0
 ```
 
 # Examples

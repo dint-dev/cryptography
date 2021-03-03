@@ -16,6 +16,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
+import 'package:meta/meta.dart';
 
 /// A hash algorithm that produces a [Hash].
 ///
@@ -104,6 +105,7 @@ abstract class HashAlgorithm {
   HashSink newHashSink() => _HashSink(this);
 
   /// {@nodoc}
+  @nonVirtual
   @Deprecated('Use newHashSink() instead')
   HashSink newSink() => newHashSink();
 

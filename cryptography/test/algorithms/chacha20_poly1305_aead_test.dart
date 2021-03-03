@@ -68,15 +68,16 @@ void main() {
           mac: badMac,
         );
         await expectLater(
-            algorithm.decrypt(badSecretBox, secretKey: secretKey),
-            throwsA(isA<SecretBoxAuthenticationError>()),
+          algorithm.decrypt(badSecretBox, secretKey: secretKey),
+          throwsA(isA<SecretBoxAuthenticationError>()),
         );
       }
+
       test('message: []', () async {
         await f([]);
       });
       test('message: [1,2,3]', () async {
-        await f([1,2,3]);
+        await f([1, 2, 3]);
       });
     });
 

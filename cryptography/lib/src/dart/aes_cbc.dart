@@ -47,14 +47,15 @@ class DartAesCbc extends AesCbc with DartAesMixin {
       throw ArgumentError.value(
         secretKey,
         'secretKey',
-        'Expected $secretKeyLength bytes, got ${actualSecretKeyLength} bytes',
+        'Expected $secretKeyLength bytes, got $actualSecretKeyLength bytes',
       );
     }
-    if (secretBox.nonce.length != nonceLength) {
+    final nonceLength = secretBox.nonce.length;
+    if (nonceLength != 16) {
       throw ArgumentError.value(
         secretBox,
         'secretBox',
-        'Nonce must have 12 bytes',
+        'Expected nonce with 16 bytes, got $nonceLength bytes',
       );
     }
     if (keyStreamIndex < 0) {
@@ -74,7 +75,11 @@ class DartAesCbc extends AesCbc with DartAesMixin {
     final secretKeyBytes = secretKeyData.bytes;
     final cipherText = secretBox.cipherText;
     if (cipherText.length % 16 != 0) {
-      throw ArgumentError('Invalid length: ${cipherText.length}');
+      throw ArgumentError.value(
+        secretBox,
+        'secretBox',
+        'Invalid cipherText length: ${cipherText.length}',
+      );
     }
 
     // Expand key
@@ -130,20 +135,21 @@ class DartAesCbc extends AesCbc with DartAesMixin {
       }
     }
 
-    // PKCS7 padding
+    // PKCS7 padding:
+    // The last byte has padding length.
     final paddingLength = outputAsUint8List.last;
     if (paddingLength == 0 || paddingLength > 16) {
       throw StateError(
-        'Invalid padding length: $paddingLength, ${outputAsUint8List}',
+        'The decrypted bytes have invalid PKCS7 padding length in the end: $paddingLength',
       );
     }
 
-    // Check that all padding bytes are valid
+    // Check that all padding bytes are correct PKCS7 padding bytes.
     for (var i = outputAsUint8List.length - paddingLength;
         i < outputAsUint8List.length;
         i++) {
       if (outputAsUint8List[i] != paddingLength) {
-        throw StateError('Missing padding');
+        throw StateError('The decrypted bytes are missing padding');
       }
     }
     if (paddingLength == 0) {
@@ -172,15 +178,15 @@ class DartAesCbc extends AesCbc with DartAesMixin {
       throw ArgumentError.value(
         secretKey,
         'secretKey',
-        'Expected $secretKeyLength bytes, got ${actualSecretKeyLength} bytes',
+        'Expected $secretKeyLength bytes, got $actualSecretKeyLength bytes',
       );
     }
     nonce ??= newNonce();
-    if (nonce.length != nonceLength) {
+    if (nonceLength != 16) {
       throw ArgumentError.value(
         nonce,
         'nonce',
-        'Must have 12 bytes',
+        'Expected nonce with 16 bytes, got $nonceLength bytes',
       );
     }
     if (keyStreamIndex < 0) {

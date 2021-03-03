@@ -30,6 +30,6 @@ part 'src/handshake_pattern.dart';
 part 'src/handshake_protocol.dart';
 part 'src/handshake_result.dart';
 part 'src/handshake_state.dart';
-part 'src/noise_authenticator.dart';
 part 'src/message_pattern.dart';
+part 'src/noise_authenticator.dart';
 part 'src/symmetric_state.dart';

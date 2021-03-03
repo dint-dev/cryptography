@@ -30,7 +30,8 @@ class NoiseAuthenticationParameters {
 
   /// An optional function that rejects state or changes it depending when
   /// remote public key is received.
-  final FutureOr<void> Function(HandshakeState state)? onValidateRemotePublicKey;
+  final FutureOr<void> Function(HandshakeState state)?
+      onValidateRemotePublicKey;
 
   const NoiseAuthenticationParameters({
     this.localStaticKeyPair,

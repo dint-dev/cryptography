@@ -106,7 +106,7 @@ void main() {
           expect(
             c.toRadixString(16),
             ((a + b) % modulo).toRadixString(16),
-            reason: 'a=${ar}\nb=${br}\nc=${cr}',
+            reason: 'a=$ar\nb=$br\nc=$cr',
           );
         }
       }
@@ -117,7 +117,7 @@ void main() {
         expect(
           ar.toBigInt().toRadixString(16),
           ((a + a) % modulo).toRadixString(16),
-          reason: 'a=${ar}',
+          reason: 'a=$ar',
         );
       }
     });
@@ -152,7 +152,7 @@ void main() {
           expect(
             c.toRadixString(16),
             ((a * b) % modulo).toRadixString(16),
-            reason: 'a=${ar}\nb=${br}\nc=${cr}',
+            reason: 'a=$ar\nb=$br\nc=$cr',
           );
         }
       }
@@ -201,7 +201,7 @@ void main() {
           expect(
             c.toRadixString(16),
             a.modPow(b, modulo).toRadixString(16),
-            reason: 'a=${ar}\nb=${br}\nc=${cr}',
+            reason: 'a=$ar\nb=$br\nc=$cr',
           );
         }
       }
@@ -237,7 +237,7 @@ void main() {
           expect(
             c,
             (a - b) % modulo,
-            reason: 'a=${ar}\nb=${br}\nc=${cr}',
+            reason: 'a=$ar\nb=$br\nc=$cr',
           );
         }
       }
@@ -248,7 +248,7 @@ void main() {
         expect(
           ar.toBigInt().toRadixString(16),
           BigInt.zero.toRadixString(16),
-          reason: 'a=${ar}',
+          reason: 'a=$ar',
         );
       }
     });
@@ -287,7 +287,7 @@ void main() {
           expect(
             c.toRadixString(16),
             ((a + b) % modulo).toRadixString(16),
-            reason: 'a=${ar}\nb=${br}\nc=${cr}',
+            reason: 'a=$ar\nb=$br\nc=$cr',
           );
         }
       }
@@ -298,7 +298,7 @@ void main() {
         expect(
           ar.toBigInt()!.toRadixString(16),
           ((a * a) % modulo).toRadixString(16),
-          reason: 'a=${ar}',
+          reason: 'a=$ar',
         );
       }
     });
@@ -333,7 +333,7 @@ void main() {
           expect(
             c.toRadixString(16),
             ((a * b) % modulo).toRadixString(16),
-            reason: 'a=${ar}\nb=${br}\nc=${cr}',
+            reason: 'a=$ar\nb=$br\nc=$cr',
           );
         }
       }
@@ -344,7 +344,7 @@ void main() {
         expect(
           ar.toBigInt()!.toRadixString(16),
           ((a * a) % modulo).toRadixString(16),
-          reason: 'a=${ar}',
+          reason: 'a=$ar',
         );
       }
     });

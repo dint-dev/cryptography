@@ -20,14 +20,14 @@ import 'package:meta/meta.dart';
 import '../utils.dart';
 import 'aes_impl.dart';
 
+const _bit32 = 0x100 * 0x100 * 0x100 * 0x100;
+
 /// _AES-GCM_ (Galois/Counter Mode) cipher implemented in pure Dart.
 //
 // The implementation was written based on the original specification:
 //   https://csrc.nist.gov/publications/detail/sp/800-38d/final
 //
 class DartAesGcm extends AesGcm with DartAesMixin {
-  static const _bit32 = 0x100 * 0x100 * 0x100 * 0x100;
-
   @override
   final int nonceLength;
 
@@ -75,7 +75,7 @@ class DartAesGcm extends AesGcm with DartAesMixin {
       throw ArgumentError.value(
         secretKeyData,
         'secretKeyData',
-        'Expected $secretKeyLength bytes, got ${actualSecretKeyLength} bytes',
+        'Expected $secretKeyLength bytes, got $actualSecretKeyLength bytes',
       );
     }
     if (keyStreamIndex < 0 || keyStreamIndex >= 0x10000000) {
@@ -99,7 +99,7 @@ class DartAesGcm extends AesGcm with DartAesMixin {
     // Calculate MAC
     final cipherText = secretBox.cipherText;
     final mac = secretBox.mac;
-    final calculatedMac = _mac(
+    final calculatedMac = const DartGcm().calculateMacSync(
       cipherText,
       aad: aad,
       expandedKey: expandedKey,
@@ -172,7 +172,7 @@ class DartAesGcm extends AesGcm with DartAesMixin {
       throw ArgumentError.value(
         secretKeyData,
         'secretKeyData',
-        'Expected $secretKeyLength bytes, got ${actualSecretKeyLength} bytes',
+        'Expected $secretKeyLength bytes, got $actualSecretKeyLength bytes',
       );
     }
     if (keyStreamIndex < 0 || keyStreamIndex >= 0x10000000) {
@@ -223,7 +223,7 @@ class DartAesGcm extends AesGcm with DartAesMixin {
     }
 
     // Calculate MAC
-    final mac = _mac(
+    final mac = const DartGcm().calculateMacSync(
       cipherText,
       aad: aad,
       expandedKey: expandedKey,
@@ -332,43 +332,6 @@ class DartAesGcm extends AesGcm with DartAesMixin {
     result[3] = _uint32ChangeEndian(x3);
   }
 
-  static Mac _mac(
-    List<int> cipherText, {
-    required Uint32List precounterBlock,
-    required Uint32List h,
-    required Uint32List expandedKey,
-    required List<int> aad,
-  }) {
-    // We XOR hashes for:
-    //   * AAD + padding until 16-byte aligned
-    //   * Ciphertext + padding until 16-byte aligned
-    //   * Big endian uint64: AAD length in bits
-    //   * Big endian uint64: Ciphertext length in bits
-    final mac = Uint32List(4);
-    _ghash(mac, h, aad);
-    _ghash(mac, h, cipherText);
-    final aadBits = 8 * aad.length;
-    final cipherTextBits = 8 * cipherText.length;
-    // For big numbers to work in browsers, we use some tricks.
-    final macDataByteData = ByteData(16);
-    macDataByteData.setUint32(0, aadBits ~/ _bit32, Endian.big);
-    macDataByteData.setUint32(4, aadBits % _bit32, Endian.big);
-    macDataByteData.setUint32(8, cipherTextBits ~/ _bit32, Endian.big);
-    macDataByteData.setUint32(12, cipherTextBits % _bit32, Endian.big);
-    _ghash(mac, h, Uint8List.view(macDataByteData.buffer));
-
-    // Finally we XOR with AES(precounter, secretKey)
-    final encryptedPrecounter = Uint32List(4);
-    aesEncryptBlock(encryptedPrecounter, 0, precounterBlock, 0, expandedKey);
-    mac[0] ^= encryptedPrecounter[0];
-    mac[1] ^= encryptedPrecounter[1];
-    mac[2] ^= encryptedPrecounter[2];
-    mac[3] ^= encryptedPrecounter[3];
-
-    final macBytes = Uint8List.view(mac.buffer);
-    return Mac(List<int>.unmodifiable(macBytes));
-  }
-
   /// Returns nonce as 128-bit block
   static Uint8List _nonceToBlock({
     required Uint32List h,
@@ -405,4 +368,67 @@ class DartAesGcm extends AesGcm with DartAesMixin {
         (0xFFFF & ((0xFF & (v >> 16)) << 8)) |
         (0xFF & (v >> 24));
   }
+}
+
+/// Dart implementation of Mac algorithm used by [AesGcm].
+class DartGcm extends MacAlgorithm {
+  @override
+  final int macLength;
+
+  const DartGcm({this.macLength = 16});
+
+  @override
+  bool get supportsAad => true;
+
+  @override
+  Future<Mac> calculateMac(
+    List<int> input, {
+    required SecretKey secretKey,
+    List<int> nonce = const <int>[],
+    List<int> aad = const <int>[],
+  }) {
+    throw UnsupportedError(
+      'AES-GCM MAC algorithm can NOT be called separately.',
+    );
+  }
+
+  Mac calculateMacSync(
+    List<int> cipherText, {
+    required Uint32List precounterBlock,
+    required Uint32List h,
+    required Uint32List expandedKey,
+    required List<int> aad,
+  }) {
+    // We XOR hashes for:
+    //   * AAD + padding until 16-byte aligned
+    //   * Ciphertext + padding until 16-byte aligned
+    //   * Big endian uint64: AAD length in bits
+    //   * Big endian uint64: Ciphertext length in bits
+    final mac = Uint32List(4);
+    DartAesGcm._ghash(mac, h, aad);
+    DartAesGcm._ghash(mac, h, cipherText);
+    final aadBits = 8 * aad.length;
+    final cipherTextBits = 8 * cipherText.length;
+    // For big numbers to work in browsers, we use some tricks.
+    final macDataByteData = ByteData(16);
+    macDataByteData.setUint32(0, aadBits ~/ _bit32, Endian.big);
+    macDataByteData.setUint32(4, aadBits % _bit32, Endian.big);
+    macDataByteData.setUint32(8, cipherTextBits ~/ _bit32, Endian.big);
+    macDataByteData.setUint32(12, cipherTextBits % _bit32, Endian.big);
+    DartAesGcm._ghash(mac, h, Uint8List.view(macDataByteData.buffer));
+
+    // Finally we XOR with AES(precounter, secretKey)
+    final encryptedPrecounter = Uint32List(4);
+    aesEncryptBlock(encryptedPrecounter, 0, precounterBlock, 0, expandedKey);
+    mac[0] ^= encryptedPrecounter[0];
+    mac[1] ^= encryptedPrecounter[1];
+    mac[2] ^= encryptedPrecounter[2];
+    mac[3] ^= encryptedPrecounter[3];
+
+    final macBytes = Uint8List.view(mac.buffer);
+    return Mac(List<int>.unmodifiable(macBytes));
+  }
+
+  @override
+  String toString() => 'AecGcm.aecGcmMac';
 }

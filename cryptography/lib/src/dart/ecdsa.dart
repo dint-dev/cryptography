@@ -36,6 +36,16 @@ class DartEcdsa extends Ecdsa {
   ) : super.constructor();
 
   @override
+  Future<EcKeyPair> newKeyPair() {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<EcKeyPair> newKeyPairFromSeed(List<int> seed) {
+    throw UnimplementedError();
+  }
+
+  @override
   Future<Signature> sign(
     List<int> message, {
     required KeyPair keyPair,
@@ -49,16 +59,6 @@ class DartEcdsa extends Ecdsa {
     List<int> message, {
     required Signature signature,
   }) async {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<EcKeyPair> newKeyPair() {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<EcKeyPair> newKeyPairFromSeed(List<int> seed) {
     throw UnimplementedError();
   }
 }

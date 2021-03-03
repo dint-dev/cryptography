@@ -262,12 +262,12 @@ class Register25519 {
       final v = list[i];
       if (v < 0) {
         throw StateError(
-          'Invalid integer: ${list}',
+          'Invalid integer: $list',
         );
       }
       if (v >= 0x10000) {
         throw StateError(
-          'Invalid integer: ${list}',
+          'Invalid integer: $list',
         );
       }
       result |= (BigInt.from(v) << (i * 16));

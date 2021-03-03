@@ -112,7 +112,7 @@ void main() {
 
       // newSink() again
       {
-        final sink = await algorithm.newHashSink();
+        final sink = algorithm.newHashSink();
         sink.add('a'.codeUnits);
         sink.add(''.codeUnits);
         sink.addSlice('b'.codeUnits, 0, 1, false);

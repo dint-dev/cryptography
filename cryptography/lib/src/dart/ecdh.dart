@@ -27,12 +27,12 @@ class DartEcdh extends Ecdh {
   DartEcdh._(this.keyPairType) : super.constructor();
 
   @override
-  Future<EcKeyPair> newKeyPairFromSeed(List<int> seed) {
+  Future<EcKeyPair> newKeyPair() {
     throw UnimplementedError();
   }
 
   @override
-  Future<EcKeyPair> newKeyPair() {
+  Future<EcKeyPair> newKeyPairFromSeed(List<int> seed) {
     throw UnimplementedError();
   }
 

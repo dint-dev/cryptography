@@ -71,7 +71,7 @@ void main() {
     test('toKeyPair() / fromKeyPair()', () async {
       final jwk = Jwk.fromJson(json);
       final keyPair = jwk.toKeyPair();
-      final jwkFromKeyPair = await Jwk.fromKeyPair(keyPair);
+      final jwkFromKeyPair = Jwk.fromKeyPair(keyPair);
       expect(jwkFromKeyPair.toJson(), json);
     });
   });
@@ -117,7 +117,7 @@ void main() {
     test('toKeyPair() / fromKeyPair()', () async {
       final jwk = Jwk.fromJson(json);
       final keyPair = jwk.toKeyPair();
-      final jwkFromKeyPair = await Jwk.fromKeyPair(keyPair);
+      final jwkFromKeyPair = Jwk.fromKeyPair(keyPair);
       expect(jwkFromKeyPair.toJson(), json);
     });
   });

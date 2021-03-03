@@ -13,13 +13,16 @@
 // limitations under the License.
 
 import 'package:cryptography/cryptography.dart';
+import 'package:meta/meta.dart';
 
+/// A [HashAlgorithm] that supports synchronous evaluation ([hashSync]).
 mixin DartHashAlgorithmMixin implements HashAlgorithm {
   @override
   Future<Hash> hash(List<int> input) async {
-    return Future<Hash>.value(await hashSync(input));
+    return Future<Hash>(() => hashSync(input));
   }
 
+  /// Synchronous version of [hash()].
   Hash hashSync(List<int> data) {
     ArgumentError.checkNotNull(data);
     var sink = newHashSink();
@@ -28,10 +31,12 @@ mixin DartHashAlgorithmMixin implements HashAlgorithm {
     return sink.hashSync();
   }
 
+  /// Synchronous version of [newHashSink()].
   @override
   DartHashSink newHashSink();
 }
 
+/// A [HashSink] that supports synchronous evaluation ([hashSync]).
 abstract class DartHashSink extends HashSink {
   @override
   void addSlice(List<int> chunk, int start, int end, bool isLast);
@@ -39,6 +44,7 @@ abstract class DartHashSink extends HashSink {
   @override
   void close();
 
+  @nonVirtual
   @override
   Future<Hash> hash() async {
     return hashSync();
@@ -90,7 +96,28 @@ mixin DartMacAlgorithmMixin implements MacAlgorithm {
     required SecretKeyData secretKeyData,
     required List<int> nonce,
     List<int> aad = const <int>[],
+  }) {
+    final sink = newMacSinkSync(
+      secretKeyData: secretKeyData,
+      nonce: nonce,
+      aad: aad,
+    );
+    sink.add(cipherText);
+    return sink.macSync();
+  }
+
+  DartMacSink newMacSinkSync({
+    required SecretKeyData secretKeyData,
+    List<int> nonce = const <int>[],
+    List<int> aad = const <int>[],
   });
+}
+
+mixin DartMacSink implements MacSink {
+  @override
+  Future<Mac> mac() => Future<Mac>.value(macSync());
+
+  Mac macSync();
 }
 
 /// Base class for pure Dart implementations of [SignatureAlgorithm].
