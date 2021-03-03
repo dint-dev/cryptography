@@ -460,6 +460,8 @@ abstract class Argon2id extends KdfAlgorithm {
 /// }
 /// ```
 ///
+/// If you need synchronous computations, use [DartBlake2b].
+///
 /// ## Streaming usage
 /// ```
 /// import 'package:cryptography/cryptography.dart';
@@ -522,6 +524,8 @@ abstract class Blake2b extends HashAlgorithm {
 ///   print('Hash: ${hash.bytes}');
 /// }
 /// ```
+///
+/// If you need synchronous computations, use [DartBlake2s].
 ///
 /// ## Streaming usage
 /// ```
@@ -967,6 +971,8 @@ abstract class Hkdf extends KdfAlgorithm {
 ///   * For other combinations, give hash algorithm in the constructor
 ///     (example: `Hmac(Blake2s())`).
 ///
+/// If you need synchronous computations, use [DartHmac].
+///
 /// # Example
 /// ```
 /// import 'package:cryptography/cryptography.dart';
@@ -1142,9 +1148,8 @@ abstract class Poly1305 extends MacAlgorithm {
 /// import 'package:cryptography/cryptography.dart';
 ///
 /// Future<void> main() async {
-///   final cryptography = Cryptography.instance;
-///   final algorithm = cryptography.rsaPss(
-///     hashAlgorithm: cryptography.sha256,
+///   final algorithm = RsaPss(
+///     hashAlgorithm: Sha256(),
 ///   );
 ///
 ///   // Generate a key pair
@@ -1220,9 +1225,8 @@ abstract class RsaPss extends SignatureAlgorithm {
 /// import 'package:cryptography/cryptography.dart';
 ///
 /// Future<void> main() async {
-///   final cryptography = Cryptography.instance;
-///   final algorithm = cryptography.rsaPss(
-///     hashAlgorithm: cryptography.sha256,
+///   final algorithm = RsaSsaPkcs1v15(
+///     hashAlgorithm: Sha256(),
 ///   );
 ///
 ///   // Generate a key pair
@@ -1292,6 +1296,8 @@ abstract class RsaSsaPkcs1v15 extends SignatureAlgorithm {
 /// }
 /// ```
 ///
+/// If you need synchronous computations, use [DartSha1].
+///
 /// ## Streaming usage
 /// This enables you to handle very large inputs without keeping everything in
 /// memory:
@@ -1355,6 +1361,8 @@ abstract class Sha1 extends HashAlgorithm {
 ///   print('Hash: ${hash.bytes}');
 /// }
 /// ```
+///
+/// If you need synchronous computations, use [DartSha224].
 ///
 /// ## Streaming usage
 /// This enables you to handle very large inputs without keeping everything in
@@ -1420,6 +1428,8 @@ abstract class Sha224 extends HashAlgorithm {
 /// }
 /// ```
 ///
+/// If you need synchronous computations, use [DartSha256].
+///
 /// ## Streaming usage
 /// This enables you to handle very large inputs without keeping everything in
 /// memory:
@@ -1484,6 +1494,8 @@ abstract class Sha256 extends HashAlgorithm {
 /// }
 /// ```
 ///
+/// If you need synchronous computations, use [DartSha384].
+///
 /// ## Streaming usage
 /// This enables you to handle very large inputs without keeping everything in
 /// memory:
@@ -1547,6 +1559,8 @@ abstract class Sha384 extends HashAlgorithm {
 ///   print('Hash: ${hash.bytes}');
 /// }
 /// ```
+///
+/// If you need synchronous computations, use [DartSha512].
 ///
 /// ## Streaming usage
 /// This enables you to handle very large inputs without keeping everything in

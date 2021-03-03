@@ -1,3 +1,7 @@
+## 2.0.1
+
+* Documentation fixes.
+
 ## 2.0.0
 
 * Finishes null safety migration.
