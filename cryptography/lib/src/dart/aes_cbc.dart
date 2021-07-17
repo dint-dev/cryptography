@@ -18,7 +18,7 @@ import 'package:cryptography/cryptography.dart';
 
 import 'aes_impl.dart';
 
-/// _AES-CBC_ cipher ("cipher block chaining mode") implemented in pure Dart.
+/// [AesCbc] implemented in pure Dart.
 class DartAesCbc extends AesCbc with DartAesMixin {
   @override
   final MacAlgorithm macAlgorithm;

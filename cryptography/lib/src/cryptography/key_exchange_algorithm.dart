@@ -16,13 +16,13 @@ import 'package:cryptography/cryptography.dart';
 
 /// A key exchange algorithm that supports [newKeyPair()] and [sharedSecretKey()].
 ///
-/// # Available algorithms
+/// ## Available algorithms
 ///   * [Ecdh.p256]
 ///   * [Ecdh.p384]
 ///   * [Ecdh.p521]
 ///   * [X25519]
 ///
-/// # Example
+/// ## Example
 /// In this example, we use [X25519]:
 /// ```dart
 /// import 'package:cryptography/cryptography.dart';

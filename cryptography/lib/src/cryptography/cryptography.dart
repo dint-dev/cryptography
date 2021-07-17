@@ -18,12 +18,12 @@ import 'package:cryptography/dart.dart';
 
 /// Returns cryptographic algorithm implementations.
 ///
-/// # Implementations
+/// ## Implementations
 ///   * [DartCryptography]
 ///   * [BrowserCryptography]
 ///   * [FlutterCryptography](https://pub.dev/documentation/cryptography_flutter/latest/cryptography_flutter/FlutterCryptography-class.html) (_package:cryptography_flutter_)
 ///
-/// # Setting implementation
+/// ## Setting implementation
 /// In tests, you can set the static variable like this:
 /// ```
 /// import 'package:cryptography/cryptography.dart';

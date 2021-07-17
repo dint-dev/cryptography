@@ -62,7 +62,7 @@ class SimpleKeyPairData extends KeyPairData implements SimpleKeyPair {
     this.bytes, {
     required FutureOr<SimplePublicKey> publicKey,
     required this.type,
-  })   : _publicKey = publicKey,
+  })  : _publicKey = publicKey,
         super(type: type);
 
   @override

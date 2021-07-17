@@ -21,11 +21,11 @@ import 'package:cryptography/helpers.dart';
 /// If you are encoding/decoding JWK (JSON Web Key) format, use
 /// [package:jwk](https://pub.dev/packages/jwk).
 ///
-/// # Related classes
+/// ## Related classes
 ///   * [EcKeyPairData]
 ///   * [EcPublicKey]
 ///
-/// # Algorithms that use this class
+/// ## Algorithms that use this class
 ///   * [Ecdh]
 ///   * [Ecdsa]
 ///

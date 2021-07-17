@@ -18,9 +18,9 @@ import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/dart.dart';
 import 'package:cryptography/src/utils.dart';
 
-/// Chacha implemented in pure Dart.
+/// [Chacha20] implemented in pure Dart.
 ///
-/// # Recommendation
+/// ## Recommendation
 /// Usually you should use [Cryptography.chacha20]:
 /// ```
 /// final cipher = Cryptography.instance.chacha20()

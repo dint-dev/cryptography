@@ -12,11 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
-import 'package:cryptography/dart.dart';
 import 'package:cryptography/helpers.dart';
 
 import 'internal.dart';
@@ -73,74 +71,6 @@ Future<SecretBox> _encryptWithPlugin(
     mac = Mac(List<int>.unmodifiable(result['mac'] as Uint8List));
   }
   return SecretBox(cipherText, nonce: nonce, mac: mac);
-}
-
-class FlutterAesCbc extends FlutterCipher implements AesCbc {
-  @override
-  final AesCbc fallback;
-
-  @override
-  FlutterAesCbc(this.fallback);
-
-  @override
-  bool get isSupportedPlatform => Platform.isAndroid;
-
-  @override
-  String get pluginCipherName => 'AesCbc';
-
-  @override
-  int get secretKeyLength => fallback.secretKeyLength;
-}
-
-class FlutterAesCtr extends FlutterStreamingCipher implements AesCtr {
-  @override
-  final AesCtr fallback;
-
-  FlutterAesCtr(this.fallback);
-
-  @override
-  int get counterBits => fallback.counterBits;
-
-  @override
-  bool get isSupportedPlatform => Platform.isAndroid;
-
-  @override
-  String get pluginCipherName => 'AesCtr';
-
-  @override
-  int get secretKeyLength => fallback.secretKeyLength;
-}
-
-class FlutterAesGcm extends FlutterStreamingCipher implements AesGcm {
-  @override
-  final AesGcm fallback;
-
-  FlutterAesGcm(this.fallback);
-
-  @override
-  bool get isSupportedPlatform =>
-      Platform.isAndroid || Platform.isIOS || Platform.isMacOS;
-
-  @override
-  String get pluginCipherName => 'AesGcm';
-
-  @override
-  int get secretKeyLength => fallback.secretKeyLength;
-}
-
-class FlutterChacha20 extends FlutterStreamingCipher implements Chacha20 {
-  @override
-  final Chacha20 fallback;
-
-  FlutterChacha20(this.fallback);
-
-  @override
-  bool get isSupportedPlatform =>
-      (Platform.isAndroid || Platform.isIOS || Platform.isMacOS) &&
-      macAlgorithm is DartChacha20Poly1305AeadMacAlgorithm;
-
-  @override
-  String get pluginCipherName => 'Chacha20.poly1305Aead';
 }
 
 abstract class FlutterCipher extends DelegatingCipher {

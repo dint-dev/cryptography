@@ -14,7 +14,7 @@
 
 import 'package:cryptography/cryptography.dart';
 
-/// An implementation of [RsaPss] in pure Dart.
+/// [RsaPss] implemented in pure Dart.
 class DartRsaPss extends RsaPss {
   @override
   final HashAlgorithm hashAlgorithm;

@@ -12,21 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/// An optimized version of [package:cryptography](https://pub.dev/packages/cryptography).
-///
-/// See [FlutterCryptography] for usage instructions.
-library cryptography;
+import 'package:cryptography/browser.dart';
 
-import 'package:cryptography_flutter/src/flutter_cryptography.dart';
+import '../cryptography_flutter.dart';
 
-export 'src/aes_cbc.dart';
-export 'src/aes_ctr.dart';
-export 'src/aes_gcm.dart';
-export 'src/chacha20.dart';
-export 'src/cipher.dart';
-export 'src/ecdh.dart';
-export 'src/ecdsa.dart';
-export 'src/ed25519.dart';
-export 'src/flutter_cryptography.dart';
-export 'src/rsa_pss.dart';
-export 'src/rsa_ssa_pkcs1v15.dart';
+class FlutterCryptographyImpl extends BrowserCryptography
+    implements FlutterCryptography {}

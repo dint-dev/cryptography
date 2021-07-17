@@ -19,8 +19,7 @@ import 'package:cryptography/cryptography.dart';
 import '../utils.dart';
 import 'ed25519_impl.dart';
 
-/// _Ed25519_ ([RFC 8032](https://tools.ietf.org/html/rfc8032)) signature
-/// algorithm implemented in pure Dart.
+/// [Ed25519] signature algorithm implemented in pure Dart.
 class DartEd25519 extends Ed25519 {
   final Sha512 _sha512;
 

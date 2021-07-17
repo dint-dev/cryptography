@@ -14,7 +14,9 @@
 
 import 'package:cryptography/browser.dart';
 import 'package:cryptography/cryptography.dart';
-import 'package:cryptography_flutter/cryptography_flutter.dart';
+
+import 'flutter_cryptography_impl_vm.dart'
+    if (dart.library.html) 'flutter_cryptography_impl_browser.dart';
 
 /// An implementation [Cryptography] that uses native operating system APIs.
 ///
@@ -43,81 +45,10 @@ import 'package:cryptography_flutter/cryptography_flutter.dart';
 ///     * [AesGcm]
 ///     * [Chacha20.poly1305Aead]
 class FlutterCryptography extends BrowserCryptography {
+  /// Default instance of [FlutterCryptography].
   static final FlutterCryptography defaultInstance = FlutterCryptography();
 
-  FlutterCryptography();
-
-  @override
-  AesCbc aesCbc({
-    required MacAlgorithm macAlgorithm,
-    int secretKeyLength = 32,
-  }) {
-    return FlutterAesCbc(super.aesCbc(
-      macAlgorithm: macAlgorithm,
-      secretKeyLength: secretKeyLength,
-    ));
-  }
-
-  @override
-  AesCtr aesCtr({
-    required MacAlgorithm macAlgorithm,
-    int secretKeyLength = 32,
-    int counterBits = 64,
-  }) {
-    return FlutterAesCtr(super.aesCtr(
-      macAlgorithm: macAlgorithm,
-      secretKeyLength: secretKeyLength,
-      counterBits: counterBits,
-    ));
-  }
-
-  @override
-  AesGcm aesGcm({int secretKeyLength = 32, int nonceLength = 12}) {
-    return FlutterAesGcm(super.aesGcm(
-      secretKeyLength: secretKeyLength,
-      nonceLength: nonceLength,
-    ));
-  }
-
-  @override
-  Chacha20 chacha20({required MacAlgorithm macAlgorithm}) {
-    return FlutterChacha20(super.chacha20(macAlgorithm: macAlgorithm));
-  }
-
-  @override
-  Chacha20 chacha20Poly1305Aead() {
-    return FlutterChacha20(super.chacha20Poly1305Aead());
-  }
-
-  // @override
-  // Ecdh ecdhP256({required int length}) {
-  //   return FlutterEcdh.p256(super.ecdhP256(length: length));
-  // }
-  //
-  // @override
-  // Ecdh ecdhP384({required int length}) {
-  //   return FlutterEcdh.p384(super.ecdhP384(length: length));
-  // }
-  //
-  // @override
-  // Ecdh ecdhP521({required int length}) {
-  //   return FlutterEcdh.p521(super.ecdhP521(length: length));
-  // }
-  //
-  // @override
-  // Ecdsa ecdsaP256(HashAlgorithm hashAlgorithm) {
-  //   return FlutterEcdsa.p256(super.ecdsaP256(hashAlgorithm));
-  // }
-  //
-  // @override
-  // Ecdsa ecdsaP384(HashAlgorithm hashAlgorithm) {
-  //   return FlutterEcdsa.p384(super.ecdsaP384(hashAlgorithm));
-  // }
-  //
-  // @override
-  // Ecdsa ecdsaP521(HashAlgorithm hashAlgorithm) {
-  //   return FlutterEcdsa.p521(super.ecdsaP521(hashAlgorithm));
-  // }
+  factory FlutterCryptography() = FlutterCryptographyImpl;
 
   /// Enables use of [FlutterCryptography].
   ///

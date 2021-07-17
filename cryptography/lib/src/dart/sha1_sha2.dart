@@ -19,6 +19,8 @@ import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/dart.dart';
 import 'package:meta/meta.dart';
 
+/// [Sha1] implemented by using in [package:crypto](https://pub.dev/packages/crypto)
+/// (a package by Google).
 class DartSha1 extends Sha1 with DartHashAlgorithmMixin, _HashMixin {
   @literal
   const DartSha1() : super.constructor();
@@ -27,6 +29,8 @@ class DartSha1 extends Sha1 with DartHashAlgorithmMixin, _HashMixin {
   impl.Hash get _impl => impl.sha1;
 }
 
+/// [Sha224] implemented by using in [package:crypto](https://pub.dev/packages/crypto)
+/// (a package by Google).
 class DartSha224 extends Sha224 with DartHashAlgorithmMixin, _HashMixin {
   @literal
   const DartSha224() : super.constructor();
@@ -35,6 +39,8 @@ class DartSha224 extends Sha224 with DartHashAlgorithmMixin, _HashMixin {
   impl.Hash get _impl => impl.sha224;
 }
 
+/// [Sha256] implemented by using in [package:crypto](https://pub.dev/packages/crypto)
+/// (a package by Google).
 class DartSha256 extends Sha256 with DartHashAlgorithmMixin, _HashMixin {
   @literal
   const DartSha256() : super.constructor();
@@ -43,6 +49,8 @@ class DartSha256 extends Sha256 with DartHashAlgorithmMixin, _HashMixin {
   impl.Hash get _impl => impl.sha256;
 }
 
+/// [Sha385] implemented by using in [package:crypto](https://pub.dev/packages/crypto)
+/// (a package by Google).
 class DartSha384 extends Sha384 with DartHashAlgorithmMixin, _HashMixin {
   @literal
   const DartSha384() : super.constructor();
@@ -51,6 +59,8 @@ class DartSha384 extends Sha384 with DartHashAlgorithmMixin, _HashMixin {
   impl.Hash get _impl => impl.sha384;
 }
 
+/// [Sha512] implemented by using in [package:crypto](https://pub.dev/packages/crypto)
+/// (a package by Google).
 class DartSha512 extends Sha512 with DartHashAlgorithmMixin, _HashMixin {
   @literal
   const DartSha512() : super.constructor();

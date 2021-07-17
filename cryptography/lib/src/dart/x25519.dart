@@ -20,8 +20,7 @@ import 'package:cryptography/dart.dart';
 import 'ed25519_impl.dart';
 import 'x25519_impl.dart';
 
-/// _X25519_ ([RFC 7748](https://tools.ietf.org/html/rfc7748)) key exchange
-/// algorithm (Curve25519 Diffie-Hellman).
+/// [X25519] implemented in pure Dart.
 class DartX25519 extends X25519 with DartKeyExchangeAlgorithmMixin {
   static final Uint8List _constant9 = () {
     final result = Uint8List(32);

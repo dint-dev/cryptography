@@ -17,7 +17,7 @@ import 'package:cryptography/dart.dart';
 
 /// An implementation of [Cryptography] in pure Dart.
 ///
-/// # Algorithms
+/// ## Algorithms
 /// The following algorithms are supported:
 ///   * [AesCbc]
 ///   * [AesCtr]

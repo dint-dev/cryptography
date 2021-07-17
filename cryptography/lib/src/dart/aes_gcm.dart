@@ -22,7 +22,7 @@ import 'aes_impl.dart';
 
 const _bit32 = 0x100 * 0x100 * 0x100 * 0x100;
 
-/// _AES-GCM_ (Galois/Counter Mode) cipher implemented in pure Dart.
+/// [AesGcm] cipher implemented in pure Dart.
 //
 // The implementation was written based on the original specification:
 //   https://csrc.nist.gov/publications/detail/sp/800-38d/final
@@ -99,7 +99,7 @@ class DartAesGcm extends AesGcm with DartAesMixin {
     // Calculate MAC
     final cipherText = secretBox.cipherText;
     final mac = secretBox.mac;
-    final calculatedMac = const DartGcm().calculateMacSync(
+    final calculatedMac = const DartGcm()._calculateMacSync(
       cipherText,
       aad: aad,
       expandedKey: expandedKey,
@@ -223,7 +223,7 @@ class DartAesGcm extends AesGcm with DartAesMixin {
     }
 
     // Calculate MAC
-    final mac = const DartGcm().calculateMacSync(
+    final mac = const DartGcm()._calculateMacSync(
       cipherText,
       aad: aad,
       expandedKey: expandedKey,
@@ -370,12 +370,12 @@ class DartAesGcm extends AesGcm with DartAesMixin {
   }
 }
 
-/// Dart implementation of Mac algorithm used by [AesGcm].
+/// [AesGcm] MAC algorithm implemented in pure Dart.
 class DartGcm extends MacAlgorithm {
   @override
-  final int macLength;
+  int get macLength => 16;
 
-  const DartGcm({this.macLength = 16});
+  const DartGcm();
 
   @override
   bool get supportsAad => true;
@@ -392,7 +392,7 @@ class DartGcm extends MacAlgorithm {
     );
   }
 
-  Mac calculateMacSync(
+  Mac _calculateMacSync(
     List<int> cipherText, {
     required Uint32List precounterBlock,
     required Uint32List h,
@@ -430,5 +430,5 @@ class DartGcm extends MacAlgorithm {
   }
 
   @override
-  String toString() => 'AecGcm.aecGcmMac';
+  String toString() => 'DartGcm(macLength: $macLength)';
 }

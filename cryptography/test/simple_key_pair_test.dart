@@ -56,7 +56,7 @@ void main() {
       expect(value.hashCode, isNot(other1.hashCode));
     });
 
-    test('toString()', () {
+    test('toString() shows only key type', () {
       final value = SimpleKeyPairData(
         [1],
         publicKey: Future<SimplePublicKey>.value(
@@ -64,8 +64,10 @@ void main() {
         ),
         type: KeyPairType.ed25519,
       );
-      expect(value.toString(),
-          'SimpleKeyPairData(..., type: KeyPairType.ed25519)');
+      expect(
+        value.toString(),
+        'SimpleKeyPairData(..., type: KeyPairType.ed25519)',
+      );
     });
   });
 

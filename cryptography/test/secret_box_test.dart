@@ -57,20 +57,99 @@ void main() {
       expect(value.hashCode, isNot(other2.hashCode));
     });
 
-    test('toString()', () {
-      final value = SecretBox(
+    test('toString() shows only `nonce` and `mac`', () {
+      final secretBox = SecretBox(
         Uint8List(100),
         nonce: [1, 2],
         mac: const Mac([3, 4]),
       );
       expect(
-        value.toString(),
+        secretBox.toString(),
         'SecretBox(\n'
         '  [~~100 bytes~~],\n'
         '  nonce: [1,2],\n'
         '  mac: Mac([3,4]),\n'
         ')',
       );
+    });
+
+    // checkMac() is tested in other tests too, but some redundancy is good.
+    test('checkMac()', () async {
+      final algorithm = Chacha20(macAlgorithm: Poly1305());
+      final clearText = [1, 2, 3];
+      final secretKey = await algorithm.newSecretKey();
+      final secretBox = await algorithm.encrypt(
+        clearText,
+        secretKey: secretKey,
+      );
+      final invalidSecretBox = SecretBox(
+        secretBox.cipherText,
+        nonce: secretBox.nonce,
+        mac: Mac(secretBox.mac.bytes.map((e) => 0xFF ^ e).toList()),
+      );
+
+      // Checking valid secret box does not throw
+      await secretBox.checkMac(
+        macAlgorithm: algorithm.macAlgorithm,
+        secretKey: secretKey,
+        aad: [],
+      );
+
+      // Checking invalid secret box will throw
+      try {
+        await invalidSecretBox.checkMac(
+          macAlgorithm: algorithm.macAlgorithm,
+          secretKey: secretKey,
+          aad: [],
+        );
+        fail('Should have thrown.');
+      } on SecretBoxAuthenticationError {
+        // OK.
+      }
+    });
+
+    test('fromConcatenation([1,2,3], nonceLength: 0, macLength: 0)', () {
+      final secretBox = SecretBox.fromConcatenation(
+        [1, 2, 3],
+        nonceLength: 0,
+        macLength: 0,
+      );
+      expect(secretBox.nonce, []);
+      expect(secretBox.cipherText, [1, 2, 3]);
+      expect(secretBox.mac, Mac([]));
+    });
+
+    test('fromConcatenation([1,2,3,4,5], nonceLength: 2, macLength: 0)', () {
+      final secretBox = SecretBox.fromConcatenation(
+        [1, 2, 3, 4, 5],
+        nonceLength: 2,
+        macLength: 0,
+      );
+      expect(secretBox.nonce, [1, 2]);
+      expect(secretBox.cipherText, [3, 4, 5]);
+      expect(secretBox.mac, Mac([]));
+    });
+
+    test('fromConcatenation([1,2,3,4,5], nonceLength: 0, macLength: 3)', () {
+      final secretBox = SecretBox.fromConcatenation(
+        [1, 2, 3, 4, 5],
+        nonceLength: 0,
+        macLength: 3,
+      );
+      expect(secretBox.nonce, []);
+      expect(secretBox.cipherText, [1, 2]);
+      expect(secretBox.mac, Mac([3, 4, 5]));
+    });
+
+    test('fromConcatenation([1,2,3,4,5,6], nonceLength: 2, macLength: 3)', () {
+      final secretBox = SecretBox.fromConcatenation(
+        [1, 2, 3, 4, 5, 6],
+        nonceLength: 2,
+        macLength: 3,
+      );
+      expect(secretBox.nonce, [1, 2]);
+      expect(secretBox.cipherText, [3]);
+      expect(secretBox.mac, Mac([4, 5, 6]));
     });
 
     test('concatenation(nonce: false, mac: false)', () {

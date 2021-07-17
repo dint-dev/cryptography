@@ -20,7 +20,7 @@ import 'package:meta/meta.dart';
 
 /// A hash algorithm that produces a [Hash].
 ///
-/// # Available algorithms
+/// ## Available algorithms
 ///   * [Blake2b]
 ///   * [Blake2s]
 ///   * [Sha1]
@@ -29,7 +29,7 @@ import 'package:meta/meta.dart';
 ///   * [Sha384] (SHA2-384)
 ///   * [Sha512] (SHA2-512)
 ///
-/// # Example: simple usage
+/// ## Example: simple usage
 /// ```
 /// import 'package:cryptography/cryptography.dart';
 ///
@@ -40,7 +40,7 @@ import 'package:meta/meta.dart';
 /// }
 /// ```
 ///
-/// # Example: hashing many chunks
+/// ## Example: hashing many chunks
 /// ```
 /// import 'package:cryptography/cryptography.dart';
 ///
@@ -81,7 +81,7 @@ abstract class HashAlgorithm {
 
   /// Constructs a sink for hashing chunks.
   ///
-  /// # Example
+  /// ## Example
   /// An example with [Sha256]:
   /// ```
   /// import 'package:cryptography/cryptography.dart';

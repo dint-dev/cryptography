@@ -29,7 +29,7 @@ abstract class KeyPair {
 
 /// Extracted data of a [KeyPair].
 ///
-/// # Subclasses
+/// ## Subclasses
 ///   * [EcKeyPairData]
 ///   * [SimpleKeyPairData]
 ///   * [RsaKeyPairData]
@@ -50,7 +50,7 @@ abstract class KeyPairData extends KeyPair {
 
 /// A public key of some [KeyPair].
 ///
-/// # Subclasses
+/// ## Subclasses
 ///   * [EcPublicKey]
 ///   * [SimplePublicKey]
 ///   * [RsaPublicKey]

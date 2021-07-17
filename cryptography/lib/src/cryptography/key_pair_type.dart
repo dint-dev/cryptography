@@ -70,10 +70,23 @@ class KeyPairType<S extends KeyPairData, P extends PublicKey> {
     publicKeyLength: 32,
   );
 
+  /// Name of the algorithm (for debugging purposes).
   final String name;
+
+  /// Number of bits if this is an elliptic algorithm (for debugging purposes).
   final int ellipticBits;
+
+  /// Maximum private key length (in bytes).
+  ///
+  /// The value is -1 if any length is valid.
   final int privateKeyLength;
+
+  /// Maximum public key length (in bytes).
+  ///
+  /// The value is -1 if any length is valid.
   final int publicKeyLength;
+
+  /// Web Crypto curve name.
   final String? webCryptoCurve;
 
   @literal

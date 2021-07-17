@@ -24,7 +24,7 @@ import 'package:cryptography/src/utils.dart';
 ///  * [cipherText]
 ///  * [mac] (message authentication code)
 ///
-/// # Concatenating fields
+/// ## Concatenating fields
 /// When you storing / loading secret boxes, you can use [concatenation] and
 /// [fromConcatenation]:
 /// ```
@@ -150,7 +150,7 @@ class SecretBox {
       ));
       final cipherText = List<int>.unmodifiable(Uint8List.view(
         data.buffer,
-        data.offsetInBytes,
+        data.offsetInBytes + nonceLength,
         data.length - nonceLength - macLength,
       ));
       final macBytes = List<int>.unmodifiable(Uint8List.view(

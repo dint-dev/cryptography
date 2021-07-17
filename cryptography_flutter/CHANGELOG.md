@@ -1,3 +1,8 @@
+## 2.0.1
+
+* Improves behavior in browsers.
+* Improves documentation.
+
 ## 2.0.0
 
 * Finishes null safety migration.

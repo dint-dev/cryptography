@@ -16,7 +16,7 @@ import 'dart:typed_data';
 
 /// Interprets the bytes a big endian integer and increments them by [int].
 ///
-/// # Example
+/// ## Example
 /// ```
 /// final bytes = [0,2,255];
 /// bytesIncrementBigEndian(bytes, 5);
