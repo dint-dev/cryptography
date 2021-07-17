@@ -20,7 +20,7 @@ import 'package:cryptography/src/utils.dart';
 
 /// [Chacha20] implemented in pure Dart.
 ///
-/// # Recommendation
+/// ## Recommendation
 /// Usually you should use [Cryptography.chacha20]:
 /// ```
 /// final cipher = Cryptography.instance.chacha20()

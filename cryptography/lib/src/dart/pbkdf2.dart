@@ -31,7 +31,7 @@ class DartPbkdf2 extends Pbkdf2 {
     required this.macAlgorithm,
     required this.iterations,
     required this.bits,
-  })   : assert(iterations >= 1),
+  })  : assert(iterations >= 1),
         assert(bits >= 64),
         super.constructor();
 

@@ -7,13 +7,13 @@ import 'package:meta/meta.dart';
 
 /// _AES-CBC_ (cipher block chaining mode) [Cipher].
 ///
-/// # Available implementation
+/// ## Available implementation
 ///   * In browsers, [BrowserAesCbc] is used by default.
 ///   * Otherwise [DartAesCbc] is used by default.
 ///   * The package [cryptography_flutter](https://pub.dev/packages/cryptography_flutter)
 ///     supports native implementations available in Android and iOS.
 ///
-/// # About the algorithm
+/// ## About the algorithm
 ///   * Three possible key lengths:
 ///     * 128 bits: [AesCbc.with128bits]
 ///     * 192 bits: [AesCbc.with192bits]
@@ -24,7 +24,7 @@ import 'package:meta/meta.dart';
 ///   * You must choose some [macAlgorithm]. If you are sure that you don't need
 ///     one, use [MacAlgorithm.empty].
 ///
-/// # Example
+/// ## Example
 /// ```dart
 /// import 'package:cryptography/cryptography.dart';
 ///
@@ -112,13 +112,13 @@ abstract class AesCbc extends Cipher {
 
 /// _AES-CTR_ (counter mode) [Cipher].
 ///
-/// # Available implementation
+/// ## Available implementation
 ///   * In browsers, [BrowserAesCtr] is used by default.
 ///   * Otherwise [DartAesCtr] is used by default.
 ///   * The package [cryptography_flutter](https://pub.dev/packages/cryptography_flutter)
 ///     supports native implementations available in Android and iOS.
 ///
-/// # About the algorithm
+/// ## About the algorithm
 ///   * Three possible key lengths:
 ///     * 128 bits: [AesCtr.with128bits]
 ///     * 192 bits: [AesCtr.with192bits]
@@ -132,7 +132,7 @@ abstract class AesCbc extends Cipher {
 ///   * You must choose some [macAlgorithm]. If you are sure that you don't need
 ///     one, use [MacAlgorithm.empty].
 ///
-/// # Example
+/// ## Example
 /// ```dart
 /// import 'package:cryptography/cryptography.dart';
 ///
@@ -229,7 +229,7 @@ abstract class AesCtr extends StreamingCipher {
 
 /// _AES-GCM_ (Galois/Counter Mode) [Cipher].
 ///
-/// # Available implementation
+/// ## Available implementation
 ///   * In browsers, [BrowserAesGcm] is used by default.
 ///   * Otherwise [DartAesGcm] is used by default.
 ///   * The package [cryptography_flutter](https://pub.dev/packages/cryptography_flutter)
@@ -237,7 +237,7 @@ abstract class AesCtr extends StreamingCipher {
 ///     __We recommend you use "package:cryptography_flutter" for the best
 ///     performance and easier cryptographic compliance.__
 ///
-/// # About the algorithm
+/// ## About the algorithm
 ///   * Three possible key lengths:
 ///     * 128 bits: [AesGcm.with128bits]
 ///     * 192 bits: [AesGcm.with192bits]
@@ -250,7 +250,7 @@ abstract class AesCtr extends StreamingCipher {
 ///   * AES-GCM standard specifies a MAC algorithm ("GCM"). The output is a
 ///     128-bit [Mac].
 ///
-/// # Example
+/// ## Example
 /// ```dart
 /// import 'package:cryptography/cryptography.dart';
 ///
@@ -352,7 +352,7 @@ abstract class AesGcm extends StreamingCipher {
 /// algorithm can provide much better security than older algorithms such as
 /// [Pbkdf2].
 ///
-/// # Example
+/// ## Example
 /// ```
 /// import 'package:cryptography/cryptography.dart';
 ///
@@ -374,7 +374,7 @@ abstract class AesGcm extends StreamingCipher {
 /// }
 /// ```
 ///
-/// # In need of synchronous APIs?
+/// ## In need of synchronous APIs?
 ///
 /// If you need to perform operations synchronously, use [DartArgon2id] in
 /// _package:cryptography/dart.dart_.
@@ -488,7 +488,7 @@ abstract class Argon2id extends KdfAlgorithm {
 /// }
 /// ```
 ///
-/// # In need of synchronous APIs?
+/// ## In need of synchronous APIs?
 ///
 /// If you need to perform operations synchronously, use [DartBlake2b] in
 /// _package:cryptography/dart.dart_.
@@ -553,7 +553,7 @@ abstract class Blake2b extends HashAlgorithm {
 /// }
 /// ```
 ///
-/// # In need of synchronous APIs?
+/// ## In need of synchronous APIs?
 ///
 /// If you need to perform operations synchronously, use [DartBlake2s] in
 /// _package:cryptography/dart.dart_.
@@ -587,11 +587,11 @@ abstract class Blake2s extends HashAlgorithm {
 /// which does message authentication with a standard AEAD construction for
 /// _ChaCha20_.
 ///
-/// # About the algorithm
+/// ## About the algorithm
 ///   * [secretKeyLength] is 32 bytes.
 ///   * [nonceLength] is 12 bytes.\
 ///
-/// # Example
+/// ## Example
 /// ```dart
 /// import 'package:cryptography/cryptography.dart';
 ///
@@ -619,7 +619,7 @@ abstract class Blake2s extends HashAlgorithm {
 /// }
 /// ```
 ///
-/// # In need of synchronous APIs?
+/// ## In need of synchronous APIs?
 ///
 /// If you need to perform operations synchronously, use [DartChacha20] in
 /// _package:cryptography/dart.dart_.
@@ -640,7 +640,7 @@ abstract class Chacha20 extends StreamingCipher {
   /// MAC. AAD (Associated Authenticated Data) is supported by [encrypt()] and
   /// [decrypt()].
   ///
-  /// # About the algorithm
+  /// ## About the algorithm
   ///   * [secretKeyLength] is 32 bytes.
   ///   * [nonceLength] is 12 bytes.\
   factory Chacha20.poly1305Aead() {
@@ -856,7 +856,7 @@ abstract class Ecdsa extends SignatureAlgorithm {
 /// }
 /// ```
 ///
-/// # In need of synchronous APIs?
+/// ## In need of synchronous APIs?
 ///
 /// If you need to perform operations synchronously, use [DartEd25519] in
 /// _package:cryptography/dart.dart_.
@@ -977,7 +977,7 @@ abstract class Hkdf extends KdfAlgorithm {
 ///
 /// If you need synchronous computations, use [DartHmac].
 ///
-/// # Example
+/// ## Example
 /// ```
 /// import 'package:cryptography/cryptography.dart';
 ///
@@ -1324,7 +1324,7 @@ abstract class RsaSsaPkcs1v15 extends SignatureAlgorithm {
 /// }
 /// ```
 ///
-/// # In need of synchronous APIs?
+/// ## In need of synchronous APIs?
 ///
 /// If you need to perform operations synchronously, use [DartSha1] in
 /// _package:cryptography/dart.dart_.
@@ -1390,7 +1390,7 @@ abstract class Sha1 extends HashAlgorithm {
 /// }
 /// ```
 ///
-/// # In need of synchronous APIs?
+/// ## In need of synchronous APIs?
 ///
 /// If you need to perform operations synchronously, use [DartSha224] in
 /// _package:cryptography/dart.dart_.
@@ -1456,7 +1456,7 @@ abstract class Sha224 extends HashAlgorithm {
 /// }
 /// ```
 ///
-/// # In need of synchronous APIs?
+/// ## In need of synchronous APIs?
 ///
 /// If you need to perform operations synchronously, use [DartSha256] in
 /// _package:cryptography/dart.dart_.
@@ -1522,7 +1522,7 @@ abstract class Sha256 extends HashAlgorithm {
 /// }
 /// ```
 ///
-/// # In need of synchronous APIs?
+/// ## In need of synchronous APIs?
 ///
 /// If you need to perform operations synchronously, use [DartSha384] in
 /// _package:cryptography/dart.dart_.
@@ -1588,7 +1588,7 @@ abstract class Sha384 extends HashAlgorithm {
 /// }
 /// ```
 ///
-/// # In need of synchronous APIs?
+/// ## In need of synchronous APIs?
 ///
 /// If you need to perform operations synchronously, use [DartSha512] in
 /// _package:cryptography/dart.dart_.
@@ -1679,7 +1679,7 @@ abstract class StreamingCipher extends Cipher {
 /// }
 /// ```
 ///
-/// # In need of synchronous APIs?
+/// ## In need of synchronous APIs?
 ///
 /// If you need to perform operations synchronously, use [DartX25519] in
 /// _package:cryptography/dart.dart_.
@@ -1724,7 +1724,7 @@ abstract class X25519 extends KeyExchangeAlgorithm {
 ///
 /// See [chacha20].
 ///
-/// # In need of synchronous APIs?
+/// ## In need of synchronous APIs?
 ///
 /// If you need to perform operations synchronously, use [DartXchacha20] in
 /// _package:cryptography/dart.dart_.

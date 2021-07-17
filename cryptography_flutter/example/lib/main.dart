@@ -174,8 +174,7 @@ class _CipherPageState extends State<CipherPage> {
                   minLines: 1,
                   maxLines: 16,
                   enableInteractiveSelection: true,
-                  decoration:
-                      InputDecoration(labelText: 'Ciphertext (hex)'),
+                  decoration: InputDecoration(labelText: 'Ciphertext (hex)'),
                 ),
                 const SizedBox(height: 10),
                 TextField(

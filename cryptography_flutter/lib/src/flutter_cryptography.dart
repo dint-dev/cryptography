@@ -15,7 +15,8 @@
 import 'package:cryptography/browser.dart';
 import 'package:cryptography/cryptography.dart';
 
-import 'flutter_cryptography_impl_vm.dart' if (dart.library.html) 'flutter_cryptography_impl_browser.dart';
+import 'flutter_cryptography_impl_vm.dart'
+    if (dart.library.html) 'flutter_cryptography_impl_browser.dart';
 
 /// An implementation [Cryptography] that uses native operating system APIs.
 ///

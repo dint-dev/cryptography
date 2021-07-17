@@ -14,7 +14,7 @@
 
 /// Cryptographic algorithms for Dart / Flutter developers.
 ///
-/// # Algorithm types
+/// ## Algorithm types
 ///   * [Cipher]
 ///   * [KeyExchangeAlgorithm]
 ///   * [KdfAlgorithm]
@@ -22,7 +22,7 @@
 ///   * [MacAlgorithm]
 ///   * [SignatureAlgorithm]
 ///
-/// # Implementation factory
+/// ## Implementation factory
 ///
 /// [Cryptography.instance] determines which implementation of an algorithm is
 /// used when you call factory method such as [Sha256()].

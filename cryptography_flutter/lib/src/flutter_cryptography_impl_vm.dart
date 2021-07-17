@@ -17,7 +17,8 @@ import 'package:cryptography/cryptography.dart';
 
 import '../cryptography_flutter.dart';
 
-class FlutterCryptographyImpl extends BrowserCryptography implements FlutterCryptography {
+class FlutterCryptographyImpl extends BrowserCryptography
+    implements FlutterCryptography {
   FlutterCryptographyImpl();
 
   @override

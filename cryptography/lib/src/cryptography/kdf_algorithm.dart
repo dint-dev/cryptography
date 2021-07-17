@@ -16,7 +16,7 @@ import 'package:cryptography/cryptography.dart';
 
 /// Abstract superclass for Key Derivation Algorithms (KDFs).
 ///
-/// # Available algorithms
+/// ## Available algorithms
 ///   * [Argon2id] (suitable for password hashing)
 ///   * [Hchacha20]
 ///   * [Hkdf]

@@ -26,7 +26,7 @@ class DartXchacha20 extends Xchacha20 {
 
   DartXchacha20({
     required this.macAlgorithm,
-  })   : _chacha20 = Chacha20(macAlgorithm: MacAlgorithm.empty),
+  })  : _chacha20 = Chacha20(macAlgorithm: MacAlgorithm.empty),
         _hchacha20 = Hchacha20(),
         super.constructor();
 

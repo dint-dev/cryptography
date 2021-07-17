@@ -16,7 +16,7 @@
 ///
 /// See [DartCryptography].
 ///
-/// # Synchronous evaluation
+/// ## Synchronous evaluation
 ///   * [DartCipher]
 ///   * [DartHashAlgorithm]
 ///   * [DartMacAlgorithm]

@@ -73,7 +73,6 @@ void main() {
       );
     });
 
-
     // checkMac() is tested in other tests too, but some redundancy is good.
     test('checkMac()', () async {
       final algorithm = Chacha20(macAlgorithm: Poly1305());

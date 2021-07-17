@@ -66,7 +66,7 @@ class SecretKeyData extends SecretKey {
   /// You can give a custom random number generator. This can be useful for
   /// deterministic tests.
   ///
-  /// # Example
+  /// ## Example
   /// ```
   /// // Generate 32 random bytes
   /// final key = SecretKey.randomBytes(32);

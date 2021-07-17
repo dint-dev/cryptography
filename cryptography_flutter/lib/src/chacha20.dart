@@ -15,7 +15,7 @@ class FlutterChacha20 extends FlutterStreamingCipher implements Chacha20 {
   @override
   bool get isSupportedPlatform =>
       (Platform.isAndroid || Platform.isIOS || Platform.isMacOS) &&
-          macAlgorithm is DartChacha20Poly1305AeadMacAlgorithm;
+      macAlgorithm is DartChacha20Poly1305AeadMacAlgorithm;
 
   @override
   String get pluginCipherName => 'Chacha20.poly1305Aead';

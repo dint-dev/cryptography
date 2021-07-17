@@ -17,7 +17,7 @@ import 'package:cryptography/cryptography.dart';
 /// An digital signature algorithm that supports [newKeyPair()], [sign()],
 /// [verify()].
 ///
-/// # Available algorithms
+/// ## Available algorithms
 ///   * [Ecdsa.p256]
 ///   * [Ecdsa.p384]
 ///   * [Ecdsa.p521]
@@ -25,7 +25,7 @@ import 'package:cryptography/cryptography.dart';
 ///   * [RsaPss]
 ///   * [RsaSsaPkcs1v15]
 ///
-/// # Example
+/// ## Example
 /// In this example, we use [Ed25519]:
 /// ```
 /// import 'package:cryptography/cryptography.dart';

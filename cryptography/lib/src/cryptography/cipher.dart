@@ -19,7 +19,7 @@ import 'package:cryptography/helpers.dart';
 
 /// A cipher that supports [encrypt()] and [decrypt()].
 ///
-/// # Available algorithms
+/// ## Available algorithms
 ///   * [AesCbc]
 ///   * [AesCtr]
 ///   * [AesGcm]
@@ -28,7 +28,7 @@ import 'package:cryptography/helpers.dart';
 ///   * [Xchacha20]
 ///   * [Xchacha20.poly1305Aead]
 ///
-/// # Example
+/// ## Example
 /// An example of using [AesCtr] and [Hmac]:
 /// ```
 /// import 'package:cryptography/cryptography.dart';

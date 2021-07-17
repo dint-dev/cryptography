@@ -36,7 +36,7 @@ class DartArgon2id extends Argon2id {
     required this.memorySize,
     required this.iterations,
     required this.hashLength,
-  })   : assert(parallelism >= 1),
+  })  : assert(parallelism >= 1),
         assert(memorySize >= 8 * parallelism),
         assert(iterations >= 1),
         assert(hashLength >= 4),
