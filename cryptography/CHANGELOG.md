@@ -1,3 +1,8 @@
+## 2.0.2
+
+* Fixes an issue in SecretBox.fromConcatenation.
+* Improves documentation.
+
 ## 2.0.1
 
 * Documentation fixes.

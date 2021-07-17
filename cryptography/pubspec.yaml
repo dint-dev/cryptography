@@ -1,5 +1,5 @@
 name: cryptography
-version: 2.0.1
+version: 2.0.2
 homepage: https://github.com/dint-dev/cryptography
 description:
   Cryptographic algorithms for encryption, digital signatures, key agreement, authentication, and
