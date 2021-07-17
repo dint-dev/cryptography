@@ -14,6 +14,7 @@
 
 import 'package:cryptography/cryptography.dart';
 
+/// A stub for [Ecdsa] (P256, P384, P521) implemented in pure Dart.
 class DartEcdsa extends Ecdsa {
   @override
   final KeyPairType keyPairType;

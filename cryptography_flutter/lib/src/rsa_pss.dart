@@ -20,6 +20,7 @@ import 'package:cryptography/helpers.dart';
 
 import 'internal.dart';
 
+/// [RsaPss] implemented with operating system APIs.
 class FlutterRsaPss extends DelegatingSignatureAlgorithm implements RsaPss {
   @override
   final RsaPss fallback;

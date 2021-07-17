@@ -19,7 +19,7 @@ import 'package:cryptography/cryptography.dart';
 import '../utils.dart';
 import 'aes_impl.dart';
 
-/// _AES-CTR_ cipher ("counter mode") implemented in pure Dart.
+/// [AesCtr] implemented in pure Dart.
 class DartAesCtr extends AesCtr with DartAesMixin {
   @override
   final MacAlgorithm macAlgorithm;

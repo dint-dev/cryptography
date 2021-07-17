@@ -19,6 +19,7 @@ import 'package:cryptography/dart.dart';
 
 import 'chacha20.dart';
 
+/// [Hchacha20] implemented in pure Dart.
 class DartHChacha20 extends Hchacha20 {
   const DartHChacha20() : super.constructor();
 

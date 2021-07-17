@@ -233,18 +233,22 @@ abstract class AesCtr extends StreamingCipher {
 ///   * In browsers, [BrowserAesGcm] is used by default.
 ///   * Otherwise [DartAesGcm] is used by default.
 ///   * The package [cryptography_flutter](https://pub.dev/packages/cryptography_flutter)
-///     supports native implementations available in Android and iOS.
+///     supports AES-GCM operating system APIs available in Android and iOS.
+///     __We recommend you use "package:cryptography_flutter" for the best
+///     performance and easier cryptographic compliance.__
 ///
 /// # About the algorithm
 ///   * Three possible key lengths:
 ///     * 128 bits: [AesGcm.with128bits]
 ///     * 192 bits: [AesGcm.with192bits]
 ///     * 256 bits: [AesGcm.with256bits]
-///   * By default, [nonceLength] is 12 bytes.
-///     * That means 4 bytes is used for block counter. Because AES block is 16
-///       bytes, maximum message size is 32 GB with a single nonce.
-///     * You can choose another nonce length in the constructor if you need to.
-///   * The built-in [macAlgorithm] produces a 16 bytes MAC.
+///   * AES-GCM takes a 128-bit "nonce" block as a parameter. It is split into
+///     a random part and block counter. In our implementation, the random part
+///     is 96 bits by default, which means the block counter is 32 bits. When
+///     block counter is 32 bits, the maximum size of a message is _block_size *
+///     2^32 = 32 GB_. If you need longer messages, use a smaller nonce.
+///   * AES-GCM standard specifies a MAC algorithm ("GCM"). The output is a
+///     128-bit [Mac].
 ///
 /// # Example
 /// ```dart

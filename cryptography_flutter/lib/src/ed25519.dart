@@ -20,6 +20,7 @@ import 'package:cryptography/helpers.dart';
 
 import 'internal.dart';
 
+/// [Ed25519] implemented with operating system APIs.
 class FlutterEd25519 extends DelegatingSignatureAlgorithm implements Ed25519 {
   @override
   final Ed25519 fallback;

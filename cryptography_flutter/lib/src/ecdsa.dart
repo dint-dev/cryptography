@@ -19,6 +19,7 @@ import 'package:cryptography/helpers.dart';
 
 import 'internal.dart';
 
+/// [Ecdsa] implemented with operating system APIs.
 class FlutterEcdsa extends DelegatingEcdsa {
   @override
   final Ecdsa fallback;

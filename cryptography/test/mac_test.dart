@@ -35,7 +35,7 @@ void main() {
       expect(value.hashCode, isNot(other2.hashCode));
     });
 
-    test('toString()', () {
+    test('toString() when non-empty', () {
       const value = Mac([3, 1, 4]);
       expect(value.toString(), 'Mac([3,1,4])');
     });

@@ -20,6 +20,7 @@ import 'package:cryptography/helpers.dart';
 
 import 'internal.dart';
 
+/// [Ecdh] implemented with operating system APIs.
 class FlutterEcdh extends DelegatingEcdh {
   @override
   final Ecdh fallback;

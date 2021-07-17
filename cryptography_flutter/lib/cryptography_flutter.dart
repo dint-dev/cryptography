@@ -19,6 +19,10 @@ library cryptography;
 
 import 'package:cryptography_flutter/src/flutter_cryptography.dart';
 
+export 'src/aes_cbc.dart';
+export 'src/aes_ctr.dart';
+export 'src/aes_gcm.dart';
+export 'src/chacha20.dart';
 export 'src/cipher.dart';
 export 'src/ecdh.dart';
 export 'src/ecdsa.dart';

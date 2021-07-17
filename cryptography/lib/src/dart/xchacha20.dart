@@ -16,6 +16,7 @@ import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
 
+/// [Xchacha20] implemented in pure Dart.
 class DartXchacha20 extends Xchacha20 {
   @override
   final MacAlgorithm macAlgorithm;
