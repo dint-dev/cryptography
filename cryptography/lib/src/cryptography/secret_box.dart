@@ -150,7 +150,7 @@ class SecretBox {
       ));
       final cipherText = List<int>.unmodifiable(Uint8List.view(
         data.buffer,
-        data.offsetInBytes,
+        data.offsetInBytes + nonceLength,
         data.length - nonceLength - macLength,
       ));
       final macBytes = List<int>.unmodifiable(Uint8List.view(

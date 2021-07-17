@@ -73,6 +73,50 @@ void main() {
       );
     });
 
+    test('fromConcatenation([1,2,3], nonceLength: 0, macLength: 0)', () {
+      final secretBox = SecretBox.fromConcatenation(
+        [1, 2, 3],
+        nonceLength: 0,
+        macLength: 0,
+      );
+      expect(secretBox.nonce, []);
+      expect(secretBox.cipherText, [1, 2, 3]);
+      expect(secretBox.mac, Mac([]));
+    });
+
+    test('fromConcatenation([1,2,3,4,5], nonceLength: 2, macLength: 0)', () {
+      final secretBox = SecretBox.fromConcatenation(
+        [1, 2, 3, 4, 5],
+        nonceLength: 2,
+        macLength: 0,
+      );
+      expect(secretBox.nonce, [1, 2]);
+      expect(secretBox.cipherText, [3, 4, 5]);
+      expect(secretBox.mac, Mac([]));
+    });
+
+    test('fromConcatenation([1,2,3,4,5], nonceLength: 0, macLength: 3)', () {
+      final secretBox = SecretBox.fromConcatenation(
+        [1, 2, 3, 4, 5],
+        nonceLength: 0,
+        macLength: 3,
+      );
+      expect(secretBox.nonce, []);
+      expect(secretBox.cipherText, [1, 2]);
+      expect(secretBox.mac, Mac([3, 4, 5]));
+    });
+
+    test('fromConcatenation([1,2,3,4,5,6], nonceLength: 2, macLength: 3)', () {
+      final secretBox = SecretBox.fromConcatenation(
+        [1, 2, 3, 4, 5, 6],
+        nonceLength: 2,
+        macLength: 3,
+      );
+      expect(secretBox.nonce, [1, 2]);
+      expect(secretBox.cipherText, [3]);
+      expect(secretBox.mac, Mac([4, 5, 6]));
+    });
+
     test('concatenation(nonce: false, mac: false)', () {
       final secretBox = SecretBox(
         [3, 4],
