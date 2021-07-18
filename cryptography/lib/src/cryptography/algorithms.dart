@@ -611,7 +611,7 @@ abstract class Blake2s extends HashAlgorithm {
 ///   print('MAC: ${secretBox.mac.bytes}')
 ///
 ///   // Decrypt
-///   final clearText = await algorithm.encrypt(
+///   final clearText = await algorithm.decrypt(
 ///     secretBox,
 ///     secretKey: secretKey,
 ///   );
