@@ -7,16 +7,18 @@ This is a version of the package [cryptography](https://pub.dev/packages/cryptog
 optimizes performance of some cryptographic algorithms by using native APIs of Android, iOS, and
 Mac OS X. You must use asynchronous methods to get the performance boost.
 
+Maintained by Gohilla Ltd. Licensed under the [Apache License 2.0](LICENSE).
+
 ## Optimized algorithms
 ### In Android
-  * AES_CBC
-  * AES_CTR
-  * AES_GCM
-  * CHACHA20_POLY1305_AEAD
+  * [AesCbc()](https://pub.dev/documentation/cryptography/latest/cryptography/AesCbc-class.html)
+  * [AesCtr()](https://pub.dev/documentation/cryptography/latest/cryptography/AesCtr-class.html)
+  * [AesGcm()](https://pub.dev/documentation/cryptography/latest/cryptography/AesGcm-class.html)
+  * [Chacha20.poly1305()](https://pub.dev/documentation/cryptography/latest/cryptography/Chacha20-class.html)
 
 ### In iOS and Mac OS X
-  * AES_GCM
-  * CHACHA20_POLY1305_AEAD
+  * [AesGcm()](https://pub.dev/documentation/cryptography/latest/cryptography/AesGcm-class.html)
+  * [Chacha20.poly1305()](https://pub.dev/documentation/cryptography/latest/cryptography/Chacha20-class.html)
 
 ## Links
   * [Github project](https://github.com/dint-dev/cryptography)
@@ -28,8 +30,8 @@ Mac OS X. You must use asynchronous methods to get the performance boost.
 In _pubspec.yaml_:
 ```yaml
 dependencies:
-  cryptography: ^2.0.0
-  cryptography_flutter: ^2.0.0
+  cryptography: ^2.0.2
+  cryptography_flutter: ^2.0.1
 ```
 
 Then just use:

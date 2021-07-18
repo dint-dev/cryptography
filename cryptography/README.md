@@ -4,6 +4,7 @@
 # Overview
 Popular cryptographic algorithms for [Dart](https://dart.dev) / [Flutter](https://flutter.dev)
 developers.
+
 Maintained by Gohilla Ltd. Licensed under the [Apache License 2.0](LICENSE).
 
 This package is:
@@ -25,10 +26,6 @@ Any feedback, issue reports, or pull requests are appreciated!
     * Android / iOS cryptography support.
   * [jwk](https://pub.dev/packages/jwk)
     * JWK (JSON Web Key) support.
-  * [kms](https://pub.dev/packages/kms)
-    * KMS (Key Management Service) support.
-  * [noise_protocol](https://pub.dev/packages/noise_protocol)
-    * Noise handshake support.
 
 # Key concepts
 ## Key classes
@@ -174,10 +171,10 @@ We wrote the following three implementations of `Cryptography`:
       * Sha256
       * Sha384
       * Sha512
-  * [FlutterCryptography](https://pub.dev/documentation/cryptography_flutter/latest/cryptography_flutter/FlutterCryptography-class.html)
+  * [FlutterCryptography](https://pub.dev/documentation/cryptography_flutter/latest/cryptography/FlutterCryptography-class.html)
     * A Flutter plugin available in [cryptography_flutter](https://pub.dev/packages/cryptography_flutter).
     * Extends _BrowserCryptography_.
-    * Enabled with [FlutterCryptography.enable()](https://pub.dev/documentation/cryptography_flutter/latest/cryptography_flutter/FlutterCryptography/enable.html).
+    * Enabled with [FlutterCryptography.enable()](https://pub.dev/documentation/cryptography_flutter/latest/cryptography/FlutterCryptography/enable.html).
     * In Android, _FlutterCryptography_ gives:
       * AesCbc
       * AesCtr
@@ -193,7 +190,14 @@ We wrote the following three implementations of `Cryptography`:
 In _pubspec.yaml_:
 ```yaml
 dependencies:
-  cryptography: ^2.0.0
+  cryptography: ^2.0.2
+```
+
+If you use Flutter, we recommend that you also add [cryptography_flutter](https://pub.dev/packages/cryptography_flutter):
+```yaml
+dependencies:
+  cryptography: ^2.0.2
+  cryptography_flutter: ^2.0.1
 ```
 
 # Examples
