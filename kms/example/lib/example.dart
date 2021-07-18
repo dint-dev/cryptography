@@ -1,3 +1,0 @@
-Future<void> main() async {
-  // ...
-}

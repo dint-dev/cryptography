@@ -15,11 +15,6 @@ Open-sourced under the [Apache License 2.0](LICENSE).
     * Contains cryptography implementations that use Android / iOS APIs.
   * [jwk](jwk)
     * JWK (JSON Web Key) encoding / decoding.
-  * [kms](kms)
-    * Key Management Service (KMS) API for Dart / Flutter.
-  * [kms_flutter](kms_flutter)
-  * [noise_protocol](noise_protocol)
-    * Noise protocol implemented in pure Dart.
 
 ## Contributing
 Please share feedback / issue reports in the
