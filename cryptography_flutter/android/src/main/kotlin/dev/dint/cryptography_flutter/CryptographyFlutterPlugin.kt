@@ -52,25 +52,44 @@ class CryptographyFlutterPlugin : FlutterPlugin, MethodCallHandler {
     override fun onMethodCall(call: MethodCall, result: Result) {
         when (call.method) {
             "decrypt" -> {
-                decrypt(call, result)
+                propagateError(result) { 
+                    decrypt(call, result)
+                }
             }
             "encrypt" -> {
-                encrypt(call, result)
+                propagateError(result) { 
+                    encrypt(call, result)
+                }
             }
             "Ecdsa.KeyPair" -> {
-                ecNewKeyPair(call, result)
+                propagateError(result) { 
+                    ecNewKeyPair(call, result)
+                }
             }
             "Ecdsa.sign" -> {
-                ecdsaSign(call, result)
+                propagateError(result) { 
+                    ecdsaSign(call, result)
+                }
             }
             "Ecdsa.verify" -> {
-                ecdsaVerify(call, result)
+                propagateError(result) { 
+                    ecdsaVerify(call, result)
+                }
             }
             else -> {
                 result.notImplemented()
             }
         }
     }
+
+    private fun <T> propagateError(result: MethodChannel.Result, fn: () -> T) {
+        try {
+            fn()
+        } catch (e: Exception) {
+            result.error("CATCHED_ERROR", e.message, null)
+        }
+    }
+
 
     private fun decrypt(call: MethodCall, result: Result) {
         val dartAlgo = call.argument<String>("algo")!!
@@ -83,7 +102,7 @@ class CryptographyFlutterPlugin : FlutterPlugin, MethodCallHandler {
             else -> null
         }
         if (algo == null) {
-            result.success("unsupported_algorithm: $dartAlgo")
+            result.error("UNSUPPORTED_ALGORITHM", "Unsupported algorithm: $dartAlgo", null)
             return
         }
         val mode = when (dartAlgo) {
@@ -110,7 +129,7 @@ class CryptographyFlutterPlugin : FlutterPlugin, MethodCallHandler {
         try {
             cipher = Cipher.getInstance(instanceId)
         } catch (error: NoSuchAlgorithmException) {
-            result.success("unsupported_algorithm: Android does not support ${instanceId}")
+            result.error("UNSUPPORTED_ALGORITHM", "Android does not support ${instanceId}", null)
             return
         }
         cipher.init(
@@ -122,7 +141,7 @@ class CryptographyFlutterPlugin : FlutterPlugin, MethodCallHandler {
         try {
             clearText = cipher.doFinal(input)
         } catch (e: AEADBadTagException) {
-            result.success("incorrect_mac")
+            result.error("INCORRECT_MAC", null, null)
             return
         }
         result.success(hashMapOf(
@@ -141,7 +160,7 @@ class CryptographyFlutterPlugin : FlutterPlugin, MethodCallHandler {
             else -> null
         }
         if (algo == null) {
-            result.success("unsupported_algorithm")
+            result.error("UNSUPPORTED_ALGORITHM", null, null)
             return
         }
         val mode = when (dartAlgo) {
@@ -171,7 +190,7 @@ class CryptographyFlutterPlugin : FlutterPlugin, MethodCallHandler {
         try {
             cipher = Cipher.getInstance(instanceId)
         } catch (error: NoSuchAlgorithmException) {
-            result.success("unsupported_algorithm: Android does not support ${instanceId}")
+            result.error("UNSUPPORTED_ALGORITHM", "Android does not support ${instanceId}", null)
             return
         }
         cipher.init(
@@ -197,7 +216,7 @@ class CryptographyFlutterPlugin : FlutterPlugin, MethodCallHandler {
             else -> null
         }
         if (curve == null) {
-            result.success("unsupported_algorithm: $curve")
+            result.error("UNSUPPORTED_ALGORITHM", "Unsupported algorithm: $curve", null)
             return
         }
 
@@ -211,7 +230,7 @@ class CryptographyFlutterPlugin : FlutterPlugin, MethodCallHandler {
             else -> null
         }
         if (curve == null) {
-            result.success("unsupported_algorithm: $curve")
+            result.error("UNSUPPORTED_ALGORITHM", "Unsupported algorithm: $curve", null)
             return
         }
         val hash = call.argument<String>("hash")!!.replace("-", "")
@@ -244,7 +263,7 @@ class CryptographyFlutterPlugin : FlutterPlugin, MethodCallHandler {
             else -> null
         }
         if (curve == null) {
-            result.success("unsupported_algorithm")
+            result.error("UNSUPPORTED_ALGORITHM", null, null)
             return
         }
         val hash = call.argument<String>("hash")!!.replace("-", "")
