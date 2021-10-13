@@ -575,6 +575,7 @@ class Jwk {
           kty: 'EC',
           crv: crv,
           x: publicKey.x,
+          y: publicKey.y,
         );
       }
     } else if (publicKey is SimplePublicKey) {
