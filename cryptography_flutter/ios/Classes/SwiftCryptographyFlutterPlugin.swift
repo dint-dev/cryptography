@@ -75,14 +75,14 @@ public class SwiftCryptographyFlutterPlugin: NSObject, FlutterPlugin {
             switch algorithm {
             case "AesGcm":
                 let symmetricKey = SymmetricKey(data: secretKey)
-                    let sealedBox = try AES.GCM.seal(
-                        clearText,
-                        using: symmetricKey,
-                        nonce: AES.GCM.Nonce(data: nonce))
-                    result([
-                        "cipherText": FlutterStandardTypedData(bytes: sealedBox.ciphertext),
-                        "mac": FlutterStandardTypedData(bytes: sealedBox.tag),
-                    ])
+                let sealedBox = try AES.GCM.seal(
+                    clearText,
+                    using: symmetricKey,
+                    nonce: AES.GCM.Nonce(data: nonce))
+                result([
+                    "cipherText": FlutterStandardTypedData(bytes: sealedBox.ciphertext),
+                    "mac": FlutterStandardTypedData(bytes: sealedBox.tag),
+                ])
                 return
                 
             case "Chacha20.poly1305Aead":
