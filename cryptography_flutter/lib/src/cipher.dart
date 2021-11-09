@@ -36,10 +36,6 @@ Future<List<int>> _decryptWithPlugin(
       'mac': Uint8List.fromList(secretBox.mac.bytes),
     },
   );
-  final error = result['error'];
-  if (error is String) {
-    throw StateError(error);
-  }
   return result['clearText'] as Uint8List;
 }
 
@@ -61,10 +57,6 @@ Future<SecretBox> _encryptWithPlugin(
       'nonce': Uint8List.fromList(nonce),
     },
   );
-  final error = result['error'];
-  if (error is String) {
-    throw StateError(error);
-  }
   final cipherText = result['cipherText'] as Uint8List;
   var mac = Mac.empty;
   if (result.containsKey('mac')) {
@@ -88,7 +80,7 @@ abstract class FlutterCipher extends DelegatingCipher {
   }) async {
     if (usePlugin) {
       try {
-        return _decryptWithPlugin(
+        return await _decryptWithPlugin(
           this,
           secretBox,
           secretKey: secretKey,
@@ -115,7 +107,7 @@ abstract class FlutterCipher extends DelegatingCipher {
   }) async {
     if (usePlugin) {
       try {
-        return _encryptWithPlugin(
+        return await _encryptWithPlugin(
           this,
           clearText,
           secretKey: secretKey,
@@ -163,7 +155,7 @@ abstract class FlutterStreamingCipher extends DelegatingStreamingCipher
   }) async {
     if (keyStreamIndex == 0 && usePlugin) {
       try {
-        return _decryptWithPlugin(
+        await _decryptWithPlugin(
           this,
           secretBox,
           secretKey: secretKey,
@@ -192,7 +184,7 @@ abstract class FlutterStreamingCipher extends DelegatingStreamingCipher
   }) async {
     if (keyStreamIndex == 0 && usePlugin) {
       try {
-        return _encryptWithPlugin(
+        return await _encryptWithPlugin(
           this,
           clearText,
           secretKey: secretKey,
