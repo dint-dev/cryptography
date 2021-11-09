@@ -155,7 +155,7 @@ class BrowserEcdsa extends Ecdsa {
   }
 
   @override
-  Future<Signature> sign(List<int> input, {required KeyPair keyPair}) async {
+  Future<Signature> sign(List<int> message, {required KeyPair keyPair}) async {
     keyPair = await keyPair.extract();
     if (keyPair is! EcKeyPair) {
       throw ArgumentError.value(
@@ -175,7 +175,7 @@ class BrowserEcdsa extends Ecdsa {
           hash: hashAlgorithm.webCryptoName,
         ),
         jsSecretKey,
-        web_crypto.jsArrayBufferFrom(input),
+        web_crypto.jsArrayBufferFrom(message),
       ),
     );
     return Signature(
@@ -186,7 +186,7 @@ class BrowserEcdsa extends Ecdsa {
 
   @override
   Future<bool> verify(
-    List<int> input, {
+    List<int> message, {
     required Signature signature,
   }) async {
     final publicKey = signature.publicKey;
@@ -209,7 +209,7 @@ class BrowserEcdsa extends Ecdsa {
       ),
       jsCryptoKey,
       web_crypto.jsArrayBufferFrom(signature.bytes),
-      web_crypto.jsArrayBufferFrom(input),
+      web_crypto.jsArrayBufferFrom(message),
     ));
   }
 }

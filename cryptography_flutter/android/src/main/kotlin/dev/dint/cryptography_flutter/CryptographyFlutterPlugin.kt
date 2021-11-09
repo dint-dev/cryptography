@@ -52,27 +52,27 @@ class CryptographyFlutterPlugin : FlutterPlugin, MethodCallHandler {
     override fun onMethodCall(call: MethodCall, result: Result) {
         when (call.method) {
             "decrypt" -> {
-                propagateError(result) { 
+                propagateError(result) {
                     decrypt(call, result)
                 }
             }
             "encrypt" -> {
-                propagateError(result) { 
+                propagateError(result) {
                     encrypt(call, result)
                 }
             }
             "Ecdsa.KeyPair" -> {
-                propagateError(result) { 
+                propagateError(result) {
                     ecNewKeyPair(call, result)
                 }
             }
             "Ecdsa.sign" -> {
-                propagateError(result) { 
+                propagateError(result) {
                     ecdsaSign(call, result)
                 }
             }
             "Ecdsa.verify" -> {
-                propagateError(result) { 
+                propagateError(result) {
                     ecdsaVerify(call, result)
                 }
             }

@@ -20,7 +20,8 @@ import 'package:cryptography/helpers.dart';
 import 'internal.dart';
 
 /// [Ecdsa] implemented with operating system APIs.
-class FlutterEcdsa extends DelegatingEcdsa {
+class FlutterEcdsa extends DelegatingEcdsa
+    with FlutterCryptographyImplementation {
   @override
   final Ecdsa fallback;
 
@@ -55,10 +56,6 @@ class FlutterEcdsa extends DelegatingEcdsa {
     );
   }
 
-  void reportError(Object error) {
-    print(error);
-  }
-
   @override
   Future<Signature> sign(
     List<int> data, {
@@ -91,8 +88,9 @@ class FlutterEcdsa extends DelegatingEcdsa {
         );
         final publicKey = await keyPairData.extractPublicKey();
         return Signature(signature, publicKey: publicKey);
-      } catch (error) {
+      } catch (error, stackTrace) {
         usePlugin = false;
+        reportError(error, stackTrace);
       }
     }
     return super.sign(data, keyPair: keyPair);
@@ -124,9 +122,9 @@ class FlutterEcdsa extends DelegatingEcdsa {
           throw StateError('error in "package:cryptography_flutter": $error');
         }
         return result['result'] as bool;
-      } catch (error) {
+      } catch (error, stackTrace) {
         usePlugin = false;
-        reportError(error);
+        reportError(error, stackTrace);
       }
     }
     return super.verify(data, signature: signature);

@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 
 void main() {
   FlutterCryptography.enable();
-  runApp(MaterialApp(
+  runApp(const MaterialApp(
     title: 'Cryptography demo',
     home: CipherPage(),
   ));
@@ -32,6 +32,8 @@ String _toHex(List<int> bytes) {
 }
 
 class CipherPage extends StatefulWidget {
+  const CipherPage({Key? key}) : super(key: key);
+
   @override
   State<StatefulWidget> createState() {
     return _CipherPageState();
@@ -68,7 +70,7 @@ class _CipherPageState extends State<CipherPage> {
             child: ListView(
               children: [
                 InputDecorator(
-                  decoration: InputDecoration(labelText: 'Cipher'),
+                  decoration: const InputDecoration(labelText: 'Cipher'),
                   child: DropdownButton<Cipher>(
                     value: _cipher,
                     onChanged: (newValue) {
@@ -80,27 +82,27 @@ class _CipherPageState extends State<CipherPage> {
                     items: [
                       DropdownMenuItem(
                         value: _aesCbc128,
-                        child: Text('AES-CBC (128-bits) + HMAC-SHA256'),
+                        child: const Text('AES-CBC (128-bits) + HMAC-SHA256'),
                       ),
                       DropdownMenuItem(
                         value: _aesCtr128,
-                        child: Text('AES-CTR (128-bits) + HMAC-SHA256'),
+                        child: const Text('AES-CTR (128-bits) + HMAC-SHA256'),
                       ),
                       DropdownMenuItem(
                         value: _aesGcm128,
-                        child: Text('AES-GCM (128-bits)'),
+                        child: const Text('AES-GCM (128-bits)'),
                       ),
                       DropdownMenuItem(
                         value: _aesGcm256,
-                        child: Text('AES-GCM (256-bits)'),
+                        child: const Text('AES-GCM (256-bits)'),
                       ),
                       DropdownMenuItem(
                         value: _chacha20Poly1305,
-                        child: Text('ChaCha20 + Poly1305'),
+                        child: const Text('ChaCha20 + Poly1305'),
                       ),
                       DropdownMenuItem(
                         value: _xchacha20Poly1305,
-                        child: Text('XChaCha20 + Poly1305'),
+                        child: const Text('XChaCha20 + Poly1305'),
                       ),
                     ],
                   ),
@@ -127,7 +129,7 @@ class _CipherPageState extends State<CipherPage> {
                       _secretKeyController.text = _toHex(bytes);
                       await _encrypt();
                     },
-                    child: Text('Generate'),
+                    child: const Text('Generate'),
                   ),
                 ]),
                 const SizedBox(height: 10),
@@ -147,11 +149,11 @@ class _CipherPageState extends State<CipherPage> {
                       _nonceController.text = _toHex(_cipher.newNonce());
                       await _encrypt();
                     },
-                    child: Text('Generate'),
+                    child: const Text('Generate'),
                   ),
                 ]),
                 const SizedBox(height: 30),
-                Text('Encrypt'),
+                const Text('Encrypt'),
                 TextField(
                   onChanged: (newValue) {
                     try {
@@ -166,7 +168,8 @@ class _CipherPageState extends State<CipherPage> {
                   minLines: 1,
                   maxLines: 16,
                   enableInteractiveSelection: true,
-                  decoration: InputDecoration(labelText: 'Cleartext (text)'),
+                  decoration:
+                      const InputDecoration(labelText: 'Cleartext (text)'),
                 ),
                 const SizedBox(height: 10),
                 TextField(
@@ -174,7 +177,8 @@ class _CipherPageState extends State<CipherPage> {
                   minLines: 1,
                   maxLines: 16,
                   enableInteractiveSelection: true,
-                  decoration: InputDecoration(labelText: 'Ciphertext (hex)'),
+                  decoration:
+                      const InputDecoration(labelText: 'Ciphertext (hex)'),
                 ),
                 const SizedBox(height: 10),
                 TextField(
@@ -182,7 +186,7 @@ class _CipherPageState extends State<CipherPage> {
                   minLines: 1,
                   maxLines: 16,
                   enableInteractiveSelection: true,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                       labelText: 'Message Authentication Code (MAC)'),
                 ),
                 const SizedBox(height: 10),

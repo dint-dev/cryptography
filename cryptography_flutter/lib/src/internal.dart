@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 const MethodChannel channel = MethodChannel('cryptography_flutter');
@@ -22,4 +23,20 @@ Future<Map> invokeMethod(String name, Map<String, Object> arguments) async {
     return result;
   }
   throw StateError('"package:cryptography_flutter": error: $result');
+}
+
+mixin FlutterCryptographyImplementation {
+  void reportError(Object error, StackTrace stackTrace) {
+    if (kDebugMode) {
+      if (error is UnsupportedError) {
+        // ignore: avoid_print
+        print(
+            '$runtimeType does not have native support in this operating system. Using Dart implementation instead.');
+      } else {
+        // ignore: avoid_print
+        print(
+            '----\nCRYPTOGRAPHY PLUGIN HAD UNEXPECTED ERROR:\n$error\n$stackTrace\n----');
+      }
+    }
+  }
 }

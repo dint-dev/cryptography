@@ -46,7 +46,7 @@ abstract class MacAlgorithm {
   /// empty. If it's non-empty and the algorithm does not support AAD, the
   /// the method throws [ArgumentError].
   Future<Mac> calculateMac(
-    List<int> input, {
+    List<int> bytes, {
     required SecretKey secretKey,
     List<int> nonce = const <int>[],
     List<int> aad = const <int>[],

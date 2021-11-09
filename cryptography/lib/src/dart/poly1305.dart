@@ -25,7 +25,7 @@ class DartPoly1305 extends Poly1305 {
 
   @override
   Future<Mac> calculateMac(
-    List<int> input, {
+    List<int> bytes, {
     required SecretKey secretKey,
     List<int> nonce = const <int>[],
     List<int> aad = const <int>[],
@@ -35,7 +35,7 @@ class DartPoly1305 extends Poly1305 {
       nonce: nonce,
       aad: aad,
     );
-    sink.addSlice(input, 0, input.length, true);
+    sink.addSlice(bytes, 0, bytes.length, true);
     sink.close();
     return sink.mac();
   }

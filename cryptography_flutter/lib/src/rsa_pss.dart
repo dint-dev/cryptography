@@ -21,7 +21,9 @@ import 'package:cryptography/helpers.dart';
 import 'internal.dart';
 
 /// [RsaPss] implemented with operating system APIs.
-class FlutterRsaPss extends DelegatingSignatureAlgorithm implements RsaPss {
+class FlutterRsaPss extends DelegatingSignatureAlgorithm
+    with FlutterCryptographyImplementation
+    implements RsaPss {
   @override
   final RsaPss fallback;
 
@@ -78,7 +80,6 @@ class FlutterRsaPss extends DelegatingSignatureAlgorithm implements RsaPss {
             publicKey: await keyPairData.extractPublicKey());
       } catch (error) {
         usePlugin = false;
-        print(error);
       }
     }
     return super.sign(data, keyPair: keyPair);
@@ -103,7 +104,6 @@ class FlutterRsaPss extends DelegatingSignatureAlgorithm implements RsaPss {
         return result['result'] as bool;
       } catch (error) {
         usePlugin = false;
-        print(error);
       }
     }
     return super.verify(data, signature: signature);

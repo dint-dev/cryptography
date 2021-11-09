@@ -51,7 +51,7 @@ class DartChacha20Poly1305AeadMacAlgorithm extends MacAlgorithm {
 
   @override
   Future<Mac> calculateMac(
-    List<int> cipherText, {
+    List<int> bytes, {
     required SecretKey secretKey,
     List<int> nonce = const <int>[],
     List<int> aad = const <int>[],
@@ -96,8 +96,8 @@ class DartChacha20Poly1305AeadMacAlgorithm extends MacAlgorithm {
     }
 
     // Add cipherText
-    sink.add(cipherText);
-    length += cipherText.length;
+    sink.add(bytes);
+    length += bytes.length;
     final rem = length % 16;
     if (rem != 0) {
       // Add padding
@@ -120,12 +120,12 @@ class DartChacha20Poly1305AeadMacAlgorithm extends MacAlgorithm {
     );
     tmpByteData.setUint32(
       8,
-      uint32mask & cipherText.length,
+      uint32mask & bytes.length,
       Endian.little,
     );
     tmpByteData.setUint32(
       12,
-      cipherText.length ~/ (uint32mask + 1),
+      bytes.length ~/ (uint32mask + 1),
       Endian.little,
     );
     sink.add(tmpUint8List);

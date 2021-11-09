@@ -43,8 +43,8 @@ class DartX25519 extends X25519 with DartKeyExchangeAlgorithmMixin {
   KeyPairType get keyPairType => KeyPairType.x25519;
 
   @override
-  Future<SimpleKeyPair> newKeyPairFromSeed(List<int> bytes) {
-    final modifiedBytes = DartX25519.modifiedPrivateKeyBytes(bytes);
+  Future<SimpleKeyPair> newKeyPairFromSeed(List<int> seed) {
+    final modifiedBytes = DartX25519.modifiedPrivateKeyBytes(seed);
     return Future<SimpleKeyPairData>.value(SimpleKeyPairData(
       modifiedBytes,
       publicKey: Future<SimplePublicKey>(
@@ -140,7 +140,7 @@ class DartX25519 extends X25519 with DartKeyExchangeAlgorithmMixin {
     // For bits 255..0
     for (var t = 254; t >= 0; t--) {
       // Get the secret key bit
-      final k_i = 1 & (secretKey[t >> 3] >> (7 & t));
+      final ki = 1 & (secretKey[t >> 3] >> (7 & t));
 
       // Two conditional swaps.
       //
@@ -149,29 +149,29 @@ class DartX25519 extends X25519 with DartKeyExchangeAlgorithmMixin {
       //   `b` is `x_3`
       //   `c` is `z_2`
       //   `d` is `z_3`
-      _conditionalSwap(a, b, k_i);
-      _conditionalSwap(c, d, k_i);
+      _conditionalSwap(a, b, ki);
+      _conditionalSwap(c, d, ki);
 
       // Perform +/- operation.
       // We don't need to handle carry bits. Later multiplication will take
       // care of values that have become more than 16 bits.
       for (var i = 0; i < 16; i++) {
-        final a_i = a[i];
-        final b_i = b[i];
-        final c_i = c[i];
-        final d_i = d[i];
+        final ai = a[i];
+        final bi = b[i];
+        final ci = c[i];
+        final di = d[i];
 
         // `e` = RFC assignment `A = x_2 + z_2`
-        e[i] = a_i + c_i;
+        e[i] = ai + ci;
 
         // `a` = RFC assignment `B = x_2 - z_2`
-        a[i] = a_i - c_i;
+        a[i] = ai - ci;
 
         // `c` = RFC assignment `C = x_3 + z_3`
-        c[i] = b_i + d_i;
+        c[i] = bi + di;
 
         // `d` = RFC assignment `D = x_3 - z_3`
-        b[i] = b_i - d_i;
+        b[i] = bi - di;
       }
 
       // d = RFC assignment `AA = A^2`
@@ -236,8 +236,8 @@ class DartX25519 extends X25519 with DartKeyExchangeAlgorithmMixin {
       // "High-speed Curve25519 on 8-bit, 16-bit, and 32-bit microcontrollers"
       // https://link.springer.com/article/10.1007/s10623-015-0087-1
       mod38Mul(b, e, e);
-      _conditionalSwap(a, b, k_i);
-      _conditionalSwap(c, d, k_i);
+      _conditionalSwap(a, b, ki);
+      _conditionalSwap(c, d, ki);
     }
 
     // Remaining calculations.

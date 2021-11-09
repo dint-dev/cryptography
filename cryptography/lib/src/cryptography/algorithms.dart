@@ -1641,7 +1641,7 @@ abstract class StreamingCipher extends Cipher {
   /// For other arguments, see [Cipher.encrypt].
   @override
   Future<SecretBox> encrypt(
-    List<int> message, {
+    List<int> clearText, {
     required SecretKey secretKey,
     List<int>? nonce,
     List<int> aad = const <int>[],

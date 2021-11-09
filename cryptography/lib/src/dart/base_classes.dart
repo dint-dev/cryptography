@@ -77,14 +77,14 @@ mixin DartKeyExchangeAlgorithmMixin implements KeyExchangeAlgorithm {
 mixin DartMacAlgorithmMixin implements MacAlgorithm {
   @override
   Future<Mac> calculateMac(
-    List<int> cipherText, {
+    List<int> bytes, {
     required SecretKey secretKey,
     List<int> nonce = const <int>[],
     List<int> aad = const <int>[],
   }) async {
     final secretKeyData = await secretKey.extract();
     return Future<Mac>.value(calculateMacSync(
-      cipherText,
+      bytes,
       secretKeyData: secretKeyData,
       nonce: nonce,
       aad: aad,

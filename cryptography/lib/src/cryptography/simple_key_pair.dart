@@ -50,7 +50,7 @@ abstract class SimpleKeyPair extends KeyPair {
 ///   * [Ed25519]
 ///   * [X25519]
 @sealed
-class SimpleKeyPairData extends KeyPairData implements SimpleKeyPair {
+class SimpleKeyPairData implements KeyPairData, SimpleKeyPair {
   final List<int> bytes;
 
   @override
@@ -62,8 +62,7 @@ class SimpleKeyPairData extends KeyPairData implements SimpleKeyPair {
     this.bytes, {
     required FutureOr<SimplePublicKey> publicKey,
     required this.type,
-  })  : _publicKey = publicKey,
-        super(type: type);
+  }) : _publicKey = publicKey;
 
   @override
   int get hashCode => constantTimeBytesEquality.hash(bytes) ^ type.hashCode;
