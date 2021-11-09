@@ -42,7 +42,8 @@ class DartXchacha20 extends Xchacha20 {
   }) async {
     // Validate arguments
     final secretKeyData = await secretKey.extract();
-    if (secretKeyData.bytes.length != 32) {
+    final secretKeyLength = secretKeyData.bytes.length;
+    if (secretKeyLength != 32) {
       throw ArgumentError.value(
         secretKey,
         'secretKey',
@@ -52,8 +53,8 @@ class DartXchacha20 extends Xchacha20 {
     final nonce = secretBox.nonce;
     if (nonce.length != 24) {
       throw ArgumentError.value(
-        secretBox,
-        'secretBox',
+        nonce,
+        'nonce',
         'Must have 24 bytes',
       );
     }
@@ -126,11 +127,10 @@ class DartXchacha20 extends Xchacha20 {
     // Create new nonce.
     // The first 4 bytes will be zeroes.
     // The last 8 bytes will be the last 8 bytes of the original nonce.
-    final newNonceBytes = Uint8List(12);
+    final newNonce = Uint8List(12);
     for (var i = 0; i < 8; i++) {
-      newNonceBytes[4 + i] = nonceBytes[16 + i];
+      newNonce[4 + i] = nonceBytes[16 + i];
     }
-    final newNonce = newNonceBytes;
 
     // Encrypt with chacha20
     final resultWithNewNonce = await _chacha20.encrypt(

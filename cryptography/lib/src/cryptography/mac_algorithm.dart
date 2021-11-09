@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import 'dart:convert';
-import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
 
