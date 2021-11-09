@@ -1,3 +1,7 @@
+## 0.1.1
+
+* Updates dependency constraints and linting rules.
+
 ## 0.1.0
 
 * Finishes null safety migration.

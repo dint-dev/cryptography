@@ -30,8 +30,8 @@ Maintained by Gohilla Ltd. Licensed under the [Apache License 2.0](LICENSE).
 In _pubspec.yaml_:
 ```yaml
 dependencies:
-  cryptography: ^2.0.2
-  cryptography_flutter: ^2.0.1
+  cryptography: ^2.0.3
+  cryptography_flutter: ^2.0.2
 ```
 
 Then just use:

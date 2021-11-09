@@ -23,7 +23,6 @@ import 'package:collection/collection.dart';
 /// The implementation of [hash] produces a 16-bit hash by using XOR.
 ///
 const Equality<List<int>> constantTimeBytesEquality =
-// ignore: deprecated_member_use_from_same_package
     _ConstantTimeBytesEquality();
 
 class _ConstantTimeBytesEquality implements Equality<List<int>> {
