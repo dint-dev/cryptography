@@ -1,3 +1,7 @@
+## 2.0.4
+
+* Fixes an import of 'dart:io' that caused issues.
+
 ## 2.0.3
 
 * Updates dependency constraints and linting rules.
