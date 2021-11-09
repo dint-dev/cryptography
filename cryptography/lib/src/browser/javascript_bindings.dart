@@ -286,6 +286,7 @@ class Jwk {
     String? dq,
     String? qi,
     bool? ext,
+    // ignore: non_constant_identifier_names
     List<String>? key_ops,
     required String kty,
     String? x,
@@ -304,6 +305,7 @@ class Jwk {
 
   external bool get ext;
 
+  // ignore: non_constant_identifier_names
   external List<String> get key_ops;
 
   external String get kty;

@@ -107,6 +107,7 @@ class Register25519 {
     );
 
   /// Constant `(2^255 - 19 + 3) ~/ 8`
+  // ignore: non_constant_identifier_names
   static final PPlus3Slash8BigInt = Register25519()
     ..data[0] = 0xFFFE
     ..data.fillRange(1, 15, 0xFFFF)
@@ -119,12 +120,14 @@ class Register25519 {
     ..data[15] = 0x7FFF;
 
   /// Constant `2^255 - 19 - 2`
+  // ignore: non_constant_identifier_names
   static final Register25519 PMinusTwo = Register25519()
     ..data.setAll(0, P.data)
     ..data[0] -= 2;
 
   /// Constant `2^255 - 19`
-  static final _PBigInt = BigInt.two.pow(255) - BigInt.from(19);
+  // ignore: non_constant_identifier_names
+  static final _P = BigInt.two.pow(255) - BigInt.from(19);
 
   /// A 256-bit integer stored as 16 _uint16_ values, in little-endian.
   final Int32List data;
@@ -184,7 +187,7 @@ class Register25519 {
   /// Replaces the value with `a^b mod (2^255 - 19)`.
   void pow(Register25519 base, Register25519 exponent) {
     // TODO: Improve performance by eliminating use of BigInt here.
-    setBigInt(base.toBigInt().modPow(exponent.toBigInt(), _PBigInt));
+    setBigInt(base.toBigInt().modPow(exponent.toBigInt(), _P));
 
     // For some reason the below doesn't work with very large exponents:
 //    if (exponent.isZero) {
@@ -308,18 +311,18 @@ class Register25519 {
 /// arithmetic.
 class RegisterL {
   /// Constant `2^252 + 27742317777372353535851937790883648493`.
-  static final LBigInt = BigInt.parse(
+  static final constantL = BigInt.parse(
     '7237005577332262213973186563042994240857116359379907606001950938285454250989',
   );
 
   BigInt? _value;
 
   void add(RegisterL a, RegisterL b) {
-    _value = (a.toBigInt()! + b.toBigInt()!) % LBigInt;
+    _value = (a.toBigInt()! + b.toBigInt()!) % constantL;
   }
 
   void mul(RegisterL a, RegisterL b) {
-    _value = (a.toBigInt()! * b.toBigInt()!) % LBigInt;
+    _value = (a.toBigInt()! * b.toBigInt()!) % constantL;
   }
 
   void readBigInt(BigInt value) {
@@ -327,7 +330,7 @@ class RegisterL {
   }
 
   void readBytes(List<int> bytes) {
-    _value = bigIntFromBytes(bytes) % LBigInt;
+    _value = bigIntFromBytes(bytes) % constantL;
   }
 
   BigInt? toBigInt() => _value;

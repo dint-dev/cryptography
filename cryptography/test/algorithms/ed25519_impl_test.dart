@@ -255,7 +255,7 @@ void main() {
   });
 
   group('RegisterL', () {
-    final modulo = RegisterL.LBigInt;
+    final modulo = RegisterL.constantL;
 
     test('add', () {
       final values = [

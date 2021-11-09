@@ -382,7 +382,7 @@ class DartGcm extends MacAlgorithm {
 
   @override
   Future<Mac> calculateMac(
-    List<int> input, {
+    List<int> bytes, {
     required SecretKey secretKey,
     List<int> nonce = const <int>[],
     List<int> aad = const <int>[],

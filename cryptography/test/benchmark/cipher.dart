@@ -19,6 +19,7 @@ import 'package:cryptography/cryptography.dart';
 import 'benchmark_helpers.dart';
 
 Future<void> main() async {
+  // ignore: constant_identifier_names
   const MB = 1000000;
   {
     const messageLength = 100;

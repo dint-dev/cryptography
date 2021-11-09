@@ -305,8 +305,8 @@ abstract class DelegatingEcdsa extends DelegatingSignatureAlgorithm
   }
 
   @override
-  Future<EcKeyPair> newKeyPairFromSeed(List<int> seed) {
-    return fallback.newKeyPairFromSeed(seed);
+  Future<EcKeyPair> newKeyPairFromSeed(List<int> bytes) {
+    return fallback.newKeyPairFromSeed(bytes);
   }
 }
 
@@ -323,8 +323,8 @@ abstract class DelegatingEd25519 extends DelegatingSignatureAlgorithm
   }
 
   @override
-  Future<SimpleKeyPair> newKeyPairFromSeed(List<int> seed) {
-    return fallback.newKeyPairFromSeed(seed);
+  Future<SimpleKeyPair> newKeyPairFromSeed(List<int> bytes) {
+    return fallback.newKeyPairFromSeed(bytes);
   }
 }
 
@@ -411,10 +411,12 @@ abstract class DelegatingStreamingCipher extends DelegatingCipher
   StreamingCipher get fallback;
 
   @override
-  Future<List<int>> decrypt(SecretBox secretBox,
-      {required SecretKey secretKey,
-      List<int> aad = const <int>[],
-      int keyStreamIndex = 0}) {
+  Future<List<int>> decrypt(
+    SecretBox secretBox, {
+    required SecretKey secretKey,
+    List<int> aad = const <int>[],
+    int keyStreamIndex = 0,
+  }) {
     return fallback.decrypt(
       secretBox,
       secretKey: secretKey,
@@ -424,13 +426,15 @@ abstract class DelegatingStreamingCipher extends DelegatingCipher
   }
 
   @override
-  Future<SecretBox> encrypt(List<int> message,
-      {required SecretKey secretKey,
-      List<int>? nonce,
-      List<int> aad = const <int>[],
-      int keyStreamIndex = 0}) {
+  Future<SecretBox> encrypt(
+    List<int> clearText, {
+    required SecretKey secretKey,
+    List<int>? nonce,
+    List<int> aad = const <int>[],
+    int keyStreamIndex = 0,
+  }) {
     return fallback.encrypt(
-      message,
+      clearText,
       secretKey: secretKey,
       nonce: nonce,
       aad: aad,

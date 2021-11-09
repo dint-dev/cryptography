@@ -19,7 +19,7 @@ import 'package:test/test.dart';
 
 void main() {
   group('SecretKey:', () {
-    final f = (List<int> value) => SecretKey(
+    SecretKey f(List<int> value) => SecretKey(
           value,
         );
 

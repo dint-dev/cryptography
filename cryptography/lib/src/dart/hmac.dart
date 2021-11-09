@@ -27,7 +27,7 @@ class DartHmac extends Hmac with DartMacAlgorithmMixin {
 
   @override
   Future<Mac> calculateMac(
-    List<int> input, {
+    List<int> bytes, {
     required SecretKey secretKey,
     List<int> nonce = const <int>[],
     List<int> aad = const <int>[],
@@ -55,9 +55,9 @@ class DartHmac extends Hmac with DartMacAlgorithmMixin {
     // Inner hash
     final innerPadding = Uint8List(blockLength);
     _preparePadding(innerPadding, hmacKey, 0x36);
-    final innerInput = Uint8List(innerPadding.length + input.length);
+    final innerInput = Uint8List(innerPadding.length + bytes.length);
     innerInput.setAll(0, innerPadding);
-    innerInput.setAll(innerPadding.length, input);
+    innerInput.setAll(innerPadding.length, bytes);
     final innerHash = await hashAlgorithm.hash(innerInput);
 
     // Outer hash

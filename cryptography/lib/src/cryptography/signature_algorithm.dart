@@ -63,7 +63,7 @@ abstract class SignatureAlgorithm {
   /// You can pass key generation preferences by specifying `options`.
   Future<KeyPair> newKeyPair();
 
-  Future<KeyPair> newKeyPairFromSeed(List<int> bytes) {
+  Future<KeyPair> newKeyPairFromSeed(List<int> seed) {
     throw UnsupportedError(
         'newKeyPairFromSeed() is unsupported by this algorithm');
   }

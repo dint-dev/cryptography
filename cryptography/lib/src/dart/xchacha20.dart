@@ -92,7 +92,7 @@ class DartXchacha20 extends Xchacha20 {
 
   @override
   Future<SecretBox> encrypt(
-    List<int> data, {
+    List<int> clearText, {
     required SecretKey secretKey,
     List<int>? nonce,
     List<int> aad = const <int>[],
@@ -134,7 +134,7 @@ class DartXchacha20 extends Xchacha20 {
 
     // Encrypt with chacha20
     final resultWithNewNonce = await _chacha20.encrypt(
-      data,
+      clearText,
       secretKey: newSecretKey,
       nonce: newNonce,
       keyStreamIndex: keyStreamIndex,
