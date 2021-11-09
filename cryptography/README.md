@@ -190,14 +190,14 @@ We wrote the following three implementations of `Cryptography`:
 In _pubspec.yaml_:
 ```yaml
 dependencies:
-  cryptography: ^2.0.2
+  cryptography: ^2.0.3
 ```
 
 If you use Flutter, we recommend that you also add [cryptography_flutter](https://pub.dev/packages/cryptography_flutter):
 ```yaml
 dependencies:
-  cryptography: ^2.0.2
-  cryptography_flutter: ^2.0.1
+  cryptography: ^2.0.3
+  cryptography_flutter: ^2.0.2
 ```
 
 # Examples

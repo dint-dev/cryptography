@@ -1,3 +1,7 @@
+## 2.0.3
+
+* Updates dependency constraints and linting rules.
+
 ## 2.0.2
 
 * Fixes an issue in SecretBox.fromConcatenation.
