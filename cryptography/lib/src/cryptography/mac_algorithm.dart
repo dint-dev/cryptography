@@ -100,6 +100,13 @@ abstract class MacAlgorithm {
         'SecretKey bytes must be non-empty',
       );
     }
+    if (aad.isNotEmpty && !supportsAad) {
+      throw ArgumentError.value(
+        aad,
+        'aad',
+        'AAD is not supported',
+      );
+    }
     return _MacSink(
       this,
       secretKey: secretKey,

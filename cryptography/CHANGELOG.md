@@ -1,3 +1,7 @@
+## 2.0.5
+
+* Fixes bugs in `Xchacha20.poly1305`.
+
 ## 2.0.4
 
 * Fixes an import of 'dart:io' that caused issues.

@@ -147,6 +147,13 @@ class DartChacha20Poly1305AeadMacAlgorithm extends MacAlgorithm {
     required SecretKey secretKey,
     required List<int> nonce,
   }) async {
+    if (nonce.length != 12) {
+      throw ArgumentError.value(
+        nonce,
+        'nonce',
+        'Nonce must have 12 bytes, got ${nonce.length} bytes',
+      );
+    }
     final secretBox = await _chacha20.encrypt(
       Uint8List(32),
       secretKey: secretKey,

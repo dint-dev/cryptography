@@ -30,7 +30,7 @@ Maintained by Gohilla Ltd. Licensed under the [Apache License 2.0](LICENSE).
 In _pubspec.yaml_:
 ```yaml
 dependencies:
-  cryptography: ^2.0.4
+  cryptography: ^2.0.5
   cryptography_flutter: ^2.0.2
 ```
 

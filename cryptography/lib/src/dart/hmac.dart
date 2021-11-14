@@ -33,7 +33,11 @@ class DartHmac extends Hmac with DartMacAlgorithmMixin {
     List<int> aad = const <int>[],
   }) async {
     if (aad.isNotEmpty) {
-      throw ArgumentError.value(aad, 'aad', 'AAD is not supported');
+      throw ArgumentError.value(
+        aad,
+        'aad',
+        'AAD is not supported',
+      );
     }
     final secretKeyData = await secretKey.extract();
     var hmacKey = secretKeyData.bytes;
