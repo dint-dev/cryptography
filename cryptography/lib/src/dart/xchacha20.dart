@@ -15,23 +15,49 @@
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
+import 'package:cryptography/dart.dart';
+
+Uint8List _xchacha20Nonce(List<int> nonce) {
+  final nonce96Bits = Uint8List(12);
+  for (var i = 0; i < 8; i++) {
+    nonce96Bits[4 + i] = nonce[16 + i];
+  }
+  return nonce96Bits;
+}
+
+Future<SecretKeyData> _xchacha20SecretKey({
+  required SecretKey secretKey,
+  required List<int> nonce,
+}) async {
+  final secretKeyData = await secretKey.extract();
+  return const DartHChacha20().deriveKeySync(
+    secretKeyData: secretKeyData,
+    nonce: nonce.sublist(0, 16),
+  );
+}
 
 /// [Xchacha20] implemented in pure Dart.
-class DartXchacha20 extends Xchacha20 {
+class DartXchacha20 extends StreamingCipher implements Xchacha20 {
+  final Chacha20 _chacha20;
+
   @override
   final MacAlgorithm macAlgorithm;
 
-  final Chacha20 _chacha20;
-  final Hchacha20 _hchacha20;
+  factory DartXchacha20.poly1305Aead() =>
+      DartXchacha20._poly1305Aead(Chacha20.poly1305Aead());
 
-  DartXchacha20({
-    required this.macAlgorithm,
-  })  : _chacha20 = Chacha20(macAlgorithm: MacAlgorithm.empty),
-        _hchacha20 = Hchacha20(),
-        super.constructor();
+  DartXchacha20({required this.macAlgorithm})
+      : _chacha20 = Chacha20(macAlgorithm: macAlgorithm);
+
+  DartXchacha20._poly1305Aead(Chacha20 chacha20)
+      : _chacha20 = chacha20,
+        macAlgorithm = _DartXChacha20Poly1305Aead(chacha20.macAlgorithm);
 
   @override
   int get nonceLength => 24;
+
+  @override
+  int get secretKeyLength => 32;
 
   @override
   Future<List<int>> decrypt(
@@ -40,55 +66,31 @@ class DartXchacha20 extends Xchacha20 {
     List<int> aad = const <int>[],
     int keyStreamIndex = 0,
   }) async {
-    // Validate arguments
-    final secretKeyData = await secretKey.extract();
-    final secretKeyLength = secretKeyData.bytes.length;
-    if (secretKeyLength != 32) {
-      throw ArgumentError.value(
-        secretKey,
-        'secretKey',
-        'Must have 32 bytes',
-      );
-    }
-    final nonce = secretBox.nonce;
-    if (nonce.length != 24) {
-      throw ArgumentError.value(
-        nonce,
-        'nonce',
-        'Must have 24 bytes',
-      );
-    }
-    await secretBox.checkMac(
-      macAlgorithm: macAlgorithm,
+    // Secret key for normal Chacha20
+    final derivedSecretKey = await _xchacha20SecretKey(
       secretKey: secretKey,
+      nonce: secretBox.nonce,
+    );
+
+    // Nonce for normal Chacha20
+    final derivedNonce = _xchacha20Nonce(secretBox.nonce);
+
+    // New secret box
+    final derivedSecretBox = SecretBox(
+      secretBox.cipherText,
+      nonce: derivedNonce,
+      mac: secretBox.mac,
+    );
+
+    // Decrypt
+    final clearText = await _chacha20.decrypt(
+      derivedSecretBox,
+      secretKey: derivedSecretKey,
       aad: aad,
-    );
-
-    // Create a new secret key with hchacha20.
-    final nonceBytes = Uint8List.fromList(nonce);
-    final newSecretKey = await _hchacha20.deriveKey(
-      secretKey: secretKeyData,
-      nonce: Uint8List.view(nonceBytes.buffer, 0, 16),
-    );
-
-    // Create new nonce.
-    // The first 4 bytes will be zeroes.
-    // The last 8 bytes will be the last 8 bytes of the original nonce.
-    final newNonce = Uint8List(12);
-    for (var i = 0; i < 8; i++) {
-      newNonce[4 + i] = nonceBytes[16 + i];
-    }
-
-    // Decrypt with chacha20
-    return _chacha20.decrypt(
-      SecretBox(
-        secretBox.cipherText,
-        nonce: newNonce,
-        mac: Mac.empty,
-      ),
-      secretKey: newSecretKey,
       keyStreamIndex: keyStreamIndex,
     );
+
+    return clearText;
   }
 
   @override
@@ -99,61 +101,90 @@ class DartXchacha20 extends Xchacha20 {
     List<int> aad = const <int>[],
     int keyStreamIndex = 0,
   }) async {
-    // Validate arguments
-    final secretKeyData = await secretKey.extract();
-    if (secretKeyData.bytes.length != 32) {
-      throw ArgumentError.value(
-        secretKey,
-        'secretKey',
-        'Must have 32 bytes',
-      );
-    }
-    nonce ??= this.newNonce();
-    if (nonce.length != 24) {
-      throw ArgumentError.value(
-        nonce,
-        'nonce',
-        'Must have 24 bytes',
-      );
-    }
+    nonce ??= newNonce();
 
-    // Create a new secret key with hchacha20.
-    final nonceBytes = Uint8List.fromList(nonce);
-    final newSecretKey = await _hchacha20.deriveKey(
-      secretKey: secretKeyData,
-      nonce: Uint8List.view(nonceBytes.buffer, 0, 16),
-    );
-
-    // Create new nonce.
-    // The first 4 bytes will be zeroes.
-    // The last 8 bytes will be the last 8 bytes of the original nonce.
-    final newNonce = Uint8List(12);
-    for (var i = 0; i < 8; i++) {
-      newNonce[4 + i] = nonceBytes[16 + i];
-    }
-
-    // Encrypt with chacha20
-    final resultWithNewNonce = await _chacha20.encrypt(
-      clearText,
-      secretKey: newSecretKey,
-      nonce: newNonce,
-      keyStreamIndex: keyStreamIndex,
-    );
-    final cipherText = resultWithNewNonce.cipherText;
-
-    // Calculate MAC
-    // (it's different from one returned by _chacha20)
-    final mac = await macAlgorithm.calculateMac(
-      cipherText,
+    // New secret key for normal Chacha20
+    final derivedSecretKey = await _xchacha20SecretKey(
       secretKey: secretKey,
       nonce: nonce,
-      aad: aad,
     );
 
+    // New nonce for normal Chacha20
+    final derivedNonce = _xchacha20Nonce(nonce);
+
+    // Encrypt
+    final secretBox = await _chacha20.encrypt(
+      clearText,
+      secretKey: derivedSecretKey,
+      nonce: derivedNonce,
+      aad: aad,
+      keyStreamIndex: keyStreamIndex,
+    );
+
+    // New secret box
     return SecretBox(
-      cipherText,
+      secretBox.cipherText,
       nonce: nonce,
-      mac: mac,
+      mac: secretBox.mac,
+    );
+  }
+}
+
+class _DartXChacha20Poly1305Aead extends MacAlgorithm {
+  final MacAlgorithm _macAlgorithm;
+
+  _DartXChacha20Poly1305Aead(this._macAlgorithm);
+
+  @override
+  int get macLength => _macAlgorithm.macLength;
+
+  @override
+  bool get supportsAad => _macAlgorithm.supportsAad;
+
+  @override
+  Future<Mac> calculateMac(
+    List<int> bytes, {
+    required SecretKey secretKey,
+    List<int> nonce = const <int>[],
+    List<int> aad = const <int>[],
+  }) async {
+    // New secret key
+    final derivedSecretKey = await _xchacha20SecretKey(
+      secretKey: secretKey,
+      nonce: nonce,
+    );
+
+    // New nonce
+    final derivedNonce = _xchacha20Nonce(nonce);
+
+    final mac = await _macAlgorithm.calculateMac(
+      bytes,
+      secretKey: derivedSecretKey,
+      nonce: derivedNonce,
+      aad: aad,
+    );
+    return mac;
+  }
+
+  @override
+  Future<MacSink> newMacSink({
+    required SecretKey secretKey,
+    List<int> nonce = const <int>[],
+    List<int> aad = const <int>[],
+  }) async {
+    // New secret key
+    final derivedSecretKey = await _xchacha20SecretKey(
+      secretKey: secretKey,
+      nonce: nonce,
+    );
+
+    // New nonce
+    final derivedNonce = _xchacha20Nonce(nonce);
+
+    return _macAlgorithm.newMacSink(
+      secretKey: derivedSecretKey,
+      nonce: derivedNonce,
+      aad: aad,
     );
   }
 }

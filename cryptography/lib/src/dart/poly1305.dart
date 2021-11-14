@@ -47,7 +47,11 @@ class DartPoly1305 extends Poly1305 {
     List<int> aad = const <int>[],
   }) async {
     if (aad.isNotEmpty) {
-      throw ArgumentError.value(aad, 'aad', 'AAD is not supported');
+      throw ArgumentError.value(
+        aad,
+        'aad',
+        'AAD is not supported',
+      );
     }
     final secretKeyBytes = await secretKey.extractBytes();
 

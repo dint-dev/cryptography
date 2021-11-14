@@ -1731,6 +1731,7 @@ abstract class X25519 extends KeyExchangeAlgorithm {
 ///
 abstract class Xchacha20 extends StreamingCipher {
   factory Xchacha20({required MacAlgorithm macAlgorithm}) {
+    // ignore: deprecated_member_use_from_same_package
     return Cryptography.instance.xchacha20(macAlgorithm: macAlgorithm);
   }
 
