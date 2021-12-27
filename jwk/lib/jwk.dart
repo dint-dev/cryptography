@@ -361,7 +361,7 @@ class Jwk {
           type: type,
         );
 
-      case 'OCP':
+      case 'OKP':
         if (crv == 'Ed25519') {
           final y = this.y!;
           return SimpleKeyPair.lazy(
@@ -414,7 +414,7 @@ class Jwk {
           type: type,
         );
 
-      case 'OCP':
+      case 'OKP':
         final type = const <String, KeyPairType>{
           'Ed25519': KeyPairType.ed25519,
           'X25519': KeyPairType.x25519,
