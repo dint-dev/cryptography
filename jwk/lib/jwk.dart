@@ -542,9 +542,9 @@ class Jwk {
       }[keyPair.type];
       if (crv != null) {
         return Jwk(
-          kty: 'EC',
+          kty: 'OKP',
           crv: crv,
-          x: keyPair.bytes,
+          d: keyPair.bytes,
         );
       }
     } else if (keyPair is RsaKeyPairData) {
@@ -584,7 +584,7 @@ class Jwk {
       }[publicKey.type];
       if (crv != null) {
         return Jwk(
-          kty: 'EC',
+          kty: 'OKP',
           crv: crv,
           x: publicKey.bytes,
         );
