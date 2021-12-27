@@ -363,18 +363,18 @@ class Jwk {
 
       case 'OKP':
         if (crv == 'Ed25519') {
-          final y = this.y!;
+          final d = this.d!;
           return SimpleKeyPair.lazy(
             () async {
-              return Ed25519().newKeyPairFromSeed(y);
+              return Ed25519().newKeyPairFromSeed(d);
             },
           );
         }
         if (crv == 'X25519') {
-          final y = this.y!;
+          final d = this.d!;
           return SimpleKeyPair.lazy(
             () async {
-              return X25519().newKeyPairFromSeed(y);
+              return X25519().newKeyPairFromSeed(d);
             },
           );
         }
