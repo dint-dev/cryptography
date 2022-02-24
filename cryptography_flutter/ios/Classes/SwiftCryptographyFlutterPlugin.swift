@@ -87,7 +87,7 @@ public class SwiftCryptographyFlutterPlugin: NSObject, FlutterPlugin {
                 
             case "Chacha20.poly1305Aead":
                 let symmetricKey = SymmetricKey(data: secretKey)
-                let sealedBox = try! ChaChaPoly.seal(
+                let sealedBox = try ChaChaPoly.seal(
                     clearText,
                     using: symmetricKey,
                     nonce: ChaChaPoly.Nonce(data: nonce))
@@ -127,11 +127,11 @@ public class SwiftCryptographyFlutterPlugin: NSObject, FlutterPlugin {
                 
             case "Chacha20.poly1305Aead":
                 let symmetricKey = SymmetricKey(data: secretKey)
-                let sealedBox = try! ChaChaPoly.SealedBox(
+                let sealedBox = try ChaChaPoly.SealedBox(
                     nonce: ChaChaPoly.Nonce(data: nonce),
                     ciphertext: cipherText,
                     tag: mac)
-                let clearText = try! ChaChaPoly.open(sealedBox, using:symmetricKey)
+                let clearText = try ChaChaPoly.open(sealedBox, using:symmetricKey)
                 result([
                     "clearText": FlutterStandardTypedData(bytes: clearText),
                 ])
