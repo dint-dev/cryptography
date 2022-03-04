@@ -150,7 +150,7 @@ abstract class FlutterStreamingCipher extends DelegatingStreamingCipher
   }) async {
     if (keyStreamIndex == 0 && usePlugin) {
       try {
-        await _decryptWithPlugin(
+        return await _decryptWithPlugin(
           this,
           secretBox,
           secretKey: secretKey,
