@@ -44,7 +44,7 @@ void _main() {
   });
 
   test('toString()', () {
-    expect(Hmac(Sha1()).toString(), 'Hmac(Sha1())');
+    expect(Hmac(Sha1()).toString(), 'Hmac.sha1()');
     expect(Hmac(Sha224()).toString(), 'Hmac(Sha224())');
     expect(Hmac(Sha256()).toString(), 'Hmac.sha256()');
     expect(Hmac(Sha384()).toString(), 'Hmac(Sha384())');
