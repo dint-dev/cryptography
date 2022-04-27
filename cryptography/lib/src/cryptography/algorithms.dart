@@ -92,14 +92,17 @@ abstract class AesCbc extends Cipher {
   }
 
   @override
-  int get hashCode => (AesCbc).hashCode ^ secretKeyLength.hashCode ^ macAlgorithm.hashCode;
+  int get hashCode =>
+      (AesCbc).hashCode ^ secretKeyLength.hashCode ^ macAlgorithm.hashCode;
 
   @override
   int get nonceLength => 16;
 
   @override
   bool operator ==(other) =>
-      other is AesCbc && secretKeyLength == other.secretKeyLength && macAlgorithm == other.macAlgorithm;
+      other is AesCbc &&
+      secretKeyLength == other.secretKeyLength &&
+      macAlgorithm == other.macAlgorithm;
 
   @override
   String toString() {
@@ -206,14 +209,17 @@ abstract class AesCtr extends StreamingCipher {
   int get counterBits;
 
   @override
-  int get hashCode => (AesCtr).hashCode ^ secretKeyLength.hashCode ^ macAlgorithm.hashCode;
+  int get hashCode =>
+      (AesCtr).hashCode ^ secretKeyLength.hashCode ^ macAlgorithm.hashCode;
 
   @override
   int get nonceLength => 16;
 
   @override
   bool operator ==(other) =>
-      other is AesCtr && secretKeyLength == other.secretKeyLength && macAlgorithm == other.macAlgorithm;
+      other is AesCtr &&
+      secretKeyLength == other.secretKeyLength &&
+      macAlgorithm == other.macAlgorithm;
 
   @override
   String toString() {
@@ -329,7 +335,9 @@ abstract class AesGcm extends StreamingCipher {
 
   @override
   bool operator ==(other) =>
-      other is AesGcm && secretKeyLength == other.secretKeyLength && nonceLength == other.nonceLength;
+      other is AesGcm &&
+      secretKeyLength == other.secretKeyLength &&
+      nonceLength == other.nonceLength;
 
   @override
   String toString() {
@@ -649,7 +657,8 @@ abstract class Chacha20 extends StreamingCipher {
   int get secretKeyLength => 32;
 
   @override
-  bool operator ==(other) => other is Chacha20 && macAlgorithm == other.macAlgorithm;
+  bool operator ==(other) =>
+      other is Chacha20 && macAlgorithm == other.macAlgorithm;
 
   @override
   String toString() {
@@ -943,7 +952,8 @@ abstract class Hkdf extends KdfAlgorithm {
   int get outputLength;
 
   @override
-  bool operator ==(other) => other is Hkdf && hmac == other.hmac && outputLength == other.outputLength;
+  bool operator ==(other) =>
+      other is Hkdf && hmac == other.hmac && outputLength == other.outputLength;
 
   @override
   Future<SecretKey> deriveKey({
@@ -1013,7 +1023,8 @@ abstract class Hmac extends MacAlgorithm {
   int get macLength => hashAlgorithm.hashLengthInBytes;
 
   @override
-  bool operator ==(other) => other is Hmac && hashAlgorithm == other.hashAlgorithm;
+  bool operator ==(other) =>
+      other is Hmac && hashAlgorithm == other.hashAlgorithm;
 
   @override
   String toString() {
@@ -1095,7 +1106,10 @@ abstract class Pbkdf2 extends KdfAlgorithm {
 
   @override
   bool operator ==(other) =>
-      other is Pbkdf2 && iterations == other.iterations && bits == other.bits && macAlgorithm == other.macAlgorithm;
+      other is Pbkdf2 &&
+      iterations == other.iterations &&
+      bits == other.bits &&
+      macAlgorithm == other.macAlgorithm;
 
   @override
   Future<SecretKey> deriveKey({
@@ -1104,7 +1118,8 @@ abstract class Pbkdf2 extends KdfAlgorithm {
   });
 
   @override
-  String toString() => 'Pbkdf2(macAlgorithm: $macAlgorithm, iterations: $iterations, bits: $bits)';
+  String toString() =>
+      'Pbkdf2(macAlgorithm: $macAlgorithm, iterations: $iterations, bits: $bits)';
 }
 
 /// _Poly1305_ ([RFC 7539](https://tools.ietf.org/html/rfc7539)) [MacAlgorithm].
@@ -1195,7 +1210,8 @@ abstract class RsaPss extends SignatureAlgorithm {
   KeyPairType<KeyPairData, PublicKey> get keyPairType => KeyPairType.rsa;
 
   @override
-  bool operator ==(other) => other is RsaPss && hashAlgorithm == other.hashAlgorithm;
+  bool operator ==(other) =>
+      other is RsaPss && hashAlgorithm == other.hashAlgorithm;
 
   @override
   Future<RsaKeyPair> newKeyPair({
@@ -1264,7 +1280,8 @@ abstract class RsaSsaPkcs1v15 extends SignatureAlgorithm {
   KeyPairType<KeyPairData, PublicKey> get keyPairType => KeyPairType.rsa;
 
   @override
-  bool operator ==(other) => other is RsaSsaPkcs1v15 && hashAlgorithm == other.hashAlgorithm;
+  bool operator ==(other) =>
+      other is RsaSsaPkcs1v15 && hashAlgorithm == other.hashAlgorithm;
 
   @override
   Future<RsaKeyPair> newKeyPair({
@@ -1747,5 +1764,6 @@ abstract class Xchacha20 extends StreamingCipher {
   int get secretKeyLength => 32;
 
   @override
-  bool operator ==(other) => other is Xchacha20 && macAlgorithm == other.macAlgorithm;
+  bool operator ==(other) =>
+      other is Xchacha20 && macAlgorithm == other.macAlgorithm;
 }
