@@ -27,7 +27,7 @@ import 'package:meta/meta.dart';
 ///   * [X25519]
 @sealed
 class SimplePublicKey extends PublicKey implements Comparable<SimplePublicKey> {
-  /// Elliptic curve parameter `x`.
+  /// The public key
   final List<int> x;
 
   @override

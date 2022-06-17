@@ -51,10 +51,10 @@ abstract class SimpleKeyPair extends KeyPair {
 ///   * [X25519]
 @sealed
 class SimpleKeyPairData extends KeyPairData implements SimpleKeyPair {
-  /// Elliptic curve parameter `d`.
+  /// The private key
   final List<int> d;
 
-  /// Elliptic curve parameter `x`.
+  /// The public key
   final List<int> x;
 
   Future<SimplePublicKey>? _publicKey;
