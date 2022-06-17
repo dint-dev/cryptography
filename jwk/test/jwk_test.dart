@@ -81,6 +81,7 @@ void main() {
       'crv': 'P-256',
       'kty': 'EC',
       'x': base64Url.encode([1]),
+      'y': base64Url.encode([2]),
     };
 
     test('fromJson / toJson', () {

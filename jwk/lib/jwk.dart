@@ -370,9 +370,10 @@ class Jwk {
           throw StateError('Unsupported "crv": "$crv"');
         }
         return SimpleKeyPairData(
-            List<int>.unmodifiable(d ?? const <int>[]),
-            List<int>.unmodifiable(x ?? const <int>[]),
-            type: type);
+          List<int>.unmodifiable(d ?? const <int>[]),
+          List<int>.unmodifiable(x ?? const <int>[]),
+          type: type,
+        );
 
       case 'RSA':
         return RsaKeyPairData(
@@ -570,6 +571,7 @@ class Jwk {
           kty: 'EC',
           crv: crv,
           x: publicKey.x,
+          y: publicKey.y,
         );
       }
     } else if (publicKey is SimplePublicKey) {
