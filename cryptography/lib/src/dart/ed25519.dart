@@ -32,15 +32,16 @@ class DartEd25519 extends Ed25519 {
   KeyPairType get keyPairType => KeyPairType.ed25519;
 
   @override
-  Future<SimpleKeyPair> newKeyPairFromSeed(List<int> seed) {
+  Future<SimpleKeyPair> newKeyPairFromSeed(List<int> seed) async {
     if (seed.length != 32) {
       throw ArgumentError('Seed must have 32 bytes');
     }
-    return Future<SimpleKeyPairData>.value(SimpleKeyPairData(
+    SimplePublicKey publicKey = await _publicKey(seed);
+    return SimpleKeyPairData(
       List<int>.unmodifiable(seed),
+      List<int>.unmodifiable(publicKey.x),
       type: KeyPairType.ed25519,
-      publicKey: _publicKey(seed),
-    ));
+    );
   }
 
   // Compresses a point

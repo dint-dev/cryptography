@@ -27,12 +27,15 @@ import 'package:meta/meta.dart';
 ///   * [X25519]
 @sealed
 class SimplePublicKey extends PublicKey implements Comparable<SimplePublicKey> {
-  final List<int> bytes;
+  /// Elliptic curve parameter `x`.
+  final List<int> x;
 
   @override
   final KeyPairType type;
 
-  SimplePublicKey(this.bytes, {required this.type});
+  SimplePublicKey(this.x, {required this.type});
+
+  get bytes => x;
 
   @override
   int get hashCode => const ListEquality<int>().hash(bytes) ^ type.hashCode;

@@ -361,24 +361,18 @@ class Jwk {
           type: type,
         );
 
-      case 'OCP':
-        if (crv == 'Ed25519') {
-          final y = this.y!;
-          return SimpleKeyPair.lazy(
-            () async {
-              return Ed25519().newKeyPairFromSeed(y);
-            },
-          );
+      case 'OKP':
+        final type = const <String, KeyPairType>{
+          'Ed25519': KeyPairType.ed25519,
+          'X25519': KeyPairType.x25519,
+        }[crv];
+        if (type == null) {
+          throw StateError('Unsupported "crv": "$crv"');
         }
-        if (crv == 'X25519') {
-          final y = this.y!;
-          return SimpleKeyPair.lazy(
-            () async {
-              return X25519().newKeyPairFromSeed(y);
-            },
-          );
-        }
-        throw StateError('Unsupported "crv": "$crv"');
+        return SimpleKeyPairData(
+            List<int>.unmodifiable(d ?? const <int>[]),
+            List<int>.unmodifiable(x ?? const <int>[]),
+            type: type);
 
       case 'RSA':
         return RsaKeyPairData(
@@ -414,7 +408,7 @@ class Jwk {
           type: type,
         );
 
-      case 'OCP':
+      case 'OKP':
         final type = const <String, KeyPairType>{
           'Ed25519': KeyPairType.ed25519,
           'X25519': KeyPairType.x25519,
@@ -542,9 +536,10 @@ class Jwk {
       }[keyPair.type];
       if (crv != null) {
         return Jwk(
-          kty: 'EC',
+          kty: 'OKP',
           crv: crv,
-          x: keyPair.bytes,
+          d: keyPair.d,
+          x: keyPair.x,
         );
       }
     } else if (keyPair is RsaKeyPairData) {
@@ -584,7 +579,7 @@ class Jwk {
       }[publicKey.type];
       if (crv != null) {
         return Jwk(
-          kty: 'EC',
+          kty: 'OKP',
           crv: crv,
           x: publicKey.bytes,
         );

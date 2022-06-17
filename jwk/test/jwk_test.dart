@@ -141,4 +141,86 @@ void main() {
       expect(jwkFromPublicKey.toJson(), json);
     });
   });
+
+  group('Ed25519 private key', () {
+    final json = <String, Object>{
+      'kty': 'OKP',
+      'crv': 'Ed25519',
+      'd': base64Url.encode([1]),
+      'x': base64Url.encode([2]),
+    };
+
+    test('fromJson / toJson', () {
+      final key = Jwk.fromJson(json);
+      expect(key.toJson(), json);
+    });
+
+    test('toKeyPair() / fromKeyPair()', () async {
+      final jwk = Jwk.fromJson(json);
+      final keyPair = jwk.toKeyPair();
+      final jwkFromKeyPair = Jwk.fromKeyPair(keyPair);
+      expect(jwkFromKeyPair.toJson(), json);
+    });
+  });
+
+  group('Ed25519 public key', () {
+    final json = <String, Object>{
+      'kty': 'OKP',
+      'crv': 'Ed25519',
+      'x': base64Url.encode([1]),
+    };
+
+    test('fromJson / toJson', () {
+      final key = Jwk.fromJson(json);
+      expect(key.toJson(), json);
+    });
+
+    test('toPublicKey() / fromPublicKey()', () {
+      final jwk = Jwk.fromJson(json);
+      final publicKey = jwk.toPublicKey()!;
+      final jwkFromPublicKey = Jwk.fromPublicKey(publicKey);
+      expect(jwkFromPublicKey.toJson(), json);
+    });
+  });
+
+  group('X25519 private key', () {
+    final json = <String, Object>{
+      'kty': 'OKP',
+      'crv': 'X25519',
+      'd': base64Url.encode([1]),
+      'x': base64Url.encode([2]),
+    };
+
+    test('fromJson / toJson', () {
+      final key = Jwk.fromJson(json);
+      expect(key.toJson(), json);
+    });
+
+    test('toKeyPair() / fromKeyPair()', () async {
+      final jwk = Jwk.fromJson(json);
+      final keyPair = jwk.toKeyPair();
+      final jwkFromKeyPair = Jwk.fromKeyPair(keyPair);
+      expect(jwkFromKeyPair.toJson(), json);
+    });
+  });
+
+  group('X25519 public key', () {
+    final json = <String, Object>{
+      'kty': 'OKP',
+      'crv': 'X25519',
+      'x': base64Url.encode([1]),
+    };
+
+    test('fromJson / toJson', () {
+      final key = Jwk.fromJson(json);
+      expect(key.toJson(), json);
+    });
+
+    test('toPublicKey() / fromPublicKey()', () {
+      final jwk = Jwk.fromJson(json);
+      final publicKey = jwk.toPublicKey()!;
+      final jwkFromPublicKey = Jwk.fromPublicKey(publicKey);
+      expect(jwkFromPublicKey.toJson(), json);
+    });
+  });
 }

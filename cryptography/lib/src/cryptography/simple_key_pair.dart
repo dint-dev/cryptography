@@ -50,27 +50,34 @@ abstract class SimpleKeyPair extends KeyPair {
 ///   * [Ed25519]
 ///   * [X25519]
 @sealed
-class SimpleKeyPairData implements KeyPairData, SimpleKeyPair {
-  final List<int> bytes;
+class SimpleKeyPairData extends KeyPairData implements SimpleKeyPair {
+  /// Elliptic curve parameter `d`.
+  final List<int> d;
 
-  @override
-  final KeyPairType type;
+  /// Elliptic curve parameter `x`.
+  final List<int> x;
 
-  final FutureOr<SimplePublicKey> _publicKey;
+  Future<SimplePublicKey>? _publicKey;
 
   SimpleKeyPairData(
-    this.bytes, {
-    required FutureOr<SimplePublicKey> publicKey,
-    required this.type,
-  }) : _publicKey = publicKey;
+    this.d,
+    this.x, {
+    required KeyPairType type,
+  }) : super(type: type);
+
+  get bytes => d;
 
   @override
-  int get hashCode => constantTimeBytesEquality.hash(bytes) ^ type.hashCode;
+  int get hashCode =>
+      constantTimeBytesEquality.hash(d) ^
+      constantTimeBytesEquality.hash(x) ^
+      type.hashCode;
 
   @override
   bool operator ==(other) =>
       other is SimpleKeyPairData &&
-      constantTimeBytesEquality.equals(bytes, other.bytes) &&
+      constantTimeBytesEquality.equals(d, other.x) &&
+      constantTimeBytesEquality.equals(x, other.d) &&
       type == other.type;
 
   @override
@@ -82,8 +89,11 @@ class SimpleKeyPairData implements KeyPairData, SimpleKeyPair {
   Future<List<int>> extractPrivateKeyBytes() => Future<List<int>>.value(bytes);
 
   @override
-  Future<SimplePublicKey> extractPublicKey() async {
-    return _publicKey;
+  Future<SimplePublicKey> extractPublicKey() {
+    return _publicKey ??= Future<SimplePublicKey>.value(SimplePublicKey(
+      x,
+      type: type,
+    ));
   }
 
   @override

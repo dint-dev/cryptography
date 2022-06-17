@@ -43,15 +43,15 @@ class DartX25519 extends X25519 with DartKeyExchangeAlgorithmMixin {
   KeyPairType get keyPairType => KeyPairType.x25519;
 
   @override
-  Future<SimpleKeyPair> newKeyPairFromSeed(List<int> seed) {
+  Future<SimpleKeyPair> newKeyPairFromSeed(List<int> seed) async {
     final modifiedBytes = DartX25519.modifiedPrivateKeyBytes(seed);
-    return Future<SimpleKeyPairData>.value(SimpleKeyPairData(
+    var publicKey = DartX25519._publicKey(modifiedBytes);
+
+    return SimpleKeyPairData(
       modifiedBytes,
-      publicKey: Future<SimplePublicKey>(
-        () => DartX25519._publicKey(modifiedBytes),
-      ),
+      publicKey.x,
       type: KeyPairType.x25519,
-    ));
+    );
   }
 
   @override

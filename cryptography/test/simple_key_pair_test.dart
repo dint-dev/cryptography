@@ -18,34 +18,10 @@ import 'package:test/test.dart';
 void main() {
   group('SimpleKeyPairData:', () {
     test('"==" / hashCode', () {
-      final value = SimpleKeyPairData(
-        [1],
-        publicKey: Future<SimplePublicKey>.value(
-          SimplePublicKey([2], type: KeyPairType.ed25519),
-        ),
-        type: KeyPairType.ed25519,
-      );
-      final clone = SimpleKeyPairData(
-        [1],
-        publicKey: Future<SimplePublicKey>.value(
-          SimplePublicKey([2], type: KeyPairType.ed25519),
-        ),
-        type: KeyPairType.ed25519,
-      );
-      final other0 = SimpleKeyPairData(
-        [9999],
-        publicKey: Future<SimplePublicKey>.value(
-          SimplePublicKey([2], type: KeyPairType.ed25519),
-        ),
-        type: KeyPairType.ed25519,
-      );
-      final other1 = SimpleKeyPairData(
-        [1],
-        publicKey: Future<SimplePublicKey>.value(
-          SimplePublicKey([2], type: KeyPairType.ed25519),
-        ),
-        type: KeyPairType.x25519,
-      );
+      final value = SimpleKeyPairData([1], [2], type: KeyPairType.ed25519);
+      final clone = SimpleKeyPairData([1], [2], type: KeyPairType.ed25519);
+      final other0 = SimpleKeyPairData([9999], [2], type: KeyPairType.ed25519);
+      final other1 = SimpleKeyPairData([1], [2], type: KeyPairType.x25519);
 
       expect(value, clone);
       expect(value, isNot(other0));
@@ -57,13 +33,7 @@ void main() {
     });
 
     test('toString() shows only key type', () {
-      final value = SimpleKeyPairData(
-        [1],
-        publicKey: Future<SimplePublicKey>.value(
-          SimplePublicKey([2], type: KeyPairType.ed25519),
-        ),
-        type: KeyPairType.ed25519,
-      );
+      final value = SimpleKeyPairData([1], [2], type: KeyPairType.ed25519);
       expect(
         value.toString(),
         'SimpleKeyPairData(..., type: KeyPairType.ed25519)',
@@ -73,22 +43,10 @@ void main() {
 
   group('SimplePublicKey:', () {
     test('"==" / hashCode', () {
-      final value = SimplePublicKey(
-        [1],
-        type: KeyPairType.ed25519,
-      );
-      final clone = SimplePublicKey(
-        [1],
-        type: KeyPairType.ed25519,
-      );
-      final other0 = SimplePublicKey(
-        [9999],
-        type: KeyPairType.ed25519,
-      );
-      final other1 = SimplePublicKey(
-        [1],
-        type: KeyPairType.x25519,
-      );
+      final value = SimplePublicKey([1], type: KeyPairType.ed25519);
+      final clone = SimplePublicKey([1], type: KeyPairType.ed25519);
+      final other0 = SimplePublicKey([9999], type: KeyPairType.ed25519);
+      final other1 = SimplePublicKey([1], type: KeyPairType.x25519);
 
       expect(value, clone);
       expect(value, isNot(other0));
@@ -100,10 +58,7 @@ void main() {
     });
 
     test('toString()', () {
-      final value = SimplePublicKey(
-        [1, 2],
-        type: KeyPairType.ed25519,
-      );
+      final value = SimplePublicKey([1, 2], type: KeyPairType.ed25519);
       expect(value.toString(),
           'SimplePublicKey([1,2], type: KeyPairType.ed25519)');
     });
