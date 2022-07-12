@@ -58,7 +58,7 @@ implementations are available:
     * [AesCtr](https://pub.dev/documentation/cryptography/latest/cryptography/AesCtr-class.html) (AES-CTR)
     * [AesGcm](https://pub.dev/documentation/cryptography/latest/cryptography/AesGcm-class.html) (AES-GCM)
     * Throughputs of the pure Dart implementations are about 50 MB/s, AES-GCM about 5-10 MB/s.
-    * Throughputs of the [BrowserCryptography](https://pub.dev/documentation/cryptography/latest/browser/BrowserCryptography-class.html)
+    * Throughputs of the [BrowserCryptography](https://pub.dev/documentation/cryptography/latest/cryptography.browser/BrowserCryptography-class.html)
       implementations are about 400 - 700 MB/s.
   * ChaCha20 / XChaCha20
     * [Chacha20](https://pub.dev/documentation/cryptography/latest/cryptography/Chacha20-class.html)
