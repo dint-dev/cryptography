@@ -20,9 +20,9 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   cryptography_flutter: a2c541ba25ff28549f989f856dde126c961defcd
-  Flutter: 434fef37c0980e73bb6479ef766c45957d4b510c
-  integration_test: 5ed24a436eb7ec17b6a13046e9bf7ca4a404e59e
+  Flutter: 50d75fe2f02b26cc09d224853bb45737f8b3214a
+  integration_test: a1e7d09bd98eca2fc37aefd79d4f41ad37bdbbe5
 
 PODFILE CHECKSUM: aafe91acc616949ddb318b77800a7f51bffa2a4c
 
-COCOAPODS: 1.9.3
+COCOAPODS: 1.11.3
