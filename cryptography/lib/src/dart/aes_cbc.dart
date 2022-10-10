@@ -38,6 +38,7 @@ class DartAesCbc extends AesCbc with DartAesMixin {
     required SecretKey secretKey,
     List<int> aad = const <int>[],
     int keyStreamIndex = 0,
+    bool removePadding = true,
   }) async {
     // Validate arguments
     final secretKeyData = await secretKey.extract();
@@ -136,25 +137,30 @@ class DartAesCbc extends AesCbc with DartAesMixin {
     }
 
     // PKCS7 padding:
-    // The last byte has padding length.
-    final paddingLength = outputAsUint8List.last;
-    if (paddingLength == 0 || paddingLength > 16) {
-      throw StateError(
-        'The decrypted bytes have invalid PKCS7 padding length in the end: $paddingLength',
-      );
-    }
+    //paddingLength = outputAsUint8List.last;
+    int paddingLength = 0;
+    if (removePadding) {
+      // The last byte has padding length.
+      paddingLength = (removePadding) ? outputAsUint8List.last : 0;
+      if (paddingLength == 0 || paddingLength > 16) {
+        throw StateError(
+          'The decrypted bytes have invalid PKCS7 padding length in the end: $paddingLength',
+        );
+      }
 
-    // Check that all padding bytes are correct PKCS7 padding bytes.
-    for (var i = outputAsUint8List.length - paddingLength;
-        i < outputAsUint8List.length;
-        i++) {
-      if (outputAsUint8List[i] != paddingLength) {
-        throw StateError('The decrypted bytes are missing padding');
+      // Check that all padding bytes are correct PKCS7 padding bytes.
+      for (var i = outputAsUint8List.length - paddingLength;
+          i < outputAsUint8List.length;
+          i++) {
+        if (outputAsUint8List[i] != paddingLength) {
+          throw StateError('The decrypted bytes are missing padding');
+        }
+      }
+      if (paddingLength == 0) {
+        return outputAsUint8List;
       }
     }
-    if (paddingLength == 0) {
-      return outputAsUint8List;
-    }
+
     return Uint8List.view(
       outputAsUint32List.buffer,
       outputAsUint32List.offsetInBytes,
@@ -169,7 +175,12 @@ class DartAesCbc extends AesCbc with DartAesMixin {
     List<int>? nonce,
     List<int> aad = const <int>[],
     int keyStreamIndex = 0,
+    bool addPadding = true,
   }) async {
+    /// If addPadding is false, then macAlgorithm.calculateMac() will likely
+    /// not give the intended results. When addPadding is false, it is
+    /// probably best to use macAlgorithm.empty for DartAesCbc.
+
     // Check parameters
     final secretKeyData = await secretKey.extract();
     final actualSecretKeyLength = secretKeyData.bytes.length;
@@ -195,12 +206,21 @@ class DartAesCbc extends AesCbc with DartAesMixin {
         'keyStreamIndex',
       );
     }
+    if (!addPadding && clearText.length % 16 != 0) {
+      // If suppressing padding, it is still necessary that the input length
+      // be a multiple of the AES block size (16 bytes). If the input is
+      // less than the block size, it must be padded.
+      throw ArgumentError.value(
+        addPadding,
+        'If addPadding is false, clearText must be a multiple of 16 bytes',
+      );
+    }
 
     // Expand key
     final expandedKey = aesExpandKeyForEncrypting(secretKeyData);
 
     // Construct Uint32List list for the output
-    final paddingLength = 16 - clearText.length % 16;
+    final paddingLength = (addPadding) ? 16 - clearText.length % 16 : 0;
     final cipherTextBlocks = Uint32List(
       (clearText.length + paddingLength) ~/ 16 * 4,
     );
