@@ -53,7 +53,7 @@ import 'package:cryptography/helpers.dart';
 ///   print('MAC: ${secretBox.mac.bytes}')
 ///
 ///   // Decrypt
-///   final clearText = await algorithm.encrypt(
+///   final clearText = await algorithm.decrypt(
 ///     secretBox,
 ///     secretKey: secretKey,
 ///   );
