@@ -55,7 +55,7 @@ class BrowserCryptography extends DartCryptography {
   AesCtr aesCtr({
     required MacAlgorithm macAlgorithm,
     int secretKeyLength = 32,
-    int counterBits = 64,
+    int counterBits = AesCtr.defaultCounterBits,
   }) {
     // Web Cryptography API does not support 192 bit keys
     if (secretKeyLength == 24) {

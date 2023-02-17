@@ -74,6 +74,7 @@ class BrowserAesGcm extends AesGcm
       );
     }
 
+    // Web Cryptography API does not support 192 bit keys.
     if (secretKey is SecretKeyData && secretKey.bytes.length == 24) {
       final fallback = this.fallback;
       if (fallback == null) {
@@ -82,7 +83,6 @@ class BrowserAesGcm extends AesGcm
           'secretKey',
         );
       }
-      // Key stream offset can't be passed to Web Cryptography API.
       return fallback.decrypt(
         secretBox,
         secretKey: secretKey,
@@ -159,6 +159,24 @@ class BrowserAesGcm extends AesGcm
       );
     }
 
+    // Web Cryptography API does not support 192 bit keys.
+    if (secretKey is SecretKeyData && secretKey.bytes.length == 24) {
+      final fallback = this.fallback;
+      if (fallback == null) {
+        throw ArgumentError.value(
+          secretKey,
+          'secretKey',
+        );
+      }
+      return fallback.encrypt(
+        clearText,
+        secretKey: secretKey,
+        nonce: nonce,
+        aad: aad,
+        keyStreamIndex: keyStreamIndex,
+      );
+    }
+
     nonce ??= newNonce();
     final jsCryptoKey = await jsCryptoKeyFromAesSecretKey(
       secretKey,
@@ -176,10 +194,8 @@ class BrowserAesGcm extends AesGcm
         jsArrayBufferFrom(clearText),
       ),
     );
-    final cipherText = List<int>.unmodifiable(
-      Uint8List.view(byteBuffer, 0, clearText.length),
-    );
-    final mac = Mac(List<int>.unmodifiable(
+    final cipherText = Uint8List.view(byteBuffer, 0, clearText.length);
+    final mac = Mac(UnmodifiableUint8ListView(
       Uint8List.view(byteBuffer, clearText.length),
     ));
     return SecretBox(

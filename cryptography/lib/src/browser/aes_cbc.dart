@@ -22,6 +22,8 @@ import 'javascript_bindings.dart' show jsArrayBufferFrom;
 import 'javascript_bindings.dart' as web_crypto;
 
 /// AES-CBC implementation that uses _Web Cryptography API_ in browsers.
+///
+/// Web Cryptography API supports only PKCS7 padding.
 class BrowserAesCbc extends AesCbc with BrowserAesMixin {
   @override
   final MacAlgorithm macAlgorithm;
@@ -91,7 +93,7 @@ class BrowserAesCbc extends AesCbc with BrowserAesMixin {
         jsArrayBufferFrom(clearText),
       ),
     );
-    final cipherText = List<int>.unmodifiable(Uint8List.view(byteBuffer));
+    final cipherText = Uint8List.view(byteBuffer);
 
     final mac = await macAlgorithm.calculateMac(
       cipherText,

@@ -29,11 +29,11 @@ List<int>? base64UrlDecode(String? s) {
   }
   switch (s.length % 4) {
     case 1:
-      return base64Url.decode(s + '===');
+      return base64Url.decode('$s===');
     case 2:
-      return base64Url.decode(s + '==');
+      return base64Url.decode('$s==');
     case 3:
-      return base64Url.decode(s + '=');
+      return base64Url.decode('$s=');
     default:
       return base64Url.decode(s);
   }
