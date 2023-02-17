@@ -18,6 +18,7 @@ import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/dart.dart';
 import 'package:cryptography/src/utils.dart';
 
+/// [Blake2s] implemented in pure Dart.
 class DartBlake2s extends Blake2s with DartHashAlgorithmMixin {
   const DartBlake2s() : super.constructor();
 
@@ -56,6 +57,7 @@ class _Blake2sSink extends DartHashSink {
   final Uint32List _buffer = Uint32List(16);
   Uint8List? _bufferAsBytes;
 
+  /// Used only in big-endian systems.
   ByteData? _bufferAsByteData;
 
   int _length = 0;
@@ -66,13 +68,21 @@ class _Blake2sSink extends DartHashSink {
 
   final Uint32List _localValues = Uint32List(16);
 
+  void reset() {
+    _length = 0;
+    _result = null;
+    _isClosed = false;
+    _buffer.fillRange(0, 16, 0);
+    _localValues.fillRange(0, 16, 0);
+    final h = _hash;
+    h.setAll(0, _initializationVector);
+    h[0] ^= 0x01010000 ^ 32;
+  }
+
   _Blake2sSink() {
     final h = _hash;
-    final iv = _initializationVector;
-    for (var i = 0; i < 8; i++) {
-      h[i] = iv[i];
-    }
-    h[0] = h[0] ^ 0x01010000 ^ 32;
+    h.setAll(0, _initializationVector);
+    h[0] ^= 0x01010000 ^ 32;
   }
 
   @override
@@ -83,7 +93,7 @@ class _Blake2sSink extends DartHashSink {
 
     var bufferAsBytes = _bufferAsBytes;
     if (bufferAsBytes == null) {
-      bufferAsBytes ??= Uint8List.view(_buffer.buffer);
+      bufferAsBytes = Uint8List.view(_buffer.buffer);
       _bufferAsBytes = bufferAsBytes;
     }
     var length = _length;
@@ -147,13 +157,12 @@ class _Blake2sSink extends DartHashSink {
     }
 
     // Return bytes
-    _result = Hash(List<int>.unmodifiable(
-      Uint8List.view(
-        hash.buffer,
-        hash.offsetInBytes,
-        32,
-      ),
-    ));
+    final resultBytes = Uint8List(32);
+    resultBytes.setAll(
+      0,
+      Uint8List.view(hash.buffer, 0, 32),
+    );
+    _result = Hash(UnmodifiableUint8ListView(resultBytes));
   }
 
   @override
@@ -194,7 +203,7 @@ class _Blake2sSink extends DartHashSink {
     }
 
     // Initialize v[8..15]
-    final initializationVector = _initializationVector;
+    const initializationVector = _initializationVector;
     for (var i = 0; i < 8; i++) {
       v[8 + i] = initializationVector[i];
     }
@@ -210,7 +219,7 @@ class _Blake2sSink extends DartHashSink {
       v[14] ^= uint32mask;
     }
 
-    final sigma = _sigma;
+    const sigma = _sigma;
 
     // 10 rounds
     for (var round = 0; round < 10; round++) {
@@ -235,13 +244,38 @@ class _Blake2sSink extends DartHashSink {
   }
 
   static void _g(Uint32List v, int a, int b, int c, int d, int x, int y) {
-    v[a] = uint32mask & (v[a] + v[b] + x);
-    v[d] = rotateRight32((v[d] ^ v[a]), 16);
-    v[c] = uint32mask & (v[c] + v[d]);
-    v[b] = rotateRight32((v[b] ^ v[c]), 12);
-    v[a] = uint32mask & (v[a] + v[b] + y);
-    v[d] = rotateRight32((v[d] ^ v[a]), 8);
-    v[c] = uint32mask & (v[c] + v[d]);
-    v[b] = rotateRight32((v[b] ^ v[c]), 7);
+    var va = v[a];
+    var vb = v[b];
+    var vc = v[c];
+    var vd = v[d];
+
+    {
+      va = uint32mask & (va + vb + x);
+      final rotated = vd ^ va;
+      vd = (uint32mask & (rotated << 16)) | (rotated >> 16);
+    }
+
+    {
+      vc = uint32mask & (vc + vd);
+      final rotated = vb ^ vc;
+      vb = (uint32mask & (rotated << 20)) | (rotated >> 12);
+    }
+
+    {
+      va = uint32mask & (va + vb + y);
+      final rotated = vd ^ va;
+      vd = (uint32mask & (rotated << 24)) | (rotated >> 8);
+    }
+
+    {
+      vc = uint32mask & (vc + vd);
+      final rotated = vb ^ vc;
+      vb = (uint32mask & (rotated << 25)) | (rotated >> 7);
+    }
+
+    v[a] = va;
+    v[b] = vb;
+    v[c] = vc;
+    v[d] = vd;
   }
 }

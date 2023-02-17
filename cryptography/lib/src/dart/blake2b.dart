@@ -33,6 +33,7 @@ const List<int> sigmaConstants = <int>[
   14, 10, 4, 8, 9, 15, 13, 6, 1, 12, 0, 2, 11, 7, 5, 3
 ];
 
+/// [Blake2b] implemented in pure Dart.
 class DartBlake2b extends Blake2b with DartHashAlgorithmMixin {
   const DartBlake2b() : super.constructor();
 

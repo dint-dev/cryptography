@@ -21,32 +21,35 @@ import 'benchmark_helpers.dart';
 Future<void> main() async {
   final cryptography = Cryptography.instance;
   {
-    print('100 byte messages:');
     const size = 100;
     const times = 10000;
+    print('100 byte messages $times times:');
     await _Hash(cryptography.sha256(), size, times).report();
     await _Hash(cryptography.sha512(), size, times).report();
     await _Hash(cryptography.blake2s(), size, times).report();
+    await _Hash(cryptography.blake2b(), size, times).report();
     print('');
   }
 
   {
     const size = 1000;
     const times = 1000;
-    print('1 kB messages:');
+    print('1 kB messages $times times:');
     await _Hash(cryptography.sha256(), size, times).report();
     await _Hash(cryptography.sha512(), size, times).report();
     await _Hash(cryptography.blake2s(), size, times).report();
+    await _Hash(cryptography.blake2b(), size, times).report();
     print('');
   }
 
   {
     const size = 1000000;
     const times = 1;
-    print('1 MB messages:');
+    print('1 MB messages $times times:');
     await _Hash(cryptography.sha256(), size, times).report();
     await _Hash(cryptography.sha512(), size, times).report();
     await _Hash(cryptography.blake2s(), size, times).report();
+    await _Hash(cryptography.blake2b(), size, times).report();
   }
 }
 

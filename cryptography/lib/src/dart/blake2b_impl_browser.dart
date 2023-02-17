@@ -16,8 +16,8 @@ import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/src/utils.dart';
-import 'package:meta/meta.dart';
 
+import '_helpers.dart';
 import 'base_classes.dart';
 import 'blake2b.dart';
 
@@ -48,19 +48,17 @@ class Blake2bSink extends DartHashSink {
     0x137E2179,
     0x5BE0CD19,
   ];
-  final Uint32List _hash = Uint32List(32);
-  final Uint32List _bufferAsUint32List = Uint32List(32);
+  static const _bit32 = uint32mask + 1;
+  final _hash = Uint32List(32);
+  final _bufferAsUint32List = Uint32List(32);
   Uint8List? _bufferAsBytes;
   int _length = 0;
   Hash? _result;
   bool _isClosed = false;
-  final Uint32List _localValues = Uint32List(32);
+  final _localValues = Uint32List(32);
 
   Blake2bSink() {
-    // Only implemented for Little Endian CPUs
-    if (Endian.host != Endian.little) {
-      throw UnimplementedError();
-    }
+    checkSystemIsLittleEndian();
 
     final h = _hash;
     h.setAll(0, _initializationVector);
@@ -124,18 +122,13 @@ class Blake2bSink extends DartHashSink {
     // Compress
     _compress(true);
 
-    // Change:
-    // Host endian --> little endian
-    final hash = _hash;
-
     // Return bytes
-    _result = Hash(List<int>.unmodifiable(
-      Uint8List.view(
-        hash.buffer,
-        hash.offsetInBytes,
-        64,
-      ),
-    ));
+    final resultBytes = Uint8List(64);
+    resultBytes.setAll(
+      0,
+      Uint8List.view(_hash.buffer, 0, 64),
+    );
+    _result = Hash(UnmodifiableUint8ListView(resultBytes));
   }
 
   @override
@@ -184,15 +177,17 @@ class Blake2bSink extends DartHashSink {
       // Sigma index
       final si = round * 16;
 
-      g(v, 0, 4, 8, 12, m, sigma[si + 0], sigma[si + 1]);
-      g(v, 1, 5, 9, 13, m, sigma[si + 2], sigma[si + 3]);
-      g(v, 2, 6, 10, 14, m, sigma[si + 4], sigma[si + 5]);
-      g(v, 3, 7, 11, 15, m, sigma[si + 6], sigma[si + 7]);
+      // Each 64-bit integer takes two elements in the Uint32List,
+      // so we need to multiply the indices.
+      g(v, 0, 8, 16, 24, m, sigma[si + 0], sigma[si + 1]);
+      g(v, 2, 10, 18, 26, m, sigma[si + 2], sigma[si + 3]);
+      g(v, 4, 12, 20, 28, m, sigma[si + 4], sigma[si + 5]);
+      g(v, 6, 14, 22, 30, m, sigma[si + 6], sigma[si + 7]);
 
-      g(v, 0, 5, 10, 15, m, sigma[si + 8], sigma[si + 9]);
-      g(v, 1, 6, 11, 12, m, sigma[si + 10], sigma[si + 11]);
-      g(v, 2, 7, 8, 13, m, sigma[si + 12], sigma[si + 13]);
-      g(v, 3, 4, 9, 14, m, sigma[si + 14], sigma[si + 15]);
+      g(v, 0, 10, 20, 30, m, sigma[si + 8], sigma[si + 9]);
+      g(v, 2, 12, 22, 24, m, sigma[si + 10], sigma[si + 11]);
+      g(v, 4, 14, 16, 26, m, sigma[si + 12], sigma[si + 13]);
+      g(v, 6, 8, 18, 28, m, sigma[si + 14], sigma[si + 15]);
     }
 
     // Copy.
@@ -201,67 +196,99 @@ class Blake2bSink extends DartHashSink {
     }
   }
 
-  /// Used by this file and Argon2.
-  @visibleForTesting
+  /// Exported so this can be used by both:
+  ///   * [DartBlake2b]
+  ///   * [DartArgon2id]
   static void g(
     Uint32List v,
     int a,
     int b,
     int c,
     int d,
-    List<int> m,
+    Uint32List m,
     int x,
     int y,
   ) {
-    a *= 2;
-    b *= 2;
-    c *= 2;
-    d *= 2;
+    // Each 64-bit integer takes two elements in the Uint32List,
+    // so we need to multiply the indices.
     x *= 2;
     y *= 2;
-    sum(v, a, b, m as Uint32List?, x);
-    xorAndRotate(v, d, a, 32);
-    sum(v, c, d, null, null);
-    xorAndRotate(v, b, c, 24);
-    sum(v, a, b, m as Uint32List?, y);
-    xorAndRotate(v, d, a, 16);
-    sum(v, c, d, null, null);
-    xorAndRotate(v, b, c, 63);
-  }
 
-  @visibleForTesting
-  static void sum(Uint32List v, int a, int b, Uint32List? m, int? x) {
-    var mxLow = 0;
-    var mxHigh = 0;
-    if (m != null) {
-      mxLow = m[x!];
-      mxHigh = m[x + 1];
+    var vaLow = v[a];
+    var vaHigh = v[a + 1];
+    var vbLow = v[b];
+    var vbHigh = v[b + 1];
+    var vcLow = v[c];
+    var vcHigh = v[c + 1];
+    var vdLow = v[d];
+    var vdHigh = v[d + 1];
+
+    // sum(v, a, b, m[x], m[x + 1]);
+    {
+      final low = vaLow + vbLow + m[x];
+      vaLow = uint32mask & low;
+      vaHigh = uint32mask & (low ~/ _bit32 + vaHigh + vbHigh + m[x + 1]);
     }
-    var low = v[a] + v[b] + mxLow;
-    var high = v[a + 1] + v[b + 1] + mxHigh;
 
-    // Carry
-    high += low ~/ (uint32mask + 1);
-
-    v[a] = uint32mask & low;
-    v[a + 1] = uint32mask & high;
-  }
-
-  @visibleForTesting
-  static void xorAndRotate(Uint32List v, int a, int b, int n) {
-    final low = v[a] ^ v[b];
-    final high = v[a + 1] ^ v[b + 1];
-    if (n < 32) {
-      v[a] = (uint32mask & (high << (32 - n))) | (low >> n);
-      v[a + 1] = (uint32mask & (low << (32 - n))) | (high >> n);
-    } else if (n == 32) {
-      v[a] = high;
-      v[a + 1] = low;
-    } else if (n == 63) {
-      v[a] = (uint32mask & (low << 1)) | (high >> 31);
-      v[a + 1] = (uint32mask & (high << 1)) | (low >> 31);
-    } else {
-      throw ArgumentError.value(n, 'n');
+    // xorAndRotate(v, d, a, 32);
+    {
+      final low = vdLow ^ vaLow;
+      final high = vdHigh ^ vaHigh;
+      vdLow = high;
+      vdHigh = low;
     }
+
+    // sum(v, c, d, 0, 0);
+    {
+      final low = vcLow + vdLow;
+      vcLow = uint32mask & low;
+      vcHigh = uint32mask & (low ~/ _bit32 + vcHigh + vdHigh);
+    }
+
+    // xorAndRotate(v, b, c, 24);
+    {
+      final low = vbLow ^ vcLow;
+      final high = vbHigh ^ vcHigh;
+      vbLow = (uint32mask & (high << 8)) | low >> 24;
+      vbHigh = (uint32mask & (low << 8)) | high >> 24;
+    }
+
+    // sum(v, a, b, m[y], m[y + 1]);
+    {
+      final low = vaLow + vbLow + m[y];
+      vaLow = uint32mask & low;
+      vaHigh = uint32mask & (low ~/ _bit32 + vaHigh + vbHigh + m[y + 1]);
+    }
+
+    // xorAndRotate(v, d, a, 16);
+    {
+      final low = vdLow ^ vaLow;
+      final high = vdHigh ^ vaHigh;
+      vdLow = (uint32mask & (high << 16)) | low >> 16;
+      vdHigh = (uint32mask & (low << 16)) | high >> 16;
+    }
+
+    // sum(v, c, d, 0, 0);
+    {
+      final low = vcLow + vdLow;
+      vcLow = uint32mask & low;
+      vcHigh = uint32mask & (low ~/ _bit32 + vcHigh + vdHigh);
+    }
+
+    // xorAndRotate(v, b, c, 63);
+    {
+      final low = vbLow ^ vcLow;
+      final high = vbHigh ^ vcHigh;
+      vbLow = (low << 1) | (high >> 31);
+      vbHigh = (high << 1) | (low >> 31);
+    }
+    v[a] = vaLow;
+    v[a + 1] = vaHigh;
+    v[b] = vbLow;
+    v[b + 1] = vbHigh;
+    v[c] = vcLow;
+    v[c + 1] = vcHigh;
+    v[d] = vdLow;
+    v[d + 1] = vdHigh;
   }
 }

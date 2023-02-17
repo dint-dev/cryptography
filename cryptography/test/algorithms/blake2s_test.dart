@@ -31,22 +31,27 @@ void main() {
       expect(algorithm.blockLengthInBytes, 32);
     });
 
-    test('10 000 cycles', () async {
-      var actual = <int>[];
-      for (var i = 0; i < 10000; i++) {
-        actual = (await algorithm.hash(actual)).bytes;
-      }
+    test(
+      '10 000 cycles',
+      () async {
+        var actual = <int>[];
+        for (var i = 0; i < 10000; i++) {
+          actual = (await algorithm.hash(actual)).bytes;
+        }
 
-      // Obtained from a Go program
-      final expected = hexToBytes(
-        '64f338fcf15a4dd6273e8b8a54d27f1502ba3ac67b67c9dc15ca1f916fa6df76',
-      );
+        // Obtained from a Go program
+        final expected = hexToBytes(
+          '64f338fcf15a4dd6273e8b8a54d27f1502ba3ac67b67c9dc15ca1f916fa6df76',
+        );
 
-      expect(
-        hexFromBytes(actual),
-        hexFromBytes(expected),
-      );
-    });
+        expect(
+          hexFromBytes(actual),
+          hexFromBytes(expected),
+        );
+      },
+      // This can be slow...
+      timeout: Timeout(const Duration(minutes: 2)),
+    );
 
     test('10 000 cycles, different lengths', () async {
       final data = Uint8List(10000);

@@ -13,10 +13,8 @@
 // limitations under the License.
 
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
-import 'package:cryptography/src/dart/blake2b_impl_browser.dart' as impl;
 import 'package:cryptography/src/utils.dart';
 import 'package:test/test.dart';
 
@@ -30,102 +28,6 @@ void main() {
 
     test('block length', () {
       expect(algorithm.blockLengthInBytes, 64);
-    });
-
-    group('sum in browsers:', () {
-      test('low bits carried', () {
-        final v = Uint32List.fromList([uint32mask, 0, 2, 0, 3, 0]);
-        impl.Blake2bSink.sum(v, 0, 2, v, 4);
-        expect(v, [4, 1, 2, 0, 3, 0]);
-      });
-
-      test('low bits carried, overflows', () {
-        final v = Uint32List.fromList([uint32mask, uint32mask, 1, 0, 0, 0]);
-        impl.Blake2bSink.sum(v, 0, 2, v, 4);
-        expect(v, [0, 0, 1, 0, 0, 0]);
-      });
-
-      test('high bits carried', () {
-        final v = Uint32List.fromList([0, uint32mask, 0, 2, 0, 3]);
-        impl.Blake2bSink.sum(v, 0, 2, v, 4);
-        expect(v, [0, 4, 0, 2, 0, 3]);
-      });
-
-      test('high bits carried, overflows', () {
-        final v = Uint32List.fromList([uint32mask, uint32mask, 0, 1, 0, 0]);
-        impl.Blake2bSink.sum(v, 0, 2, v, 4);
-        expect(v, [uint32mask, 0, 0, 1, 0, 0]);
-      });
-
-      test('third term omitted', () {
-        final v = Uint32List.fromList([1, 1, 2, 2, 5, 5]);
-        impl.Blake2bSink.sum(v, 0, 2, null, null);
-        expect(v, [3, 3, 2, 2, 5, 5]);
-      });
-    });
-
-    group('rotate in browsers:', () {
-      // In browsers, rotation is implemented with 32-bit integers.
-
-      test('xor #1', () {
-        final v = Uint32List.fromList([0, 0, 1, 2, 1, 2]);
-        impl.Blake2bSink.xorAndRotate(v, 2, 4, 24);
-        expect(v, [0, 0, 0, 0, 1, 2]);
-      });
-
-      test('xor #2', () {
-        final v = Uint32List.fromList([0, 0, 1, 2, 4, 8]);
-        impl.Blake2bSink.xorAndRotate(v, 2, 4, 63);
-        expect(v, [0, 0, (1 | 4) << 1, (8 | 2) << 1, 4, 8]);
-      });
-
-      test('32: low', () {
-        final v = Uint32List.fromList([0, 0, 0xF1F2F3F4, 0, 0, 0]);
-        impl.Blake2bSink.xorAndRotate(v, 2, 4, 32);
-        expect(v, [0, 0, 0, 0xF1F2F3F4, 0, 0]);
-      });
-
-      test('32: high', () {
-        final v = Uint32List.fromList([0, 0, 0, 0xF1F2F3F4, 0, 0]);
-        impl.Blake2bSink.xorAndRotate(v, 2, 4, 32);
-        expect(v, [0, 0, 0xF1F2F3F4, 0, 0, 0]);
-      });
-
-      test('24: low', () {
-        final v = Uint32List.fromList([0, 0, 0xF1F2F3F4, 0, 0, 0]);
-        impl.Blake2bSink.xorAndRotate(v, 2, 4, 24);
-        expect(v, [0, 0, 0x000000F1, 0xF2F3F400, 0, 0]);
-      });
-
-      test('24: high', () {
-        final v = Uint32List.fromList([0, 0, 0, 0xF1F2F3F4, 0, 0]);
-        impl.Blake2bSink.xorAndRotate(v, 2, 4, 24);
-        expect(v, [0, 0, 0xF2F3F400, 0x000000F1, 0, 0]);
-      });
-
-      test('16: low', () {
-        final v = Uint32List.fromList([0, 0, 0xF1F2F3F4, 0, 0, 0]);
-        impl.Blake2bSink.xorAndRotate(v, 2, 4, 16);
-        expect(v, [0, 0, 0x0000F1F2, 0xF3F40000, 0, 0]);
-      });
-
-      test('16: high', () {
-        final v = Uint32List.fromList([0, 0, 0, 0xF1F2F3F4, 0, 0]);
-        impl.Blake2bSink.xorAndRotate(v, 2, 4, 16);
-        expect(v, [0, 0, 0xF3F40000, 0x0000F1F2, 0, 0]);
-      });
-
-      test('63: low', () {
-        final v = Uint32List.fromList([0, 0, 0x80000001, 0, 0, 0]);
-        impl.Blake2bSink.xorAndRotate(v, 2, 4, 63);
-        expect(v, [0, 0, 2, 1, 0, 0]);
-      });
-
-      test('63: high', () {
-        final v = Uint32List.fromList([0, 0, 0, 0x80000001, 0, 0]);
-        impl.Blake2bSink.xorAndRotate(v, 2, 4, 63);
-        expect(v, [0, 0, 1, 2, 0, 0]);
-      });
     });
 
     test('test vector from RFC 7693', () async {

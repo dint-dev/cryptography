@@ -16,6 +16,7 @@ import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
 
+import '_helpers.dart';
 import 'base_classes.dart';
 import 'blake2b.dart';
 
@@ -31,21 +32,18 @@ class Blake2bSink extends DartHashSink {
     0x5BE0CD19137E2179,
   ];
   static const int _uint64mask = 0xFFFFFFFFFFFFFFFF;
-  final Uint64List _hash = Uint64List(16);
-  final Uint64List _bufferAsUint8List = Uint64List(16);
+  final _hash = Uint64List(16);
+  final _bufferAsUint64List = Uint64List(16);
   Uint8List? _bufferAsBytes;
   int _length = 0;
   Hash? _result;
 
   bool _isClosed = false;
 
-  final Uint64List _localValues = Uint64List(16);
+  final _localValues = Uint64List(16);
 
   Blake2bSink() {
-    // Only implemented for Little Endian CPUs
-    if (Endian.host != Endian.little) {
-      throw UnimplementedError();
-    }
+    checkSystemIsLittleEndian();
 
     final h = _hash;
     h.setAll(0, _initializationVector);
@@ -60,7 +58,7 @@ class Blake2bSink extends DartHashSink {
 
     var bufferAsBytes = _bufferAsBytes;
     if (bufferAsBytes == null) {
-      bufferAsBytes ??= Uint8List.view(_bufferAsUint8List.buffer);
+      bufferAsBytes = Uint8List.view(_bufferAsUint64List.buffer);
       _bufferAsBytes = bufferAsBytes;
     }
     var length = _length;
@@ -109,15 +107,13 @@ class Blake2bSink extends DartHashSink {
     // Compress
     _compress(true);
 
-    // Returns
-    final hash = _hash;
-    _result = Hash(List<int>.unmodifiable(
-      Uint8List.view(
-        hash.buffer,
-        hash.offsetInBytes,
-        64,
-      ),
-    ));
+    // Return bytes
+    final resultBytes = Uint8List(64);
+    resultBytes.setAll(
+      0,
+      Uint8List.view(_hash.buffer, 0, 64),
+    );
+    _result = Hash(UnmodifiableUint8ListView(resultBytes));
   }
 
   @override
@@ -132,7 +128,7 @@ class Blake2bSink extends DartHashSink {
   void _compress(bool isLast) {
     final h = _hash;
     final v = _localValues;
-    final m = _bufferAsUint8List;
+    final m = _bufferAsUint64List;
 
     // Initialize v[0..7]
     for (var i = 0; i < 8; i++) {
@@ -146,7 +142,7 @@ class Blake2bSink extends DartHashSink {
 
     // Set length.
     final length = _length;
-    v[12] ^= _uint64mask & length;
+    v[12] ^= length;
     v[13] ^= 0;
 
     // Is this the last block?
@@ -172,13 +168,13 @@ class Blake2bSink extends DartHashSink {
 
     // Copy.
     for (var i = 0; i < 8; i++) {
-      h[i] = h[i] ^ v[i] ^ v[8 + i];
+      h[i] ^= v[i] ^ v[8 + i];
     }
   }
 
   /// Exported so this can be used by both:
-  ///   * Blake2b
-  ///   * Argon2
+  ///   * [DartBlake2b]
+  ///   * [DartArgon2id]
   static void g(
     Uint64List v,
     int a,
@@ -189,23 +185,46 @@ class Blake2bSink extends DartHashSink {
     int x,
     int y,
   ) {
-    v[a] = _uint64mask & (v[a] + v[b] + m[x]);
-    v[d] = _rotateRight64((v[d] ^ v[a]), 32);
-    v[c] = _uint64mask & (v[c] + v[d]);
-    v[b] = _rotateRight64((v[b] ^ v[c]), 24);
-    v[a] = _uint64mask & (v[a] + v[b] + m[y]);
-    v[d] = _rotateRight64((v[d] ^ v[a]), 16);
-    v[c] = _uint64mask & (v[c] + v[d]);
-    v[b] = _rotateRight64((v[b] ^ v[c]), 63);
-  }
-
-  static int _rotateRight64(int x, int n) {
-    if (x.isNegative) {
-      // "shift right without sign bit" | "shift left" | "shifted sign bit"
-      return ((x ^ (1 << 63)) >> n) |
-          (_uint64mask & (x << (64 - n))) |
-          ((0x1 << 62) >> (n - 1));
+    var va = v[a];
+    var vb = v[b];
+    var vc = v[c];
+    var vd = v[d];
+    va += vb + m[x];
+    {
+      // vd = rotateRight(vd ^ va, 32)
+      final arg = vd ^ va;
+      const n = 32;
+      vd = ((~(1 << 63) & arg) >> n) |
+          (arg << (64 - n)) |
+          (arg.isNegative ? (1 << (63 - n)) : 0);
     }
-    return (x >> n) | (x << (64 - n));
+    vc += vd;
+    {
+      // vb = rotateRight(vb ^ vc, 24)
+      final rotated = vb ^ vc;
+      const n = 24;
+      vb = ((~(1 << 63) & rotated) >> n) |
+          (rotated << (64 - n)) |
+          (rotated.isNegative ? (1 << (63 - n)) : 0);
+    }
+    va += vb + m[y];
+    {
+      // vd = rotateRight(vd ^ va, 16)
+      final arg = vd ^ va;
+      const n = 16;
+      vd = ((~(1 << 63) & arg) >> n) |
+          (arg << (64 - n)) |
+          (arg.isNegative ? (1 << (63 - n)) : 0);
+    }
+    vc += vd;
+    {
+      // vb = rotateRight(vb ^ vc, 63)
+      final rotated = vb ^ vc;
+      vb = (rotated << 1) | (rotated.isNegative ? 1 : 0);
+    }
+    v[a] = va;
+    v[b] = vb;
+    v[c] = vc;
+    v[d] = vd;
   }
 }
