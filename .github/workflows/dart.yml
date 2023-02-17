@@ -1,30 +1,28 @@
 name: Dart CI
 
-on: [ push ]
+on: [push, pull_request]
 
 jobs:
-  build:
-
-    runs-on: ubuntu-latest
-
-    container:
-      image: google/dart:latest
-
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        sdk: [stable, beta, dev]
     steps:
-      - uses: actions/checkout@v1
-
-      - name: Install dependencies (cryptography)
-        working-directory: cryptography
-        run: dart pub get
-
-      - name: Install dependencies (jwk)
-        working-directory: jwk
-        run: dart pub get
-
+      - uses: actions/checkout@v3
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: ${{ matrix.sdk }}
       - name: Run tests (cryptography)
-        working-directory: cryptography
-        run: dart test --platform=vm
-
+        run: dart test --platform vm
+        working-directory: ./cryptography
       - name: Run tests (jwk)
-        working-directory: jwk
-        run: dart test --platform=vm
+        run: dart test --platform vm
+        working-directory: ./jwk
+      - name: Analyze (cryptography)
+        run: dart analyze
+        working-directory: ./cryptography
+      - name: Analyze (jwk)
+        run: dart analyze
+        working-directory: ./jwk
