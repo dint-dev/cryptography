@@ -17,13 +17,17 @@ import 'package:cryptography/helpers.dart';
 
 /// Opaque reference to RSA key pair.
 ///
+/// The private key bytes of the key may not be in the memory. The private key
+/// bytes may not even be extractable. If the private key is in memory, it's an
+/// instance of [RsaKeyPairData].
+///
+/// The public key is always [RsaPublicKeyData].
+///
+/// This class is used with algorithms such as [RsaPss] and [RsaSsaPkcs1v15].
+///
 /// There are many formats for storing RSA key parameters.
 /// If you are encoding/decoding JWK (JSON Web Key) format, use
 /// [package:jwk](https://pub.dev/packages/jwk).
-///
-/// ## Related classes
-///   * [RsaKeyPairData]
-///   * [RsaPublicKey]
 abstract class RsaKeyPair extends KeyPair {
   factory RsaKeyPair.lazy(Future<RsaKeyPairData> Function() f) =
       _LazyRsaSecretKey;

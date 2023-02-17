@@ -15,19 +15,23 @@
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/dart.dart';
 
-/// An implementation of [Cryptography] using Web Cryptography API.
+/// An implementation of [Cryptography] that optimizes performance on browsers.
 ///
-/// ## Algorithms
-/// The following algorithms are supported:
+/// The performance is optimized by using implementations that call
+/// [Web Cryptography API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API)
+/// on browsers. The implementations themselves are not exported.
+///
+/// ## Optimized algorithms
+/// The following algorithms have Web Cryptography API support on browsers:
 ///   * [AesCbc]
 ///   * [AesCtr]
 ///   * [AesGcm]
-///   * [EcdhP256]
-///   * [EcdhP384]
-///   * [EcdhP521]
-///   * [EcdsaP256]
-///   * [EcdsaP384]
-///   * [EcdsaP521]
+///   * [Ecdh.p256]
+///   * [Ecdh.p384]
+///   * [Ecdh.p521]
+///   * [Ecdsa.p256]
+///   * [Ecdsa.p384]
+///   * [Ecdsa.p521]
 ///   * [Hkdf]
 ///   * [Hmac]
 ///   * [Pbkdf2]
@@ -37,6 +41,9 @@ import 'package:cryptography/dart.dart';
 ///   * [Sha256]
 ///   * [Sha384]
 ///   * [Sha512]
+///
+/// The class extends [DartCryptography] so other factories will return pure
+/// Dart implementations.
 class BrowserCryptography extends DartCryptography {
   static final BrowserCryptography defaultInstance = BrowserCryptography();
 }

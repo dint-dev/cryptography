@@ -50,10 +50,11 @@ abstract class DartHashSink extends HashSink {
     return hashSync();
   }
 
+  /// Computes a hash synchronously (unlike [hash]).
   Hash hashSync();
 }
 
-/// Base class for pure Dart implementations of [KeyExchangeAlgorithm].
+/// A mixin for pure Dart implementations of [KeyExchangeAlgorithm].
 mixin DartKeyExchangeAlgorithmMixin implements KeyExchangeAlgorithm {
   @override
   Future<SecretKey> sharedSecretKey({
@@ -67,13 +68,37 @@ mixin DartKeyExchangeAlgorithmMixin implements KeyExchangeAlgorithm {
     );
   }
 
+  /// Computes shared secret synchronously (unlike [sharedSecretKey]).
+  ///
+  /// ## Example
+  /// In this example, we use [DartX25519] class:
+  /// ```dart
+  /// import 'package:cryptography/cryptography.dart';
+  ///
+  /// void main() async {
+  ///   final algorithm = DartX25519();
+  ///
+  ///   // We need the private key pair of Alice.
+  ///   final aliceKeyPair = algorithm.newKeyPairSync();
+  ///
+  ///   // We need only public key of Bob.
+  ///   final bobKeyPair = algorithm.newKeyPairSync();
+  ///   final bobPublicKey = bobKeyPair.publicKey;
+  ///
+  ///   // We can now calculate a 32-byte shared secret key.
+  ///   final sharedSecretKey = algorithm.sharedSecretKeySync(
+  ///     keyPair: aliceKeyPair,
+  ///     remotePublicKey: bobPublicKey,
+  ///   );
+  /// }
+  /// ```
   SecretKey sharedSecretSync({
     required KeyPairData keyPairData,
     required PublicKey remotePublicKey,
   });
 }
 
-/// Base class for pure Dart implementations of [MacAlgorithm].
+/// A mixin for pure Dart implementations of [MacAlgorithm].
 mixin DartMacAlgorithmMixin implements MacAlgorithm {
   @override
   Future<Mac> calculateMac(
@@ -91,6 +116,7 @@ mixin DartMacAlgorithmMixin implements MacAlgorithm {
     ));
   }
 
+  /// Computes a MAC synchronously (unlike [calculateMac]).
   Mac calculateMacSync(
     List<int> cipherText, {
     required SecretKeyData secretKeyData,
@@ -106,6 +132,7 @@ mixin DartMacAlgorithmMixin implements MacAlgorithm {
     return sink.macSync();
   }
 
+  /// Returns [DartMacSink], which can be used synchronously.
   DartMacSink newMacSinkSync({
     required SecretKeyData secretKeyData,
     List<int> nonce = const <int>[],
@@ -113,14 +140,16 @@ mixin DartMacAlgorithmMixin implements MacAlgorithm {
   });
 }
 
+/// A mixin for pure Dart implementations of [MacSink]
 mixin DartMacSink implements MacSink {
   @override
   Future<Mac> mac() => Future<Mac>.value(macSync());
 
+  /// Computes the MAC synchronously.
   Mac macSync();
 }
 
-/// Base class for pure Dart implementations of [SignatureAlgorithm].
+/// A mixin for pure Dart implementations of [SignatureAlgorithm].
 mixin DartSignatureAlgorithmMixin implements SignatureAlgorithm {
   @override
   Future<Signature> sign(
@@ -134,6 +163,7 @@ mixin DartSignatureAlgorithmMixin implements SignatureAlgorithm {
     );
   }
 
+  /// Signs a message synchronously (unlike [sign]).
   Signature signSync(
     List<int> input, {
     required KeyPairData keyPairData,
@@ -147,6 +177,7 @@ mixin DartSignatureAlgorithmMixin implements SignatureAlgorithm {
     return verifySync(input, signature: signature);
   }
 
+  /// Verifies a signature synchronously (unlike [verify]).
   bool verifySync(
     List<int> input, {
     required Signature signature,

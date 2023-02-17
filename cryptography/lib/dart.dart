@@ -15,13 +15,6 @@
 /// Cryptographic algorithms implemented in pure Dart.
 ///
 /// See [DartCryptography].
-///
-/// ## Synchronous evaluation
-///   * [DartCipher]
-///   * [DartHashAlgorithm]
-///   * [DartMacAlgorithm]
-///   * [DartStreamingCipher]
-///
 library cryptography.dart;
 
 import 'package:cryptography/dart.dart';

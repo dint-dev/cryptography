@@ -21,6 +21,10 @@ import '../utils.dart';
 
 /// An opaque reference to a secret sequence of bytes.
 ///
+/// The bytes of the key may not be in the memory. The bytes may not even be
+/// extractable. If the private key is in memory, it's an instance of
+/// [SecretKeyData].
+///
 /// Secret keys are required by [Cipher], [MacAlgorithm], and
 /// [KdfAlgorithm].
 /// Typically the bytes are stored in the heap, in which case

@@ -28,27 +28,37 @@ Any feedback, issue reports, or pull requests are appreciated!
 * [jwk](https://pub.dev/packages/jwk)
     * JWK (JSON Web Key) support.
 
-# Key concepts
-## Key classes
+## Cryptographic keys
 The usual arguments to algorithms are:
+* [SecretKey](https://pub.dev/documentation/cryptography/latest/cryptography/SecretKey-class.html)
+  * Used by ciphers, message authentication codes, and key derivation functions.
+* [KeyPair](https://pub.dev/documentation/cryptography/latest/cryptography/KeyPair-class.html)
+  * [SimpleKeyPair](https://pub.dev/documentation/cryptography/latest/cryptography/SimpleKeyPair-class.html)
+    (Byte sequences such as Ed25519 / X25519 32-byte private keys)
+  * [EcKeyPairData](https://pub.dev/documentation/cryptography/latest/cryptography/EcKeyPair-class.html)
+    (P-256, P-384, P-521 private keys)
+  * [RsaKeyPairData](https://pub.dev/documentation/cryptography/latest/cryptography/RsaKeyPair-class.html)
+    (RSA private keys)
+* [PublicKey](https://pub.dev/documentation/cryptography/latest/cryptography/PublicKey-class.html)
+  * [SimplePublicKey](https://pub.dev/documentation/cryptography/latest/cryptography/SimplePublicKey-class.html)
+    (Byte sequences such as Ed25519 / X25519 32-byte public keys)
+  * [EcPublicKey](https://pub.dev/documentation/cryptography/latest/cryptography/EcPublicKey-class.html)
+    (P-256 / P-384 / P-512 public keys)
+  * [RsaPublicKey](https://pub.dev/documentation/cryptography/latest/cryptography/RsaPublicKey-class.html)
+    (RSA public keys)
+  
+Note that SecretKey and KeyPair instances are opaque and asynchronous by default. They may not be in
+the memory and may not be readable at all. If a SecretKey or KeyPair instance is in memory, it's an
+instance of one of the following:
 * [SecretKeyData](https://pub.dev/documentation/cryptography/latest/cryptography/SecretKeyData-class.html)
-  is used by ciphers, message authentication codes, and key derivation functions.
-* [KeyPair](https://pub.dev/documentation/cryptography/latest/cryptography/KeyPair-class.html) and
-  [PublicKey](https://pub.dev/documentation/cryptography/latest/cryptography/PublicKey-class.html)
-  are used by key exchange and signature algorithms.
-    * [SimpleKeyPairData](https://pub.dev/documentation/cryptography/latest/cryptography/SimpleKeyPairData-class.html)
-      and [SimplePublicKey](https://pub.dev/documentation/cryptography/latest/cryptography/SimplePublicKey-class.html)
-      are used when keys are simple byte sequences.
-    * [EcKeyPairData](https://pub.dev/documentation/cryptography/latest/cryptography/EcKeyPairData-class.html)
-      and [EcPublicKey](https://pub.dev/documentation/cryptography/latest/cryptography/EcPublicKey-class.html)
-      are used by P-256 / P-384 / P-512 algorithms.
-    * [RsaKeyPairData](https://pub.dev/documentation/cryptography/latest/cryptography/RsaKeyPairData-class.html)
-      and [RsaPublicKey](https://pub.dev/documentation/cryptography/latest/cryptography/RsaPublicKey-class.html)
-      are used by RSA algorithms.
-    * For encoding/decoding private/public keys in JWK (JSON Web Key) format, use
-      [package:jwk](https://pub.dev/packages/jwk).
-    * For encoding/decoding X.509, PKCS12, and other formats, we don't have recommended packages
-      at the moment.
+* [SimpleKeyPairData](https://pub.dev/documentation/cryptography/latest/cryptography/SimpleKeyPairData-class.html)
+* [EcKeyPairData](https://pub.dev/documentation/cryptography/latest/cryptography/EcKeyPairData-class.html)
+* [RsaKeyPairData](https://pub.dev/documentation/cryptography/latest/cryptography/RsaKeyPairData-class.html)
+
+For encoding/decoding private/public keys in JWK (JSON Web Key) format, use
+[package:jwk](https://pub.dev/packages/jwk).
+For encoding/decoding X.509, PKCS12, and other formats, we don't have recommended packages
+at the moment.
 
 ## Algorithms by type
 ### Ciphers
@@ -118,87 +128,42 @@ implementations are available:
 * [Sha384](https://pub.dev/documentation/cryptography/latest/cryptography/Sha384-class.html) (SHA2-384)
 * [Sha512](https://pub.dev/documentation/cryptography/latest/cryptography/Sha512-class.html) (SHA2-512)
 
-## Available implementations
-The abstract class [Cryptography](https://pub.dev/documentation/cryptography/latest/cryptography/Cryptography-class.html)
+## Cryptographic factory class
+The class [Cryptography](https://pub.dev/documentation/cryptography/latest/cryptography/Cryptography-class.html)
 has factory methods that return implementations of cryptographic algorithms. The default
-implementation is _BrowserCryptography_ (which works in all platforms, not just browser). You can
-write your own _Cryptography_ subclass if you need to.
+implementation is _BrowserCryptography_ (which works in all platforms, not just browser).
 
 We wrote the following three implementations of `Cryptography`:
 * [DartCryptography](https://pub.dev/documentation/cryptography/latest/cryptography.dart/DartCryptography-class.html)
     * Gives you implementations written in pure Dart implementations. They work in all platforms.
     * SHA1 / SHA2 uses implementation in [package:crypto](https://pub.dev/packages/crypto), which
-      is maintained by Google. The rest of the algorithms in _DartCryptography_ are written and tested by us.
-    * _DartCryptography_ gives:
-        * AesCbc
-        * AesCtr
-        * AesGcm
-        * Blake2b
-        * Blake2s
-        * Chacha20
-        * Chacha20.poly1305Aead
-        * Ed25519
-        * Hkdf
-        * Hmac
-        * Pbkdf2
-        * Poly1305
-        * Sha1
-        * Sha224
-        * Sha256
-        * Sha384
-        * Sha512
-        * X25519
-        * Xchacha20
-        * Xchacha20.poly1305Aead
+      is maintained by Google. The rest of the algorithms in _DartCryptography_ are written and
+      tested by us.
+    * See the [class documentation](https://pub.dev/documentation/cryptography/latest/cryptography.dart/DartCryptography-class.html)
+      for list algorithms supported by it.
 * [BrowserCryptography](https://pub.dev/documentation/cryptography/latest/cryptography.browser/BrowserCryptography-class.html)
-    * Extends _DartCryptography_.
-    * Uses [Web Cryptography API](https://www.w3.org/TR/WebCryptoAPI/) (_crypto.subtle_).the
-    * In browsers, _BrowserCryptography_ gives:
-        * AesCbc
-        * AesCtr
-        * AesGcm
-        * Ecdh.p256
-        * Ecdh.p384
-        * Ecdh.p512
-        * Ecdsa.p256
-        * Ecdsa.p384
-        * Ecdsa.p512
-        * Hkdf
-        * Hmac
-        * Pbkdf2
-        * RsaPss
-        * RsaSsaPkcs1v15
-        * Sha1
-        * Sha256
-        * Sha384
-        * Sha512
-* [FlutterCryptography](https://pub.dev/documentation/cryptography_flutter/latest/cryptography/FlutterCryptography-class.html)
-    * A Flutter plugin available in [cryptography_flutter](https://pub.dev/packages/cryptography_flutter).
-    * Extends _BrowserCryptography_.
-    * Enabled with [FlutterCryptography.enable()](https://pub.dev/documentation/cryptography_flutter/latest/cryptography/FlutterCryptography/enable.html).
-    * In Android, _FlutterCryptography_ gives:
-        * AesCbc
-        * AesCtr
-        * AesGcm
-        * Chacha20
-        * Chacha20.poly1305Aead
-    * In iOS and Mac OS X, _FlutterCryptography_ gives:
-        * AesGcm
-        * Chacha20
-        * Chacha20.poly1305Aead
-        * Ed25519
-        * X25519
+    * Uses [Web Cryptography API](https://www.w3.org/TR/WebCryptoAPI/) (_crypto.subtle_).
+    * The class extends _DartCryptography_.
+    * See the [class documentation](https://pub.dev/documentation/cryptography/latest/cryptography.browser/BrowserCryptography-class.html)
+      for list algorithms supported by it.
+* [FlutterCryptography](https://pub.dev/documentation/cryptography_flutter/latest/cryptography_flutter/FlutterCryptography-class.html)
+    * A Flutter plugin available in the package
+      [cryptography_flutter](https://pub.dev/packages/cryptography_flutter).
+      Enabled with [FlutterCryptography.enable()](https://pub.dev/documentation/cryptography_flutter/latest/cryptography_flutter/FlutterCryptography/enable.html).
+    * The class extends _BrowserCryptography_.
+    * See the [class documentation](https://pub.dev/documentation/cryptography_flutter/latest/cryptography_flutter/FlutterCryptography-class.html)
+      for list algorithms supported by it.
 
 # Getting started
 In _pubspec.yaml_:
 ```yaml
 dependencies:
-  cryptography: ^2.1.0
+  cryptography: ^2.1.1
 ```
 
 If you use Flutter, you may consider using 
-[cryptography_flutter](https://pub.dev/packages/cryptography_flutter) for improving performance by
-moving computations away from the UI isolate.
+[cryptography_flutter](https://pub.dev/packages/cryptography_flutter) for improving performance.
+It moves computations away from the UI isolate.
 
 # Examples
 ## Digital signature
@@ -309,6 +274,7 @@ Future<void> main() async {
   // Add all parts of the authenticated message
   sink.add([1,2,3]);
   sink.add([4,5]);
+  sink.add([6]);
 
   // Calculate hash
   sink.close();

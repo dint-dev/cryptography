@@ -16,7 +16,11 @@ import 'package:cryptography/browser.dart';
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/dart.dart';
 
-/// Returns cryptographic algorithm implementations.
+/// A factory for cryptographic algorithms.
+///
+/// This is used by factories in the cryptographic algorithm classes. For example,
+/// [Chacha20.poly1305Aead] calls the [Cryptography.instance] method
+/// [chacha20Poly1305Aead].
 ///
 /// ## Implementations
 ///   * [DartCryptography]
@@ -24,18 +28,6 @@ import 'package:cryptography/dart.dart';
 ///   * [FlutterCryptography](https://pub.dev/documentation/cryptography_flutter/latest/cryptography_flutter/FlutterCryptography-class.html) (_package:cryptography_flutter_)
 ///
 /// ## Setting implementation
-/// In tests, you can set the static variable like this:
-/// ```
-/// import 'package:cryptography/cryptography.dart';
-///
-/// void main() {
-///   setUp(() {
-///     Cryptography.instance = yourInstance;
-///   })
-///
-///   // ...
-/// }
-/// ```
 ///
 /// In shipped application, it's a good practice to freeze the value of static
 /// variable with [freezeInstance]:
@@ -46,6 +38,26 @@ import 'package:cryptography/dart.dart';
 ///   Cryptography.freezeInstance(yourInstance);
 ///
 ///   // ...
+/// }
+/// ```
+///
+/// ## Writing you own subclass
+/// ```dart
+/// import 'package:cryptography/browser.dart';
+/// import 'package:cryptography/cryptography.dart';
+///
+/// class MyCryptography extends BrowserCryptography {
+///   @override
+///   Sha256 get sha256 {
+///     return SomeOtherSha256Implementation();
+///   }
+/// }
+///
+/// void main() {
+///   // Change the default cryptography
+///   Cryptography.freezeInstance(MyCryptography());
+///
+///   final sha256 = Shaa256(); // --> SomeOtherSha256Implementation
 /// }
 /// ```
 abstract class Cryptography {
@@ -73,22 +85,26 @@ abstract class Cryptography {
 
   const Cryptography();
 
+  /// A factory used by [AesCbc].
   AesCbc aesCbc({
     required MacAlgorithm macAlgorithm,
     int secretKeyLength = 32,
   });
 
+  /// A factory used by [AesCtr].
   AesCtr aesCtr({
     required MacAlgorithm macAlgorithm,
     int secretKeyLength = 32,
     int counterBits = 64,
   });
 
+  /// A factory used by [AesGcm].
   AesGcm aesGcm({
     int secretKeyLength = 32,
     int nonceLength = 12,
   });
 
+  /// A factory used by [Argon2id].
   Argon2id argon2id({
     required int parallelism,
     required int memorySize,
@@ -96,60 +112,86 @@ abstract class Cryptography {
     required int hashLength,
   });
 
+  /// A factory used by [Blake2b].
   Blake2b blake2b();
 
+  /// A factory used by [Blake2s].
   Blake2s blake2s();
 
+  /// A factory used by [Chacha20].
   Chacha20 chacha20({required MacAlgorithm macAlgorithm});
 
+  /// A factory used by [Chacha20.poly1305Aead].
   Chacha20 chacha20Poly1305Aead();
 
+  /// A factory used by [Ecdh.p256].
   Ecdh ecdhP256({required int length});
 
+  /// A factory used by [Ecdh.p384].
   Ecdh ecdhP384({required int length});
 
+  /// A factory used by [Ecdh.p521].
   Ecdh ecdhP521({required int length});
 
+  /// A factory used by [Ecdsa.p256].
   Ecdsa ecdsaP256(HashAlgorithm hashAlgorithm);
 
+  /// A factory used by [Ecdsa.p384].
   Ecdsa ecdsaP384(HashAlgorithm hashAlgorithm);
 
+  /// A factory used by [Ecdsa.p521].
   Ecdsa ecdsaP521(HashAlgorithm hashAlgorithm);
 
+  /// A factory used by [Ed25519].
   Ed25519 ed25519();
 
+  /// A factory used by [Hchacha20].
   Hchacha20 hchacha20();
 
+  /// A factory used by [Hkdf].
   Hkdf hkdf({required Hmac hmac, required int outputLength});
 
+  /// A factory used by [Hmac].
   Hmac hmac(HashAlgorithm hashAlgorithm);
 
+  /// A factory used by [Pbkdf2].
   Pbkdf2 pbkdf2({
     required MacAlgorithm macAlgorithm,
     required int iterations,
     required int bits,
   });
 
+  /// A factory used by [Poly1305].
   Poly1305 poly1305();
 
+  /// A factory used by [RsaPss].
   RsaPss rsaPss(HashAlgorithm hashAlgorithm, {required int nonceLengthInBytes});
 
+  /// A factory used by [RsaSsaPkcs1v15].
   RsaSsaPkcs1v15 rsaSsaPkcs1v15(HashAlgorithm hashAlgorithm);
 
+  /// A factory used by [Sha1].
   Sha1 sha1();
 
+  /// A factory used by [Sha224].
   Sha224 sha224();
 
+  /// A factory used by [Sha256].
   Sha256 sha256();
 
+  /// A factory used by [Sha384].
   Sha384 sha384();
 
+  /// A factory used by [Sha512].
   Sha512 sha512();
 
+  /// A factory used by [X25519].
   X25519 x25519();
 
+  /// A factory used by [Xchacha20].
   Xchacha20 xchacha20({required MacAlgorithm macAlgorithm});
 
+  /// A factory used by [Xchacha20.poly1305Aead].
   Xchacha20 xchacha20Poly1305Aead();
 
   /// Sets [Cryptography.instance] and prevents further mutations.

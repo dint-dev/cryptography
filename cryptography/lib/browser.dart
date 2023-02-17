@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/// Cryptographic algorithms implemented with browser APIs (_Web Cryptography_).
+/// Cryptographic algorithms implemented with
+/// [Web Cryptography API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API).
 ///
 /// See [BrowserCryptography].
-///
 library cryptography.browser;
 
 import 'package:cryptography/browser.dart';

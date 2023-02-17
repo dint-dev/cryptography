@@ -17,18 +17,17 @@ import 'package:cryptography/helpers.dart';
 
 /// An opaque reference to _P-256_ / _P-384_ / _P-521_ key pair.
 ///
+/// The private key bytes of the key may not be in the memory. The private key
+/// bytes may not even be extractable. If the private key is in memory, it's an
+/// instance of [EcKeyPairData].
+///
+/// The public key is always [EcPublicKeyData].
+///
+/// This class is used with algorithms such as [Ecdh.p256] and [Ecdsa.p256].
+///
 /// There are many formats for storing elliptic curve key parameters.
 /// If you are encoding/decoding JWK (JSON Web Key) format, use
 /// [package:jwk](https://pub.dev/packages/jwk).
-///
-/// ## Related classes
-///   * [EcKeyPairData]
-///   * [EcPublicKey]
-///
-/// ## Algorithms that use this class
-///   * [Ecdh]
-///   * [Ecdsa]
-///
 abstract class EcKeyPair extends KeyPair {
   factory EcKeyPair.lazy(Future<EcKeyPairData> Function() f) = _LazyEcKeyPair;
 

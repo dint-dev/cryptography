@@ -15,9 +15,10 @@
 import 'package:collection/collection.dart';
 import 'package:cryptography/cryptography.dart';
 
-/// A digital signature made of [bytes] and [publicKey].
+/// A digital signature by some [SignatureAlgorithm].
 ///
-/// Messages can be signed and verified with some [SignatureAlgorithm].
+/// Use [SignatureAlgorithm.sign] to compute signatures and
+/// [SignatureAlgorithm.verify] to verify them.
 class Signature {
   /// Signature bytes.
   final List<int> bytes;

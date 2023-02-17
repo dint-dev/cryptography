@@ -14,19 +14,16 @@
 
 /// Cryptographic algorithms for Dart / Flutter developers.
 ///
-/// ## Algorithm types
-///   * [Cipher]
-///   * [KeyExchangeAlgorithm]
-///   * [KdfAlgorithm]
-///   * [HashAlgorithm]
-///   * [MacAlgorithm]
-///   * [SignatureAlgorithm]
+/// ## Main algorithm types
+///   * [Cipher] for encrypting and decrypting
+///   * [KeyExchangeAlgorithm] for key exchange
+///   * [KdfAlgorithm] for key derivation
+///   * [HashAlgorithm] for hashing
+///   * [MacAlgorithm] for message authentication
+///   * [SignatureAlgorithm] for signing and verifying
 ///
-/// ## Implementation factory
-///
-/// [Cryptography.instance] determines which implementation of an algorithm is
-/// used when you call factory method such as [Sha256()].
-///
+/// ## Factory methods
+/// [Cryptography] contains factory methods for cryptographic algorithms.
 library cryptography;
 
 import 'package:cryptography/cryptography.dart';
