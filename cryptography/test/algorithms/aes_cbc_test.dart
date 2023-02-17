@@ -67,17 +67,36 @@ void _main() {
     expect(algorithm.hashCode, isNot(other2.hashCode));
   });
 
-  test('toString', () {
+  test('information: 128 bits', () {
+    final algorithm = AesCbc.with128bits(macAlgorithm: Hmac.sha256());
+    expect(algorithm.macAlgorithm, Hmac.sha256());
+    expect(algorithm.secretKeyLength, 16);
+    expect(algorithm.nonceLength, 16);
+    expect(
+      algorithm.toString(),
+      'AesCbc.with128bits(macAlgorithm: Hmac.sha256())',
+    );
+  });
+
+  test('information: 192 bits', () {
+    final algorithm = AesCbc.with192bits(macAlgorithm: Hmac.sha256());
+    expect(algorithm.macAlgorithm, Hmac.sha256());
+    expect(algorithm.secretKeyLength, 24);
+    expect(algorithm.nonceLength, 16);
+    expect(
+      algorithm.toString(),
+      'AesCbc.with192bits(macAlgorithm: Hmac.sha256())',
+    );
+  });
+
+  test('information: 256 bits', () {
+    expect(algorithm.macAlgorithm, Hmac.sha256());
+    expect(algorithm.secretKeyLength, 32);
+    expect(algorithm.nonceLength, 16);
     expect(
       algorithm.toString(),
       'AesCbc.with256bits(macAlgorithm: Hmac.sha256())',
     );
-  });
-
-  test('information', () {
-    expect(algorithm.macAlgorithm, Hmac.sha256());
-    expect(algorithm.secretKeyLength, 32);
-    expect(algorithm.nonceLength, 16);
   });
 
   test('Encrypted without specifying nonce: two results are different',
@@ -175,8 +194,8 @@ void _main() {
   });
 
   test('encrypt/decrypt input lengths 0...1000', () async {
-    for (var i = 0; i < 1000; i++) {
-      final clearText = List<int>.filled(i, 1);
+    for (var n = 0; n < 1000; n++) {
+      final clearText = List<int>.generate(n, (i) => 0xFF & i);
       final secretKey = await algorithm.newSecretKey();
       final nonce = List<int>.filled(16, 1);
 

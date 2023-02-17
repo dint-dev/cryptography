@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:typed_data';
+
 import 'package:cryptography/browser.dart';
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/dart.dart';
@@ -65,15 +67,36 @@ void _main() {
     expect(algorithm.hashCode, isNot(other2.hashCode));
   });
 
-  test('toString', () {
-    expect(algorithm.toString(),
-        'AesCtr.with256bits(macAlgorithm: Hmac.sha256())');
+  test('information: 128 bits', () {
+    final algorithm = AesCtr.with128bits(macAlgorithm: Hmac.sha256());
+    expect(algorithm.macAlgorithm, Hmac.sha256());
+    expect(algorithm.secretKeyLength, 16);
+    expect(algorithm.nonceLength, 16);
+    expect(
+      algorithm.toString(),
+      'AesCtr.with128bits(macAlgorithm: Hmac.sha256(), counterBits: 64)',
+    );
   });
 
-  test('information', () {
+  test('information: 192 bits', () {
+    final algorithm = AesCtr.with192bits(macAlgorithm: Hmac.sha256());
+    expect(algorithm.macAlgorithm, Hmac.sha256());
+    expect(algorithm.secretKeyLength, 24);
+    expect(algorithm.nonceLength, 16);
+    expect(
+      algorithm.toString(),
+      'AesCtr.with192bits(macAlgorithm: Hmac.sha256(), counterBits: 64)',
+    );
+  });
+
+  test('information: 256 bits', () {
     expect(algorithm.macAlgorithm, Hmac.sha256());
     expect(algorithm.secretKeyLength, 32);
     expect(algorithm.nonceLength, 16);
+    expect(
+      algorithm.toString(),
+      'AesCtr.with256bits(macAlgorithm: Hmac.sha256(), counterBits: 64)',
+    );
   });
 
   test('Checks MAC', () async {
@@ -176,8 +199,8 @@ void _main() {
 
   group('encrypt() / decrypt():', () {
     test('encrypt/decrypt input lengths 0...1000', () async {
-      for (var i = 0; i < 1000; i++) {
-        final clearText = List<int>.filled(i, 1);
+      for (var length = 0; length < 1000; length++) {
+        final clearText = List<int>.filled(length, 1);
         final secretKey = SecretKey(List<int>.filled(32, 2));
         final nonce = List<int>.filled(16, 1);
 
@@ -208,8 +231,8 @@ void _main() {
 
     test('encrypt/decrypt input lengths 256...1000, keyStreamIndex=1 or 17',
         () async {
-      for (var i = 256; i < 1000; i++) {
-        final clearText = List<int>.unmodifiable(List<int>.filled(i, 1));
+      for (var length = 256; length < 1000; length++) {
+        final clearText = List<int>.unmodifiable(List<int>.filled(length, 1));
         final secretKey = await algorithm.newSecretKey();
         final nonce = List<int>.unmodifiable(List<int>.filled(16, 1));
 
@@ -246,6 +269,47 @@ void _main() {
         );
         expect(decrypted2, clearText);
       }
+    });
+
+    group('128-bit key, 12 byte nonce, 0 byte message', () {
+      late AesCtr algorithm;
+      final clearText = <int>[];
+      final secretKey = SecretKey(List<int>.filled(16, 2));
+      final nonce = List<int>.filled(12, 1);
+      final cipherText = Uint8List(0);
+
+      setUp(() {
+        algorithm = AesCtr.with128bits(macAlgorithm: Hmac.sha256());
+      });
+
+      test('encrypt', () async {
+        final secretBox = await algorithm.encrypt(
+          clearText,
+          secretKey: secretKey,
+          nonce: nonce,
+        );
+        expect(
+          hexFromBytes(secretBox.cipherText),
+          hexFromBytes(cipherText),
+        );
+      });
+
+      test('decrypt', () async {
+        final mac = await Hmac.sha256().calculateMac(
+          cipherText,
+          secretKey: secretKey,
+        );
+        final secretBox = SecretBox(
+          cipherText,
+          nonce: nonce,
+          mac: mac,
+        );
+        final actualClearText = await algorithm.decrypt(
+          secretBox,
+          secretKey: secretKey,
+        );
+        expect(actualClearText, clearText);
+      });
     });
 
     group('128-bit key, 12 byte nonce, 3 byte message', () {
