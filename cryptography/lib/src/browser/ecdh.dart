@@ -27,12 +27,6 @@ Future<web_crypto.CryptoKey> jsCryptoKeyFromEcdhKeyPair(
     return keyPair.jsCryptoKeyPair.privateKey;
   }
   final keyPairData = await keyPair.extract();
-  if (keyPairData is! EcKeyPairData) {
-    throw ArgumentError.value(
-      keyPair,
-      'keyPair',
-    );
-  }
   try {
     return await js.promiseToFuture<web_crypto.CryptoKey>(
       web_crypto.importKey(

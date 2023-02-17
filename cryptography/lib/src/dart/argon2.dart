@@ -49,6 +49,20 @@ class DartArgon2id extends Argon2id {
     List<int> k = const <int>[],
     List<int> ad = const <int>[],
   }) async {
+    return deriveKeySync(
+      secretKey: secretKey,
+      nonce: nonce,
+      k: k,
+      ad: ad,
+    );
+  }
+
+  Future<SecretKey> deriveKeySync({
+    required SecretKey secretKey,
+    required List<int> nonce,
+    List<int> k = const <int>[],
+    List<int> ad = const <int>[],
+  }) async {
     // h0
     final secretKeyBytes = await secretKey.extractBytes();
     final h0Sink = Blake2b().newHashSink();
@@ -64,19 +78,22 @@ class DartArgon2id extends Argon2id {
     h0Sink.close();
     final h0 = (await h0Sink.hash()).bytes;
 
-    final blocks = List<Uint8List?>.filled(parallelism, null);
-    blocks[0] = Uint8List.fromList(h0);
+    final blocks = List<Uint8List>.generate(
+      parallelism,
+      (_) => Uint8List(h0.length),
+    );
+    blocks[0].setAll(0, h0);
     final columnCount = memorySize ~/ parallelism;
 
     // Initialize parallel lanes
     for (var i = 0; i < parallelism; i++) {
-      throw UnimplementedError();
+      // ...
     }
 
     // First iteration
     for (var i = 0; i < parallelism; i++) {
       for (var j = 2; j < columnCount; j++) {
-        throw UnimplementedError();
+        // ...
       }
     }
 
@@ -84,7 +101,7 @@ class DartArgon2id extends Argon2id {
     for (var iteration = 1; iteration < iterations; iteration++) {
       for (var i = 0; i < parallelism; i++) {
         for (var j = 0; j < columnCount; j++) {
-          throw UnimplementedError();
+          // ...
         }
       }
     }
@@ -92,28 +109,27 @@ class DartArgon2id extends Argon2id {
     // XOR lanes
     final c = blocks[0];
     for (var i = 1; i < blocks.length; i++) {
-      final block = blocks[i]!;
+      final block = blocks[i];
       for (var j = 0; j < block.length; j++) {
-        c![j] ^= block[j];
+        c[j] ^= block[j];
       }
     }
 
     // Final hash
-    SecretKey(Uint8List.fromList(await _hash(c!, hashLength)));
+    SecretKey(Uint8List.fromList(await _hash(c, hashLength)));
 
     throw UnimplementedError('Does not pass tests yet.');
   }
 
-  /// Variable-length BLAKE2B
   Future<List<int>> _hash(
     List<int> input,
     int size, {
     bool inputIsFirstHash = false,
   }) async {
-    final result = Uint8List(size);
     final n = (size + 63) ~/ 64;
+    final result = Uint8List(64 * n);
     var previousHash = input;
-    for (var i = 0; i <= n; i++) {
+    for (var i = 0; i < n; i++) {
       late List<int> hash;
       if (i == 0 && inputIsFirstHash) {
         hash = input;

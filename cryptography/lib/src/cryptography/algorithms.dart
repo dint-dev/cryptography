@@ -11,9 +11,9 @@ import 'package:meta/meta.dart';
 ///   * In browsers, [BrowserAesCbc] is used by default.
 ///   * Otherwise [DartAesCbc] is used by default.
 ///   * The package [cryptography_flutter](https://pub.dev/packages/cryptography_flutter)
-///     supports native implementations available in Android and iOS.
+///     supports native implementation available in Android.
 ///
-/// ## About the algorithm
+/// ## Things to know
 ///   * Three possible key lengths:
 ///     * 128 bits: [AesCbc.with128bits]
 ///     * 192 bits: [AesCbc.with192bits]
@@ -23,6 +23,8 @@ import 'package:meta/meta.dart';
 ///     nonce.
 ///   * You must choose some [macAlgorithm]. If you are sure that you don't need
 ///     one, use [MacAlgorithm.empty].
+///   * The standard supports any padding, but this uses PKCS7 padding by
+///     default (for compatibility with Web Cryptography API).
 ///
 /// ## Example
 /// ```dart
@@ -92,8 +94,7 @@ abstract class AesCbc extends Cipher {
   }
 
   @override
-  int get hashCode =>
-      (AesCbc).hashCode ^ secretKeyLength.hashCode ^ macAlgorithm.hashCode;
+  int get hashCode => Object.hash(AesCbc, secretKeyLength, macAlgorithm);
 
   @override
   int get nonceLength => 16;
@@ -116,19 +117,17 @@ abstract class AesCbc extends Cipher {
 ///   * In browsers, [BrowserAesCtr] is used by default.
 ///   * Otherwise [DartAesCtr] is used by default.
 ///   * The package [cryptography_flutter](https://pub.dev/packages/cryptography_flutter)
-///     supports native implementations available in Android and iOS.
+///     supports native implementation available in Android.
 ///
-/// ## About the algorithm
+/// ## Things to know
 ///   * Three possible key lengths:
 ///     * 128 bits: [AesCtr.with128bits]
 ///     * 192 bits: [AesCtr.with192bits]
 ///     * 256 bits: [AesCtr.with256bits]
-///   * Nonce length is 12 bytes by default. That means 4 bytes is used for
-///     block counter.
-///       * Because block is 16 bytes, maximum message size is 32 GB with a
-///         single nonce.
-///       * You can choose another nonce length in the constructor if you need
-///         to.
+///   * Nonce length is 12 bytes by default, which implies 4 bytes for the block
+///     counter. Because block is 16 bytes, the maximum message size is 32 GB
+///     with a single nonce. You can choose another nonce length in the
+///     constructor if you need to support larger messages.
 ///   * You must choose some [macAlgorithm]. If you are sure that you don't need
 ///     one, use [MacAlgorithm.empty].
 ///
@@ -164,6 +163,9 @@ abstract class AesCbc extends Cipher {
 /// }
 /// ```
 abstract class AesCtr extends StreamingCipher {
+  /// Default value for [counterBits].
+  static const int defaultCounterBits = 64;
+
   /// Constructor for classes that extend this class.
   @protected
   const AesCtr.constructor();
@@ -209,8 +211,7 @@ abstract class AesCtr extends StreamingCipher {
   int get counterBits;
 
   @override
-  int get hashCode =>
-      (AesCtr).hashCode ^ secretKeyLength.hashCode ^ macAlgorithm.hashCode;
+  int get hashCode => Object.hash(AesCtr, secretKeyLength, macAlgorithm);
 
   @override
   int get nonceLength => 16;
@@ -223,7 +224,7 @@ abstract class AesCtr extends StreamingCipher {
 
   @override
   String toString() {
-    return 'AesCtr.with${secretKeyLength * 8}bits(macAlgorithm: $macAlgorithm)';
+    return 'AesCtr.with${secretKeyLength * 8}bits(macAlgorithm: $macAlgorithm, counterBits: $counterBits)';
   }
 }
 
@@ -237,7 +238,7 @@ abstract class AesCtr extends StreamingCipher {
 ///     __We recommend you use "package:cryptography_flutter" for the best
 ///     performance and easier cryptographic compliance.__
 ///
-/// ## About the algorithm
+/// ## Things to know
 ///   * Three possible key lengths:
 ///     * 128 bits: [AesGcm.with128bits]
 ///     * 192 bits: [AesGcm.with192bits]
@@ -325,7 +326,7 @@ abstract class AesGcm extends StreamingCipher {
   }
 
   @override
-  int get hashCode => (AesGcm).hashCode;
+  int get hashCode => Object.hash(AesGcm, secretKeyLength, nonceLength);
 
   @override
   MacAlgorithm get macAlgorithm => AesGcm.aesGcmMac;
@@ -583,13 +584,16 @@ abstract class Blake2s extends HashAlgorithm {
 /// _ChaCha20_ ([RFC 7539](https://tools.ietf.org/html/rfc7539))
 /// [StreamingCipher].
 ///
-/// We recommend you to use [Chacha20.poly1305Aead()],
+/// In almost every case, you should use constructor [Chacha20.poly1305Aead],
 /// which does message authentication with a standard AEAD construction for
-/// _ChaCha20_.
+/// _ChaCha20_. The AEAD version of ChaCha20 is used by most protocols and
+/// operating system APIs.
 ///
-/// ## About the algorithm
+/// ## Things to know
 ///   * [secretKeyLength] is 32 bytes.
-///   * [nonceLength] is 12 bytes.\
+///   * [nonceLength] is 12 bytes.
+///   * Associated Authenticated Data (AAD) is supported by
+///     [Chacha20.poly1305Aead].
 ///
 /// ## Example
 /// ```dart
@@ -625,6 +629,10 @@ abstract class Blake2s extends HashAlgorithm {
 /// _package:cryptography/dart.dart_.
 ///
 abstract class Chacha20 extends StreamingCipher {
+  /// Constructs a ChaCha20 with any MAC.
+  ///
+  /// Usually you should use [Chacha20.poly1305Aead()], which implements
+  /// AEAD version of the algorithm.
   factory Chacha20({required MacAlgorithm macAlgorithm}) {
     return Cryptography.instance.chacha20(macAlgorithm: macAlgorithm);
   }
@@ -640,7 +648,7 @@ abstract class Chacha20 extends StreamingCipher {
   /// MAC. AAD (Associated Authenticated Data) is supported by [encrypt()] and
   /// [decrypt()].
   ///
-  /// ## About the algorithm
+  /// ## Things to know
   ///   * [secretKeyLength] is 32 bytes.
   ///   * [nonceLength] is 12 bytes.\
   factory Chacha20.poly1305Aead() {
@@ -825,9 +833,20 @@ abstract class Ecdsa extends SignatureAlgorithm {
 /// _Ed25519_ ([RFC 8032](https://tools.ietf.org/html/rfc8032)) signature
 /// algorithm.
 ///
+/// ## Available implementation
+///   * [DartEd25519] is used by default.
+///   * The package [cryptography_flutter](https://pub.dev/packages/cryptography_flutter)
+///     supports ED25519 operating system APIs available in Android and iOS.
+///     __We recommend you use "package:cryptography_flutter" for the best
+///     performance and easier cryptographic compliance.__
+///
 /// ## Things to know
 ///   * Private key is any 32-byte sequence.
 ///   * Public key is 32 bytes.
+///   * Signatures are 64 bytes.
+///   * RFC 8032 says that the signatures are deterministic, but some widely
+///     used implementations such as Apple CryptoKit return non-deterministic
+///     signatures.
 ///
 /// ## Example
 /// ```
@@ -843,7 +862,7 @@ abstract class Ecdsa extends SignatureAlgorithm {
 ///   final message = <int>[1,2,3];
 ///   final signature = await algorithm.sign(
 ///     message,
-///     keyPair,
+///     keyPair: keyPair,
 ///   );
 ///   print('Signature bytes: ${signature.bytes}');
 ///   print('Public key: ${signature.publicKey.bytes}');
@@ -1037,7 +1056,7 @@ abstract class Hmac extends MacAlgorithm {
 
 /// _PBKDF2_ password hashing algorithm implemented in pure Dart.
 ///
-/// ## About the algorithm
+/// ## Things to know
 ///   * `macAlgorithm` can be any [MacAlgorithm] (such as [Hmac.sha256()]).
 ///   * `iterations` should be at least 100 000 for reasonable security in
 ///     password hashing. The higher the better.
@@ -1117,7 +1136,7 @@ abstract class Pbkdf2 extends KdfAlgorithm {
 
 /// _Poly1305_ ([RFC 7539](https://tools.ietf.org/html/rfc7539)) [MacAlgorithm].
 ///
-/// ## About the algorithm
+/// ## Things to know
 ///   * DO NOT use the same (key, nonce) tuple twice.
 ///   * DO NOT use the algorithm for key derivation.
 abstract class Poly1305 extends MacAlgorithm {
@@ -1655,9 +1674,17 @@ abstract class StreamingCipher extends Cipher {
 /// X25519 is an elliptic curve Diffie-Hellman key exchange algorithm that uses
 /// Curve25519.
 ///
+/// ## Available implementation
+///   * [DartX25519] is used by default.
+///   * The package [cryptography_flutter](https://pub.dev/packages/cryptography_flutter)
+///     supports X25519 operating system APIs available in Android and iOS.
+///     __We recommend you use "package:cryptography_flutter" for the best
+///     performance and easier cryptographic compliance.__
+///
 /// ## Things to know
 ///   * Private key is any 32-byte sequence.
 ///   * Public key is 32 bytes.
+///   * Output is 32 bytes.
 ///
 /// ## Example
 /// ```dart

@@ -19,6 +19,8 @@ import 'package:cryptography/cryptography.dart';
 import 'aes_impl.dart';
 
 /// [AesCbc] implemented in pure Dart.
+///
+/// Uses PKCS7 padding by default (for compatibility with Web Cryptography API).
 class DartAesCbc extends AesCbc with DartAesMixin {
   @override
   final MacAlgorithm macAlgorithm;
@@ -31,6 +33,15 @@ class DartAesCbc extends AesCbc with DartAesMixin {
             secretKeyLength == 24 ||
             secretKeyLength == 32),
         super.constructor();
+
+  const DartAesCbc.with128bits({required MacAlgorithm macAlgorithm})
+      : this(macAlgorithm: macAlgorithm, secretKeyLength: 16);
+
+  const DartAesCbc.with192bits({required MacAlgorithm macAlgorithm})
+      : this(macAlgorithm: macAlgorithm, secretKeyLength: 24);
+
+  const DartAesCbc.with256bits({required MacAlgorithm macAlgorithm})
+      : this(macAlgorithm: macAlgorithm, secretKeyLength: 32);
 
   @override
   Future<List<int>> decrypt(
@@ -139,8 +150,9 @@ class DartAesCbc extends AesCbc with DartAesMixin {
     // The last byte has padding length.
     final paddingLength = outputAsUint8List.last;
     if (paddingLength == 0 || paddingLength > 16) {
-      throw StateError(
-        'The decrypted bytes have invalid PKCS7 padding length in the end: $paddingLength',
+      throw SecretBoxPaddingError(
+        message:
+            'The decrypted bytes have invalid PKCS7 padding length in the end: $paddingLength',
       );
     }
 
@@ -149,7 +161,9 @@ class DartAesCbc extends AesCbc with DartAesMixin {
         i < outputAsUint8List.length;
         i++) {
       if (outputAsUint8List[i] != paddingLength) {
-        throw StateError('The decrypted bytes are missing padding');
+        throw SecretBoxPaddingError(
+          message: 'The decrypted bytes are missing PKCS7 padding',
+        );
       }
     }
     if (paddingLength == 0) {
@@ -182,11 +196,11 @@ class DartAesCbc extends AesCbc with DartAesMixin {
       );
     }
     nonce ??= newNonce();
-    if (nonceLength != 16) {
+    if (nonce.length != nonceLength) {
       throw ArgumentError.value(
         nonce,
         'nonce',
-        'Expected nonce with 16 bytes, got $nonceLength bytes',
+        'Expected nonce with $nonceLength bytes, got ${nonce.length} bytes',
       );
     }
     if (keyStreamIndex < 0) {

@@ -168,3 +168,15 @@ class SecretBox {
     }
   }
 }
+
+/// Thrown by [Cipher] if invalid padding is found during [SecretBox]
+/// decryption.
+class SecretBoxPaddingError implements Exception {
+  final String message;
+
+  SecretBoxPaddingError({String? message})
+      : message = message ?? 'Incorrect padding';
+
+  @override
+  String toString() => '$SecretBoxPaddingError(message: "$message")';
+}

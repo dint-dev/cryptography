@@ -16,7 +16,6 @@
 
 export 'utils/big_int.dart';
 export 'utils/bytes.dart';
-export 'utils/bytes.dart';
 export 'utils/constant_time_equality.dart';
 export 'utils/hex.dart';
 export 'utils/random_bytes.dart';
