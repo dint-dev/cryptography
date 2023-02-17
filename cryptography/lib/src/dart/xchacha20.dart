@@ -43,13 +43,16 @@ class DartXchacha20 extends StreamingCipher implements Xchacha20 {
   @override
   final MacAlgorithm macAlgorithm;
 
-  factory DartXchacha20.poly1305Aead() =>
-      DartXchacha20._poly1305Aead(Chacha20.poly1305Aead());
+  const DartXchacha20.poly1305Aead()
+      : _chacha20 = const DartChacha20.poly1305Aead(),
+        macAlgorithm = const _DartXChacha20Poly1305Aead(
+          DartChacha20Poly1305AeadMacAlgorithm(),
+        );
 
   DartXchacha20({required this.macAlgorithm})
       : _chacha20 = Chacha20(macAlgorithm: macAlgorithm);
 
-  DartXchacha20._poly1305Aead(Chacha20 chacha20)
+  DartXchacha20.withChacha20({required Chacha20 chacha20})
       : _chacha20 = chacha20,
         macAlgorithm = _DartXChacha20Poly1305Aead(chacha20.macAlgorithm);
 
@@ -102,6 +105,13 @@ class DartXchacha20 extends StreamingCipher implements Xchacha20 {
     int keyStreamIndex = 0,
   }) async {
     nonce ??= newNonce();
+    if (nonce.length != nonceLength) {
+      throw ArgumentError.value(
+        nonce,
+        'nonce',
+        'Must be $nonceLength bytes',
+      );
+    }
 
     // New secret key for normal Chacha20
     final derivedSecretKey = await _xchacha20SecretKey(
@@ -133,7 +143,7 @@ class DartXchacha20 extends StreamingCipher implements Xchacha20 {
 class _DartXChacha20Poly1305Aead extends MacAlgorithm {
   final MacAlgorithm _macAlgorithm;
 
-  _DartXChacha20Poly1305Aead(this._macAlgorithm);
+  const _DartXChacha20Poly1305Aead(this._macAlgorithm);
 
   @override
   int get macLength => _macAlgorithm.macLength;

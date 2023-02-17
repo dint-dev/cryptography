@@ -20,20 +20,34 @@ import 'package:cryptography/src/utils.dart';
 
 /// [Chacha20] implemented in pure Dart.
 ///
-/// ## Recommendation
-/// Usually you should use [Cryptography.chacha20]:
-/// ```
-/// final cipher = Cryptography.instance.chacha20()
-/// ```
+/// In almost every case, you should use constructor
+/// [DartChacha20.poly1305Aead],
+/// which does message authentication with a standard AEAD construction for
+/// _ChaCha20_. The AEAD version of ChaCha20 is used by most protocols and
+/// operating system APIs.
+///
+/// See [Chacha20] for more documentation.
 class DartChacha20 extends Chacha20 {
   static const int _rounds = 20;
 
   @override
   final MacAlgorithm macAlgorithm;
 
+  /// Constructs [DartChacha20] with any MAC.
+  ///
+  /// Usually you should use [Chacha20.poly1305Aead], which implements
+  /// AEAD version of the algorithm.
   const DartChacha20({
     required this.macAlgorithm,
   }) : super.constructor();
+
+  /// Constructs the AEAD version of ChaCha20 is used by most protocols and
+  /// operating system APIs.
+  ///
+  /// The implementation uses [DartChacha20Poly1305AeadMacAlgorithm].
+  const DartChacha20.poly1305Aead()
+      : macAlgorithm = const DartChacha20Poly1305AeadMacAlgorithm(),
+        super.constructor();
 
   @override
   Future<List<int>> decrypt(
@@ -121,7 +135,7 @@ class DartChacha20 extends Chacha20 {
         throw ArgumentError.value(
           keyStreamIndex,
           'keyStreamIndex',
-          'Must be zero',
+          'Must be zero when AEAD is used',
         );
       }
       keyStreamIndex = 64;

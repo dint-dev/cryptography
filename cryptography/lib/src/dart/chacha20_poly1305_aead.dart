@@ -17,6 +17,8 @@ import 'dart:typed_data';
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/src/utils.dart';
 
+import '../../dart.dart';
+
 /// A pure Dart implementation of _AEAD_CHACHA20_POLY1305_ message
 /// authentication.
 ///
@@ -29,12 +31,13 @@ class DartChacha20Poly1305AeadMacAlgorithm extends MacAlgorithm {
   final Poly1305 _poly1305;
   final bool _useStaticBuffer;
 
-  DartChacha20Poly1305AeadMacAlgorithm({
+  const DartChacha20Poly1305AeadMacAlgorithm({
     Chacha20? chacha20,
     Poly1305? poly1305,
     bool useStaticBuffer = false,
-  })  : _chacha20 = chacha20 ?? Chacha20(macAlgorithm: MacAlgorithm.empty),
-        _poly1305 = poly1305 ?? Poly1305(),
+  })  : _chacha20 =
+            chacha20 ?? const DartChacha20(macAlgorithm: MacAlgorithm.empty),
+        _poly1305 = poly1305 ?? const DartPoly1305(),
         _useStaticBuffer = useStaticBuffer;
 
   @override
