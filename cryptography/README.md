@@ -73,9 +73,9 @@ implementations are available:
       implementations are about 400 - 700 MB/s.
 * ChaCha20 / XChaCha20
     * [Chacha20](https://pub.dev/documentation/cryptography/latest/cryptography/Chacha20-class.html)
-    * [Chacha20.poly1305Aead](https://pub.dev/documentation/cryptography/latest/cryptography/Chacha20/poly1305Aead.html) (AEAD_CHACHA20_POLY1305)
+    * [Chacha20.poly1305Aead](https://pub.dev/documentation/cryptography/latest/cryptography/Chacha20/Chacha20.poly1305Aead.html) (AEAD_CHACHA20_POLY1305)
     * [Xchacha20](https://pub.dev/documentation/cryptography/latest/cryptography/Xchacha20-class.html)
-    * [Xchacha20.poly1305Aead](https://pub.dev/documentation/cryptography/latest/cryptography/Xchacha20/poly1305Aead.html) (AEAD_XCHACHA20_POLY1305)
+    * [Xchacha20.poly1305Aead](https://pub.dev/documentation/cryptography/latest/cryptography/Xchacha20/Xchacha20.poly1305Aead.html) (AEAD_XCHACHA20_POLY1305)
     * Throughput of the pure Dart implementation is 40 - 140 MB/s in VM.
 
 ### Digital signature algorithms
