@@ -8,7 +8,7 @@ environment:
 
 dependencies:
   collection: ^1.15.0
-  cryptography: ^2.0.5
+  cryptography: ^2.1.0
 
 dev_dependencies:
   lints: ^1.0.1

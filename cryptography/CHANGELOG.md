@@ -1,3 +1,11 @@
+## 2.1.0
+
+* Improves performance of Blake2b/Blake2s.
+* Add _SecretBoxPaddingError_ that is thrown when the padding of a secret box is invalid.
+* Adds some additional constructors such as `DartAesGcm.with128bits`.
+* Fixes various small issues.
+* Improves documentation.
+
 ## 2.0.5
 
 * Fixes bugs in `Xchacha20.poly1305`.
