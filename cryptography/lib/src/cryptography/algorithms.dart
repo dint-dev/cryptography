@@ -52,7 +52,7 @@ import 'package:meta/meta.dart';
 ///   print('MAC: ${secretBox.mac.bytes}')
 ///
 ///   // Decrypt
-///   final clearText = await algorithm.encrypt(
+///   final clearText = await algorithm.decrypt(
 ///     secretBox,
 ///     secretKey: secretKey,
 ///   );
@@ -162,7 +162,7 @@ abstract class AesCbc extends Cipher {
 ///   print('MAC: ${secretBox.mac.bytes}')
 ///
 ///   // Decrypt
-///   final clearText = await algorithm.encrypt(
+///   final clearText = await algorithm.decrypt(
 ///     secretBox,
 ///     secretKey: secretKey,
 ///   );
@@ -283,7 +283,7 @@ abstract class AesCtr extends StreamingCipher {
 ///   print('MAC: ${secretBox.mac.bytes}')
 ///
 ///   // Decrypt
-///   final clearText = await algorithm.encrypt(
+///   final clearText = await algorithm.decrypt(
 ///     secretBox,
 ///     secretKey: secretKey,
 ///   );
