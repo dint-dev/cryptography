@@ -17,6 +17,9 @@ import 'dart:typed_data';
 import 'package:cryptography/cryptography.dart';
 
 /// [Pbkdf2] implemented in pure Dart.
+///
+/// For examples and more information about the algorithm, see documentation for
+/// the class [Pbkdf2].
 class DartPbkdf2 extends Pbkdf2 {
   @override
   final MacAlgorithm macAlgorithm;

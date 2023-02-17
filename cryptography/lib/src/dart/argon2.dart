@@ -18,6 +18,9 @@ import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/dart.dart';
 
 /// [Argon2id] implemented in pure Dart.
+///
+/// For examples and more information about the algorithm, see documentation for
+/// the class [Argon2id].
 class DartArgon2id extends Argon2id {
   @override
   final int parallelism;

@@ -20,13 +20,13 @@ import 'package:cryptography/src/utils.dart';
 
 /// [Chacha20] implemented in pure Dart.
 ///
-/// In almost every case, you should use constructor
-/// [DartChacha20.poly1305Aead],
-/// which does message authentication with a standard AEAD construction for
-/// _ChaCha20_. The AEAD version of ChaCha20 is used by most protocols and
-/// operating system APIs.
+/// In almost every case, you should use constructor [DartChacha20.poly1305Aead],
+/// which returns _AEAD_CHACHA20_POLY1305_ cipher
+/// (([RFC 7539](https://tools.ietf.org/html/rfc7539)).
+/// The AEAD implementation uses [DartChacha20Poly1305AeadMacAlgorithm].
 ///
-/// See [Chacha20] for more documentation.
+/// For examples and more information about the algorithm, see documentation for
+/// the class [Chacha20].
 class DartChacha20 extends Chacha20 {
   static const int _rounds = 20;
 
@@ -35,14 +35,16 @@ class DartChacha20 extends Chacha20 {
 
   /// Constructs [DartChacha20] with any MAC.
   ///
-  /// Usually you should use [Chacha20.poly1305Aead], which implements
-  /// AEAD version of the algorithm.
+  /// In almost every case, you should use constructor [DartChacha20.poly1305Aead],
+  /// which returns _AEAD_CHACHA20_POLY1305_ cipher
+  /// (([RFC 7539](https://tools.ietf.org/html/rfc7539)).
+  /// The AEAD implementation uses [DartChacha20Poly1305AeadMacAlgorithm].
   const DartChacha20({
     required this.macAlgorithm,
   }) : super.constructor();
 
-  /// Constructs the AEAD version of ChaCha20 is used by most protocols and
-  /// operating system APIs.
+  /// Constructs _AEAD_CHACHA20_POLY1305_ cipher
+  /// (([RFC 7539](https://tools.ietf.org/html/rfc7539)).
   ///
   /// The implementation uses [DartChacha20Poly1305AeadMacAlgorithm].
   const DartChacha20.poly1305Aead()

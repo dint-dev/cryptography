@@ -34,7 +34,7 @@ import 'package:cryptography/cryptography.dart';
 ///   final algorithm = Ed25519();
 ///
 ///   // Generate a new key pair
-///   final keyPair = await algorithm.keyGenerator.newKeyPair();
+///   final keyPair = await algorithm.newKeyPair();
 ///
 ///   // Sign
 ///   final message = <int>[1,2,3];

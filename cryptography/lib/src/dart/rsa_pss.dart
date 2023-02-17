@@ -14,7 +14,11 @@
 
 import 'package:cryptography/cryptography.dart';
 
-/// [RsaPss] implemented in pure Dart.
+/// [RsaPss] implementation in pure Dart. Currently it throws
+/// [UnimplementedError] if you try to use it.
+///
+/// For examples and more information about the algorithm, see documentation for
+/// the class [RsaPss].
 class DartRsaPss extends RsaPss {
   @override
   final HashAlgorithm hashAlgorithm;

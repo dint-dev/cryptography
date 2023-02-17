@@ -62,7 +62,7 @@ class DartCryptography extends Cryptography {
   AesCtr aesCtr({
     required MacAlgorithm macAlgorithm,
     int secretKeyLength = 32,
-    int counterBits = 64,
+    int counterBits = AesCtr.defaultCounterBits,
   }) {
     return DartAesCtr(
       macAlgorithm: macAlgorithm,
@@ -112,37 +112,37 @@ class DartCryptography extends Cryptography {
 
   @override
   Chacha20 chacha20Poly1305Aead() {
-    return chacha20(macAlgorithm: DartChacha20Poly1305AeadMacAlgorithm());
+    return const DartChacha20.poly1305Aead();
   }
 
   @override
   Ecdh ecdhP256({required int length}) {
-    throw UnimplementedError();
+    return DartEcdh.p256();
   }
 
   @override
   Ecdh ecdhP384({required int length}) {
-    throw UnimplementedError();
+    return DartEcdh.p384();
   }
 
   @override
   Ecdh ecdhP521({required int length}) {
-    throw UnimplementedError();
+    return DartEcdh.p521();
   }
 
   @override
   Ecdsa ecdsaP256(HashAlgorithm hashAlgorithm) {
-    throw UnimplementedError();
+    return DartEcdsa.p256(hashAlgorithm);
   }
 
   @override
   Ecdsa ecdsaP384(HashAlgorithm hashAlgorithm) {
-    throw UnimplementedError();
+    return DartEcdsa.p384(hashAlgorithm);
   }
 
   @override
   Ecdsa ecdsaP521(HashAlgorithm hashAlgorithm) {
-    throw UnimplementedError();
+    return DartEcdsa.p521(hashAlgorithm);
   }
 
   @override
@@ -230,6 +230,6 @@ class DartCryptography extends Cryptography {
 
   @override
   Xchacha20 xchacha20Poly1305Aead() {
-    return DartXchacha20.poly1305Aead();
+    return const DartXchacha20.poly1305Aead();
   }
 }

@@ -336,6 +336,9 @@ abstract class DelegatingKeyExchangeAlgorithm extends _Delegating
   KeyExchangeAlgorithm get fallback;
 
   @override
+  KeyPairType<KeyPairData, PublicKey> get keyPairType => fallback.keyPairType;
+
+  @override
   Future<KeyPair> newKeyPair() {
     return fallback.newKeyPair();
   }

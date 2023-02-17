@@ -20,7 +20,8 @@ import 'aes_impl.dart';
 
 /// [AesCbc] implemented in pure Dart.
 ///
-/// Uses PKCS7 padding by default (for compatibility with Web Cryptography API).
+/// For examples and more information about the algorithm, see documentation for
+/// the class [AesCbc].
 class DartAesCbc extends AesCbc with DartAesMixin {
   @override
   final MacAlgorithm macAlgorithm;

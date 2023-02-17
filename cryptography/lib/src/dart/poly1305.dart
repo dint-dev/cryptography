@@ -18,8 +18,11 @@ import 'package:cryptography/cryptography.dart';
 
 /// [Poly1305] implemented in pure Dart.
 ///
+/// For examples and more information about the algorithm, see documentation for
+/// the class [Poly1305].
+///
 /// ## Known limitations
-///   * Currently uses [BigInt]
+///   * Currently uses [BigInt], which makes the implementation slow.
 class DartPoly1305 extends Poly1305 {
   const DartPoly1305() : super.constructor();
 

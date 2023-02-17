@@ -21,6 +21,9 @@ import 'ed25519_impl.dart';
 import 'x25519_impl.dart';
 
 /// [X25519] implemented in pure Dart.
+///
+/// For more information about the algorithm and examples, see documentation
+/// for the class [X25519].
 class DartX25519 extends X25519 with DartKeyExchangeAlgorithmMixin {
   static final Uint8List _constant9 = () {
     final result = Uint8List(32);

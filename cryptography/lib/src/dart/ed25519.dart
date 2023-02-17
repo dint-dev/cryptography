@@ -20,6 +20,9 @@ import '../utils.dart';
 import 'ed25519_impl.dart';
 
 /// [Ed25519] signature algorithm implemented in pure Dart.
+///
+/// For examples and more information about the algorithm, see documentation for
+/// the class [Ed25519].
 class DartEd25519 extends Ed25519 {
   final Sha512 _sha512;
 

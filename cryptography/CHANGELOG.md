@@ -1,3 +1,8 @@
+## 2.1.1
+
+* Fixes small issues.
+* Improves documentation.
+
 ## 2.1.0
 
 * Improves performance of Blake2b/Blake2s.

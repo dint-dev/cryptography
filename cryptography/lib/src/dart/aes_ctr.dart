@@ -20,6 +20,9 @@ import '../utils.dart';
 import 'aes_impl.dart';
 
 /// [AesCtr] implemented in pure Dart.
+///
+/// For examples and more information about the algorithm, see documentation for
+/// the class [AesCtr].
 class DartAesCtr extends AesCtr with DartAesMixin {
   @override
   final MacAlgorithm macAlgorithm;

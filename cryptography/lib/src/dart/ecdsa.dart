@@ -14,7 +14,11 @@
 
 import 'package:cryptography/cryptography.dart';
 
-/// A stub for [Ecdsa] (P256, P384, P521) implemented in pure Dart.
+/// [Ecdsa] (P256, P384, P521) implementation in pure Dart. Currently it throws
+/// [UnimplementedError] if you try to use it.
+///
+/// For examples and more information about the algorithm, see documentation for
+/// the class [Ecdsa].
 class DartEcdsa extends Ecdsa {
   @override
   final KeyPairType keyPairType;

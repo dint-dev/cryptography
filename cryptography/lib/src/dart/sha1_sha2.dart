@@ -21,6 +21,9 @@ import 'package:meta/meta.dart';
 
 /// [Sha1] implemented by using in [package:crypto](https://pub.dev/packages/crypto)
 /// (a package by Google).
+///
+/// For examples and more information about the algorithm, see documentation for
+/// the class [Sha1].
 class DartSha1 extends Sha1 with DartHashAlgorithmMixin, _HashMixin {
   @literal
   const DartSha1() : super.constructor();
@@ -31,6 +34,9 @@ class DartSha1 extends Sha1 with DartHashAlgorithmMixin, _HashMixin {
 
 /// [Sha224] implemented by using in [package:crypto](https://pub.dev/packages/crypto)
 /// (a package by Google).
+///
+/// For examples and more information about the algorithm, see documentation for
+/// the class [Sha224].
 class DartSha224 extends Sha224 with DartHashAlgorithmMixin, _HashMixin {
   @literal
   const DartSha224() : super.constructor();
@@ -41,6 +47,9 @@ class DartSha224 extends Sha224 with DartHashAlgorithmMixin, _HashMixin {
 
 /// [Sha256] implemented by using in [package:crypto](https://pub.dev/packages/crypto)
 /// (a package by Google).
+///
+/// For examples and more information about the algorithm, see documentation for
+/// the class [Sha256].
 class DartSha256 extends Sha256 with DartHashAlgorithmMixin, _HashMixin {
   @literal
   const DartSha256() : super.constructor();
@@ -51,6 +60,9 @@ class DartSha256 extends Sha256 with DartHashAlgorithmMixin, _HashMixin {
 
 /// [Sha385] implemented by using in [package:crypto](https://pub.dev/packages/crypto)
 /// (a package by Google).
+///
+/// For examples and more information about the algorithm, see documentation for
+/// the class [Sha384].
 class DartSha384 extends Sha384 with DartHashAlgorithmMixin, _HashMixin {
   @literal
   const DartSha384() : super.constructor();
@@ -61,6 +73,9 @@ class DartSha384 extends Sha384 with DartHashAlgorithmMixin, _HashMixin {
 
 /// [Sha512] implemented by using in [package:crypto](https://pub.dev/packages/crypto)
 /// (a package by Google).
+///
+/// For examples and more information about the algorithm, see documentation for
+/// the class [Sha512].
 class DartSha512 extends Sha512 with DartHashAlgorithmMixin, _HashMixin {
   @literal
   const DartSha512() : super.constructor();

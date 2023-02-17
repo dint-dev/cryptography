@@ -20,6 +20,9 @@ import 'package:cryptography/dart.dart';
 import 'chacha20.dart';
 
 /// [Hchacha20] implemented in pure Dart.
+///
+/// For examples and more information about the algorithm, see documentation for
+/// the class [Hchacha20].
 class DartHChacha20 extends Hchacha20 {
   const DartHChacha20() : super.constructor();
 

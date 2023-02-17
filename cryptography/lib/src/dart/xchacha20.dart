@@ -37,24 +37,31 @@ Future<SecretKeyData> _xchacha20SecretKey({
 }
 
 /// [Xchacha20] implemented in pure Dart.
+///
+/// For more information about the algorithm and examples, see documentation
+/// for the class [Xchacha20].
 class DartXchacha20 extends StreamingCipher implements Xchacha20 {
   final Chacha20 _chacha20;
 
   @override
   final MacAlgorithm macAlgorithm;
 
+  /// AEAD version of [Xchacha20].
   const DartXchacha20.poly1305Aead()
       : _chacha20 = const DartChacha20.poly1305Aead(),
-        macAlgorithm = const _DartXChacha20Poly1305Aead(
+        macAlgorithm = const _DartXChacha20MacAlgorithm(
           DartChacha20Poly1305AeadMacAlgorithm(),
         );
 
+  /// Constructs [DartChacha20] with any [MacAlgorithm].
   DartXchacha20({required this.macAlgorithm})
       : _chacha20 = Chacha20(macAlgorithm: macAlgorithm);
 
+  /// Constructs a [DartXchacha20] with a custom [Chacha20] implementation and
+  /// any [MacAlgorithm].
   DartXchacha20.withChacha20({required Chacha20 chacha20})
       : _chacha20 = chacha20,
-        macAlgorithm = _DartXChacha20Poly1305Aead(chacha20.macAlgorithm);
+        macAlgorithm = _DartXChacha20MacAlgorithm(chacha20.macAlgorithm);
 
   @override
   int get nonceLength => 24;
@@ -140,10 +147,10 @@ class DartXchacha20 extends StreamingCipher implements Xchacha20 {
   }
 }
 
-class _DartXChacha20Poly1305Aead extends MacAlgorithm {
+class _DartXChacha20MacAlgorithm extends MacAlgorithm {
   final MacAlgorithm _macAlgorithm;
 
-  const _DartXChacha20Poly1305Aead(this._macAlgorithm);
+  const _DartXChacha20MacAlgorithm(this._macAlgorithm);
 
   @override
   int get macLength => _macAlgorithm.macLength;

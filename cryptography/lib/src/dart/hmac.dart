@@ -18,6 +18,9 @@ import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/dart.dart';
 
 /// An implementation of [Hmac] in pure Dart.
+///
+/// For examples and more information about the algorithm, see documentation for
+/// the class [Hmac].
 class DartHmac extends Hmac with DartMacAlgorithmMixin {
   /// Hash algorithm used by this HMAC.
   @override

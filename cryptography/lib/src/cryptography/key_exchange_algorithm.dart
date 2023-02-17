@@ -30,7 +30,7 @@ import 'package:cryptography/cryptography.dart';
 /// Future<void> main() async {
 ///   // Generate a key pair.
 ///   final algorithm = X25519();
-///   final keyPair = await algorithm.keyGenerator.newKeyPair();
+///   final keyPair = await algorithm.newKeyPair();
 ///
 ///   // Get a public key for our peer.
 ///   final remoteKeyPair = await algorithm.keyGenerator.newKeyPair();
@@ -50,11 +50,40 @@ abstract class KeyExchangeAlgorithm {
 
   KeyPairType get keyPairType;
 
-  /// Generates a new [KeyPair] for this algorithm.
+  /// Generates a new [KeyPair] that can be used with this algorithm.
   ///
-  /// You can pass key generation preferences by specifying `options`.
+  /// ## Example
+  /// In this example, we use [X25519]:
+  /// ```dart
+  /// import 'package:cryptography/cryptography.dart';
+  ///
+  /// Future<void> main() async {
+  ///   final algorithm = X25519();
+  ///   final keyPair = await algorithm.newKeyPair();
+  /// }
+  ///```
   Future<KeyPair> newKeyPair();
 
+  /// Generates a key pair from the seed.
+  ///
+  /// Throws [UnsupportedError] if the algorithm does not support generating
+  /// key pairs deterministically from the seed
+  ///
+  /// ## Example
+  /// In this example, we use [X25519] class:
+  /// ```dart
+  /// import 'dart:convert';
+  /// import 'package:cryptography/cryptography.dart';
+  ///
+  /// Future<void> main() async {
+  ///   // X25519 seed is any 32 bytes.
+  ///   // We can use SHA256, which computes a 32-byte hash from any input.
+  ///   final seed = (await Sha256().hash(utf8.encode('example'))).bytes;
+  ///
+  ///   final algorithm = X25519();
+  ///   final keyPair = await algorithm.newKeyPairFromSeed(seed);
+  /// }
+  ///```
   Future<KeyPair> newKeyPairFromSeed(List<int> seed) {
     throw UnsupportedError(
       'newKeyPairFromSeed() is unsupported by this algorithm',
@@ -62,6 +91,29 @@ abstract class KeyExchangeAlgorithm {
   }
 
   /// Calculates a shared [SecretKey].
+  ///
+  /// ## Example
+  /// In this example, we use [X25519] class:
+  /// ```dart
+  /// import 'package:cryptography/cryptography.dart';
+  ///
+  /// Future<void> main() async {
+  ///   final algorithm = X25519();
+  ///
+  ///   // We need the private key pair of Alice.
+  ///   final aliceKeyPair = await algorithm.newKeyPair();
+  ///
+  ///   // We need only public key of Bob.
+  ///   final bobKeyPair = await algorithm.newKeyPair();
+  ///   final bobPublicKey = await bobKeyPair.extractPublicKey();
+  ///
+  ///   // We can now calculate a 32-byte shared secret key.
+  ///   final sharedSecretKey = await algorithm.sharedSecretKey(
+  ///     keyPair: aliceKeyPair,
+  ///     remotePublicKey: bobPublicKey,
+  ///   );
+  /// }
+  /// ```
   Future<SecretKey> sharedSecretKey({
     required KeyPair keyPair,
     required PublicKey remotePublicKey,

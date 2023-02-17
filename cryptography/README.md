@@ -23,7 +23,8 @@ Any feedback, issue reports, or pull requests are appreciated!
 
 ## Some packages that depend on this
 * [cryptography_flutter](https://pub.dev/packages/cryptography_flutter).
-    * Android / iOS cryptography support.
+    * Improves performance in Flutter in some cases. This is done by moving computations away from
+      the UI isolate.
 * [jwk](https://pub.dev/packages/jwk)
     * JWK (JSON Web Key) support.
 
@@ -197,7 +198,7 @@ dependencies:
 
 If you use Flutter, you may consider using 
 [cryptography_flutter](https://pub.dev/packages/cryptography_flutter) for improving performance by
-moving computations away from the UI thread.
+moving computations away from the UI isolate.
 
 # Examples
 ## Digital signature

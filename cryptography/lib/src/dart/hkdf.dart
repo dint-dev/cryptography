@@ -17,6 +17,9 @@ import 'dart:typed_data';
 import 'package:cryptography/cryptography.dart';
 
 /// [Hkdf] implemented in pure Dart.
+///
+/// For examples and more information about the algorithm, see documentation for
+/// the class [Hkdf].
 class DartHkdf extends Hkdf {
   @override
   final Hmac hmac;

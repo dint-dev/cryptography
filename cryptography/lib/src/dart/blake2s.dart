@@ -19,6 +19,9 @@ import 'package:cryptography/dart.dart';
 import 'package:cryptography/src/utils.dart';
 
 /// [Blake2s] implemented in pure Dart.
+///
+/// For examples and more information about the algorithm, see documentation for
+/// the class [Blake2s].
 class DartBlake2s extends Blake2s with DartHashAlgorithmMixin {
   const DartBlake2s() : super.constructor();
 

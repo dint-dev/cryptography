@@ -7,11 +7,13 @@ import 'package:meta/meta.dart';
 
 /// _AES-CBC_ (cipher block chaining mode) [Cipher].
 ///
-/// ## Available implementation
-///   * In browsers, [BrowserAesCbc] is used by default.
-///   * Otherwise [DartAesCbc] is used by default.
-///   * The package [cryptography_flutter](https://pub.dev/packages/cryptography_flutter)
-///     supports native implementation available in Android.
+/// On browsers, the default implementation will use
+/// [Web Cryptography API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API).
+/// On other platforms, [DartAesCbc] will be used.
+///
+/// If you use Flutter, you can enable
+/// [cryptography_flutter](https://pub.dev/packages/cryptography_flutter).
+/// It can improve performance in many cases.
 ///
 /// ## Things to know
 ///   * Three possible key lengths:
@@ -62,6 +64,7 @@ abstract class AesCbc extends Cipher {
   @protected
   const AesCbc.constructor();
 
+  /// Constructs 128-bit AES-CBC.
   factory AesCbc.with128bits({required MacAlgorithm macAlgorithm}) {
     return AesCbc._(
       macAlgorithm: macAlgorithm,
@@ -69,6 +72,7 @@ abstract class AesCbc extends Cipher {
     );
   }
 
+  /// Constructs 192-bit AES-CBC.
   factory AesCbc.with192bits({required MacAlgorithm macAlgorithm}) {
     return AesCbc._(
       macAlgorithm: macAlgorithm,
@@ -76,6 +80,7 @@ abstract class AesCbc extends Cipher {
     );
   }
 
+  /// Constructs 256-bit AES-CBC.
   factory AesCbc.with256bits({required MacAlgorithm macAlgorithm}) {
     return AesCbc._(
       macAlgorithm: macAlgorithm,
@@ -113,11 +118,13 @@ abstract class AesCbc extends Cipher {
 
 /// _AES-CTR_ (counter mode) [Cipher].
 ///
-/// ## Available implementation
-///   * In browsers, [BrowserAesCtr] is used by default.
-///   * Otherwise [DartAesCtr] is used by default.
-///   * The package [cryptography_flutter](https://pub.dev/packages/cryptography_flutter)
-///     supports native implementation available in Android.
+/// On browsers, the default implementation will use
+/// [Web Cryptography API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API).
+/// On other platforms, [DartAesCtr] will be used.
+///
+/// If you use Flutter, you can enable
+/// [cryptography_flutter](https://pub.dev/packages/cryptography_flutter).
+/// It can improve performance in many cases.
 ///
 /// ## Things to know
 ///   * Three possible key lengths:
@@ -170,6 +177,7 @@ abstract class AesCtr extends StreamingCipher {
   @protected
   const AesCtr.constructor();
 
+  /// Constructs 128-bit AES-CTR.
   factory AesCtr.with128bits({
     required MacAlgorithm macAlgorithm,
   }) {
@@ -179,6 +187,7 @@ abstract class AesCtr extends StreamingCipher {
     );
   }
 
+  /// Constructs 192-bit AES-CTR.
   factory AesCtr.with192bits({
     required MacAlgorithm macAlgorithm,
   }) {
@@ -188,6 +197,7 @@ abstract class AesCtr extends StreamingCipher {
     );
   }
 
+  /// Constructs 256-bit AES-CTR.
   factory AesCtr.with256bits({
     required MacAlgorithm macAlgorithm,
   }) {
@@ -230,13 +240,13 @@ abstract class AesCtr extends StreamingCipher {
 
 /// _AES-GCM_ (Galois/Counter Mode) [Cipher].
 ///
-/// ## Available implementation
-///   * In browsers, [BrowserAesGcm] is used by default.
-///   * Otherwise [DartAesGcm] is used by default.
-///   * The package [cryptography_flutter](https://pub.dev/packages/cryptography_flutter)
-///     supports AES-GCM operating system APIs available in Android and iOS.
-///     __We recommend you use "package:cryptography_flutter" for the best
-///     performance and easier cryptographic compliance.__
+/// On browsers, the default implementation will use
+/// [Web Cryptography API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API).
+/// On other platforms, [DartAesGcm] will be used.
+///
+/// If you use Flutter, you can enable
+/// [cryptography_flutter](https://pub.dev/packages/cryptography_flutter).
+/// It can improve performance in many cases.
 ///
 /// ## Things to know
 ///   * Three possible key lengths:
@@ -353,6 +363,8 @@ abstract class AesGcm extends StreamingCipher {
 /// algorithm can provide much better security than older algorithms such as
 /// [Pbkdf2].
 ///
+/// By default, [DartArgon2id] will be used.
+///
 /// ## Example
 /// ```
 /// import 'package:cryptography/cryptography.dart';
@@ -453,6 +465,8 @@ abstract class Argon2id extends KdfAlgorithm {
 
 /// _BLAKE2B_ ([RFC 7693](https://tools.ietf.org/html/rfc7693)) [HashAlgorithm].
 ///
+/// By default, [DartBlake2b] will be used.
+///
 /// ## Asynchronous usage
 /// ```
 /// import 'package:cryptography/cryptography.dart';
@@ -488,12 +502,6 @@ abstract class Argon2id extends KdfAlgorithm {
 ///   print('Hash: ${hash.bytes}');
 /// }
 /// ```
-///
-/// ## In need of synchronous APIs?
-///
-/// If you need to perform operations synchronously, use [DartBlake2b] in
-/// _package:cryptography/dart.dart_.
-///
 abstract class Blake2b extends HashAlgorithm {
   factory Blake2b() {
     return Cryptography.instance.blake2b();
@@ -518,6 +526,8 @@ abstract class Blake2b extends HashAlgorithm {
 
 /// _BLAKE2S_ ([RFC 7693](https://tools.ietf.org/html/rfc7693)) [HashAlgorithm].
 ///
+/// By default, [DartBlake2s] will be used.
+///
 /// ## Asynchronous usage
 /// ```
 /// import 'package:cryptography/cryptography.dart';
@@ -529,8 +539,6 @@ abstract class Blake2b extends HashAlgorithm {
 ///   print('Hash: ${hash.bytes}');
 /// }
 /// ```
-///
-/// If you need synchronous computations, use [DartBlake2s].
 ///
 /// ## Streaming usage
 /// ```
@@ -553,11 +561,6 @@ abstract class Blake2b extends HashAlgorithm {
 ///   print('Hash: ${hash.bytes}');
 /// }
 /// ```
-///
-/// ## In need of synchronous APIs?
-///
-/// If you need to perform operations synchronously, use [DartBlake2s] in
-/// _package:cryptography/dart.dart_.
 ///
 abstract class Blake2s extends HashAlgorithm {
   factory Blake2s() {
@@ -585,15 +588,21 @@ abstract class Blake2s extends HashAlgorithm {
 /// [StreamingCipher].
 ///
 /// In almost every case, you should use constructor [Chacha20.poly1305Aead],
-/// which does message authentication with a standard AEAD construction for
-/// _ChaCha20_. The AEAD version of ChaCha20 is used by most protocols and
-/// operating system APIs.
+/// which returns _AEAD_CHACHA20_POLY1305_ cipher
+/// (([RFC 7539](https://tools.ietf.org/html/rfc7539)).
+///
+/// By default, [DartChacha20] will be used.
+///
+/// If you use Flutter, you can enable
+/// [cryptography_flutter](https://pub.dev/packages/cryptography_flutter).
+/// It can improve performance in many cases.
 ///
 /// ## Things to know
 ///   * [secretKeyLength] is 32 bytes.
 ///   * [nonceLength] is 12 bytes.
-///   * Associated Authenticated Data (AAD) is supported by
-///     [Chacha20.poly1305Aead].
+///   * If you use [Chacha20.poly1305Aead], then:
+///     * MAC length is 16 bytes.
+///     * Associated Authenticated Data (AAD) is supported.
 ///
 /// ## Example
 /// ```dart
@@ -602,7 +611,7 @@ abstract class Blake2s extends HashAlgorithm {
 /// Future<void> main() async {
 ///   final message = <int>[1,2,3];
 ///
-///   final algorithm = Chacha20(macAlgorithm: Hmac.sha256());
+///   final algorithm = Chacha20.poly1305();
 ///   final secretKey = await algorithm.newSecretKey();
 ///
 ///   // Encrypt
@@ -623,16 +632,12 @@ abstract class Blake2s extends HashAlgorithm {
 /// }
 /// ```
 ///
-/// ## In need of synchronous APIs?
-///
-/// If you need to perform operations synchronously, use [DartChacha20] in
-/// _package:cryptography/dart.dart_.
-///
 abstract class Chacha20 extends StreamingCipher {
   /// Constructs a ChaCha20 with any MAC.
   ///
-  /// Usually you should use [Chacha20.poly1305Aead()], which implements
-  /// AEAD version of the algorithm.
+  /// In almost every case, you should use constructor [Chacha20.poly1305Aead],
+  /// which returns _AEAD_CHACHA20_POLY1305_ cipher
+  /// (([RFC 7539](https://tools.ietf.org/html/rfc7539)).
   factory Chacha20({required MacAlgorithm macAlgorithm}) {
     return Cryptography.instance.chacha20(macAlgorithm: macAlgorithm);
   }
@@ -641,16 +646,11 @@ abstract class Chacha20 extends StreamingCipher {
   @protected
   const Chacha20.constructor();
 
-  /// _AEAD_CHACHA20_POLY1305_ ([https://tools.ietf.org/html/rfc7539](RFC 7539))
-  /// [Cipher].
+  /// Constructs _AEAD_CHACHA20_POLY1305_ cipher
+  /// (([RFC 7539](https://tools.ietf.org/html/rfc7539)).
   ///
-  /// The returned cipher has-builtin [macAlgorithm] that calculates a 128-bit
-  /// MAC. AAD (Associated Authenticated Data) is supported by [encrypt()] and
-  /// [decrypt()].
-  ///
-  /// ## Things to know
-  ///   * [secretKeyLength] is 32 bytes.
-  ///   * [nonceLength] is 12 bytes.\
+  /// The default implementation is [DartChacha20.poly1305Aead], which uses
+  /// [DartChacha20Poly1305AeadMacAlgorithm].
   factory Chacha20.poly1305Aead() {
     return Cryptography.instance.chacha20Poly1305Aead();
   }
@@ -679,37 +679,42 @@ abstract class Chacha20 extends StreamingCipher {
 
 /// ECDH with P-256 / P-384 / P-521 elliptic curve.
 ///
-/// Private keys can be instances of [EcSecretKey] or implementation-specific
-/// subclasses of [SecretKey].
+/// Private keys must be instances of [EcKeyPair].
+///
+/// On browsers, the default implementation will use
+/// [Web Cryptography API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API).
+/// On other platforms, [DartEcdh] will be used.
+///
+/// If you use Flutter, you can enable
+/// [cryptography_flutter](https://pub.dev/packages/cryptography_flutter).
+/// It can improve performance in many cases.
+///
+/// ## Things to know
+///   * Private keys are instances of [EcKeyPair].
+///   * Public keys are instances of [EcPublicKey].
+///   * You can use [package:jwk](https://pub.dev/packages/jwk) to encode/decode
+///     JSON Web Key (JWK) data.
 ///
 /// ## Example
-/// ```
+/// ```dart
 /// import 'package:cryptography/cryptography.dart';
 ///
 /// Future<void> main() async {
-///   // In this example, we use P-256 curve.
 ///   final algorithm = Ecdh.p256();
 ///
-///   // Alice generates a key pair for herself.
-///   final aliceSecretKey = await algorithm.newSecretKey();
-///   final alicePublicKey = await algorithm.publicKey(aliceSecretKey);
+///   // We need the private key pair of Alice.
+///   final aliceKeyPair = await algorithm.newKeyPair();
 ///
-///   // Bob generates a key pair for himself.
-///   final bobSecretKey = await algorithm.newSecretKey();
-///   final bobPublicKey = await algorithm.publicKey(bobSecretKey);
+///   // We need only public key of Bob.
+///   final bobKeyPair = await algorithm.newKeyPair();
+///   final bobPublicKey = await bobKeyPair.extractPublicKey();
 ///
-///   // Each party calculates shared secret.
-///   // Parties get the same symmetric key as a result.
-///   final keyForAlice = await algorithm.sharedSecretKey(
-///     localSecretKey: alicePublicKey,
+///   // We can now calculate a 32-byte shared secret key.
+///   final sharedSecretKey = await algorithm.sharedSecretKey(
+///     keyPair: aliceKeyPair,
 ///     remotePublicKey: bobPublicKey,
 ///   );
-///   final keyForBob = await algorithm.sharedSecretKey(
-///     localSecretKey: bobSecretKey,
-///     remotePublicKey: alicePublicKey,
-///   );
 /// }
-/// ```
 abstract class Ecdh extends KeyExchangeAlgorithm {
   /// Constructor for classes that extend this class.
   @protected
@@ -756,8 +761,21 @@ abstract class Ecdh extends KeyExchangeAlgorithm {
 /// [RFC 6090](https://www.ietf.org/rfc/rfc6090.txt)
 /// ("Fundamental Elliptic Curve Cryptography Algorithms").
 ///
-/// Secret keys can be instances of [EcSecretKey] or implementation-specific
-/// subclasses of [SecretKey].
+/// Key pairs must be instances of [EcKeyPair].
+///
+/// On browsers, the default implementation will use
+/// [Web Cryptography API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API).
+/// On other platforms, [DartEcdsa] will be used.
+///
+/// If you use Flutter, you can enable
+/// [cryptography_flutter](https://pub.dev/packages/cryptography_flutter).
+/// It can improve performance in many cases.
+///
+/// ## Things to know
+///   * Private keys are instances of [EcKeyPair].
+///   * Public keys are instances of [EcPublicKey].
+///   * You can use [package:jwk](https://pub.dev/packages/jwk) to encode/decode
+///     JSON Web Key (JWK) data.
 ///
 /// ## Example
 /// ```
@@ -833,20 +851,20 @@ abstract class Ecdsa extends SignatureAlgorithm {
 /// _Ed25519_ ([RFC 8032](https://tools.ietf.org/html/rfc8032)) signature
 /// algorithm.
 ///
-/// ## Available implementation
-///   * [DartEd25519] is used by default.
-///   * The package [cryptography_flutter](https://pub.dev/packages/cryptography_flutter)
-///     supports ED25519 operating system APIs available in Android and iOS.
-///     __We recommend you use "package:cryptography_flutter" for the best
-///     performance and easier cryptographic compliance.__
+/// By default, [DartEd25519] will be used.
+/// If you use Flutter, you can enable
+/// [cryptography_flutter](https://pub.dev/packages/cryptography_flutter).
+/// It can improve performance in many cases.
 ///
 /// ## Things to know
-///   * Private key is any 32-byte sequence.
-///   * Public key is 32 bytes.
-///   * Signatures are 64 bytes.
+///   * Private key is any 32 bytes ([SimpleKeyPair]).
+///   * Public key is 32 bytes ([SimplePublicKey]).
+///   * Output is 32 bytes.
 ///   * RFC 8032 says that the signatures are deterministic, but some widely
 ///     used implementations such as Apple CryptoKit return non-deterministic
 ///     signatures.
+///   * You can use [package:jwk](https://pub.dev/packages/jwk) to encode/decode
+///     JSON Web Key (JWK) data.
 ///
 /// ## Example
 /// ```
@@ -934,13 +952,17 @@ abstract class Hchacha20 {
 /// _HKDF_ ([RFC 5869](https://tools.ietf.org/html/rfc5869))
 /// key derivation algorithm.
 ///
+/// On browsers, the default implementation will use
+/// [Web Cryptography API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API).
+/// On other platforms, [DartHkdf] will be used.
+///
 /// ## Example
 /// ```
 /// import 'package:cryptography/cryptography.dart';
 ///
 /// void main() async {
 ///   final algorithm = Hkdf(
-///     hmac: Hmac(Sha256()),
+///     hmac: Hmac.sha256(),
 ///     outputLength: 32,
 ///   );
 ///   final secretKey = SecretKey([1,2,3]);
@@ -987,14 +1009,18 @@ abstract class Hkdf extends KdfAlgorithm {
 
 /// _HMAC_ [MacAlgorithm].
 ///
+/// On browsers, the default implementation will use
+/// [Web Cryptography API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API).
+/// On other platforms, [DartHmac] will be used.
+///
 /// You should use:
-///   * [Hmac.sha1()] for _HMAC-SHA1_.
-///   * [Hmac.sha256()] for _HMAC-SHA256_.
-///   * [Hmac.sha512()] for _HMAC-SHA512_.
+///   * [Hmac.sha1] for _HMAC-SHA1_.
+///   * [Hmac.sha256] for _HMAC-SHA256_.
+///   * [Hmac.sha512] for _HMAC-SHA512_.
 ///   * For other combinations, give hash algorithm in the constructor
 ///     (example: `Hmac(Blake2s())`).
 ///
-/// If you need synchronous computations, use [DartHmac].
+/// If you really need synchronous computations, use [DartHmac].
 ///
 /// ## Example
 /// ```
@@ -1055,6 +1081,10 @@ abstract class Hmac extends MacAlgorithm {
 }
 
 /// _PBKDF2_ password hashing algorithm implemented in pure Dart.
+///
+/// On browsers, the default implementation will use
+/// [Web Cryptography API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API).
+/// On other platforms, [DartPbkdf2] will be used.
 ///
 /// ## Things to know
 ///   * `macAlgorithm` can be any [MacAlgorithm] (such as [Hmac.sha256()]).
@@ -1160,11 +1190,15 @@ abstract class Poly1305 extends MacAlgorithm {
 
 /// _RSA-PSS_ [SignatureAlgorithm].
 ///
-/// Secret keys can be instances of [RsaKeyPairData].
-/// Some implementations may support other subclasses [SecretKey].
-/// For example, _Web Cryptography API_ supports opaque non-exportable keys.
+/// On browsers, the default implementation will use
+/// [Web Cryptography API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API).
+/// On other platforms, [DartRsaPss] will be used.
 ///
-/// Public keys should be instances of [RsaPublicKey].
+/// Private keys must be instances of [RsaKeyPair].
+/// Public keys must be instances of [RsaPublicKey].
+///
+/// You can use [package:jwk](https://pub.dev/packages/jwk) to encode/decode
+/// JSON Web Key (JWK) data.
 ///
 /// ## Example
 /// ```
@@ -1237,11 +1271,15 @@ abstract class RsaPss extends SignatureAlgorithm {
 
 /// _RSA-SSA-PKCS1v15_ [SignatureAlgorithm].
 ///
-/// Secret keys can be instances of [RsaKeyPairData].
-/// Some implementations may support other subclasses [SecretKey].
-/// For example, _Web Cryptography API_ supports opaque non-exportable keys.
+/// On browsers, the default implementation will use
+/// [Web Cryptography API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API).
+/// On other platforms, [DartRsaSsaPkcs1v15] will be used.
 ///
-/// Public keys should be instances of [RsaPublicKey].
+/// Private keys must be instances of [RsaKeyPair].
+/// Public keys must be instances of [RsaPublicKey].
+///
+/// You can use [package:jwk](https://pub.dev/packages/jwk) to encode/decode
+/// JSON Web Key (JWK) data.
 ///
 /// ## Example
 /// ```
@@ -1307,6 +1345,10 @@ abstract class RsaSsaPkcs1v15 extends SignatureAlgorithm {
 
 /// _SHA-1_ [HashAlgorithm].
 ///
+/// On browsers, the default implementation will use
+/// [Web Cryptography API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API).
+/// On other platforms, [DartSha1] will be used.
+///
 /// ## Asynchronous usage (recommended)
 /// ```
 /// import 'package:cryptography/cryptography.dart';
@@ -1319,7 +1361,7 @@ abstract class RsaSsaPkcs1v15 extends SignatureAlgorithm {
 /// }
 /// ```
 ///
-/// If you need synchronous computations, use [DartSha1].
+/// If you really need synchronous computations, use [DartSha1].
 ///
 /// ## Streaming usage
 /// This enables you to handle very large inputs without keeping everything in
@@ -1342,12 +1384,6 @@ abstract class RsaSsaPkcs1v15 extends SignatureAlgorithm {
 ///   print('Hash: ${hash.bytes}');
 /// }
 /// ```
-///
-/// ## In need of synchronous APIs?
-///
-/// If you need to perform operations synchronously, use [DartSha1] in
-/// _package:cryptography/dart.dart_.
-///
 abstract class Sha1 extends HashAlgorithm {
   factory Sha1() => Cryptography.instance.sha1();
 
@@ -1373,6 +1409,8 @@ abstract class Sha1 extends HashAlgorithm {
 
 /// _SHA-224_ (SHA2-224) [HashAlgorithm].
 ///
+/// By default, [DartSha224] will be used.
+///
 /// ## Asynchronous usage (recommended)
 /// ```
 /// import 'package:cryptography/cryptography.dart';
@@ -1385,7 +1423,7 @@ abstract class Sha1 extends HashAlgorithm {
 /// }
 /// ```
 ///
-/// If you need synchronous computations, use [DartSha224].
+/// If you really need synchronous computations, use [DartSha224].
 ///
 /// ## Streaming usage
 /// This enables you to handle very large inputs without keeping everything in
@@ -1408,12 +1446,6 @@ abstract class Sha1 extends HashAlgorithm {
 ///   print('Hash: ${hash.bytes}');
 /// }
 /// ```
-///
-/// ## In need of synchronous APIs?
-///
-/// If you need to perform operations synchronously, use [DartSha224] in
-/// _package:cryptography/dart.dart_.
-///
 abstract class Sha224 extends HashAlgorithm {
   factory Sha224() => Cryptography.instance.sha224();
 
@@ -1439,6 +1471,10 @@ abstract class Sha224 extends HashAlgorithm {
 
 /// _SHA-256_ (SHA2-256) [HashAlgorithm].
 ///
+/// On browsers, the default implementation will use
+/// [Web Cryptography API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API).
+/// On other platforms, [DartSha256] will be used.
+///
 /// ## Asynchronous usage (recommended)
 /// ```
 /// import 'package:cryptography/cryptography.dart';
@@ -1451,7 +1487,7 @@ abstract class Sha224 extends HashAlgorithm {
 /// }
 /// ```
 ///
-/// If you need synchronous computations, use [DartSha256].
+/// If you really need synchronous computations, use [DartSha256].
 ///
 /// ## Streaming usage
 /// This enables you to handle very large inputs without keeping everything in
@@ -1474,12 +1510,6 @@ abstract class Sha224 extends HashAlgorithm {
 ///   print('Hash: ${hash.bytes}');
 /// }
 /// ```
-///
-/// ## In need of synchronous APIs?
-///
-/// If you need to perform operations synchronously, use [DartSha256] in
-/// _package:cryptography/dart.dart_.
-///
 abstract class Sha256 extends HashAlgorithm {
   factory Sha256() => Cryptography.instance.sha256();
 
@@ -1505,6 +1535,10 @@ abstract class Sha256 extends HashAlgorithm {
 
 /// _SHA-384_ (SHA2-384) [HashAlgorithm].
 ///
+/// On browsers, the default implementation will use
+/// [Web Cryptography API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API).
+/// On other platforms, [DartSha384] will be used.
+///
 /// ## Asynchronous usage (recommended)
 /// ```
 /// import 'package:cryptography/cryptography.dart';
@@ -1517,7 +1551,7 @@ abstract class Sha256 extends HashAlgorithm {
 /// }
 /// ```
 ///
-/// If you need synchronous computations, use [DartSha384].
+/// If you really need synchronous computations, use [DartSha384].
 ///
 /// ## Streaming usage
 /// This enables you to handle very large inputs without keeping everything in
@@ -1540,12 +1574,6 @@ abstract class Sha256 extends HashAlgorithm {
 ///   print('Hash: ${hash.bytes}');
 /// }
 /// ```
-///
-/// ## In need of synchronous APIs?
-///
-/// If you need to perform operations synchronously, use [DartSha384] in
-/// _package:cryptography/dart.dart_.
-///
 abstract class Sha384 extends HashAlgorithm {
   factory Sha384() => Cryptography.instance.sha384();
 
@@ -1571,6 +1599,10 @@ abstract class Sha384 extends HashAlgorithm {
 
 /// _SHA-512_ (SHA2-512) [HashAlgorithm].
 ///
+/// On browsers, the default implementation will use
+/// [Web Cryptography API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API).
+/// On other platforms, [DartSha512] will be used.
+///
 /// ## Asynchronous usage (recommended)
 /// ```
 /// import 'package:cryptography/cryptography.dart';
@@ -1583,7 +1615,7 @@ abstract class Sha384 extends HashAlgorithm {
 /// }
 /// ```
 ///
-/// If you need synchronous computations, use [DartSha512].
+/// If you really need synchronous computations, use [DartSha512].
 ///
 /// ## Streaming usage
 /// This enables you to handle very large inputs without keeping everything in
@@ -1606,12 +1638,6 @@ abstract class Sha384 extends HashAlgorithm {
 ///   print('Hash: ${hash.bytes}');
 /// }
 /// ```
-///
-/// ## In need of synchronous APIs?
-///
-/// If you need to perform operations synchronously, use [DartSha512] in
-/// _package:cryptography/dart.dart_.
-///
 abstract class Sha512 extends HashAlgorithm {
   factory Sha512() => Cryptography.instance.sha512();
 
@@ -1636,7 +1662,7 @@ abstract class Sha512 extends HashAlgorithm {
 }
 
 /// Superclass of streaming ciphers such as [AesGcm] and [Chacha20] that allow
-/// encrypter/decrypter to choose offset in the keystream.
+/// encrypter/decrypter to choose an offset in the keystream.
 abstract class StreamingCipher extends Cipher {
   const StreamingCipher();
 
@@ -1674,37 +1700,38 @@ abstract class StreamingCipher extends Cipher {
 /// X25519 is an elliptic curve Diffie-Hellman key exchange algorithm that uses
 /// Curve25519.
 ///
-/// ## Available implementation
-///   * [DartX25519] is used by default.
-///   * The package [cryptography_flutter](https://pub.dev/packages/cryptography_flutter)
-///     supports X25519 operating system APIs available in Android and iOS.
-///     __We recommend you use "package:cryptography_flutter" for the best
-///     performance and easier cryptographic compliance.__
+/// By default, [DartX25519] will be used.
+/// If you use Flutter, you can enable
+/// [cryptography_flutter](https://pub.dev/packages/cryptography_flutter).
+/// It can improve performance in many cases.
 ///
 /// ## Things to know
-///   * Private key is any 32-byte sequence.
-///   * Public key is 32 bytes.
+///   * Private key is any 32 bytes ([SimpleKeyPair]).
+///   * Public key is 32 bytes ([SimplePublicKey]).
 ///   * Output is 32 bytes.
+///   * You can use [package:jwk](https://pub.dev/packages/jwk) to encode/decode
+///     JSON Web Key (JWK) data.
 ///
 /// ## Example
-/// ```dart
+/// ```
 /// import 'package:cryptography/cryptography.dart';
 ///
 /// Future<void> main() async {
-///   final algorithm = Cryptography.instance.x25519();
+///   final algorithm = X25519();
 ///
-///   // Let's generate two keypairs.
-///   final keyPair = await algorithm.newKeyPair();
-///   final remoteKeyPair = await algorithm.newKeyPair();
-///   final remotePublicKey = await remoteKeyPair.extractPublicKey();
+///   // We need the private key pair of Alice.
+///   final aliceKeyPair = await algorithm.newKeyPair();
 ///
-///   // We can now calculate the shared secret key
+///   // We need only public key of Bob.
+///   final bobKeyPair = await algorithm.newKeyPair();
+///   final bobPublicKey = await bobKeyPair.extractPublicKey();
+///
+///   // We can now calculate a 32-byte shared secret key.
 ///   final sharedSecretKey = await algorithm.sharedSecretKey(
-///     keyPair: keyPair,
-///     remotePublicKey: remotePublicKey,
+///     keyPair: aliceKeyPair,
+///     remotePublicKey: bobPublicKey,
 ///   );
 /// }
-/// ```
 ///
 /// ## In need of synchronous APIs?
 ///
@@ -1740,22 +1767,18 @@ abstract class X25519 extends KeyExchangeAlgorithm {
 /// The only difference between _Xchacha20_ and [Chacha20] is that _Xchacha20_
 /// uses 192-bit nonces whereas _Chacha20_ uses 96-bit nonces.
 ///
+/// By default, [DartXchacha20] will be used.
+///
+/// If you use Flutter, you can enable
+/// [cryptography_flutter](https://pub.dev/packages/cryptography_flutter).
+/// It can improve performance in many cases.
+///
 /// ## Things to know
 ///   * [SecretKey] must be 32 bytes.
 ///   * [Nonce] must be 24 bytes.
 ///   * `keyStreamIndex` enables choosing index in the key  stream.
 ///   * It's dangerous to use the same (key, nonce) combination twice.
 ///   * It's dangerous to use the cipher without authentication.
-///
-/// ## Example
-///
-/// See [chacha20].
-///
-/// ## In need of synchronous APIs?
-///
-/// If you need to perform operations synchronously, use [DartXchacha20] in
-/// _package:cryptography/dart.dart_.
-///
 abstract class Xchacha20 extends StreamingCipher {
   factory Xchacha20({required MacAlgorithm macAlgorithm}) {
     // ignore: deprecated_member_use_from_same_package

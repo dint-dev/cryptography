@@ -14,7 +14,11 @@
 
 import 'package:cryptography/cryptography.dart';
 
-/// A stub for [Ecdh] (P256, P384, P521) implemented in pure Dart.
+/// [Ecdh] (P256, P384, P521) implementation in pure Dart. Currently it throws
+/// [UnimplementedError] if you try to use it.
+///
+/// For examples and more information about the algorithm, see documentation for
+/// the class [Ecdh].
 class DartEcdh extends Ecdh {
   @override
   final KeyPairType keyPairType;

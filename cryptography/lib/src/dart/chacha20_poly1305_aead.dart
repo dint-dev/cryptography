@@ -31,6 +31,23 @@ class DartChacha20Poly1305AeadMacAlgorithm extends MacAlgorithm {
   final Poly1305 _poly1305;
   final bool _useStaticBuffer;
 
+  /// Constructs _AEAD_CHACHA20_POLY1305_.
+  ///
+  /// Optional parameter [chacha20] defines the non-AEAD _ChaCha20_
+  /// implementation used by this algorithm. The default is [DartChacha20].
+  ///
+  /// Optional parameter [poly1305] defines the _Poly1305_ implementation used
+  /// by this algorithm. The default is [DartPoly1305].
+  ///
+  /// ## Example
+  /// ```dart
+  /// import 'package:cryptography/dart.dart';
+  ///
+  /// void main() {
+  ///   final algorithm = DartChacha20Poly1305AeadMacAlgorithm();
+  ///   // ...
+  /// }
+  /// ```
   const DartChacha20Poly1305AeadMacAlgorithm({
     Chacha20? chacha20,
     Poly1305? poly1305,
@@ -59,6 +76,9 @@ class DartChacha20Poly1305AeadMacAlgorithm extends MacAlgorithm {
     List<int> nonce = const <int>[],
     List<int> aad = const <int>[],
   }) async {
+    if (_chacha20.macAlgorithm is DartChacha20Poly1305AeadMacAlgorithm) {
+      throw StateError('Chacha20 must be non-AEAD');
+    }
     final secretKeyForPoly1305 = await _poly1305SecretKeyFromChacha20(
       secretKey: secretKey,
       nonce: nonce,
