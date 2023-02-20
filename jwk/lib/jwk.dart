@@ -361,20 +361,20 @@ class Jwk {
           type: type,
         );
 
-      case 'OCP':
+      case 'OKP':
         if (crv == 'Ed25519') {
-          final y = this.y!;
+          final d = this.d!;
           return SimpleKeyPair.lazy(
             () async {
-              return Ed25519().newKeyPairFromSeed(y);
+              return Ed25519().newKeyPairFromSeed(d);
             },
           );
         }
         if (crv == 'X25519') {
-          final y = this.y!;
+          final d = this.d!;
           return SimpleKeyPair.lazy(
             () async {
-              return X25519().newKeyPairFromSeed(y);
+              return X25519().newKeyPairFromSeed(d);
             },
           );
         }
@@ -414,7 +414,7 @@ class Jwk {
           type: type,
         );
 
-      case 'OCP':
+      case 'OKP':
         final type = const <String, KeyPairType>{
           'Ed25519': KeyPairType.ed25519,
           'X25519': KeyPairType.x25519,
@@ -542,9 +542,9 @@ class Jwk {
       }[keyPair.type];
       if (crv != null) {
         return Jwk(
-          kty: 'EC',
+          kty: 'OKP',
           crv: crv,
-          x: keyPair.bytes,
+          d: keyPair.bytes,
         );
       }
     } else if (keyPair is RsaKeyPairData) {
@@ -584,7 +584,7 @@ class Jwk {
       }[publicKey.type];
       if (crv != null) {
         return Jwk(
-          kty: 'EC',
+          kty: 'OKP',
           crv: crv,
           x: publicKey.bytes,
         );
