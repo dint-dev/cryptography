@@ -6,7 +6,7 @@
 Cryptographic packages for [Dart](https://dart.dev) / [Flutter](https://flutter.dev) developers.
 Open-sourced under the [Apache License 2.0](LICENSE).
 
-Maintained by Gohilla Ltd. Licensed under the [Apache License 2.0](LICENSE).
+Maintained by [gohilla.com](https://gohilla.com). Licensed under the [Apache License 2.0](LICENSE).
 
 ## Packages
   * [cryptography](cryptography)

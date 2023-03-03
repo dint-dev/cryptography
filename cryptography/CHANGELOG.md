@@ -1,17 +1,27 @@
 ## 2.2.0
 
-* Adds random number generator parameters to class constructors. You can now have deterministic
-  behavior in tests. For example, you can construct `BrowserCryptography(random: myRandom)`.
-* Adds new elements and parameters in various classes, especially Dart implementations. This can be
-  a breaking change if you extend those classes
-* Adds _PaddingAlgorithm_ class and support for padding in AES-CBC.
-* Eliminates unnecessary copying of bytes in various places and adds support for overwriting secrets 
-  sto redin the heap (_SecretKeyData_, _KeyPairData_).
-* Improves some ciphers such as _Chacha20_ and _AesCtr_ so that large inputs don't block the main
-  thread. Instead, data will processed in 1 MB chunks by default and some waiting in-between 
-  chunks.
-* Improves performance of Poly1305.
-* Fixes bugs in Web Cryptography support.
+* The main changes in the the APIs:
+  * Adds new elements and parameters in various classes, especially Dart implementations. This can
+    be a breaking change if you extend those classes.
+  * Adds _PaddingAlgorithm_ class and support for padding in AES-CBC.
+  * Adds _CipherState_ class for processing long / infinite inputs.
+  * Adds _CipherWand_, _KeyExchangeWand_, and _SignatureWand_ classes.
+  * Adds random number generator parameters to class constructors. You can now have deterministic
+    behavior in tests. For example, you can construct `BrowserCryptography(random: myRandom)`.
+  * Adds an alternative random number generator, which is about 100 times faster than Random.secure.
+    Random.secure continues to be the default everywhere.
+  * Adds support for overwriting secrets in memory (_SecretKeyData_, _KeyPairData_) and eliminates
+    unnecessary wrapping of bytes in unmodifiable lists.
+  * Adds output buffer parameter for avoiding copying.
+* The main changes in the Dart implementations:
+  * Improves some ciphers such as _Chacha20_ and _AesCtr_ so that large inputs don't block the main
+    thread. Instead, data will processed in chunks by default and other things can be scheduled
+    in-between two chunks.
+  * Significantly improves performance of Chacha20.poly1305.
+* The main changes in the Web Cryptography implementations:
+  * Fixes many bugs.
+  * Adds support for fallbacks when browsers don't allow Web Cryptography (non-secure browser
+    contexts).
 * Improves documentation.
 
 ## 2.1.1
