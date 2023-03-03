@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Gohilla Ltd.
+// Copyright 2019-2020 Gohilla.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ export 'src/dart/blake2b.dart';
 export 'src/dart/blake2s.dart';
 export 'src/dart/chacha20.dart';
 export 'src/dart/chacha20_poly1305_aead.dart';
+export 'src/dart/cipher_base_classes.dart';
 export 'src/dart/cryptography.dart';
 export 'src/dart/ecdh.dart';
 export 'src/dart/ecdsa.dart';

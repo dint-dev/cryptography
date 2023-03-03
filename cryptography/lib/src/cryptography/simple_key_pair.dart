@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Gohilla Ltd.
+// Copyright 2019-2020 Gohilla.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,9 +13,9 @@
 // limitations under the License.
 
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
-import 'package:cryptography/helpers.dart';
 import 'package:meta/meta.dart';
 
 /// An opaque [KeyPair] that is made of two simple byte sequences.
@@ -24,16 +24,23 @@ import 'package:meta/meta.dart';
 /// bytes may not even be extractable. If the private key is in memory, it's an
 /// instance of [SimpleKeyPairData].
 ///
-/// The public key is always [SimplePublicKeyData].
+/// The public key is always [SimplePublicKey].
 ///
 /// This class is used with algorithms such as [Ed25519] and [X25519].
 abstract class SimpleKeyPair extends KeyPair {
+  @Deprecated('This will be removed')
   factory SimpleKeyPair.lazy(Future<SimpleKeyPair> Function() f) =
       _LazySimpleKeyPair;
+
+  /// Constructor for subclasses.
+  SimpleKeyPair.constructor();
 
   @override
   Future<SimpleKeyPairData> extract();
 
+  /// Extracts the private key bytes.
+  ///
+  /// Throws [UnsupportedError] if the private key bytes are not extractable.
   Future<List<int>> extractPrivateKeyBytes();
 
   @override
@@ -43,54 +50,116 @@ abstract class SimpleKeyPair extends KeyPair {
 /// An in-memory [SimpleKeyPair] that is made of two simple byte sequences.
 ///
 /// This can be used with algorithms such as [Ed25519] and [X25519].
+///
+/// If you are no longer using the private key, you should call [destroy] to
+/// overwrite the private key bytes with zeros and prevent the private key from
+/// being used in the future.
 @sealed
-class SimpleKeyPairData implements KeyPairData, SimpleKeyPair {
-  final List<int> bytes;
+class SimpleKeyPairData extends KeyPairData implements SimpleKeyPair {
+  final SensitiveBytes _bytes;
+  final String? debugLabel;
 
   @override
-  final KeyPairType type;
-
-  final FutureOr<SimplePublicKey> _publicKey;
+  final SimplePublicKey publicKey;
 
   SimpleKeyPairData(
-    this.bytes, {
-    required FutureOr<SimplePublicKey> publicKey,
-    required this.type,
-  }) : _publicKey = publicKey;
+    List<int> bytes, {
+    required this.publicKey,
+    required super.type,
+    this.debugLabel,
+  }) : _bytes = SensitiveBytes(bytes);
+
+  /// Private key bytes.
+  ///
+  /// The bytes are destroyed when [destroy] is called.
+  /// After that, this getter throws [StateError].
+  List<int> get bytes {
+    final bytes = _bytes;
+    if (bytes.hasBeenDestroyed) {
+      throw _destroyedError();
+    }
+    return bytes;
+  }
 
   @override
-  int get hashCode => constantTimeBytesEquality.hash(bytes) ^ type.hashCode;
+  bool get hasBeenDestroyed => _bytes.hasBeenDestroyed;
+
+  @override
+  int get hashCode => publicKey.hashCode ^ type.hashCode;
 
   @override
   bool operator ==(other) =>
       other is SimpleKeyPairData &&
-      constantTimeBytesEquality.equals(bytes, other.bytes) &&
+      publicKey == other.publicKey &&
       type == other.type;
 
+  /// Returns a copy of this object.
+  ///
+  /// The copy is not affected by [destroy].
   @override
-  Future<SimpleKeyPairData> extract() async {
-    return Future<SimpleKeyPairData>.value(this);
+  SimpleKeyPairData copy() {
+    if (hasBeenDestroyed) {
+      throw StateError('Private key has been destroyed');
+    }
+    final bytes = _bytes;
+    if (bytes.hasBeenDestroyed) {
+      throw _destroyedError();
+    }
+    return SimpleKeyPairData(
+      Uint8List.fromList(bytes),
+      publicKey: publicKey,
+      type: type,
+      debugLabel: debugLabel,
+    );
   }
 
   @override
-  Future<List<int>> extractPrivateKeyBytes() => Future<List<int>>.value(bytes);
+  void destroy() {
+    super.destroy();
+    _bytes.destroy();
+  }
+
+  @override
+  Future<SimpleKeyPairData> extract() async {
+    if (hasBeenDestroyed) {
+      throw StateError('Private key has been destroyed');
+    }
+    return this;
+  }
+
+  @override
+  Future<List<int>> extractPrivateKeyBytes() async {
+    if (hasBeenDestroyed) {
+      throw StateError('Private key has been destroyed');
+    }
+    return bytes;
+  }
 
   @override
   Future<SimplePublicKey> extractPublicKey() async {
-    return _publicKey;
+    return publicKey;
   }
 
   @override
   String toString() {
-    return 'SimpleKeyPairData(..., type: $type)';
+    final debugLabel = this.debugLabel;
+    if (debugLabel == null) {
+      return 'SimpleKeyPairData(..., publicKey: $publicKey)';
+    } else {
+      return 'SimpleKeyPairData(..., publicKey: $publicKey, debugLabel: "$debugLabel")';
+    }
+  }
+
+  StateError _destroyedError() {
+    return StateError('$this has been destroyed.');
   }
 }
 
-class _LazySimpleKeyPair extends KeyPair implements SimpleKeyPair {
+class _LazySimpleKeyPair extends SimpleKeyPair {
   Future<SimpleKeyPairData>? _localSecretKeyFuture;
   Future<SimpleKeyPair> Function()? _function;
 
-  _LazySimpleKeyPair(this._function);
+  _LazySimpleKeyPair(this._function) : super.constructor();
 
   @override
   Future<SimpleKeyPairData> extract() {

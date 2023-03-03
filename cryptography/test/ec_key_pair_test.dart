@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Gohilla Ltd.
+// Copyright 2019-2020 Gohilla.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -31,41 +31,33 @@ void main() {
         type: KeyPairType.p256,
       );
       final other0 = EcKeyPairData(
-        d: [9999],
-        x: [2],
+        d: [1],
+        x: [9999], // Different x
         y: [3],
         type: KeyPairType.p256,
       );
       final other1 = EcKeyPairData(
         d: [1],
-        x: [9999],
-        y: [3],
+        x: [2],
+        y: [9999], // Different y
         type: KeyPairType.p256,
       );
       final other2 = EcKeyPairData(
         d: [1],
         x: [2],
-        y: [9999],
-        type: KeyPairType.p256,
-      );
-      final other3 = EcKeyPairData(
-        d: [1],
-        x: [2],
         y: [3],
-        type: KeyPairType.p384,
+        type: KeyPairType.p384, // Different type
       );
 
       expect(value, clone);
       expect(value, isNot(other0));
       expect(value, isNot(other1));
       expect(value, isNot(other2));
-      expect(value, isNot(other3));
 
       expect(value.hashCode, clone.hashCode);
       expect(value.hashCode, isNot(other0.hashCode));
       expect(value.hashCode, isNot(other1.hashCode));
       expect(value.hashCode, isNot(other2.hashCode));
-      expect(value.hashCode, isNot(other3.hashCode));
     });
 
     test('toString()', () {

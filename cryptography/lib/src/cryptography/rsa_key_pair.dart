@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Gohilla Ltd.
+// Copyright 2019-2020 Gohilla.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import 'package:cryptography/helpers.dart';
 /// bytes may not even be extractable. If the private key is in memory, it's an
 /// instance of [RsaKeyPairData].
 ///
-/// The public key is always [RsaPublicKeyData].
+/// The public key is always [RsaPublicKey].
 ///
 /// This class is used with algorithms such as [RsaPss] and [RsaSsaPkcs1v15].
 ///
@@ -29,8 +29,11 @@ import 'package:cryptography/helpers.dart';
 /// If you are encoding/decoding JWK (JSON Web Key) format, use
 /// [package:jwk](https://pub.dev/packages/jwk).
 abstract class RsaKeyPair extends KeyPair {
-  factory RsaKeyPair.lazy(Future<RsaKeyPairData> Function() f) =
-      _LazyRsaSecretKey;
+  @Deprecated('Use RsaKeyPair.constructor')
+  RsaKeyPair();
+
+  /// Constructor for subclasses
+  RsaKeyPair.constructor();
 
   @override
   Future<RsaKeyPairData> extract();
@@ -73,7 +76,9 @@ class RsaKeyPairData extends KeyPairData implements RsaKeyPair {
   /// RSA private key parameter `qi`.
   final List<int>? qi;
 
-  Future<RsaPublicKey>? _publicKeyFuture;
+  /// Public key
+  @override
+  final RsaPublicKey publicKey;
 
   RsaKeyPairData({
     required this.n,
@@ -84,7 +89,11 @@ class RsaKeyPairData extends KeyPairData implements RsaKeyPair {
     this.dp,
     this.dq,
     this.qi,
-  }) : super(type: KeyPairType.rsa);
+  })  : publicKey = RsaPublicKey(e: e, n: n),
+        super(type: KeyPairType.rsa);
+
+  @override
+  bool get hasBeenDestroyed => false;
 
   @override
   int get hashCode =>
@@ -105,42 +114,35 @@ class RsaKeyPairData extends KeyPairData implements RsaKeyPair {
       constantTimeBytesEquality.equals(qi ?? const [], other.qi ?? const []);
 
   @override
+  RsaKeyPairData copy() {
+    if (hasBeenDestroyed) {
+      throw StateError('Key has been destroyed');
+    }
+    return RsaKeyPairData(
+      n: n,
+      e: e,
+      d: d,
+      p: p,
+      q: q,
+      dp: dp,
+      dq: dq,
+      qi: qi,
+    );
+  }
+
+  @override
   Future<RsaKeyPairData> extract() {
+    if (hasBeenDestroyed) {
+      throw StateError('Key has been destroyed');
+    }
     return Future<RsaKeyPairData>.value(this);
   }
 
   @override
-  Future<RsaPublicKey> extractPublicKey() {
-    return _publicKeyFuture ??=
-        Future<RsaPublicKey>.value(RsaPublicKey(e: e, n: n));
+  Future<RsaPublicKey> extractPublicKey() async {
+    return publicKey;
   }
 
   @override
   String toString() => 'RsaKeyPairData(...)';
-}
-
-class _LazyRsaSecretKey extends KeyPair implements RsaKeyPair {
-  Future<RsaKeyPairData>? _localSecretKeyFuture;
-  Future<RsaKeyPairData> Function()? _function;
-
-  _LazyRsaSecretKey(this._function);
-
-  @override
-  Future<RsaKeyPairData> extract() {
-    final function = _function;
-    if (function != null) {
-      _localSecretKeyFuture = function();
-      _function = null;
-    }
-    final localSecretKeyFuture = _localSecretKeyFuture;
-    if (localSecretKeyFuture == null) {
-      throw Error();
-    }
-    return localSecretKeyFuture;
-  }
-
-  @override
-  Future<RsaPublicKey> extractPublicKey() {
-    return extract().then((value) => value.extractPublicKey());
-  }
 }

@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Gohilla Ltd.
+// Copyright 2019-2020 Gohilla.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,41 +14,50 @@
 
 import 'dart:typed_data';
 
-import 'package:cryptography/browser.dart';
+import 'package:crypto/crypto.dart' as crypto;
 import 'package:cryptography/cryptography.dart';
-import 'package:cryptography/dart.dart';
 import 'package:cryptography/src/utils.dart';
 import 'package:test/test.dart';
 
 void main() {
   group('Hmac:', () {
-    group('DartCryptography:', () {
-      setUp(() {
-        Cryptography.instance = DartCryptography.defaultInstance;
-      });
-      _main();
-    });
-    group('BrowserCryptography:', () {
-      setUp(() {
-        Cryptography.instance = BrowserCryptography.defaultInstance;
-      });
-      _main();
-    });
+    group('non-browser:', () {
+      _main(isBrowser: false);
+    }, testOn: '!browser');
+    group('browser:', () {
+      _main(isBrowser: true);
+    }, testOn: 'browser');
   });
 }
 
-void _main() {
+void _main({
+  required bool isBrowser,
+}) {
   late Hmac hmac;
   setUp(() {
     hmac = Hmac(Sha256());
   });
 
-  test('toString()', () {
-    expect(Hmac(Sha1()).toString(), 'Hmac(Sha1())');
-    expect(Hmac(Sha224()).toString(), 'Hmac(Sha224())');
-    expect(Hmac(Sha256()).toString(), 'Hmac.sha256()');
-    expect(Hmac(Sha384()).toString(), 'Hmac(Sha384())');
-    expect(Hmac(Sha512()).toString(), 'Hmac.sha512()');
+  final prefix = isBrowser ? 'Browser' : 'Dart';
+
+  test('Hmac.sha1().toString()', () {
+    expect(Hmac.sha1().toString(), '${prefix}Hmac(${prefix}Sha1())');
+  });
+
+  test('Hmac.sha224().toString()', () {
+    expect(Hmac(Sha224()).toString(), 'DartHmac(DartSha224())');
+  });
+
+  test('Hmac.sha256().toString()', () {
+    expect(Hmac.sha256().toString(), '${prefix}Hmac.sha256()');
+  });
+
+  test('Hmac.sha384().toString()', () {
+    expect(Hmac.sha384().toString(), '${prefix}Hmac(${prefix}Sha384())');
+  });
+
+  test('Hmac.sha512().toString()', () {
+    expect(Hmac.sha512().toString(), '${prefix}Hmac.sha512()');
   });
 
   test('hashAlgorithm', () {
@@ -64,6 +73,7 @@ void _main() {
 
   test('newSink(): empty key fails', () async {
     final secretKey = SecretKey(<int>[]);
+    expect(await secretKey.extractBytes(), hasLength(0));
     final future = hmac.newMacSink(secretKey: secretKey);
     await expectLater(future, throwsArgumentError);
   });
@@ -99,15 +109,13 @@ void _main() {
       );
 
       // // Use 'package:crypto' for calculating the correct answer
-      // final extracted = await secretKey.extract();
-      // final expectedBytes =
-      //     google_crypto.Hmac(google_crypto.sha256, extracted.bytes)
-      //         .convert(data)
-      //         .bytes;
-      // expect(
-      //   hexFromBytes(mac.bytes),
-      //   hexFromBytes(expectedBytes),
-      // );
+      final secretKeyData = await secretKey.extract();
+      final expectedBytes =
+          crypto.Hmac(crypto.sha256, secretKeyData.bytes).convert(data).bytes;
+      expect(
+        hexFromBytes(mac.bytes),
+        hexFromBytes(expectedBytes),
+      );
     }
   });
 

@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Gohilla Ltd.
+// Copyright 2019-2020 Gohilla.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -84,7 +84,7 @@ class DartSha512 extends Sha512 with DartHashAlgorithmMixin, _HashMixin {
   impl.Hash get _impl => impl.sha512;
 }
 
-mixin _HashMixin implements HashAlgorithm {
+mixin _HashMixin implements DartHashAlgorithmMixin, HashAlgorithm {
   @override
   int get blockLengthInBytes => _impl.blockSize;
 
@@ -93,8 +93,13 @@ mixin _HashMixin implements HashAlgorithm {
   @override
   Future<Hash> hash(List<int> input) {
     final digest = _impl.convert(input);
-    final unmodifiableBytes = List<int>.unmodifiable(digest.bytes);
-    return Future<Hash>.value(Hash(unmodifiableBytes));
+    return Future<Hash>.value(Hash(digest.bytes));
+  }
+
+  @override
+  Hash hashSync(List<int> data) {
+    final digest = _impl.convert(data);
+    return Hash(digest.bytes);
   }
 
   @override
@@ -129,6 +134,7 @@ class _HashSink extends DartHashSink {
     if (_isClosed) {
       throw StateError('Already closed');
     }
+    RangeError.checkValidRange(start, end, chunk.length);
     _sink.addSlice(chunk, start, end, isLast);
     if (isLast) {
       close();
@@ -149,7 +155,7 @@ class _HashSink extends DartHashSink {
     if (!_isClosed) {
       throw StateError('Sink is not closed');
     }
-    return Hash(List<int>.unmodifiable(_captureSink._result!.bytes));
+    return Hash(_captureSink._result!.bytes);
   }
 }
 
@@ -161,7 +167,7 @@ class _ImplDigestCaptureSink extends Sink<impl.Digest> {
   @override
   void add(impl.Digest implDigest) {
     assert(_result == null);
-    final hash = Hash(List<int>.unmodifiable(implDigest.bytes));
+    final hash = Hash(implDigest.bytes);
     _result = hash;
   }
 

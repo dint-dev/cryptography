@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Gohilla Ltd.
+// Copyright 2019-2020 Gohilla.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
@@ -40,21 +41,19 @@ class DartX25519 extends X25519 with DartKeyExchangeAlgorithmMixin {
   }();
 
   // Constant 121665 (0x1db41).
-  const DartX25519() : super.constructor();
+  const DartX25519({Random? random}) : super.constructor(random: random);
 
   @override
   KeyPairType get keyPairType => KeyPairType.x25519;
 
   @override
-  Future<SimpleKeyPair> newKeyPairFromSeed(List<int> seed) {
+  Future<SimpleKeyPair> newKeyPairFromSeed(List<int> seed) async {
     final modifiedBytes = DartX25519.modifiedPrivateKeyBytes(seed);
-    return Future<SimpleKeyPairData>.value(SimpleKeyPairData(
+    return SimpleKeyPairData(
       modifiedBytes,
-      publicKey: Future<SimplePublicKey>(
-        () => DartX25519._publicKey(modifiedBytes),
-      ),
+      publicKey: DartX25519._publicKey(modifiedBytes),
       type: KeyPairType.x25519,
-    ));
+    );
   }
 
   @override
@@ -83,7 +82,7 @@ class DartX25519 extends X25519 with DartKeyExchangeAlgorithmMixin {
       privateKeyBytes,
       Uint8List.fromList(remotePublicKey.bytes),
     );
-    return SecretKey(List<int>.unmodifiable(result));
+    return SecretKey(result);
   }
 
   /// Modifies certain bits of seed so that the result is a valid secret key.
@@ -313,7 +312,7 @@ class DartX25519 extends X25519 with DartKeyExchangeAlgorithmMixin {
       DartX25519._constant9,
     );
     return SimplePublicKey(
-      List<int>.unmodifiable(publicKeyBytes),
+      publicKeyBytes,
       type: KeyPairType.x25519,
     );
   }

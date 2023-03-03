@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Gohilla Ltd.
+// Copyright 2019-2020 Gohilla.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,17 +24,12 @@ Future<void> main() async {
 class _SharedSecret extends SimpleBenchmark {
   final KeyExchangeAlgorithm implementation;
 
-  _SharedSecret(this.implementation)
-      : super('$implementation.sharedSecretKey(...)');
-
   late KeyPair keyPair0;
+
   late KeyPair keyPair1;
 
-  @override
-  Future<void> setup() async {
-    keyPair0 = await implementation.newKeyPair();
-    keyPair1 = await implementation.newKeyPair();
-  }
+  _SharedSecret(this.implementation)
+      : super('$implementation.sharedSecretKey(...)');
 
   @override
   Future<void> run() async {
@@ -42,5 +37,11 @@ class _SharedSecret extends SimpleBenchmark {
       keyPair: keyPair0,
       remotePublicKey: await keyPair1.extractPublicKey(),
     );
+  }
+
+  @override
+  Future<void> setup() async {
+    keyPair0 = await implementation.newKeyPair();
+    keyPair1 = await implementation.newKeyPair();
   }
 }

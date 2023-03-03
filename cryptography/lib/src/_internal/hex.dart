@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Gohilla Ltd.
+// Copyright 2019-2020 Gohilla.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,6 +15,12 @@
 import 'dart:typed_data';
 
 /// Converts a list of bytes to a hexadecimal string.
+///
+/// Example output:
+/// ```text
+/// 00 ff 00 ff 00 ff 00 ff 00 ff 00 ff 00 ff 00 ff
+/// 00 ff 00 ff 00 ff 00 ff 00 ff 00 ff 00 ff 00 ff
+/// ```
 String hexFromBytes(Iterable<int> iterable) {
   final list = iterable.toList();
   final sb = StringBuffer();
@@ -31,7 +37,9 @@ String hexFromBytes(Iterable<int> iterable) {
   return sb.toString();
 }
 
-/// Converts a hexadecimal string to an unmodifiable list of bytes.
+/// Converts a hexadecimal string to a list of bytes.
+///
+/// Whitespace in the string is ignored.
 List<int> hexToBytes(String input) {
   final s = input.replaceAll(' ', '').replaceAll(':', '').replaceAll('\n', '');
   if (s.length % 2 != 0) {
@@ -45,5 +53,5 @@ List<int> hexToBytes(String input) {
     }
     result[i ~/ 2] = value;
   }
-  return List<int>.unmodifiable(Uint8List.fromList(result));
+  return Uint8List.fromList(result);
 }

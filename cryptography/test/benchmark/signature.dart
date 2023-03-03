@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Gohilla Ltd.
+// Copyright 2019-2020 Gohilla.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -41,16 +41,11 @@ class _Sign extends SimpleBenchmark {
   final SignatureAlgorithm implementation;
   final int length;
 
-  _Sign(this.implementation, this.length) : super('$implementation.sign(...)');
-
   late List<int> message;
+
   late KeyPair keyPair;
 
-  @override
-  Future<void> setup() async {
-    message = Uint8List(length);
-    keyPair = await implementation.newKeyPair();
-  }
+  _Sign(this.implementation, this.length) : super('$implementation.sign(...)');
 
   @override
   Future<void> run() async {
@@ -59,25 +54,25 @@ class _Sign extends SimpleBenchmark {
       keyPair: keyPair,
     );
   }
+
+  @override
+  Future<void> setup() async {
+    message = Uint8List(length);
+    keyPair = await implementation.newKeyPair();
+  }
 }
 
 class _Verify extends SimpleBenchmark {
   final SignatureAlgorithm implementation;
   final int length;
 
-  _Verify(this.implementation, this.length)
-      : super('$implementation.verify(...)');
-
   late List<int> message;
+
   late KeyPair keyPair;
   late Signature signature;
 
-  @override
-  Future<void> setup() async {
-    keyPair = await implementation.newKeyPair();
-    message = Uint8List(length);
-    signature = await implementation.sign(message, keyPair: keyPair);
-  }
+  _Verify(this.implementation, this.length)
+      : super('$implementation.verify(...)');
 
   @override
   Future<void> run() async {
@@ -85,5 +80,12 @@ class _Verify extends SimpleBenchmark {
       message,
       signature: signature,
     );
+  }
+
+  @override
+  Future<void> setup() async {
+    keyPair = await implementation.newKeyPair();
+    message = Uint8List(length);
+    signature = await implementation.sign(message, keyPair: keyPair);
   }
 }

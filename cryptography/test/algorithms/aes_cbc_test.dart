@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Gohilla Ltd.
+// Copyright 2019-2020 Gohilla.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -37,8 +37,11 @@ void main() {
 
 void _main() {
   late AesCbc algorithm;
+  late String prefix;
   setUp(() {
     algorithm = AesCbc.with256bits(macAlgorithm: Hmac.sha256());
+    final isBrowser = Cryptography.instance is BrowserCryptography;
+    prefix = isBrowser ? 'Browser' : 'Dart';
   });
 
   final secretKey128 = SecretKey(List<int>.filled(16, 2));
@@ -70,33 +73,79 @@ void _main() {
   test('information: 128 bits', () {
     final algorithm = AesCbc.with128bits(macAlgorithm: Hmac.sha256());
     expect(algorithm.macAlgorithm, Hmac.sha256());
+    expect(algorithm.paddingAlgorithm, same(PaddingAlgorithm.pkcs7));
     expect(algorithm.secretKeyLength, 16);
     expect(algorithm.nonceLength, 16);
     expect(
       algorithm.toString(),
-      'AesCbc.with128bits(macAlgorithm: Hmac.sha256())',
+      '${prefix}AesCbc.with128bits(macAlgorithm: ${prefix}Hmac.sha256())',
     );
   });
 
   test('information: 192 bits', () {
     final algorithm = AesCbc.with192bits(macAlgorithm: Hmac.sha256());
     expect(algorithm.macAlgorithm, Hmac.sha256());
+    expect(algorithm.paddingAlgorithm, same(PaddingAlgorithm.pkcs7));
     expect(algorithm.secretKeyLength, 24);
     expect(algorithm.nonceLength, 16);
+
+    // Web Cryptography does not support 192-bit keys
     expect(
       algorithm.toString(),
-      'AesCbc.with192bits(macAlgorithm: Hmac.sha256())',
+      'DartAesCbc.with192bits(macAlgorithm: ${prefix}Hmac.sha256())',
     );
   });
 
   test('information: 256 bits', () {
     expect(algorithm.macAlgorithm, Hmac.sha256());
+    expect(algorithm.paddingAlgorithm, same(PaddingAlgorithm.pkcs7));
     expect(algorithm.secretKeyLength, 32);
     expect(algorithm.nonceLength, 16);
     expect(
       algorithm.toString(),
-      'AesCbc.with256bits(macAlgorithm: Hmac.sha256())',
+      '${prefix}AesCbc.with256bits(macAlgorithm: ${prefix}Hmac.sha256())',
     );
+  });
+
+  group('custom paddingAlgorithm:', () {
+    test('AesCbc.128bits', () async {
+      final algorithm = AesCbc.with256bits(
+        macAlgorithm: MacAlgorithm.empty,
+        paddingAlgorithm: PaddingAlgorithm.zero,
+      );
+      expect(algorithm.paddingAlgorithm, same(PaddingAlgorithm.zero));
+    });
+
+    test('AesCbc.192bits', () async {
+      final algorithm = AesCbc.with256bits(
+        macAlgorithm: MacAlgorithm.empty,
+        paddingAlgorithm: PaddingAlgorithm.zero,
+      );
+      expect(algorithm.paddingAlgorithm, same(PaddingAlgorithm.zero));
+    });
+
+    test('AesCbc.256bits', () async {
+      final algorithm = AesCbc.with256bits(
+        macAlgorithm: MacAlgorithm.empty,
+        paddingAlgorithm: PaddingAlgorithm.zero,
+      );
+      expect(algorithm.paddingAlgorithm, same(PaddingAlgorithm.zero));
+    });
+
+    test('encrypt and decrypt', () async {
+      final algorithm = AesCbc.with256bits(
+        macAlgorithm: MacAlgorithm.empty,
+        paddingAlgorithm: PaddingAlgorithm.zero,
+      );
+      final secretKey = await algorithm.newSecretKey();
+      final secretBox = await algorithm.encrypt([], secretKey: secretKey);
+      expect(secretBox.cipherText, isEmpty);
+      final clearText = await algorithm.decrypt(
+        secretBox,
+        secretKey: secretKey,
+      );
+      expect(clearText, isEmpty);
+    });
   });
 
   test('Encrypted without specifying nonce: two results are different',
@@ -330,6 +379,52 @@ void _main() {
         nonce: nonce,
       );
       expect(hexFromBytes(secretBox.cipherText), hexFromBytes(cipherText));
+      expect(secretBox.mac, mac);
+    });
+
+    test('decrypt', () async {
+      final decrypted = await algorithm.decrypt(
+        SecretBox(
+          cipherText,
+          nonce: nonce,
+          mac: mac,
+        ),
+        secretKey: secretKey,
+      );
+      expect(decrypted, clearText);
+    });
+  });
+
+  group('192-bit key, 32 bytes', () {
+    late AesCbc algorithm;
+    final clearText = List<int>.generate(32, (i) => 1 + i);
+    final secretKey = SecretKey(List<int>.generate(24, (i) => 100 + i));
+    final nonce = List<int>.filled(16, 1);
+    final cipherText = hexToBytes(
+      'c1 ad 96 75 22 78 21 8a 92 3b 5d 82 74 54 a0 07\n'
+      '05 bd 3b e2 95 d0 be 34 50 13 03 2b 5f 5f 36 2d\n'
+      '7b 2a 9e 34 a0 cd 00 10 c2 83 46 9d c9 56 a3 55',
+    );
+    late Mac mac;
+    setUp(() async {
+      algorithm = AesCbc.with192bits(macAlgorithm: Hmac.sha256());
+      mac = await algorithm.macAlgorithm.calculateMac(
+        cipherText,
+        secretKey: secretKey,
+        nonce: nonce,
+      );
+    });
+
+    test('encrypt', () async {
+      final secretBox = await algorithm.encrypt(
+        clearText,
+        secretKey: secretKey,
+        nonce: nonce,
+      );
+      expect(
+        hexFromBytes(secretBox.cipherText),
+        hexFromBytes(cipherText),
+      );
       expect(secretBox.mac, mac);
     });
 

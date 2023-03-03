@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Gohilla Ltd.
+// Copyright 2019-2020 Gohilla.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import 'package:cryptography/cryptography.dart';
+import 'package:cryptography/dart.dart';
 import 'package:cryptography/src/utils.dart';
 import 'package:test/test.dart';
 
@@ -115,12 +116,11 @@ void main() {
       );
 
       // Check MAC
-      final expectedMac =
-          await Xchacha20.poly1305Aead().macAlgorithm.calculateMac(
-                secretBox.cipherText,
-                secretKey: secretKey,
-                nonce: secretBox.nonce,
-              );
+      final expectedMac = await algorithm.macAlgorithm.calculateMac(
+        secretBox.cipherText,
+        secretKey: secretKey,
+        nonce: secretBox.nonce,
+      );
       expect(secretBox.mac, expectedMac);
 
       // Decrypt
@@ -153,7 +153,7 @@ void main() {
 50 51 52 53 c0 c1 c2 c3 c4 c5 c6 c7
 ''');
 
-      final secretKey = SecretKey(hexToBytes('''
+      final secretKey = SecretKeyData(hexToBytes('''
 80 81 82 83 84 85 86 87 88 89 8a 8b 8c 8d 8e 8f
 90 91 92 93 94 95 96 97 98 99 9a 9b 9c 9d 9e 9f
 '''));
@@ -179,6 +179,12 @@ b5 2e
       final expectedMac =
           hexToBytes('c0:87:59:24:c1:c7:98:79:47:de:af:d8:78:0a:cf:49');
 
+      final expectedSecretBox = SecretBox(
+        expectedCipherText,
+        nonce: nonce,
+        mac: Mac(expectedMac),
+      );
+
       // -----------------------------------------------------------------------
       // End of constants from RFC 7539
       // -----------------------------------------------------------------------
@@ -201,21 +207,42 @@ b5 2e
         );
       });
 
-      test('decrypt', () async {
-        final mac = await Xchacha20.poly1305Aead().macAlgorithm.calculateMac(
-              expectedCipherText,
-              secretKey: secretKey,
-              nonce: nonce,
-              aad: aad,
-            );
+      test('macAlgorithm.calculateMac(...) computes the correct Mac', () async {
+        final macAlgorithm = Xchacha20.poly1305Aead().macAlgorithm;
+        expect(macAlgorithm, same(DartXchacha20.poly1305AeadMacAlgorithm));
+        final mac = await macAlgorithm.calculateMac(
+          expectedCipherText,
+          secretKey: secretKey,
+          nonce: nonce,
+          aad: aad,
+        );
+        expect(
+          hexFromBytes(mac.bytes),
+          hexFromBytes(expectedMac),
+        );
+      });
 
+      test('macAlgorithm.calculateMacSync(...) computes the correct Mac',
+          () async {
+        final macAlgorithm =
+            Xchacha20.poly1305Aead().macAlgorithm as DartMacAlgorithm;
+        expect(macAlgorithm, same(DartXchacha20.poly1305AeadMacAlgorithm));
+        final mac = macAlgorithm.calculateMacSync(
+          expectedCipherText,
+          secretKeyData: secretKey,
+          nonce: nonce,
+          aad: aad,
+        );
+        expect(
+          hexFromBytes(mac.bytes),
+          hexFromBytes(expectedMac),
+        );
+      });
+
+      test('decrypt', () async {
         expect(
           hexFromBytes(await algorithm.decrypt(
-            SecretBox(
-              expectedCipherText,
-              nonce: nonce,
-              mac: mac,
-            ),
+            expectedSecretBox,
             secretKey: secretKey,
             keyStreamIndex: initialKeyStreamIndex,
             aad: aad,
@@ -223,7 +250,9 @@ b5 2e
           hexFromBytes(cleartext),
         );
 
-        final incorrectMac = Mac(mac.bytes.map((e) => 0xFF ^ e).toList());
+        final incorrectMac = Mac(
+          expectedSecretBox.mac.bytes.map((e) => 0xFF ^ e).toList(),
+        );
         await expectLater(
           algorithm.decrypt(
             SecretBox(

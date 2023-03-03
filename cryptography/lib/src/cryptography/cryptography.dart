@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Gohilla Ltd.
+// Copyright 2019-2020 Gohilla.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,14 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:cryptography/browser.dart';
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/dart.dart';
+
+import '../../browser.dart';
 
 /// A factory for cryptographic algorithms.
 ///
 /// This is used by factories in the cryptographic algorithm classes. For example,
-/// [Chacha20.poly1305Aead] calls the [Cryptography.instance] method
+/// [Chacha20Poly1305Aead] calls the [Cryptography.instance] method
 /// [chacha20Poly1305Aead].
 ///
 /// ## Implementations
@@ -57,7 +58,7 @@ import 'package:cryptography/dart.dart';
 ///   // Change the default cryptography
 ///   Cryptography.freezeInstance(MyCryptography());
 ///
-///   final sha256 = Shaa256(); // --> SomeOtherSha256Implementation
+///   final sha256 = Sha256(); // --> SomeOtherSha256Implementation
 /// }
 /// ```
 abstract class Cryptography {
@@ -88,6 +89,7 @@ abstract class Cryptography {
   /// A factory used by [AesCbc].
   AesCbc aesCbc({
     required MacAlgorithm macAlgorithm,
+    PaddingAlgorithm paddingAlgorithm = PaddingAlgorithm.pkcs7,
     int secretKeyLength = 32,
   });
 
@@ -121,7 +123,7 @@ abstract class Cryptography {
   /// A factory used by [Chacha20].
   Chacha20 chacha20({required MacAlgorithm macAlgorithm});
 
-  /// A factory used by [Chacha20.poly1305Aead].
+  /// A factory used by [Chacha20Poly1305Aead].
   Chacha20 chacha20Poly1305Aead();
 
   /// A factory used by [Ecdh.p256].

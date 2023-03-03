@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Gohilla Ltd.
+// Copyright 2019-2020 Gohilla.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
+import 'package:cryptography/dart.dart';
 import 'package:meta/meta.dart';
 
 /// A hash algorithm that produces a [Hash].
@@ -110,7 +111,11 @@ abstract class HashAlgorithm {
   HashSink newSink() => newHashSink();
 
   @override
-  String toString();
+  String toString() => '$runtimeType()';
+
+  DartHashAlgorithm toSync() {
+    throw UnsupportedError('$this does not have a synchronous implementation');
+  }
 }
 
 /// A sink for calculating [Hash] for long sequences.

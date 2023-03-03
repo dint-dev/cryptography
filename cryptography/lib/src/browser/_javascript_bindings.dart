@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Gohilla Ltd.
+// Copyright 2019-2020 Gohilla.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,16 +17,22 @@ library web_crypto_api;
 
 import 'dart:convert' show base64Url;
 import 'dart:html' show CryptoKey;
+import 'dart:html' as html;
 import 'dart:typed_data';
 
 import 'package:js/js.dart';
+import 'package:js/js_util.dart' show promiseToFuture;
 
 export 'dart:html' show CryptoKey;
 
-List<int>? base64UrlDecode(String? s) {
-  if (s == null) {
-    return null;
-  }
+/// Note that browsers support Web Cryptography only in secure contexts.
+final bool isWebCryptoAvailable =
+    _subtle != null && (html.window.isSecureContext ?? false);
+
+@JS('crypto.subtle')
+external Object? get _subtle;
+
+Uint8List base64UrlDecode(String s) {
   switch (s.length % 4) {
     case 1:
       return base64Url.decode('$s===');
@@ -39,6 +45,21 @@ List<int>? base64UrlDecode(String? s) {
   }
 }
 
+Uint8List base64UrlDecodeUnmodifiable(String s) {
+  final bytes = base64UrlDecode(s);
+  // UnmodifiableUint8ListView has bugs so we removed it
+  return bytes;
+}
+
+Uint8List? base64UrlDecodeUnmodifiableMaybe(String? s) {
+  if (s == null) {
+    return null;
+  }
+  final bytes = base64UrlDecode(s);
+  // UnmodifiableUint8ListView has bugs so we removed it
+  return bytes;
+}
+
 String base64UrlEncode(List<int> data) {
   var s = base64Url.encode(data);
   // Remove trailing '=' characters
@@ -49,22 +70,191 @@ String base64UrlEncode(List<int> data) {
   return s.substring(0, length);
 }
 
+String? base64UrlEncodeMaybe(List<int>? data) {
+  if (data == null) {
+    return null;
+  }
+  return base64UrlEncode(data);
+}
+
+Future<ByteBuffer> decrypt(
+  dynamic algorithm,
+  CryptoKey key,
+  ByteBuffer data,
+) {
+  return promiseToFuture(
+    _decrypt(algorithm, key, data),
+  );
+}
+
+Future<ByteBuffer> deriveBits(
+  dynamic algorithm,
+  CryptoKey cryptoKey,
+  int bits,
+) {
+  return promiseToFuture(
+    _deriveBits(algorithm, cryptoKey, bits),
+  );
+}
+
+Future<CryptoKey> deriveKey(
+  dynamic algorithm,
+  CryptoKey baseKey,
+  dynamic derivedKeyAlgorithm,
+  dynamic extractable,
+  List<String> keyUsages,
+) {
+  return promiseToFuture(
+    _deriveKey(
+      algorithm,
+      baseKey,
+      derivedKeyAlgorithm,
+      extractable,
+      keyUsages,
+    ),
+  );
+}
+
+Future<ByteBuffer> digest(
+  String name,
+  ByteBuffer data,
+) {
+  return promiseToFuture(
+    _digest(name, data),
+  );
+}
+
+Future<ByteBuffer> encrypt(
+  dynamic algorithm,
+  CryptoKey key,
+  ByteBuffer data,
+) {
+  return promiseToFuture(
+    _encrypt(algorithm, key, data),
+  );
+}
+
+Future<Jwk> exportKeyWhenJwk(CryptoKey key) {
+  return promiseToFuture<Jwk>(
+    _exportKey('jwk', key),
+  );
+}
+
+Future<ByteBuffer> exportKeyWhenRaw(CryptoKey key) {
+  return promiseToFuture<ByteBuffer>(
+    _exportKey('raw', key),
+  );
+}
+
+Future<CryptoKey> generateKeyWhenKey(
+  Object algorithm,
+  bool extractable,
+  List<String> keyUsages,
+) {
+  return promiseToFuture<CryptoKey>(
+    _generateKey(algorithm, extractable, keyUsages),
+  );
+}
+
+Future<CryptoKeyPair> generateKeyWhenKeyPair(
+  Object algorithm,
+  bool extractable,
+  List<String> keyUsages,
+) {
+  return promiseToFuture<CryptoKeyPair>(
+    _generateKey(algorithm, extractable, keyUsages),
+  );
+}
+
+Future<CryptoKey> importKeyWhenJwk(
+  Jwk keyData,
+  dynamic algorithm,
+  bool extractable,
+  List<String> keyUsages,
+) {
+  return promiseToFuture(
+    _importKey(
+      'jwk',
+      keyData,
+      algorithm,
+      extractable,
+      keyUsages,
+    ),
+  );
+}
+
+Future<CryptoKey> importKeyWhenRaw(
+  ByteBuffer keyData,
+  dynamic algorithm,
+  bool extractable,
+  List<String> keyUsages,
+) {
+  return promiseToFuture(
+    _importKey(
+      'raw',
+      keyData,
+      algorithm,
+      extractable,
+      keyUsages,
+    ),
+  );
+}
+
+ByteBuffer jsArrayBufferFrom(List<int> data) {
+  // Avoid copying if possible
+  //
+  if (data is Uint8List &&
+      data.offsetInBytes == 0 &&
+      data.lengthInBytes == data.buffer.lengthInBytes) {
+    // We need to check the type because UnmodifiableByteBufferView would cause
+    // an error.
+    final buffer = data.buffer;
+    if (identical(buffer.runtimeType, ByteBuffer)) {
+      return buffer;
+    }
+  }
+
+  // Copy
+  return Uint8List.fromList(data).buffer;
+}
+
+Future<ByteBuffer> sign(
+  dynamic algorithm,
+  CryptoKey key,
+  ByteBuffer data,
+) {
+  return promiseToFuture(
+    _sign(algorithm, key, data),
+  );
+}
+
+Future<bool> verify(
+  dynamic algorithm,
+  CryptoKey key,
+  ByteBuffer signature,
+  ByteBuffer data,
+) {
+  return promiseToFuture(
+    _verify(algorithm, key, signature, data),
+  );
+}
+
 @JS('crypto.subtle.decrypt')
-external Promise<ByteBuffer> decrypt(
+external Promise<ByteBuffer> _decrypt(
   dynamic algorithm,
   CryptoKey key,
   ByteBuffer data,
 );
 
 @JS('crypto.subtle.deriveBits')
-external Promise deriveBits(
+external Promise<ByteBuffer> _deriveBits(
   dynamic algorithm,
   CryptoKey cryptoKey,
   int bits,
 );
 
 @JS('crypto.subtle.deriveKey')
-external Promise deriveKey(
+external Promise<CryptoKey> _deriveKey(
   dynamic algorithm,
   CryptoKey baseKey,
   dynamic derivedKeyAlgorithm,
@@ -73,33 +263,33 @@ external Promise deriveKey(
 );
 
 @JS('crypto.subtle.digest')
-external Promise<ByteBuffer> digest(
+external Promise<ByteBuffer> _digest(
   String name,
   ByteBuffer data,
 );
 
 @JS('crypto.subtle.encrypt')
-external Promise<ByteBuffer> encrypt(
+external Promise<ByteBuffer> _encrypt(
   dynamic algorithm,
   CryptoKey key,
   ByteBuffer data,
 );
 
 @JS('crypto.subtle.exportKey')
-external Promise<CryptoKey> exportKey(
+external Promise _exportKey(
   String format,
   CryptoKey key,
 );
 
 @JS('crypto.subtle.generateKey')
-external Promise<dynamic> generateKey(
+external Promise _generateKey(
   Object algorithm,
   bool extractable,
   List<String> keyUsages,
 );
 
 @JS('crypto.subtle.importKey')
-external Promise<CryptoKey> importKey(
+external Promise<CryptoKey> _importKey(
   String format,
   dynamic keyData,
   dynamic algorithm,
@@ -107,44 +297,18 @@ external Promise<CryptoKey> importKey(
   List<String> keyUsages,
 );
 
-ByteBuffer jsArrayBufferFrom(List<int> data) {
-  // Avoid copying if possible
-  if (data is Uint8List &&
-      data.offsetInBytes == 0 &&
-      data.lengthInBytes == data.buffer.lengthInBytes) {
-    return data.buffer;
-  }
-
-  // Copy
-  return Uint8List.fromList(data).buffer;
-}
-
 @JS('crypto.subtle.sign')
-external Promise<ByteBuffer> sign(
+external Promise<ByteBuffer> _sign(
   dynamic algorithm,
   CryptoKey key,
-  ByteBuffer data,
-);
-
-@JS('crypto.subtle.unwrap')
-external Promise<bool> unwrap(
-  String format,
-  ByteBuffer wrappedKey,
   ByteBuffer data,
 );
 
 @JS('crypto.subtle.verify')
-external Promise<bool> verify(
+external Promise<bool> _verify(
   dynamic algorithm,
   CryptoKey key,
   ByteBuffer signature,
-  ByteBuffer data,
-);
-
-@JS('crypto.subtle.wrap')
-external Promise<bool> wrap(
-  String format,
-  ByteBuffer wrappedKey,
   ByteBuffer data,
 );
 

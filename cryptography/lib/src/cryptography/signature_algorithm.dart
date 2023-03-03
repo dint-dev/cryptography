@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Gohilla Ltd.
+// Copyright 2019-2020 Gohilla.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -53,7 +53,7 @@ import 'package:cryptography/cryptography.dart';
 ///   print('OK signature: $isVerified');
 /// }
 /// ```
-abstract class SignatureAlgorithm {
+abstract class SignatureAlgorithm<T extends PublicKey> {
   const SignatureAlgorithm();
 
   KeyPairType get keyPairType;
@@ -63,9 +63,22 @@ abstract class SignatureAlgorithm {
   /// You can pass key generation preferences by specifying `options`.
   Future<KeyPair> newKeyPair();
 
+  /// Returns a new [SignatureWand] that has a random [KeyPair].
+  Future<SignatureWand> newSignatureWand() async {
+    final keyPair = await newKeyPair();
+    return newSignatureWandFromKeyPair(keyPair);
+  }
+
+  /// Returns a new [SignatureWand] that uses the given [KeyPair].
+  Future<SignatureWand> newSignatureWandFromKeyPair(KeyPair keyPair) async {
+    return _SignatureWand(this, keyPair);
+  }
+
+  /// Returns a new [SignatureWand] that uses the given [KeyPair].
   Future<KeyPair> newKeyPairFromSeed(List<int> seed) {
     throw UnsupportedError(
-        'newKeyPairFromSeed() is unsupported by this algorithm');
+      'newKeyPairFromSeed() is unsupported by this algorithm',
+    );
   }
 
   /// Calculates signature for the message.
@@ -73,4 +86,36 @@ abstract class SignatureAlgorithm {
 
   /// Verifies the signature.
   Future<bool> verify(List<int> message, {required Signature signature});
+}
+
+class _SignatureWand extends SignatureWand {
+  final SignatureAlgorithm signatureAlgorithm;
+  final KeyPair _keyPair;
+
+  _SignatureWand(
+    this.signatureAlgorithm,
+    this._keyPair,
+  ) : super.constructor();
+
+  @override
+  Future<void> destroy() async {
+    await super.destroy();
+    _keyPair.destroy();
+  }
+
+  @override
+  Future<Signature> sign(List<int> message) {
+    if (hasBeenDestroyed) {
+      throw StateError('destroy() has been called');
+    }
+    return signatureAlgorithm.sign(
+      message,
+      keyPair: _keyPair,
+    );
+  }
+
+  @override
+  Future<PublicKey> extractPublicKeyUsedForSignatures() {
+    return _keyPair.extractPublicKey();
+  }
 }

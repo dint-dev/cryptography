@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Gohilla Ltd.
+// Copyright 2019-2020 Gohilla.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -64,6 +64,17 @@ abstract class KeyExchangeAlgorithm {
   ///```
   Future<KeyPair> newKeyPair();
 
+  /// Returns a new [KeyExchangeWand] that has a random [KeyPair].
+  Future<KeyExchangeWand> newKeyExchangeWand() async {
+    final keyPair = await newKeyPair();
+    return newKeyExchangeWandFromKeyPair(keyPair);
+  }
+
+  /// Returns a new [KeyExchangeWand] that uses the given [KeyPair].
+  Future<KeyExchangeWand> newKeyExchangeWandFromKeyPair(KeyPair keyPair) async {
+    return _KeyExchangeWand(this, keyPair);
+  }
+
   /// Generates a key pair from the seed.
   ///
   /// Throws [UnsupportedError] if the algorithm does not support generating
@@ -118,4 +129,34 @@ abstract class KeyExchangeAlgorithm {
     required KeyPair keyPair,
     required PublicKey remotePublicKey,
   });
+}
+
+class _KeyExchangeWand extends KeyExchangeWand {
+  final KeyExchangeAlgorithm keyExchangeAlgorithm;
+  final KeyPair _keyPair;
+
+  @override
+  Future<void> destroy() async {
+    await super.destroy();
+    _keyPair.destroy();
+  }
+
+  @override
+  Future<PublicKey> extractPublicKey() => _keyPair.extractPublicKey();
+
+  _KeyExchangeWand(
+    this.keyExchangeAlgorithm,
+    this._keyPair,
+  ) : super.constructor();
+
+  @override
+  Future<SecretKey> sharedSecretKey({required PublicKey remotePublicKey}) {
+    if (hasBeenDestroyed) {
+      throw StateError('destroy() has been called');
+    }
+    return keyExchangeAlgorithm.sharedSecretKey(
+      keyPair: _keyPair,
+      remotePublicKey: remotePublicKey,
+    );
+  }
 }

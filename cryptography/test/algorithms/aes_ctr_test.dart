@@ -17,8 +17,7 @@ import 'dart:typed_data';
 import 'package:cryptography/browser.dart';
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/dart.dart';
-import 'package:cryptography/src/utils.dart';
-import 'package:cryptography/src/utils/hex.dart';
+import 'package:cryptography/src/_internal/hex.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -40,8 +39,11 @@ void main() {
 
 void _main() {
   late AesCtr algorithm;
+  late String prefix;
   setUp(() {
     algorithm = AesCtr.with256bits(macAlgorithm: Hmac.sha256());
+    final isBrowser = Cryptography.instance is BrowserCryptography;
+    prefix = isBrowser ? 'Browser' : 'Dart';
   });
 
   test('== / hashCode', () {
@@ -74,7 +76,7 @@ void _main() {
     expect(algorithm.nonceLength, 16);
     expect(
       algorithm.toString(),
-      'AesCtr.with128bits(macAlgorithm: Hmac.sha256(), counterBits: 64)',
+      '${prefix}AesCtr.with128bits(macAlgorithm: ${prefix}Hmac.sha256(), counterBits: 64)',
     );
   });
 
@@ -83,9 +85,11 @@ void _main() {
     expect(algorithm.macAlgorithm, Hmac.sha256());
     expect(algorithm.secretKeyLength, 24);
     expect(algorithm.nonceLength, 16);
+
+    // Web Cryptography does not support 192-bit keys
     expect(
       algorithm.toString(),
-      'AesCtr.with192bits(macAlgorithm: Hmac.sha256(), counterBits: 64)',
+      'DartAesCtr.with192bits(macAlgorithm: ${prefix}Hmac.sha256(), counterBits: 64)',
     );
   });
 
@@ -95,7 +99,7 @@ void _main() {
     expect(algorithm.nonceLength, 16);
     expect(
       algorithm.toString(),
-      'AesCtr.with256bits(macAlgorithm: Hmac.sha256(), counterBits: 64)',
+      '${prefix}AesCtr.with256bits(macAlgorithm: ${prefix}Hmac.sha256(), counterBits: 64)',
     );
   });
 
@@ -368,6 +372,51 @@ void _main() {
 
       setUp(() {
         algorithm = AesCtr.with128bits(macAlgorithm: Hmac.sha256());
+      });
+
+      test('encrypt', () async {
+        final secretBox = await algorithm.encrypt(
+          clearText,
+          secretKey: secretKey,
+          nonce: nonce,
+        );
+        expect(
+          hexFromBytes(secretBox.cipherText),
+          hexFromBytes(cipherText),
+        );
+      });
+
+      test('decrypt', () async {
+        final mac = await Hmac.sha256().calculateMac(
+          cipherText,
+          secretKey: secretKey,
+        );
+        final secretBox = SecretBox(
+          cipherText,
+          nonce: nonce,
+          mac: mac,
+        );
+        final actualClearText = await algorithm.decrypt(
+          secretBox,
+          secretKey: secretKey,
+        );
+        expect(actualClearText, clearText);
+      });
+    });
+
+    group('192-bit key, 16 byte nonce, 33 byte message', () {
+      late AesCtr algorithm;
+      final clearText = List<int>.generate(33, (i) => 1 + i);
+      final secretKey = SecretKey(List<int>.generate(24, (i) => 100 + i));
+      final nonce = List<int>.filled(16, 1);
+      final cipherText = hexToBytes(
+        '5c 8b 11 d7 6b 85 b7 e5 9f 5e 95 fb c9 b7 f5 79\n'
+        '99 6b 55 6e b0 3b 3e 0e 8a 6d 6c 79 bb 57 86 8f\n'
+        '53',
+      );
+
+      setUp(() {
+        algorithm = AesCtr.with192bits(macAlgorithm: Hmac.sha256());
       });
 
       test('encrypt', () async {

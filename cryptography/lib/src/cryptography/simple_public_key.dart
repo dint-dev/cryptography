@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Gohilla Ltd.
+// Copyright 2019-2020 Gohilla.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,13 +18,7 @@ import 'package:meta/meta.dart';
 
 /// A [PublicKey] that is a sequence of bytes.
 ///
-/// ## Related classes
-///   * [SimpleKeyPair]
-///   * [SimpleKeyPairData]
-///
-/// ## Algorithms that use this
-///   * [Ed25519]
-///   * [X25519]
+/// This is used by [Ed25519] and [X25519].
 @sealed
 class SimplePublicKey extends PublicKey implements Comparable<SimplePublicKey> {
   final List<int> bytes;

@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Gohilla Ltd.
+// Copyright 2019-2020 Gohilla.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,14 +13,28 @@
 // limitations under the License.
 
 import 'dart:math';
-import 'dart:typed_data';
 
-final _defaultSecureRandom = Random.secure();
+import 'package:cryptography/cryptography.dart';
 
-/// Fills a list with random bytes (using [Random.secure]).
-void fillBytesWithSecureRandom(Uint8List bytes, {Random? random}) {
-  random ??= _defaultSecureRandom;
-  for (var i = 0; i < bytes.length; i++) {
-    bytes[i] = random.nextInt(256);
+import 'benchmark_helpers.dart';
+
+Future<void> main() async {
+  const times = 1 << 16;
+  await _Random(SecureRandom.fast, times).report();
+  await _Random(SecureRandom.safe, times).report();
+}
+
+class _Random extends SimpleBenchmark {
+  final Random random;
+  final int n;
+
+  _Random(this.random, this.n)
+      : super('$random.nextInt(...), $n times'.padRight(20));
+
+  @override
+  Future<void> run() async {
+    for (var i = 0; i < n; i++) {
+      random.nextInt(0x100000000);
+    }
   }
 }

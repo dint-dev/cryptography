@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Gohilla Ltd.
+// Copyright 2019-2020 Gohilla.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,9 +14,9 @@
 
 // THIS FILE IS NOT EXPORTED.
 
-export 'utils/big_int.dart';
-export 'utils/bytes.dart';
-export 'utils/constant_time_equality.dart';
-export 'utils/hex.dart';
-export 'utils/random_bytes.dart';
-export 'utils/rotate.dart';
+export '_internal/big_int.dart';
+export '_internal/bytes.dart';
+export '_internal/hex.dart';
+export '_internal/rotate.dart';
+export 'helpers/constant_time_equality.dart';
+export 'helpers/random_bytes.dart';

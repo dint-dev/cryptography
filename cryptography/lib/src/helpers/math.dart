@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Gohilla Ltd.
+// Copyright 2019-2020 Gohilla.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,36 +16,27 @@ import 'dart:typed_data';
 
 /// Interprets the bytes a big endian integer and increments them by [int].
 ///
+/// This can be useful for incrementing a nonce.
+///
 /// ## Example
 /// ```
-/// final bytes = [0,2,255];
-/// bytesIncrementBigEndian(bytes, 5);
-/// // bytes become [0,3,4]
+/// import 'package:cryptography/helpers.dart';
+///
+/// void main() {
+///   final bytes = [0,2,255];
+///   bytesIncrementBigEndian(bytes, 5);
+///   // bytes become [0,3,4]
+/// }
 /// ```
 void bytesIncrementBigEndian(Uint8List bytes, int n) {
   if (n < 0) {
     throw ArgumentError.value(n, 'n');
   }
-  // For each byte from the beginning
   for (var i = bytes.length - 1; n != 0 && i >= 0; i--) {
-    final newByte = bytes[i] + n;
-    bytes[i] = newByte % 0x100;
+    final tmp = bytes[i] + n;
+    bytes[i] = 0xFF & tmp;
 
     // Carry
-    n = newByte ~/ 0x100;
+    n = tmp ~/ 0x100;
   }
-}
-
-Uint8List bytesToUint8ListWithLength(List<int> bytes, int length) {
-  if (length == bytes.length) {
-    return bytes is Uint8List ? bytes : Uint8List.fromList(bytes);
-  }
-  if (length < bytes.length) {
-    return bytes is Uint8List
-        ? Uint8List.view(bytes.buffer, bytes.offsetInBytes, length)
-        : Uint8List.fromList(bytes.sublist(0, length));
-  }
-  final newBytes = Uint8List(length);
-  newBytes.setAll(0, bytes);
-  return newBytes;
 }

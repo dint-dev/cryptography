@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Gohilla Ltd.
+// Copyright 2019-2020 Gohilla.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,26 +12,35 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:async';
+import 'dart:math';
+import 'dart:typed_data';
+
 import 'package:cryptography/cryptography.dart';
 import 'package:meta/meta.dart';
 
+abstract class DartHashAlgorithm extends HashAlgorithm {
+  /// Synchronous version of [hash].
+  Hash hashSync(List<int> data);
+
+  @override
+  DartHashAlgorithm toSync() => this;
+}
+
 /// A [HashAlgorithm] that supports synchronous evaluation ([hashSync]).
-mixin DartHashAlgorithmMixin implements HashAlgorithm {
+mixin DartHashAlgorithmMixin implements DartHashAlgorithm {
   @override
   Future<Hash> hash(List<int> input) async {
-    return Future<Hash>(() => hashSync(input));
+    return hashSync(input);
   }
 
-  /// Synchronous version of [hash()].
+  @override
   Hash hashSync(List<int> data) {
-    ArgumentError.checkNotNull(data);
     var sink = newHashSink();
-    sink.add(data);
-    sink.close();
+    sink.addSlice(data, 0, data.length, true);
     return sink.hashSync();
   }
 
-  /// Synchronous version of [newHashSink()].
   @override
   DartHashSink newHashSink();
 }
@@ -98,8 +107,35 @@ mixin DartKeyExchangeAlgorithmMixin implements KeyExchangeAlgorithm {
   });
 }
 
+abstract class DartMacAlgorithm extends MacAlgorithm {
+  /// Computes a MAC synchronously (unlike [calculateMac]).
+  Mac calculateMacSync(
+    List<int> cipherText, {
+    required SecretKeyData secretKeyData,
+    required List<int> nonce,
+    List<int> aad = const <int>[],
+  });
+
+  /// Returns [DartMacSink], which can be used synchronously.
+  DartMacSink newMacSinkSync({
+    required SecretKeyData secretKeyData,
+    List<int> nonce = const <int>[],
+    List<int> aad = const <int>[],
+  });
+}
+
 /// A mixin for pure Dart implementations of [MacAlgorithm].
-mixin DartMacAlgorithmMixin implements MacAlgorithm {
+mixin DartMacAlgorithmMixin implements DartMacAlgorithm {
+  @protected
+  void afterData() {}
+
+  @protected
+  void beforeData({
+    required SecretKeyData secretKey,
+    required List<int> nonce,
+    List<int> aad = const [],
+  }) {}
+
   @override
   Future<Mac> calculateMac(
     List<int> bytes, {
@@ -107,18 +143,20 @@ mixin DartMacAlgorithmMixin implements MacAlgorithm {
     List<int> nonce = const <int>[],
     List<int> aad = const <int>[],
   }) async {
-    final secretKeyData = await secretKey.extract();
-    return Future<Mac>.value(calculateMacSync(
-      bytes,
-      secretKeyData: secretKeyData,
+    final sink = await newMacSink(
+      secretKey: secretKey,
       nonce: nonce,
       aad: aad,
-    ));
+    );
+    sink.add(bytes);
+    sink.close();
+    return await sink.mac();
   }
 
-  /// Computes a MAC synchronously (unlike [calculateMac]).
+  @override
   Mac calculateMacSync(
     List<int> cipherText, {
+    // TODO: A breaking change: Rename parameter as `secretKey` for consistency?
     required SecretKeyData secretKeyData,
     required List<int> nonce,
     List<int> aad = const <int>[],
@@ -129,15 +167,34 @@ mixin DartMacAlgorithmMixin implements MacAlgorithm {
       aad: aad,
     );
     sink.add(cipherText);
+    sink.close();
     return sink.macSync();
   }
 
-  /// Returns [DartMacSink], which can be used synchronously.
+  @override
+  Future<MacSink> newMacSink({
+    required SecretKey secretKey,
+    List<int> nonce = const <int>[],
+    List<int> aad = const <int>[],
+  }) async {
+    final secretKeyData = await secretKey.extract();
+    return newMacSinkSync(
+      secretKeyData: secretKeyData,
+      nonce: nonce,
+      aad: aad,
+    );
+  }
+
+  @override
   DartMacSink newMacSinkSync({
+    // TODO: A breaking change: Rename parameter as `secretKey` for consistency?
     required SecretKeyData secretKeyData,
     List<int> nonce = const <int>[],
     List<int> aad = const <int>[],
   });
+
+  @override
+  DartMacAlgorithm toSync() => this;
 }
 
 /// A mixin for pure Dart implementations of [MacSink]
@@ -182,4 +239,77 @@ mixin DartSignatureAlgorithmMixin implements SignatureAlgorithm {
     List<int> input, {
     required Signature signature,
   });
+}
+
+/// Base class for [StreamingCipher] implementations written in Dart.
+mixin DartStreamingCipherMixin implements StreamingCipher {
+  /// Random number generator used by [newSecret] and [newSecretKeySync].
+  Random? get random;
+
+  @override
+  Future<List<int>> decrypt(
+    SecretBox secretBox, {
+    required SecretKey secretKey,
+    List<int> aad = const <int>[],
+    int keyStreamIndex = 0,
+    Uint8List? possibleBuffer,
+  }) async {
+    final secretKeyData = await secretKey.extract();
+    return decryptSync(
+      secretBox,
+      secretKey: secretKeyData,
+      aad: aad,
+      keyStreamIndex: keyStreamIndex,
+    );
+  }
+
+  /// Synchronous version of [decrypt].
+  List<int> decryptSync(
+    SecretBox secretBox, {
+    required SecretKeyData secretKey,
+    List<int> aad = const <int>[],
+    int keyStreamIndex = 0,
+  });
+
+  @override
+  Future<SecretBox> encrypt(
+    List<int> clearText, {
+    required SecretKey secretKey,
+    List<int>? nonce,
+    List<int> aad = const <int>[],
+    int keyStreamIndex = 0,
+    Uint8List? possibleBuffer,
+  }) async {
+    final secretKeyData = await secretKey.extract();
+    return encryptSync(
+      clearText,
+      secretKey: secretKeyData,
+      nonce: nonce,
+      aad: aad,
+      keyStreamIndex: keyStreamIndex,
+    );
+  }
+
+  /// Synchronous version of [encrypt].
+  SecretBox encryptSync(
+    List<int> clearText, {
+    required SecretKeyData secretKey,
+    List<int>? nonce,
+    List<int> aad = const <int>[],
+    int keyStreamIndex = 0,
+  });
+
+  @nonVirtual
+  @override
+  Future<SecretKey> newSecretKey() async {
+    return newSecretKeySync();
+  }
+
+  /// Synchronous version of [newSecretKey].
+  SecretKey newSecretKeySync() {
+    return SecretKeyData.random(
+      length: secretKeyLength,
+      random: random,
+    );
+  }
 }
