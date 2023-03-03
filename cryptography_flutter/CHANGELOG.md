@@ -1,3 +1,6 @@
+## 2.1.1
+* Bumps Kotlin Gradle plugin version.
+
 ## 2.1.0
 * Many, major bug fixes.
 * Some breaking changes to the API, but we decided not to increment the major version because we
