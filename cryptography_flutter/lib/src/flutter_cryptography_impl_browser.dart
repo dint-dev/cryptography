@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Gohilla Ltd.
+// Copyright 2019-2020 Gohilla.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,8 +13,11 @@
 // limitations under the License.
 
 import 'package:cryptography/browser.dart';
+import 'package:cryptography/cryptography.dart';
+import 'package:cryptography_flutter/cryptography_flutter.dart';
 
-import '../cryptography_flutter.dart';
-
-class FlutterCryptographyImpl extends BrowserCryptography
-    implements FlutterCryptography {}
+/// THIS IS NOT EXPORTED.
+///
+/// Determines [FlutterCryptography.defaultInstance].
+final Cryptography flutterCryptographyInstance =
+    BrowserCryptography.defaultInstance;

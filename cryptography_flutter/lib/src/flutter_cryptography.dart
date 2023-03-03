@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Gohilla Ltd.
+// Copyright 2019-2020 Gohilla.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,9 +14,12 @@
 
 import 'package:cryptography/browser.dart';
 import 'package:cryptography/cryptography.dart';
+import 'package:flutter/foundation.dart';
 
+import '../cryptography_flutter.dart';
+import '_internal.dart';
 import 'flutter_cryptography_impl_vm.dart'
-    if (dart.library.html) 'flutter_cryptography_impl_browser.dart';
+    if (dart.library.html) 'flutter_cryptography_impl_browser.dart' as internal;
 
 /// An implementation [Cryptography] that uses native operating system APIs.
 ///
@@ -34,21 +37,98 @@ import 'flutter_cryptography_impl_vm.dart'
 ///   // ...
 /// }
 /// ```
-///
-/// ## Supported algorithms
-///   * Android:
-///     * [AesCbc]
-///     * [AesCtr]
-///     * [AesGcm]
-///     * [Chacha20.poly1305Aead]
-///   * iOS and Mac OS X:
-///     * [AesGcm]
-///     * [Chacha20.poly1305Aead]
 class FlutterCryptography extends BrowserCryptography {
-  /// Default instance of [FlutterCryptography].
-  static final FlutterCryptography defaultInstance = FlutterCryptography();
+  /// Either [FlutterCryptography] or [BrowserCryptography] depending on
+  /// [FlutterCryptography.isPluginPresent].
+  static final Cryptography defaultInstance =
+      internal.flutterCryptographyInstance;
 
-  factory FlutterCryptography() = FlutterCryptographyImpl;
+  /// Tells whether the current platform has a plugin.
+  ///
+  /// Only Android, iOS, and Mac OS X are supported at the moment.
+  static bool get isPluginPresent =>
+      !kIsWeb && !hasSeenMissingPluginException && (isAndroid || isCupertino);
+
+  Chacha20? _chacha20Poly1305Aead;
+  Ed25519? _ed25519;
+  X25519? _x25519;
+
+  FlutterCryptography();
+
+  @override
+  AesGcm aesGcm({
+    int secretKeyLength = 32,
+    int nonceLength = AesGcm.defaultNonceLength,
+  }) {
+    if (kIsWeb || nonceLength != AesGcm.defaultNonceLength) {
+      return super.aesGcm(
+        secretKeyLength: secretKeyLength,
+        nonceLength: nonceLength,
+      );
+    }
+    if (nonceLength == AesGcm.defaultNonceLength) {
+      final platformImpl = FlutterAesGcm(
+        secretKeyLength: secretKeyLength,
+      );
+      if (platformImpl.isSupportedPlatform) {
+        return platformImpl;
+      }
+    }
+    return BackgroundAesGcm(
+      secretKeyLength: secretKeyLength,
+      nonceLength: nonceLength,
+    );
+  }
+
+  @override
+  Chacha20 chacha20Poly1305Aead() {
+    if (kIsWeb) {
+      return super.chacha20Poly1305Aead();
+    }
+    return _chacha20Poly1305Aead ??= _chooseChacha20poly1305aead();
+  }
+
+  @override
+  Ed25519 ed25519() {
+    if (kIsWeb) {
+      return super.ed25519();
+    }
+    return _ed25519 ??= _chooseEd25519();
+  }
+
+  @override
+  X25519 x25519() {
+    if (kIsWeb) {
+      return super.x25519();
+    }
+    return _x25519 ??= _chooseX25519();
+  }
+
+  Chacha20 _chooseChacha20poly1305aead() {
+    final platformImpl = FlutterChacha20.poly1305Aead();
+    if (platformImpl.isSupportedPlatform) {
+      return platformImpl;
+    }
+    return BackgroundChacha.poly1305Aead();
+  }
+
+  Ed25519 _chooseEd25519() {
+    final backgroundImpl = BackgroundEd25519();
+    final platformImpl = FlutterEd25519(backgroundImpl);
+    if (platformImpl.isSupportedPlatform) {
+      return platformImpl;
+    }
+    return backgroundImpl;
+  }
+
+  X25519 _chooseX25519() {
+    final backgroundImpl = BackgroundX25519();
+    final platformImpl = FlutterX25519(backgroundImpl);
+    if (platformImpl.isSupportedPlatform) {
+      return platformImpl;
+    }
+    return backgroundImpl;
+  }
 
   /// Enables use of [FlutterCryptography].
   ///

@@ -1,5 +1,5 @@
 [![Pub Package](https://img.shields.io/pub/v/cryptography_flutter.svg)](https://pub.dev/packages/cryptography_flutter)
-[![Github Actions CI](https://github.com/dint-dev/cryptography/workflows/Dart%20CI/badge.svg)](https://github.com/dint-dev/cryptography/actions?query=workflow%3A%22Dart+CI%22)
+[![Github Actions CI](https://github.com/dint-dev/cryptography/workflows/Dart%20CI/badge.svg)](https://github.com/dint-dev/cryptography/actions)
 
 # Overview
 
@@ -7,31 +7,32 @@ This is a version of the package [cryptography](https://pub.dev/packages/cryptog
 optimizes performance of some cryptographic algorithms by using native APIs of Android, iOS, and
 Mac OS X. You must use asynchronous methods to get the performance boost.
 
-Maintained by Gohilla Ltd. Licensed under the [Apache License 2.0](LICENSE).
+Maintained by Gohilla. Licensed under the [Apache License 2.0](LICENSE).
 
-## Optimized algorithms
-### In Android
-  * [AesCbc()](https://pub.dev/documentation/cryptography/latest/cryptography/AesCbc-class.html)
-  * [AesCtr()](https://pub.dev/documentation/cryptography/latest/cryptography/AesCtr-class.html)
-  * [AesGcm()](https://pub.dev/documentation/cryptography/latest/cryptography/AesGcm-class.html)
-  * [Chacha20.poly1305()](https://pub.dev/documentation/cryptography/latest/cryptography/Chacha20-class.html)
+## General behavior
+This package contains two kinds of classes:
+  * Classes such as [FlutterChacha20](https://pub.dev/documentation/cryptography_flutter/latest/cryptography_flutter/FlutterChacha20-class.html)
+    use operating system APIs in Android / iOS / Mac OS X. If the operating system does not support
+    the algorithm, the background implementation (such as `BackgroundChacha20`) or a pure Dart
+    implementation (such as [DartChacha20](https://pub.dev/documentation/cryptography/latest/cryptography.dart/DartChacha20-class.html))
+    when available.
+  * Classes such as [BackgroundChacha20](https://pub.dev/documentation/cryptography_flutter/latest/cryptography_flutter/BackgroundChacha20-class.html)
+    move the computation away from the UI isolate using [compute](https://api.flutter.dev/flutter/foundation/compute-constant.html)
+    ("package:flutter/foundation.dart").
 
-### In iOS and Mac OS X
-  * [AesGcm()](https://pub.dev/documentation/cryptography/latest/cryptography/AesGcm-class.html)
-  * [Chacha20.poly1305()](https://pub.dev/documentation/cryptography/latest/cryptography/Chacha20-class.html)
-
-## Links
-  * [Github project](https://github.com/dint-dev/cryptography)
-  * [Issue tracker](https://github.com/dint-dev/cryptography/issues)
-  * [Pub package](https://pub.dev/packages/cryptography_flutter)
-  * [API reference](https://pub.dev/documentation/cryptography_flutter/latest/)
+Both compute very small inputs in the same isolate if the overhead of message passing does not
+make sense. For example, if you encrypt a 16 byte message, the computation is done in the same
+isolate. Too large inputs are also computed in the same isolate (because you probably should not
+allocate a gigabyte cross-isolate message on a mobile phone). We also have a queue to prevent memory
+exhaustion that could happen if you send lots of requests concurrently (something we observed
+during testing).
 
 # Getting started
 In _pubspec.yaml_:
 ```yaml
 dependencies:
-  cryptography: ^2.0.5
-  cryptography_flutter: ^2.0.2
+  cryptography: ^2.1.0
+  cryptography_flutter: ^2.1.0
 ```
 
 Then just use:
@@ -39,7 +40,8 @@ Then just use:
 import 'package:cryptography_flutter/cryptography_flutter.dart';
 
 void main() {
-  // Enable Flutter cryptography
+  // Enable use of operating system APIs.
+  // This is an optional performance optimization.
   FlutterCryptography.enable();
 
   // ....
@@ -48,6 +50,61 @@ void main() {
 
 For APIs, read documentation for [package:cryptography](https://pub.dev/packages/cryptography).
 
+# Optimizations by platform
+## In iOS and Mac OS X
+Calling `FlutterCryptography.enable()` enables:
+  * [FlutterAesGcm](https://pub.dev/documentation/cryptography_flutter/latest/cryptography_flutter/FlutterAesGcm-class.html)
+    * Our benchmarks have shown up to ~50 times better performance.
+  * [FlutterChacha20](https://pub.dev/documentation/cryptography_flutter/latest/cryptography_flutter/FlutterChacha20-class.html)
+    * Our benchmarks have shown up to ~10 times better performance.
+  * [FlutterEd25519](https://pub.dev/documentation/cryptography_flutter/latest/cryptography_flutter/FlutterEd25519-class.html)
+    * Our benchmarks have shown up to ~10 times better performance.
+  * [FlutterX25519](https://pub.dev/documentation/cryptography_flutter/latest/cryptography_flutter/FlutterX25519-class.html)
+    * Our benchmarks have shown up to ~10 times better performance.
+
+By default, maximum input size is 100 MB.
+
+## In Android
+We have observe problems with some Android devices. Therefore we have disabled some optimizations
+until we have time to investigate the problems.
+
+Calling `FlutterCryptography.enable()` enables:
+* [FlutterAesGcm](https://pub.dev/documentation/cryptography_flutter/latest/cryptography_flutter/FlutterAesGcm-class.html) 
+  * Our benchmarks have shown up to ~50 times better performance.
+* [FlutterChacha20](https://pub.dev/documentation/cryptography_flutter/latest/cryptography_flutter/FlutterChacha20-class.html)
+  * Our benchmarks have shown up to ~10 times better performance.
+* [BackgroundEd25519](https://pub.dev/documentation/cryptography_flutter/latest/cryptography_flutter/BackgroundEd25519-class.html)
+* [BackgroundX25519](https://pub.dev/documentation/cryptography_flutter/latest/cryptography_flutter/BackgroundX25519-class.html)
+
+By default, maximum input size is 20 MB because of memory allocation crashes we observed during
+testing.
+
+## In other platforms
+In browsers, nothing is changed.
+
+In Windows, Linux, and other platforms:
+* [BackgroundAesGcm](https://pub.dev/documentation/cryptography_flutter/latest/cryptography_flutter/BackgroundAesGcm-class.html)
+* [BackgroundChacha20](https://pub.dev/documentation/cryptography_flutter/latest/cryptography_flutter/BackgroundChacha20-class.html)
+* [BackgroundEd25519](https://pub.dev/documentation/cryptography_flutter/latest/cryptography_flutter/BackgroundEd25519-class.html)
+* [BackgroundX25519](https://pub.dev/documentation/cryptography_flutter/latest/cryptography_flutter/BackgroundX25519-class.html)
+
+## Links
+* [Github project](https://github.com/dint-dev/cryptography)
+* [Issue tracker](https://github.com/dint-dev/cryptography/issues)
+* [Pub package](https://pub.dev/packages/cryptography_flutter)
+* [API reference](https://pub.dev/documentation/cryptography_flutter/latest/)
+
+
 # Contributing?
-Test the plugin by running integration tests in
-_cryptography_flutter/example/_ (see README in the directory).
+This is how you run the tests:
+```
+./tool/test.sh
+```
+
+Alternatively:
+```
+flutter test --no-pub
+cd example
+flutter test --no-pub integration_test
+```
+
