@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:cryptography/browser.dart';
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography_flutter/cryptography_flutter.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -30,6 +29,10 @@ void runTests() {
   // IMPORTANT:
   // This must NOT be inside setUp(() {...}).
   Cryptography.instance = FlutterCryptography.defaultInstance;
+
+  test('FlutterCryptography is enabled', () {
+    expect(Cryptography.instance, same(FlutterCryptography.defaultInstance));
+  }, testOn: '!browser');
 
   test('Cryptography.instance.aesGcm()', () {
     expect(Cryptography.instance, same(FlutterCryptography.defaultInstance));
@@ -57,19 +60,5 @@ void runTests() {
     testCiphers();
     testSignatureAlgorithms();
     testKeyExchangeAlgorithms();
-  });
-
-  test('FlutterCryptography.enable', () {
-    FlutterCryptography.enable();
-    expect(Cryptography.instance, same(FlutterCryptography.defaultInstance));
-
-    FlutterCryptography.enable();
-    expect(Cryptography.instance, same(FlutterCryptography.defaultInstance));
-
-    expect(
-      () => Cryptography.instance = BrowserCryptography(),
-      throwsStateError,
-    );
-    expect(Cryptography.instance, same(FlutterCryptography.defaultInstance));
   });
 }

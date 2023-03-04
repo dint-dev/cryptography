@@ -17,6 +17,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import '../cryptography_flutter.dart';
+import '_flutter_cryptography_implementation.dart';
 import '_internal.dart';
 
 /// Base class for [Cipher]s that use platform APIs.

@@ -31,24 +31,13 @@ during testing).
 In _pubspec.yaml_:
 ```yaml
 dependencies:
-  cryptography: ^2.1.0
-  cryptography_flutter: ^2.1.0
+  cryptography: ^2.3.0
+  cryptography_flutter: ^2.2.0
 ```
 
-Then just use:
-```dart
-import 'package:cryptography_flutter/cryptography_flutter.dart';
+That's it!
 
-void main() {
-  // Enable use of operating system APIs.
-  // This is an optional performance optimization.
-  FlutterCryptography.enable();
-
-  // ....
-}
-```
-
-For APIs, read documentation for [package:cryptography](https://pub.dev/packages/cryptography).
+For API documentation, read more at [pub.dev/packages/cryptography](https://pub.dev/packages/cryptography).
 
 # Optimizations by platform
 ## In iOS and Mac OS X
@@ -93,18 +82,3 @@ In Windows, Linux, and other platforms:
 * [Issue tracker](https://github.com/dint-dev/cryptography/issues)
 * [Pub package](https://pub.dev/packages/cryptography_flutter)
 * [API reference](https://pub.dev/documentation/cryptography_flutter/latest/)
-
-
-# Contributing?
-This is how you run the tests:
-```
-./tool/test.sh
-```
-
-Alternatively:
-```
-flutter test --no-pub
-cd example
-flutter test --no-pub integration_test
-```
-

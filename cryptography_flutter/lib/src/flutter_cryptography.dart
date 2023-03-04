@@ -18,8 +18,6 @@ import 'package:flutter/foundation.dart';
 
 import '../cryptography_flutter.dart';
 import '_internal.dart';
-import 'flutter_cryptography_impl_vm.dart'
-    if (dart.library.html) 'flutter_cryptography_impl_browser.dart' as internal;
 
 /// An implementation [Cryptography] that uses native operating system APIs.
 ///
@@ -41,7 +39,7 @@ class FlutterCryptography extends BrowserCryptography {
   /// Either [FlutterCryptography] or [BrowserCryptography] depending on
   /// [FlutterCryptography.isPluginPresent].
   static final Cryptography defaultInstance =
-      internal.flutterCryptographyInstance;
+      kIsWeb ? BrowserCryptography.defaultInstance : FlutterCryptography();
 
   /// Tells whether the current platform has a plugin.
   ///
@@ -130,15 +128,16 @@ class FlutterCryptography extends BrowserCryptography {
     return backgroundImpl;
   }
 
-  /// Enables use of [FlutterCryptography].
-  ///
-  /// You can call this method any number of times.
-  ///
-  /// The method is just a helper for calling [Cryptography.freezeInstance()]:
-  /// ```
-  /// Cryptography.freezeInstance(FlutterCryptography.defaultInstance);
-  /// ```
+  @Deprecated(
+    'Calling this is no longer necessary.'
+    ' Flutter will enable the plugin automatically.',
+  )
   static void enable() {
     Cryptography.freezeInstance(defaultInstance);
+  }
+
+  /// Called by Flutter when the plugin is registered.
+  static void registerWith() {
+    Cryptography.instance = defaultInstance;
   }
 }

@@ -29,7 +29,14 @@ flutter:
       android:
         package: dev.dint.cryptography_flutter
         pluginClass: CryptographyFlutterPlugin
+        dartPluginClass: FlutterCryptography
       ios:
         pluginClass: CryptographyFlutterPlugin
+        dartPluginClass: FlutterCryptography
+      linux:
+        dartPluginClass: FlutterCryptography
       macos:
         pluginClass: CryptographyFlutterPlugin
+        dartPluginClass: FlutterCryptography
+      windows:
+        dartPluginClass: FlutterCryptography

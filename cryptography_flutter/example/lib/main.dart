@@ -15,13 +15,9 @@
 import 'dart:convert';
 
 import 'package:cryptography/cryptography.dart';
-import 'package:cryptography_flutter/cryptography_flutter.dart';
 import 'package:flutter/material.dart';
 
 void main() {
-  // Enable Flutter cryptography
-  FlutterCryptography.enable();
-
   runApp(const MaterialApp(
     title: 'Cryptography demo',
     home: CipherPage(),

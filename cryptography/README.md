@@ -24,14 +24,19 @@ Any feedback, issue reports, or pull requests are appreciated!
 * [Pub package](https://pub.dev/packages/cryptography)
 * [API reference](https://pub.dev/documentation/cryptography/latest/)
 
-## Some packages that depend on this
+# Getting started
 
-* [cryptography_flutter](https://pub.dev/packages/cryptography_flutter).
-    * Improves performance in Flutter in some cases. This is done by moving computations away from
-      the UI isolate.
-* [jwk](https://pub.dev/packages/jwk)
-    * JWK (JSON Web Key) support.
+In _pubspec.yaml_:
 
+```yaml
+dependencies:
+  cryptography: ^2.2.0
+  cryptography_flutter: ^2.2.0 # Remove this if you don't use Flutter
+```
+
+You are ready to go!
+
+# Concepts
 ## Cryptographic keys
 
 The usual arguments to algorithms are:
@@ -56,11 +61,10 @@ The usual arguments to algorithms are:
 Note that SecretKey and KeyPair instances are opaque and asynchronous by default. They may not be in
 the memory and may not be readable at all. If a SecretKey or KeyPair instance is in memory, it's an
 instance of one of the following:
-
-* [SecretKeyData](https://pub.dev/documentation/cryptography/latest/cryptography/SecretKeyData-class.html)
-* [SimpleKeyPairData](https://pub.dev/documentation/cryptography/latest/cryptography/SimpleKeyPairData-class.html)
-* [EcKeyPairData](https://pub.dev/documentation/cryptography/latest/cryptography/EcKeyPairData-class.html)
-* [RsaKeyPairData](https://pub.dev/documentation/cryptography/latest/cryptography/RsaKeyPairData-class.html)
+  * [SecretKeyData](https://pub.dev/documentation/cryptography/latest/cryptography/SecretKeyData-class.html)
+  * [SimpleKeyPairData](https://pub.dev/documentation/cryptography/latest/cryptography/SimpleKeyPairData-class.html)
+  * [EcKeyPairData](https://pub.dev/documentation/cryptography/latest/cryptography/EcKeyPairData-class.html)
+  * [RsaKeyPairData](https://pub.dev/documentation/cryptography/latest/cryptography/RsaKeyPairData-class.html)
 
 For a bit higher API abstraction, we encourage developers to use
 [Wand](https://pub.dev/documentation/cryptography/latest/cryptography/SecretKeyData-class.html)
@@ -79,8 +83,7 @@ at the moment.
 
 ### Ciphers
 
-The
-following [Cipher](https://pub.dev/documentation/cryptography/latest/cryptography/Cipher-class.html)
+The following [Cipher](https://pub.dev/documentation/cryptography/latest/cryptography/Cipher-class.html)
 implementations are available:
 
 * AES
@@ -131,8 +134,7 @@ implementations are available:
 
 ### Key exchange algorithms
 
-The
-following [KeyExchangeAlgorithm](https://pub.dev/documentation/cryptography/latest/cryptography/KeyExchangeAlgorithm-class.html)
+The following [KeyExchangeAlgorithm](https://pub.dev/documentation/cryptography/latest/cryptography/KeyExchangeAlgorithm-class.html)
 implementations are available:
 
 * Elliptic curves approved by NIST
@@ -158,8 +160,7 @@ The following implementations are available:
 
 ### Message authentication codes
 
-The
-following [MacAlgorithm](https://pub.dev/documentation/cryptography/latest/cryptography/MacAlgorithm-class.html)
+The following [MacAlgorithm](https://pub.dev/documentation/cryptography/latest/cryptography/MacAlgorithm-class.html)
 implementations are available:
 
 * [Hmac](https://pub.dev/documentation/cryptography/latest/cryptography/Hmac-class.html)
@@ -167,8 +168,7 @@ implementations are available:
 
 ### Cryptographic hash functions
 
-The
-following [HashAlgorithm](https://pub.dev/documentation/cryptography/latest/cryptography/HashAlgorithm-class.html)
+The following [HashAlgorithm](https://pub.dev/documentation/cryptography/latest/cryptography/HashAlgorithm-class.html)
 implementations are available:
 
 * [Blake2b](https://pub.dev/documentation/cryptography/latest/cryptography/Blake2b-class.html) (
@@ -191,7 +191,7 @@ We continue to use the old good `Random.secure()` as the default random number i
 generates only up to 1 MB of random data per second, but this is rarely a performance bottleneck.
 
 If you do want faster cryptographically reasonably strong random numbers, this package contains
-[ChachaRandom](https://pub.dev/documentation/cryptography/latest/cryptography/ChachaRandom-class.html).
+[SecureRandom](https://pub.dev/documentation/cryptography/latest/cryptography/ChachaRandom-class.html).
 It generates random numbers by using 12 round version ChaCha cipher. It can generate up to 0.25 GB
 random data per second because it makes expensive operating system call less frequently after the
 initial seeding from the operating system. While ChaCha is not designed to be a cryptographic random
@@ -253,19 +253,6 @@ void main() {
   });
 }
 ```
-
-# Getting started
-
-In _pubspec.yaml_:
-
-```yaml
-dependencies:
-  cryptography: ^2.2.0
-```
-
-If you use Flutter, you may consider using
-[cryptography_flutter](https://pub.dev/packages/cryptography_flutter) if you want better
-performance. It moves computations away from the UI isolate.
 
 # Examples
 

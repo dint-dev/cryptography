@@ -17,6 +17,7 @@ import 'package:cryptography/helpers.dart';
 import 'package:flutter/foundation.dart';
 
 import '../../cryptography_flutter.dart';
+import '../_flutter_cryptography_implementation.dart';
 import '../_internal.dart';
 
 /// [X25519] implemented with operating system APIs.

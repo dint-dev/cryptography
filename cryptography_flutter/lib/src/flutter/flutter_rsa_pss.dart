@@ -18,7 +18,7 @@ import 'dart:typed_data';
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/helpers.dart';
 
-import '../../cryptography_flutter.dart';
+import '../_flutter_cryptography_implementation.dart';
 import '../_internal.dart';
 
 /// [RsaPss] implemented with operating system APIs.
