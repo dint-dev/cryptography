@@ -219,13 +219,12 @@ We wrote the following three implementations of `Cryptography`:
     for list algorithms supported by it.
 * [BrowserCryptography](https://pub.dev/documentation/cryptography/latest/cryptography.browser/BrowserCryptography-class.html)
   * Uses [Web Cryptography API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API)
-    (_crypto.subtle_).
-  * Methods return pure Dart implementations when Web Cryptography API can't be used.
-  * See the [class documentation](https://pub.dev/documentation/cryptography/latest/cryptography.browser/BrowserCryptography-class.html)
+    (_crypto.subtle_) whenever possible. Methods return pure Dart implementations when Web
+    Cryptography API is not available.
+  * See the [class documentation](https://pub.dev/documentation/cryptography/latest/cryptography/BrowserCryptography-class.html)
     for list algorithms supported by it.
 * [FlutterCryptography](https://pub.dev/documentation/cryptography_flutter/latest/cryptography_flutter/FlutterCryptography-class.html)
   * Available in the package [cryptography_flutter](https://pub.dev/packages/cryptography_flutter).
-  * Enabled with [FlutterCryptography.enable()](https://pub.dev/documentation/cryptography_flutter/latest/cryptography_flutter/FlutterCryptography/enable.html).
   * See the [class documentation](https://pub.dev/documentation/cryptography_flutter/latest/cryptography_flutter/FlutterCryptography-class.html)
     for list algorithms supported by it.
 
@@ -238,9 +237,9 @@ For example:
 import 'package:cryptography/cryptography.dart';
 
 void main() {
-  Cryptography.instance = BrowserCryptography(
-      random: ChachaRandom.testable(seed: 1),
-  );
+  setUp(() {
+    Cryptography.instance = Cryptography.instance.withRandom(SecureRandom.forTesting(seed: 42));
+  });
   
   test('example', () async {
     final algorithm = AesGcm.with256bits();

@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:math';
+
 import 'package:cryptography/cryptography.dart';
 import 'package:flutter/foundation.dart';
 
@@ -50,7 +52,11 @@ class FlutterCryptography extends BrowserCryptography {
   Ed25519? _ed25519;
   X25519? _x25519;
 
-  FlutterCryptography();
+  FlutterCryptography({Random? random}) : super(random: random);
+
+  @override
+  FlutterCryptography withRandom(Random? random) =>
+      FlutterCryptography(random: random);
 
   @override
   AesGcm aesGcm({

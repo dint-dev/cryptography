@@ -314,4 +314,9 @@ class BrowserCryptography extends DartCryptography {
     }
     return super.sha512();
   }
+
+  @override
+  BrowserCryptography withRandom(Random? random) {
+    return BrowserCryptography(random: random);
+  }
 }

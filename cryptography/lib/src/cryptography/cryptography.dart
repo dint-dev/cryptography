@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:math';
+
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/dart.dart';
 
@@ -81,6 +83,8 @@ abstract class Cryptography {
     }
     _instance = cryptography;
   }
+
+  Cryptography withRandom(Random random);
 
   const Cryptography();
 

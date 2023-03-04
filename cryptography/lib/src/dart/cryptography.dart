@@ -49,6 +49,11 @@ class DartCryptography extends Cryptography {
 
   final Random? _random;
 
+  @override
+  DartCryptography withRandom(Random? random) {
+    return DartCryptography(random: random);
+  }
+
   /// Constructs instance of [DartCryptography].
   ///
   /// If [random] is not given, a cryptographically secure random number
