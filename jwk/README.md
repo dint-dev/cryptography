@@ -7,6 +7,15 @@ JWK (JSON Web Key) encoding and decoding. Designed to be used with
 
 Maintained by Gohilla. Licensed under the [Apache License 2.0](LICENSE).
 
+# Getting started
+In _pubspec.yaml_
+```yaml
+dependencies:
+  cryptography: ^2.3.0
+  jwk: ^0.2.0
+``
+```
+
 # Examples
 ## Encoding KeyPair
 ```dart

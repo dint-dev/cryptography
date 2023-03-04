@@ -86,6 +86,24 @@ abstract class SecureRandom implements Random {
   ///
   /// The sequence of outputs is a pure function of the [seed] you give to the
   /// constructor. In other words, this is only for meant for testing.
+  ///
+  /// ## Example
+  /// ```dart
+  /// import 'package:cryptography/cryptography.dart';
+  ///
+  /// void main() {
+  ///   final random = SecureRandom.forTesting(seed: 0);
+  ///   final a = random.nextInt(1000);
+  ///   final b = random.nextInt(1000);
+  ///   final c = random.nextInt(1000);
+  ///   print('$a, $b, $c');
+  ///   // Always prints:
+  ///   //
+  ///   // 412, 913, 198
+  ///   //
+  ///   // Because it's a fake random number generator for testing only!
+  /// }
+  /// ```
   factory SecureRandom.forTesting({
     int seed = 0,
   }) {

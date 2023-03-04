@@ -19,7 +19,7 @@ import '../../cryptography.dart';
 
 const _bit32 = 0x10000 * 0x10000;
 
-/// Fills a list with random bytes (using [SecureRandom.fast]).
+/// Fills a list with random bytes (using [Random.secure()].
 void fillBytesWithSecureRandom(Uint8List bytes, {Random? random}) {
   random ??= SecureRandom.safe;
   for (var i = 0; i < bytes.length;) {

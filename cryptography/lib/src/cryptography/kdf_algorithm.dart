@@ -21,7 +21,6 @@ import 'package:cryptography/cryptography.dart';
 ///   * [Hchacha20]
 ///   * [Hkdf]
 ///   * [Pbkdf2] (suitable for password hashing)
-///
 abstract class KdfAlgorithm {
   const KdfAlgorithm();
 

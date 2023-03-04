@@ -58,7 +58,7 @@ class DartSha256 extends Sha256 with DartHashAlgorithmMixin, _HashMixin {
   impl.Hash get _impl => impl.sha256;
 }
 
-/// [Sha385] implemented by using in [package:crypto](https://pub.dev/packages/crypto)
+/// [Sha384] implemented by using in [package:crypto](https://pub.dev/packages/crypto)
 /// (a package by Google).
 ///
 /// For examples and more information about the algorithm, see documentation for

@@ -15,7 +15,7 @@
 /// An optimized version of [package:cryptography](https://pub.dev/packages/cryptography).
 ///
 /// See [FlutterCryptography] for usage instructions.
-library cryptography;
+library cryptography_flutter;
 
 import 'package:cryptography_flutter/cryptography_flutter.dart';
 

@@ -1,3 +1,7 @@
+## 2.3.0
+  * Fixes some small issues.
+  * Improves documentation.
+
 ## 2.2.0
 
 * The main changes in the the APIs:

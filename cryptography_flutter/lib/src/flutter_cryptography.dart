@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:cryptography/browser.dart';
 import 'package:cryptography/cryptography.dart';
 import 'package:flutter/foundation.dart';
 

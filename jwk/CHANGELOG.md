@@ -1,3 +1,7 @@
+## 0.2.1
+
+* Improves documentation.
+
 ## 0.2.0
 
 * Fixes various bugs.

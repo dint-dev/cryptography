@@ -21,6 +21,11 @@ import 'package:meta/meta.dart';
 /// class can still operate "locks" without a visible key, it is like a
 /// "magic wand".
 abstract class Wand {
+  bool _hasBeenDestroyed = false;
+
+  /// Whether [destroy] has been called.
+  bool get hasBeenDestroyed => _hasBeenDestroyed;
+
   /// Prevents this object from being used anymore and attempts to erase
   /// cryptographic keys from memory.
   ///
@@ -32,11 +37,6 @@ abstract class Wand {
   Future<void> destroy() async {
     _hasBeenDestroyed = true;
   }
-
-  bool _hasBeenDestroyed = false;
-
-  /// Whether [destroy] has been called.
-  bool get hasBeenDestroyed => _hasBeenDestroyed;
 
   @override
   String toString() => '$runtimeType(...)';

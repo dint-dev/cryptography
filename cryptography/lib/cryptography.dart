@@ -28,6 +28,8 @@ library cryptography;
 
 import 'package:cryptography/cryptography.dart';
 
+export 'src/browser/browser_cryptography_when_not_browser.dart'
+    if (dart.library.html) 'src/browser/browser_cryptography.dart';
 export 'src/cryptography/algorithms.dart';
 export 'src/cryptography/cipher.dart';
 export 'src/cryptography/cipher_state.dart';

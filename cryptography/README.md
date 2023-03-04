@@ -12,8 +12,8 @@ This package is:
 
 * __Easy to use__. The API is easy to understand and encourages good defaults.
 * __Multi-platform__. It's easy to customize implementation of X in platform Y.
-* __Fast.__ We use platform APIs when available. For example, SHA-512 is over 100 times faster
-    than _package:crypto_ in browsers.
+* __Fast.__ We use platform APIs when available. For example, SHA-512 is over 100 times faster than
+  _package:crypto_ in browsers.
 
 Any feedback, issue reports, or pull requests are appreciated!
 
@@ -30,7 +30,7 @@ In _pubspec.yaml_:
 
 ```yaml
 dependencies:
-  cryptography: ^2.2.0
+  cryptography: ^2.3.0
   cryptography_flutter: ^2.2.0 # Remove this if you don't use Flutter
 ```
 
@@ -100,11 +100,11 @@ implementations are available:
 * ChaCha20 / XChaCha20
     * [Chacha20](https://pub.dev/documentation/cryptography/latest/cryptography/Chacha20-class.html)
         * The throughput is up to 230 MB / second (Macbook Pro, message size 1 MB).
-    * [Chacha20.poly1305Aead](https://pub.dev/documentation/cryptography/latest/cryptography/Chacha20/poly1305Aead.html) (
+    * [Chacha20.poly1305Aead](https://pub.dev/documentation/cryptography/latest/cryptography/Chacha20/Chacha20.poly1305Aead.html) (
       AEAD_CHACHA20_POLY1305)
         * The throughput is up to 30 MB / second (Macbook Pro, message size 1 MB).
     * [Xchacha20](https://pub.dev/documentation/cryptography/latest/cryptography/Xchacha20-class.html)
-    * [Xchacha20.poly1305Aead](https://pub.dev/documentation/cryptography/latest/cryptography/Xchacha20/poly1305Aead.html) (
+    * [Xchacha20.poly1305Aead](https://pub.dev/documentation/cryptography/latest/cryptography/Xchacha20/Xchacha20.poly1305Aead.html) (
       AEAD_XCHACHA20_POLY1305)
 
 ### Digital signature algorithms
@@ -118,11 +118,11 @@ implementations are available:
     * Performance of the pure Dart implementation is around 200 (signatures or verifications) per
       second in VM and about 50 in browsers.
 * Elliptic curves approved by NIST
-    * [Ecdsa.p256](https://pub.dev/documentation/cryptography/latest/cryptography/Ecdsa/p256.html) (
+    * [Ecdsa.p256](https://pub.dev/documentation/cryptography/latest/cryptography/Ecdsa/Ecdsa.p256.html) (
       ECDSA P256 / secp256r1 / prime256v1 + SHA256)
-    * [Ecdsa.p384](https://pub.dev/documentation/cryptography/latest/cryptography/Ecdsa/p384.html) (
+    * [Ecdsa.p384](https://pub.dev/documentation/cryptography/latest/cryptography/Ecdsa/Ecdsa.p384.html) (
       ECDSA P384 / secp384r1 / prime384v1 + SHA384)
-    * [Ecdsa.p521](https://pub.dev/documentation/cryptography/latest/cryptography/Ecdsa/p521.html) (
+    * [Ecdsa.p521](https://pub.dev/documentation/cryptography/latest/cryptography/Ecdsa/Ecdsa.p521.html) (
       ECDSA P521 / secp521r1 / prime521v1 + SHA256)
     * We don't have implementations of these in pure Dart.
 * RSA
@@ -138,11 +138,11 @@ The following [KeyExchangeAlgorithm](https://pub.dev/documentation/cryptography/
 implementations are available:
 
 * Elliptic curves approved by NIST
-    * [Ecdh.p256](https://pub.dev/documentation/cryptography/latest/cryptography/Ecdh/p256.html) (
+    * [Ecdh.p256](https://pub.dev/documentation/cryptography/latest/cryptography/Ecdh/Ecdh.p256.html) (
       ECDH P256 / secp256r1 / prime256v1)
-    * [Ecdh.p384](https://pub.dev/documentation/cryptography/latest/cryptography/Ecdh/p384.html) (
+    * [Ecdh.p384](https://pub.dev/documentation/cryptography/latest/cryptography/Ecdh/Ecdh.p384.html) (
       ECDH P384 / secp384r1 / prime384v1)
-    * [Ecdh.p521](https://pub.dev/documentation/cryptography/latest/cryptography/Ecdh/p521.html) (
+    * [Ecdh.p521](https://pub.dev/documentation/cryptography/latest/cryptography/Ecdh/Ecdh.p521.html) (
       ECDH P521 / secp521r1 / prime521v1)
     * We don't have implementations of these in pure Dart.
 * [X25519](https://pub.dev/documentation/cryptography/latest/cryptography/X25519-class.html) (
@@ -191,7 +191,7 @@ We continue to use the old good `Random.secure()` as the default random number i
 generates only up to 1 MB of random data per second, but this is rarely a performance bottleneck.
 
 If you do want faster cryptographically reasonably strong random numbers, this package contains
-[SecureRandom](https://pub.dev/documentation/cryptography/latest/cryptography/ChachaRandom-class.html).
+[SecureRandom.fast](https://pub.dev/documentation/cryptography/latest/cryptography/SecureRandom/fast.html).
 It generates random numbers by using 12 round version ChaCha cipher. It can generate up to 0.25 GB
 random data per second because it makes expensive operating system call less frequently after the
 initial seeding from the operating system. While ChaCha is not designed to be a cryptographic random
@@ -199,7 +199,7 @@ number generator, it's hard to imagine a scenario where an attacker could use th
 numbers to break the security of the system.
 
 If you need a deterministic random number generator for tests, the package contains
-[ChachaRandom.forTesting](https://pub.dev/documentation/cryptography/latest/cryptography/ChachaRandom/forTesting.html).
+[ChachaRandom.forTesting](https://pub.dev/documentation/cryptography/latest/cryptography/SecureRandom/SecureRandom.forTesting.html).
 
 ## Cryptographic factory class
 

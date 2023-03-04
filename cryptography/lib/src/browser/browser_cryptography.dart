@@ -31,21 +31,22 @@ import 'hkdf.dart';
 import 'hmac.dart';
 import 'pbkdf2.dart';
 
-/// Contains deterministic browser cryptography.
 class BrowserCryptography extends DartCryptography {
-  // Documented in cryptography_when_not_browser.dart
+  // Documented in browser_cryptography_when_not_browser.dart
   static final Cryptography defaultInstance =
       isSupported ? BrowserCryptography() : DartCryptography();
 
+  /// @nodoc
+  // TODO: Remove this
   @visibleForTesting
   static bool isDisabledForTesting = false;
 
-  // Documented in cryptography_when_not_browser.dart
+  // Documented in browser_cryptography_when_not_browser.dart
   static bool get isSupported => isWebCryptoAvailable && !isDisabledForTesting;
 
   final Random? _random;
 
-  // Documented in cryptography_when_not_browser.dart
+  // Documented in browser_cryptography_when_not_browser.dart
   BrowserCryptography({
     Random? random,
   })  : _random = random,

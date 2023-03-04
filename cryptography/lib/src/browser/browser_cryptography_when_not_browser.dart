@@ -30,20 +30,19 @@ import 'package:meta/meta.dart';
 /// ## Optimized algorithms
 /// The following configurations are optimized using Web Cryptography:
 ///   * [AesCbc]
-///     * Key length must 128 or 256 bits.
-///     * Paddings must be [PaddingAlgorithm.pkcs7].
+///     * Only when key length is 128 or 256 bits.
+///     * Only when padding is [PaddingAlgorithm.pkcs7].
 ///   * [AesCtr]
-///     * Key length must 128 or 256 bits.
+///     * Only when key length is 128 or 256 bits.
 ///   * [AesGcm]
-///     * Key length must 128 or 256 bits.
-///     * `keyStreamOffset` must be 0.
+///     * Only when key length is 128 or 256 bits.
 ///   * [Ecdh]
 ///   * [Ecdsa]
-///     * `hash` must be [Sha256], [Sha384], or [Sha512].
+///     * Only when `hash` is [Sha256], [Sha384], or [Sha512].
 ///   * [Hkdf]
-///     * `hmac` must be [Hmac.sha256], [Hmac.sha384], or [Hmac.sha512].
+///     * Only when `hmac` is [Hmac.sha256], [Hmac.sha384], or [Hmac.sha512].
 ///   * [Hmac]
-///     * `hash` must be [Sha256], [Sha384], or [Sha512].
+///     * Only when `hash` is [Sha256], [Sha384], or [Sha512].
 ///   * [Pbkdf2]
 ///   * [RsaPss]
 ///   * [RsaSsaPkcs1v15]
@@ -62,7 +61,8 @@ class BrowserCryptography extends DartCryptography {
   /// other platforms, the value will be [DartCryptography.defaultInstance].
   static final Cryptography defaultInstance = DartCryptography.defaultInstance;
 
-  /// Whether Web Cryptography is disabled for testing.
+  /// @nodoc
+  // TODO: Remove this
   @visibleForTesting
   static bool isDisabledForTesting = false;
 

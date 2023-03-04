@@ -28,12 +28,12 @@ import 'package:meta/meta.dart';
 ///
 /// This class is used with algorithms such as [Ed25519] and [X25519].
 abstract class SimpleKeyPair extends KeyPair {
+  /// Constructor for subclasses.
+  SimpleKeyPair.constructor();
+
   @Deprecated('This will be removed')
   factory SimpleKeyPair.lazy(Future<SimpleKeyPair> Function() f) =
       _LazySimpleKeyPair;
-
-  /// Constructor for subclasses.
-  SimpleKeyPair.constructor();
 
   @override
   Future<SimpleKeyPairData> extract();

@@ -22,10 +22,10 @@ import 'package:meta/meta.dart';
 ///   * [SimpleKeyPair] ([Ed25519], [X25519])
 ///   * [RsaKeyPair] (RSA-based algorithms)
 abstract class KeyPair {
+  bool _hasBeenDestroyed = false;
+
   /// Whether [destroy] has been called.
   bool get hasBeenDestroyed => _hasBeenDestroyed;
-
-  bool _hasBeenDestroyed = false;
 
   /// Overwrites sensitive parts of the private key data with zeroes and
   /// prevents the private key from being used anymore.

@@ -30,7 +30,7 @@ abstract class CipherState {
   /// all bytes.
   ///
   /// If [expectedMac] is non-null, then the method will throw
-  /// [SecretBoxAuthenticityException] if the computed MAC does match.
+  /// [SecretBoxAuthenticationError] if the computed MAC does match.
   ///
   /// If [possibleBuffer] is non-null, the method is allowed (but not required)
   /// to write the output to it. The buffer can be the same as [input].

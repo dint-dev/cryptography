@@ -20,7 +20,7 @@ import 'package:collection/collection.dart';
 ///   * Either argument is null
 ///   * Lengths are non-equal
 ///
-/// The implementation of [hash] produces a 16-bit hash by using XOR.
+/// The implementation of [Equality.hash] produces a 16-bit hash by using XOR.
 ///
 const Equality<List<int>> constantTimeBytesEquality =
     _ConstantTimeBytesEquality();

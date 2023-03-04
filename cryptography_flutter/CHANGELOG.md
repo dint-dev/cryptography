@@ -1,3 +1,8 @@
+## 2.2.0
+* Makes the package use the new convention for enabling Flutter plugins. You no longer need to call
+  `CryptographyFlutter.enable()` in your `main` function.
+* Improves documentation.
+
 ## 2.1.1
 * Bumps Kotlin Gradle plugin version.
 

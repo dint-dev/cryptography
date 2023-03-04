@@ -14,7 +14,6 @@
 
 import 'dart:typed_data';
 
-import 'package:cryptography/browser.dart';
 import 'package:cryptography/cryptography.dart';
 
 import '_javascript_bindings.dart' show jsArrayBufferFrom;

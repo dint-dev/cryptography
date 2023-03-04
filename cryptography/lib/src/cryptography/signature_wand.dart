@@ -38,10 +38,7 @@ abstract class SignatureWand extends Wand {
   /// Extracts the public key that is used for signatures.
   Future<PublicKey> extractPublicKeyUsedForSignatures();
 
-  /// Computes shared secret key.
-  ///
-  /// The [remotePublicKey] must be a [PublicKey] that was created by the same
-  /// algorithm as this wand.
+  /// Signs bytes.
   ///
   /// ## Example
   /// ```dart
@@ -58,7 +55,25 @@ abstract class SignatureWand extends Wand {
   /// ```
   Future<Signature> sign(List<int> message);
 
-  /// Encodes a message using [utf8] codec and then calls [sign].
+  /// Signs a string.
+  ///
+  /// The string is converted to bytes using [utf8] codec.
+  ///
+  /// ## Example
+  /// ```dart
+  /// import 'package:cryptography/cryptography.dart';
+  ///
+  /// Future<void> main() async {
+  ///   final signedMessage = 'Hello, world!';
+  ///
+  ///   final ed25519 = Ed25519();
+  ///   final wand = await ed25519.newKeyExchangeWand();
+  ///   final signature = await wand.signString(signedMessage);
+  ///
+  ///   print('Signature: ${signature.bytes}');
+  ///   print('Public key: ${signature.publicKey}');
+  /// }
+  /// ```
   Future<Signature> signString(String message) async {
     final bytes = utf8.encode(message);
     final signature = await sign(bytes);

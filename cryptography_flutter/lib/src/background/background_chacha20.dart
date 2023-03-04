@@ -20,7 +20,7 @@ import 'package:flutter/foundation.dart';
 
 import '../../cryptography_flutter.dart';
 
-/// [Chacha20Poly1305Aead] that's optimized to use [compute].
+/// [Chacha20.poly1305Aead] that's optimized to use [compute].
 class BackgroundChacha extends Chacha20 with BackgroundCipherMixin {
   @override
   final CryptographyChannelPolicy channelPolicy;

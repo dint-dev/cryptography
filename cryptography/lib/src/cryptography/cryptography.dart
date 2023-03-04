@@ -15,12 +15,10 @@
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/dart.dart';
 
-import '../../browser.dart';
-
 /// A factory for cryptographic algorithms.
 ///
 /// This is used by factories in the cryptographic algorithm classes. For example,
-/// [Chacha20Poly1305Aead] calls the [Cryptography.instance] method
+/// [Chacha20.poly1305Aead] calls the [Cryptography.instance] method
 /// [chacha20Poly1305Aead].
 ///
 /// ## Implementations
@@ -123,7 +121,7 @@ abstract class Cryptography {
   /// A factory used by [Chacha20].
   Chacha20 chacha20({required MacAlgorithm macAlgorithm});
 
-  /// A factory used by [Chacha20Poly1305Aead].
+  /// A factory used by [Chacha20.poly1305Aead].
   Chacha20 chacha20Poly1305Aead();
 
   /// A factory used by [Ecdh.p256].

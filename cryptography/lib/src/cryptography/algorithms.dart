@@ -257,6 +257,12 @@ abstract class AesCtr extends StreamingCipher {
   int get nonceLength => 16;
 
   @override
+  bool operator ==(other) =>
+      other is AesCtr &&
+      secretKeyLength == other.secretKeyLength &&
+      macAlgorithm == other.macAlgorithm;
+
+  @override
   void checkParameters({
     int? length,
     required SecretKey secretKey,
@@ -277,12 +283,6 @@ abstract class AesCtr extends StreamingCipher {
       keyStreamIndex: keyStreamIndex,
     );
   }
-
-  @override
-  bool operator ==(other) =>
-      other is AesCtr &&
-      secretKeyLength == other.secretKeyLength &&
-      macAlgorithm == other.macAlgorithm;
 
   @override
   String toString() {
@@ -697,7 +697,7 @@ abstract class Chacha20 extends StreamingCipher {
   /// Constructs a ChaCha20 with any MAC.
   ///
   /// Unless you really know what you are doing, you should use
-  /// [Chacha20Poly1305Aead], which implements _AEAD_CHACHA20_POLY1305_ cipher
+  /// [Chacha20.poly1305Aead], which implements _AEAD_CHACHA20_POLY1305_ cipher
   /// (([RFC 7539](https://tools.ietf.org/html/rfc7539)).
   factory Chacha20({required MacAlgorithm macAlgorithm}) {
     if (macAlgorithm is DartChacha20Poly1305AeadMacAlgorithm) {
@@ -1732,7 +1732,7 @@ abstract class Sha384 extends HashAlgorithm {
   DartHashAlgorithm toSync() => const DartSha384();
 }
 
-/// _SHA-512_ (SHA2-512) [HashAlgorithm].
+/// _SHA-512_ [HashAlgorithm] (sometimes called _SHA2-512_).
 ///
 /// In browsers, the default implementation will use
 /// [Web Cryptography API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API).
@@ -1915,8 +1915,8 @@ abstract class X25519 extends KeyExchangeAlgorithm {
 /// It can improve performance in many cases.
 ///
 /// ## Things to know
-///   * [SecretKey] must be 32 bytes.
-///   * [Nonce] must be 24 bytes.
+///   * Secret key must be 32 bytes.
+///   * Nonce must be 24 bytes.
 ///   * `keyStreamIndex` enables choosing index in the key  stream.
 ///   * It's dangerous to use the same (key, nonce) combination twice.
 ///   * It's dangerous to use the cipher without authentication.

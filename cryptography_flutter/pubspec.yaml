@@ -2,7 +2,7 @@ name: cryptography_flutter
 description:
   Makes 'package:cryptography' use platform APIs in Android, iOS, and Mac OS X. The package can
   make performance up to 100 times better.
-version: 2.1.1
+version: 2.2.0
 homepage: https://github.com/dint-dev/cryptography
 
 environment:
@@ -10,7 +10,7 @@ environment:
   flutter: '>=3.7.0'
 
 dependencies:
-  cryptography: ^2.2.0
+  cryptography: ^2.3.0
   flutter:
     sdk: flutter
 

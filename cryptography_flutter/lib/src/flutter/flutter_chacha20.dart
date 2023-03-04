@@ -20,7 +20,7 @@ import 'package:cryptography/dart.dart';
 import '../../cryptography_flutter.dart';
 import '../_internal.dart';
 
-/// Flutter-optimized [Chacha20Poly1305Aead].
+/// Flutter-optimized [Chacha20.poly1305Aead].
 ///
 /// When operating system APIs are not available [fallback] is used. The
 /// default fallback implementation is [BackgroundChacha].
@@ -31,7 +31,7 @@ class FlutterChacha20 extends Chacha20 with FlutterCipherMixin {
   @override
   final CryptographyChannelPolicy channelPolicy;
 
-  /// Constructs Flutter-optimized [Chacha20Poly1305Aead].
+  /// Constructs Flutter-optimized [Chacha20.poly1305Aead].
   ///
   /// The [channelPolicy] can be used to choose which requests are sent to the
   /// plugin implementation (using a Flutter [MethodChannel]) and which ones are

@@ -171,7 +171,7 @@ abstract class Cipher {
   /// AAD, the method will throw [ArgumentError].
   ///
   /// If [possibleBuffer] is non-null, the method is allowed (but not required)
-  /// to write the output to it. The buffer can be the same as [input].
+  /// to write the output to it.
   /// Otherwise the method will allocate memory for the output.
   Future<List<int>> decrypt(
     SecretBox secretBox, {
@@ -246,7 +246,7 @@ abstract class Cipher {
     }
   }
 
-  /// Calls [decode] and then converts the bytes to a string by using
+  /// Calls [decrypt] and then converts the bytes to a string by using
   /// [utf8] codec.
   Future<String> decryptString(
     SecretBox secretBox, {
@@ -280,7 +280,7 @@ abstract class Cipher {
   /// AAD, the method will throw [ArgumentError].
   ///
   /// If [possibleBuffer] is non-null, the method is allowed (but not required)
-  /// to write the output to it. The buffer can be the same as [input].
+  /// to write the output to it. The buffer can be the same as [clearText].
   /// Otherwise the method will allocate memory for the output.
   Future<SecretBox> encrypt(
     List<int> clearText, {
@@ -323,7 +323,7 @@ abstract class Cipher {
   ///
   /// ## Example
   /// ```dart
-  /// import 'package:cryptography.dart';
+  /// import 'package:browser_cryptography.dart';
   ///
   /// void main() {
   ///   final cipher = Chacha20.poly1305Aead();

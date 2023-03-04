@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:convert';
+
 import 'package:cryptography/cryptography.dart';
 
 /// An digital signature algorithm that supports [newKeyPair()], [sign()],
@@ -27,30 +29,27 @@ import 'package:cryptography/cryptography.dart';
 ///
 /// ## Example
 /// In this example, we use [Ed25519]:
-/// ```
+/// ```dart
 /// import 'package:cryptography/cryptography.dart';
 ///
 /// Future<void> main() async {
-///   final algorithm = Ed25519();
+///   final signedMessage = 'Hello, world!';
 ///
-///   // Generate a new key pair
-///   final keyPair = await algorithm.newKeyPair();
-///
-///   // Sign
-///   final message = <int>[1,2,3];
-///   final signature = await algorithm.sign(
-///     message,
+///   final ed25519 = Ed25519();
+///   final keyPair = await ed25519.newKeyPair();
+///   final signature = await ed25519.signString(
+///     signedMessage,
 ///     keyPair: keyPair,
 ///   );
-///   print('Signature bytes: ${signature.bytes}');
-///   print('Public key: ${signature.publicKey.bytes}');
 ///
-///   // Anyone can verify the signature
-///   final isVerified = await ed25519.verify(
-///     message,
+///   // ...
+///
+///   final isRealSignature = await ed25519.verifyString(
+///     signedMessage,
 ///     signature: signature,
 ///   );
-///   print('OK signature: $isVerified');
+///
+///   print('Signature verification result: $isRealSignature');
 /// }
 /// ```
 abstract class SignatureAlgorithm<T extends PublicKey> {
@@ -59,33 +58,167 @@ abstract class SignatureAlgorithm<T extends PublicKey> {
   KeyPairType get keyPairType;
 
   /// Generates a new [KeyPair] for this algorithm.
-  ///
-  /// You can pass key generation preferences by specifying `options`.
   Future<KeyPair> newKeyPair();
 
-  /// Returns a new [SignatureWand] that has a random [KeyPair].
-  Future<SignatureWand> newSignatureWand() async {
-    final keyPair = await newKeyPair();
-    return newSignatureWandFromKeyPair(keyPair);
-  }
-
-  /// Returns a new [SignatureWand] that uses the given [KeyPair].
-  Future<SignatureWand> newSignatureWandFromKeyPair(KeyPair keyPair) async {
-    return _SignatureWand(this, keyPair);
-  }
-
-  /// Returns a new [SignatureWand] that uses the given [KeyPair].
+  /// Generates a new [KeyPair] that uses the seed bytes.
+  ///
+  /// This will throw [UnsupportedError] if the algorithm does not support
+  /// seeds for private key generation.
   Future<KeyPair> newKeyPairFromSeed(List<int> seed) {
     throw UnsupportedError(
       'newKeyPairFromSeed() is unsupported by this algorithm',
     );
   }
 
-  /// Calculates signature for the message.
+  /// Generates a new [SignatureWand] that has a random [KeyPair].
+  Future<SignatureWand> newSignatureWand() async {
+    final keyPair = await newKeyPair();
+    return newSignatureWandFromKeyPair(keyPair);
+  }
+
+  /// Generates a new [SignatureWand] that uses the given [KeyPair].
+  Future<SignatureWand> newSignatureWandFromKeyPair(KeyPair keyPair) async {
+    return _SignatureWand(this, keyPair);
+  }
+
+  /// Generates a new [SignatureWand] that uses the given seed bytes.
+  ///
+  /// This will throw [UnsupportedError] if the algorithm does not support
+  /// seeds for private key generation.
+  Future<SignatureWand> newSignatureWandFromSeed(List<int> seed) async {
+    final keyPair = await newKeyPairFromSeed(seed);
+    return newSignatureWandFromKeyPair(keyPair);
+  }
+
+  /// Signs bytes.
+  ///
+  /// ## Example
+  /// In this example, we use [Ed25519]:
+  /// ```dart
+  /// import 'package:cryptography/cryptography.dart';
+  ///
+  /// Future<void> main() async {
+  ///   final signedMessage = [1,2,3];
+  ///
+  ///   final ed25519 = Ed25519();
+  ///   final keyPair = await ed25519.newKeyPair();
+  ///   final signature = await ed25519.sign(
+  ///     signedMessage,
+  ///     keyPair: keyPair,
+  ///   );
+  ///
+  ///   // ...
+  ///
+  ///   final isRealSignature = await ed25519.verify(
+  ///     signedMessage,
+  ///     signature: signature,
+  ///   );
+  ///
+  ///   print('Signature verification result: $isRealSignature');
+  /// }
+  /// ```
   Future<Signature> sign(List<int> message, {required KeyPair keyPair});
 
-  /// Verifies the signature.
+  /// Signs a string.
+  ///
+  /// The string is converted to bytes using [utf8] codec.
+  ///
+  /// ## Example
+  /// In this example, we use [Ed25519]:
+  /// ```dart
+  /// import 'package:cryptography/cryptography.dart';
+  ///
+  /// Future<void> main() async {
+  ///   final signedMessage = 'Hello, world!';
+  ///
+  ///   final ed25519 = Ed25519();
+  ///   final keyPair = await ed25519.newKeyPair();
+  ///   final signature = await ed25519.signString(
+  ///     signedMessage,
+  ///     keyPair: keyPair,
+  ///   );
+  ///
+  ///   // ...
+  ///
+  ///   final isRealSignature = await ed25519.verifyString(
+  ///     signedMessage,
+  ///     signature: signature,
+  ///   );
+  ///
+  ///   print('Signature verification result: $isRealSignature');
+  /// }
+  /// ```
+  Future<Signature> signString(String message, {required KeyPair keyPair}) {
+    return sign(
+      utf8.encode(message),
+      keyPair: keyPair,
+    );
+  }
+
+  /// Verifies whether bytes was signed with [signature].
+  ///
+  /// ## Example
+  /// In this example, we use [Ed25519]:
+  /// ```dart
+  /// import 'package:cryptography/cryptography.dart';
+  ///
+  /// Future<void> main() async {
+  ///   final signedMessage = [1,2,3];
+  ///
+  ///   final ed25519 = Ed25519();
+  ///   final keyPair = await ed25519.newKeyPair();
+  ///   final signature = await ed25519.sign(
+  ///     signedMessage,
+  ///     keyPair: keyPair,
+  ///   );
+  ///
+  ///   // ...
+  ///
+  ///   final isRealSignature = await ed25519.verify(
+  ///     signedMessage,
+  ///     signature: signature,
+  ///   );
+  ///
+  ///   print('Signature verification result: $isRealSignature');
+  /// }
+  /// ```
   Future<bool> verify(List<int> message, {required Signature signature});
+
+  /// Verifies whether a string was signed with [signature].
+  ///
+  /// The string is converted to bytes using [utf8] codec.
+  ///
+  /// ## Example
+  /// In this example, we use [Ed25519]:
+  /// ```dart
+  /// import 'package:cryptography/cryptography.dart';
+  ///
+  /// Future<void> main() async {
+  ///   final signedMessage = 'Hello, world!';
+  ///
+  ///   final ed25519 = Ed25519();
+  ///   final keyPair = await ed25519.newKeyPair();
+  ///   final signature = await ed25519.signString(
+  ///     signedMessage,
+  ///     keyPair: keyPair,
+  ///   );
+  ///
+  ///   // ...
+  ///
+  ///   final isRealSignature = await ed25519.verifyString(
+  ///     signedMessage,
+  ///     signature: signature,
+  ///   );
+  ///
+  ///   print('Signature verification result: $isRealSignature');
+  /// }
+  /// ```
+  Future<bool> verifyString(String message, {required Signature signature}) {
+    return verify(
+      utf8.encode(message),
+      signature: signature,
+    );
+  }
 }
 
 class _SignatureWand extends SignatureWand {
@@ -104,6 +237,11 @@ class _SignatureWand extends SignatureWand {
   }
 
   @override
+  Future<PublicKey> extractPublicKeyUsedForSignatures() {
+    return _keyPair.extractPublicKey();
+  }
+
+  @override
   Future<Signature> sign(List<int> message) {
     if (hasBeenDestroyed) {
       throw StateError('destroy() has been called');
@@ -112,10 +250,5 @@ class _SignatureWand extends SignatureWand {
       message,
       keyPair: _keyPair,
     );
-  }
-
-  @override
-  Future<PublicKey> extractPublicKeyUsedForSignatures() {
-    return _keyPair.extractPublicKey();
   }
 }

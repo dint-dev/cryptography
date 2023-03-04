@@ -17,12 +17,12 @@ import 'dart:typed_data';
 
 import '../../cryptography.dart';
 
-/// An opaque object that has some secret key and support for [encrypt]
-/// and/or [decrypt].
+/// An opaque object that possesses some non-extractable secret key.
 ///
-/// The secret key is not extractable.
+/// It support [encrypt] and/or [decrypt].
 ///
 /// ## Example
+/// In this example, we use [Chacha20.poly1305Aead]:
 /// ```dart
 /// import 'package:cryptography/cryptography.dart';
 ///
@@ -40,6 +40,7 @@ import '../../cryptography.dart';
 ///
 ///   // Decrypt
 ///   final clearText = await wand.decrypt(secretBox);
+///   print('Clear text: $clearText');
 /// }
 /// ```
 abstract class CipherWand extends Wand {
@@ -51,6 +52,7 @@ abstract class CipherWand extends Wand {
   /// See [Cipher.decrypt] for more information.
   ///
   /// ## Example
+  /// In this example, we use [Chacha20.poly1305Aead]:
   /// ```dart
   /// import 'package:cryptography/cryptography.dart';
   ///
@@ -68,6 +70,7 @@ abstract class CipherWand extends Wand {
   ///
   ///   // Decrypt
   ///   final clearText = await wand.decrypt(secretBox);
+  ///   print('Clear text: $clearText');
   /// }
   /// ```
   Future<List<int>> decrypt(
@@ -76,8 +79,31 @@ abstract class CipherWand extends Wand {
     Uint8List? possibleBuffer,
   });
 
-  /// Calls [decode] and then converts the bytes to a string by using
-  /// [utf8] codec.
+  /// Decrypts a string.
+  ///
+  /// The decrypted bytes are converted to string using [utf8] codec.
+  ///
+  /// ## Example
+  /// In this example, we use [Chacha20.poly1305Aead]:
+  /// ```dart
+  /// import 'package:cryptography/cryptography.dart';
+  ///
+  /// Future<void> main() async {
+  ///   final cipher = Chacha20.poly1305Aead();
+  ///   final secretKey = await cipher.newSecretKey();
+  ///   final wand = await cipher.newCipherWandFromSecretKey(secretKey);
+  ///
+  ///   // Encrypt
+  ///   final secretBox = await wand.encryptString('Hello, world!');
+  ///   print('Nonce: ${secretBox.nonce}');
+  ///   print('Cipher text: ${secretBox.cipherText}');
+  ///   print('MAC: ${secretBox.mac.bytes}');
+  ///
+  ///   // Decrypt
+  ///   final clearText = await wand.decryptString(secretBox);
+  ///   print('Clear text: $clearText');
+  /// }
+  /// ```
   Future<String> decryptString(SecretBox secretBox) async {
     final clearText = await decrypt(secretBox);
     try {
@@ -94,6 +120,7 @@ abstract class CipherWand extends Wand {
   /// See [Cipher.encrypt] for more information.
   ///
   /// ## Example
+  /// In this example, we use [Chacha20.poly1305Aead]:
   /// ```dart
   /// import 'package:cryptography/cryptography.dart';
   ///
@@ -120,7 +147,33 @@ abstract class CipherWand extends Wand {
     Uint8List? possibleBuffer,
   });
 
-  /// Converts a string to bytes using [utf8] codec and then calls [encrypt].
+  /// Encrypts a string.
+  ///
+  /// The string is converted to bytes using [utf8] codec.
+  ///
+  /// See [Cipher.encrypt] for more information.
+  ///
+  /// ## Example
+  /// In this example, we use [Chacha20.poly1305Aead]:
+  /// ```dart
+  /// import 'package:cryptography/cryptography.dart';
+  ///
+  /// Future<void> main() async {
+  ///   final cipher = Chacha20.poly1305Aead();
+  ///   final secretKey = await cipher.newSecretKey();
+  ///   final wand = await cipher.newCipherWandFromSecretKey(secretKey);
+  ///
+  ///   // Encrypt
+  ///   final secretBox = await wand.encryptString('Hello, world!');
+  ///   print('Nonce: ${secretBox.nonce}');
+  ///   print('Cipher text: ${secretBox.cipherText}');
+  ///   print('MAC: ${secretBox.mac.bytes}');
+  ///
+  ///   // Decrypt
+  ///   final clearText = await wand.decryptString(secretBox);
+  ///   print('Clear text: $clearText');
+  /// }
+  /// ```
   Future<SecretBox> encryptString(String clearText) async {
     final bytes = utf8.encode(clearText);
     final secretBox = await encrypt(
