@@ -21,7 +21,7 @@ void main() {
       final json = <String, Object>{
         'kty': 'OCK',
         'alg': 'A128KW',
-        'd': Jwk.base64UriEncode([1, 2, 3]),
+        'k': Jwk.base64UriEncode([1, 2, 3]),
       };
       final key = Jwk.fromJson(json);
       expect(key.toJson(), json);
@@ -33,7 +33,7 @@ void main() {
       final json = <String, Object>{
         'kty': 'OCK',
         'alg': 'C20',
-        'x': Jwk.base64UriEncode([1, 2, 3]),
+        'k': Jwk.base64UriEncode([1, 2, 3]),
       };
       final key = Jwk.fromJson(json);
       expect(key.toJson(), json);
@@ -79,6 +79,7 @@ void main() {
       'crv': 'P-256',
       'kty': 'EC',
       'x': Jwk.base64UriEncode([1]),
+      'y': Jwk.base64UriEncode([1]),
     };
 
     test('fromJson / toJson', () {
