@@ -625,11 +625,12 @@ class Jwk {
   }
 
   static List<int> _base64UriDecode(String s) {
-    return const Base64Codec.urlSafe().decode(s);
+    return const Base64Codec.urlSafe()
+        .decode(s + '=' * ((4 - s.length % 4) % 4));
   }
 
   static String _base64UriEncode(List<int> bytes) {
-    return const Base64Codec.urlSafe().encode(bytes);
+    return const Base64Codec.urlSafe().encode(bytes).split('=').first;
   }
 }
 
