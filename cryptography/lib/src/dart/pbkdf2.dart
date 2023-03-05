@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Gohilla Ltd.
+// Copyright 2019-2020 Gohilla.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -61,11 +61,11 @@ class DartPbkdf2 extends Pbkdf2 {
     if (numberOfBytes == result.lengthInBytes) {
       return SecretKey(result);
     }
-    return SecretKey(List<int>.unmodifiable(Uint8List.view(
+    return SecretKey(Uint8List.view(
       result.buffer,
       result.offsetInBytes,
       numberOfBytes,
-    )));
+    ));
   }
 
   Future<List<int>> _f(

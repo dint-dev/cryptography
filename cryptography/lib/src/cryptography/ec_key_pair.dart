@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Gohilla Ltd.
+// Copyright 2019-2020 Gohilla.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import 'package:cryptography/helpers.dart';
 /// bytes may not even be extractable. If the private key is in memory, it's an
 /// instance of [EcKeyPairData].
 ///
-/// The public key is always [EcPublicKeyData].
+/// The public key is always [EcPublicKey].
 ///
 /// This class is used with algorithms such as [Ecdh.p256] and [Ecdsa.p256].
 ///
@@ -29,7 +29,8 @@ import 'package:cryptography/helpers.dart';
 /// If you are encoding/decoding JWK (JSON Web Key) format, use
 /// [package:jwk](https://pub.dev/packages/jwk).
 abstract class EcKeyPair extends KeyPair {
-  factory EcKeyPair.lazy(Future<EcKeyPairData> Function() f) = _LazyEcKeyPair;
+  /// Constructor for subclasses.
+  EcKeyPair.constructor();
 
   @override
   Future<EcKeyPairData> extract();
@@ -53,8 +54,7 @@ abstract class EcKeyPair extends KeyPair {
 ///   * [Ecdsa]
 ///
 class EcKeyPairData extends KeyPairData implements EcKeyPair {
-  /// Elliptic curve parameter `d`.
-  final List<int> d;
+  final SensitiveBytes _d;
 
   /// Elliptic curve parameter `x`.
   final List<int> x;
@@ -62,71 +62,94 @@ class EcKeyPairData extends KeyPairData implements EcKeyPair {
   /// Elliptic curve parameter `y`.
   final List<int> y;
 
-  Future<EcPublicKey>? _publicKeyFuture;
+  @override
+  final EcPublicKey publicKey;
+
+  /// Debugging label.
+  final String? debugLabel;
 
   /// Constructs a private key with elliptic curve parameters.
   EcKeyPairData({
-    required this.d,
+    required List<int> d,
     required this.x,
     required this.y,
     required KeyPairType type,
-  }) : super(type: type);
+    this.debugLabel,
+  })  : _d = SensitiveBytes(d),
+        publicKey = EcPublicKey(
+          x: x,
+          y: y,
+          type: type,
+        ),
+        super(type: type);
+
+  /// Elliptic curve parameter `d`.
+  List<int> get d {
+    final d = _d;
+    if (d.hasBeenDestroyed) {
+      throw UnsupportedError('Private key has been destroyed: $this');
+    }
+    return d;
+  }
 
   @override
   int get hashCode =>
-      constantTimeBytesEquality.hash(x) ^
       type.hashCode ^
-      constantTimeBytesEquality.hash(d) ^
+      constantTimeBytesEquality.hash(x) ^
       constantTimeBytesEquality.hash(y);
 
   @override
   bool operator ==(other) =>
       other is EcKeyPairData &&
       constantTimeBytesEquality.equals(x, other.x) &&
+      constantTimeBytesEquality.equals(y, other.y) &&
       type == other.type &&
-      constantTimeBytesEquality.equals(d, other.d) &&
-      constantTimeBytesEquality.equals(y, other.y);
+      (hasBeenDestroyed ||
+          other.hasBeenDestroyed ||
+          constantTimeBytesEquality.equals(d, other.d));
 
   @override
-  Future<EcKeyPairData> extract() {
-    return Future<EcKeyPairData>.value(this);
-  }
-
-  @override
-  Future<EcPublicKey> extractPublicKey() {
-    return _publicKeyFuture ??= Future<EcPublicKey>.value(EcPublicKey(
+  EcKeyPairData copy() {
+    if (hasBeenDestroyed) {
+      throw StateError('Private key has been destroyed');
+    }
+    return EcKeyPairData(
+      d: d,
       x: x,
       y: y,
       type: type,
-    ));
+      debugLabel: debugLabel,
+    );
   }
 
   @override
-  String toString() => 'EcKeyPairData(..., type: $type)';
-}
-
-class _LazyEcKeyPair extends KeyPair implements EcKeyPair {
-  Future<EcKeyPairData>? _localKeyPairFuture;
-  Future<EcKeyPairData> Function()? _function;
-
-  _LazyEcKeyPair(this._function);
-
-  @override
-  Future<EcKeyPairData> extract() {
-    final function = _function;
-    if (function != null) {
-      _localKeyPairFuture = function();
-      _function = null;
-    }
-    final localKeyPairFuture = _localKeyPairFuture;
-    if (localKeyPairFuture == null) {
-      throw Error();
-    }
-    return localKeyPairFuture;
+  void destroy() {
+    super.destroy();
+    _d.destroy();
   }
 
   @override
-  Future<EcPublicKey> extractPublicKey() {
-    return extract().then((value) => value.extractPublicKey());
+  Future<EcKeyPairData> extract() async {
+    if (hasBeenDestroyed) {
+      throw StateError('Private key has been destroyed');
+    }
+    return this;
+  }
+
+  @override
+  Future<EcPublicKey> extractPublicKey() async {
+    if (hasBeenDestroyed) {
+      throw StateError('Private key has been destroyed');
+    }
+    return publicKey;
+  }
+
+  @override
+  String toString() {
+    final debugLabel = this.debugLabel;
+    if (debugLabel != null) {
+      return 'EcKeyPairData(..., type: $type, debugLabel: $debugLabel)';
+    }
+    return 'EcKeyPairData(..., type: $type)';
   }
 }

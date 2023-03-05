@@ -1,3 +1,20 @@
+## 2.2.0
+* Makes the package use the new convention for enabling Flutter plugins. You no longer need to call
+  `CryptographyFlutter.enable()` in your `main` function.
+* Improves documentation.
+
+## 2.1.1
+* Bumps Kotlin Gradle plugin version.
+
+## 2.1.0
+* Many, major bug fixes.
+* Some breaking changes to the API, but we decided not to increment the major version because we
+  don't expect them to affect many developers (while we do want the bug fixes to reach everyone who
+  uses the package).
+* Many new features.
+* We have a completely new test suite that ensures correctness and also reports performance with
+  different input sizes.
+
 ## 2.0.2
 
 * Fixes ["cryptography_flutter: Fix propagating error to Flutter + fix fallback to non-plugin encrypt/decrypt"](https://github.com/dint-dev/cryptography/pull/76)

@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Gohilla Ltd.
+// Copyright 2019-2020 Gohilla.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -11,6 +11,8 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // For specification, see the License for the specific language governing permissions and
 // limitations under the License.
+
+import 'dart:math';
 
 import 'package:cryptography/cryptography.dart';
 
@@ -26,19 +28,38 @@ class DartEcdsa extends Ecdsa {
   @override
   final HashAlgorithm hashAlgorithm;
 
-  DartEcdsa.p256(HashAlgorithm hashAlgorithm)
-      : this._(KeyPairType.p256, hashAlgorithm);
+  DartEcdsa.p256(
+    HashAlgorithm hashAlgorithm, {
+    Random? random,
+  }) : this._(
+          KeyPairType.p256,
+          hashAlgorithm,
+          random: random,
+        );
 
-  DartEcdsa.p384(HashAlgorithm hashAlgorithm)
-      : this._(KeyPairType.p384, hashAlgorithm);
+  DartEcdsa.p384(
+    HashAlgorithm hashAlgorithm, {
+    Random? random,
+  }) : this._(
+          KeyPairType.p384,
+          hashAlgorithm,
+          random: random,
+        );
 
-  DartEcdsa.p521(HashAlgorithm hashAlgorithm)
-      : this._(KeyPairType.p521, hashAlgorithm);
+  DartEcdsa.p521(
+    HashAlgorithm hashAlgorithm, {
+    Random? random,
+  }) : this._(
+          KeyPairType.p521,
+          hashAlgorithm,
+          random: random,
+        );
 
   DartEcdsa._(
     this.keyPairType,
-    this.hashAlgorithm,
-  ) : super.constructor();
+    this.hashAlgorithm, {
+    Random? random,
+  }) : super.constructor();
 
   @override
   Future<EcKeyPair> newKeyPair() {

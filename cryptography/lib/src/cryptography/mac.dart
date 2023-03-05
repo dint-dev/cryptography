@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Gohilla Ltd.
+// Copyright 2019-2020 Gohilla.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -50,12 +50,18 @@ class Mac {
 
 /// Error thrown by [Cipher.decrypt] when [SecretBox] has incorrect [Mac].
 class SecretBoxAuthenticationError implements Exception {
-  final SecretBox secretBox;
+  final String message;
 
-  SecretBoxAuthenticationError({required this.secretBox});
+  SecretBoxAuthenticationError({
+    @Deprecated('Do not use') SecretBox? secretBox,
+    this.message = 'SecretBox has wrong message authentication code (MAC)',
+  });
+
+  @Deprecated('Do not use')
+  SecretBox get secretBox => throw UnsupportedError('Deprecated');
 
   @override
   String toString() {
-    return 'SecretBox has wrong message authentication code (MAC)';
+    return '$runtimeType: $message';
   }
 }

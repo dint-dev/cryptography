@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Gohilla Ltd.
+// Copyright 2019-2020 Gohilla.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,13 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/// Cryptographic algorithms implemented with
-/// [Web Cryptography API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API).
-///
-/// See [BrowserCryptography].
+/// @nodoc
 library cryptography.browser;
 
-import 'package:cryptography/browser.dart';
-
-export 'src/browser/cryptography_outside_browser.dart'
-    if (dart.library.html) 'src/browser/cryptography.dart';
+export 'src/browser/browser_cryptography_when_not_browser.dart'
+    if (dart.library.html) 'src/browser/browser_cryptography.dart';

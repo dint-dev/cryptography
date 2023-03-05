@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Gohilla Ltd.
+// Copyright 2019-2020 Gohilla.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -58,29 +58,11 @@ class _Blake2sSink extends DartHashSink {
   ];
   final Uint32List _hash = Uint32List(16);
   final Uint32List _buffer = Uint32List(16);
-  Uint8List? _bufferAsBytes;
-
-  /// Used only in big-endian systems.
-  ByteData? _bufferAsByteData;
-
+  late final Uint8List _bufferAsBytes = Uint8List.view(_buffer.buffer);
   int _length = 0;
-
   Hash? _result;
-
   bool _isClosed = false;
-
   final Uint32List _localValues = Uint32List(16);
-
-  void reset() {
-    _length = 0;
-    _result = null;
-    _isClosed = false;
-    _buffer.fillRange(0, 16, 0);
-    _localValues.fillRange(0, 16, 0);
-    final h = _hash;
-    h.setAll(0, _initializationVector);
-    h[0] ^= 0x01010000 ^ 32;
-  }
 
   _Blake2sSink() {
     final h = _hash;
@@ -94,11 +76,7 @@ class _Blake2sSink extends DartHashSink {
       throw StateError('Already closed');
     }
 
-    var bufferAsBytes = _bufferAsBytes;
-    if (bufferAsBytes == null) {
-      bufferAsBytes = Uint8List.view(_buffer.buffer);
-      _bufferAsBytes = bufferAsBytes;
-    }
+    final bufferAsBytes = _bufferAsBytes;
     var length = _length;
     for (var i = start; i < end; i++) {
       final bufferIndex = length % 64;
@@ -139,7 +117,7 @@ class _Blake2sSink extends DartHashSink {
     // Fill remaining indices with zeroes
     final blockLength = length % 64;
     if (blockLength > 0) {
-      _bufferAsBytes!.fillRange(blockLength, 64, 0);
+      _bufferAsBytes.fillRange(blockLength, 64, 0);
     }
 
     // Compress
@@ -165,7 +143,7 @@ class _Blake2sSink extends DartHashSink {
       0,
       Uint8List.view(hash.buffer, 0, 32),
     );
-    _result = Hash(UnmodifiableUint8ListView(resultBytes));
+    _result = Hash(resultBytes);
   }
 
   @override
@@ -177,13 +155,23 @@ class _Blake2sSink extends DartHashSink {
     return result;
   }
 
+  void reset() {
+    _length = 0;
+    _result = null;
+    _isClosed = false;
+    _buffer.fillRange(0, 16, 0);
+    _localValues.fillRange(0, 16, 0);
+    final h = _hash;
+    h.setAll(0, _initializationVector);
+    h[0] ^= 0x01010000 ^ 32;
+  }
+
   void _compress(bool isLast) {
     // Change:
     // little endian --> host endian
     if (Endian.host != Endian.little) {
       // We need ByteData view
-      final bufferAsByteData =
-          _bufferAsByteData ??= ByteData.view(_buffer.buffer);
+      final bufferAsByteData = ByteData.view(_buffer.buffer);
 
       // Every 4 bytes
       for (var i = 0; i < 64; i += 4) {

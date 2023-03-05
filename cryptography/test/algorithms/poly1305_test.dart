@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Gohilla Ltd.
+// Copyright 2019-2020 Gohilla.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -73,7 +73,7 @@ void main() {
       );
     });
 
-    test('Example in the RFC: full message', () async {
+    test('RFC example: full message', () async {
       // -------------------------------------------------------------------------
       // The following input/output constants are copied from the RFC 7539:
       // https://tools.ietf.org/html/rfc7539
@@ -96,6 +96,70 @@ void main() {
       expect(
         hexFromBytes(mac.bytes),
         hexFromBytes(expectedMac.bytes),
+      );
+    });
+
+    test('RFC: additional test vector #1', () async {
+      final key = Uint8List(32);
+      final text = Uint8List(64);
+      final tag = Uint8List(16);
+
+      final mac = await algorithm.calculateMac(
+        text,
+        secretKey: SecretKeyData(key),
+        nonce: const <int>[],
+      );
+      expect(
+        hexFromBytes(mac.bytes),
+        hexFromBytes(tag),
+      );
+    });
+
+    test('RFC: additional test vector #2', () async {
+      final key = hexToBytes('''
+      00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+      36 e5 f6 b5 c5 e0 60 70 f0 ef ca 96 22 7a 86 3e
+      ''');
+
+      final text = hexToBytes('''
+      000  41 6e 79 20 73 75 62 6d 69 73 73 69 6f 6e 20 74
+      016  6f 20 74 68 65 20 49 45 54 46 20 69 6e 74 65 6e
+      032  64 65 64 20 62 79 20 74 68 65 20 43 6f 6e 74 72
+      048  69 62 75 74 6f 72 20 66 6f 72 20 70 75 62 6c 69
+      064  63 61 74 69 6f 6e 20 61 73 20 61 6c 6c 20 6f 72
+      080  20 70 61 72 74 20 6f 66 20 61 6e 20 49 45 54 46
+      096  20 49 6e 74 65 72 6e 65 74 2d 44 72 61 66 74 20
+      112  6f 72 20 52 46 43 20 61 6e 64 20 61 6e 79 20 73
+      128  74 61 74 65 6d 65 6e 74 20 6d 61 64 65 20 77 69
+      144  74 68 69 6e 20 74 68 65 20 63 6f 6e 74 65 78 74
+      160  20 6f 66 20 61 6e 20 49 45 54 46 20 61 63 74 69
+      176  76 69 74 79 20 69 73 20 63 6f 6e 73 69 64 65 72
+      192  65 64 20 61 6e 20 22 49 45 54 46 20 43 6f 6e 74
+      208  72 69 62 75 74 69 6f 6e 22 2e 20 53 75 63 68 20
+      224  73 74 61 74 65 6d 65 6e 74 73 20 69 6e 63 6c 75
+      240  64 65 20 6f 72 61 6c 20 73 74 61 74 65 6d 65 6e
+      256  74 73 20 69 6e 20 49 45 54 46 20 73 65 73 73 69
+      272  6f 6e 73 2c 20 61 73 20 77 65 6c 6c 20 61 73 20
+      288  77 72 69 74 74 65 6e 20 61 6e 64 20 65 6c 65 63
+      304  74 72 6f 6e 69 63 20 63 6f 6d 6d 75 6e 69 63 61
+      320  74 69 6f 6e 73 20 6d 61 64 65 20 61 74 20 61 6e
+      336  79 20 74 69 6d 65 20 6f 72 20 70 6c 61 63 65 2c
+      352  20 77 68 69 63 68 20 61 72 65 20 61 64 64 72 65
+      368  73 73 65 64 20 74 6f
+      ''');
+
+      final tag = hexToBytes('''
+      36 e5 f6 b5 c5 e0 60 70 f0 ef ca 96 22 7a 86 3e
+      ''');
+
+      final mac = await algorithm.calculateMac(
+        text,
+        secretKey: SecretKeyData(key),
+        nonce: const <int>[],
+      );
+      expect(
+        hexFromBytes(mac.bytes),
+        hexFromBytes(tag),
       );
     });
   });

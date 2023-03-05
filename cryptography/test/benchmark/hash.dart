@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Gohilla Ltd.
+// Copyright 2019-2020 Gohilla.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
+import 'package:cryptography/dart.dart';
 
 import 'benchmark_helpers.dart';
 
@@ -26,6 +27,7 @@ Future<void> main() async {
     print('100 byte messages $times times:');
     await _Hash(cryptography.sha256(), size, times).report();
     await _Hash(cryptography.sha512(), size, times).report();
+    await _Hash(const DartSha512(), size, times).report();
     await _Hash(cryptography.blake2s(), size, times).report();
     await _Hash(cryptography.blake2b(), size, times).report();
     print('');
@@ -37,6 +39,7 @@ Future<void> main() async {
     print('1 kB messages $times times:');
     await _Hash(cryptography.sha256(), size, times).report();
     await _Hash(cryptography.sha512(), size, times).report();
+    await _Hash(const DartSha512(), size, times).report();
     await _Hash(cryptography.blake2s(), size, times).report();
     await _Hash(cryptography.blake2b(), size, times).report();
     print('');
@@ -48,6 +51,7 @@ Future<void> main() async {
     print('1 MB messages $times times:');
     await _Hash(cryptography.sha256(), size, times).report();
     await _Hash(cryptography.sha512(), size, times).report();
+    await _Hash(const DartSha512(), size, times).report();
     await _Hash(cryptography.blake2s(), size, times).report();
     await _Hash(cryptography.blake2b(), size, times).report();
   }
@@ -64,9 +68,11 @@ class _Hash extends SimpleBenchmark {
 
   @override
   Future<void> run() async {
+    final futures = <Future>[];
     for (var i = 0; i < n; i++) {
-      await implementation.hash(message);
+      futures.add(implementation.hash(message));
     }
+    await Future.wait(futures);
   }
 
   @override

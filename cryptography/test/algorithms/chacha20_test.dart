@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Gohilla Ltd.
+// Copyright 2019-2020 Gohilla.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
+import 'package:cryptography/dart.dart';
 import 'package:cryptography/src/utils.dart';
 import 'package:test/test.dart';
 
@@ -29,7 +30,7 @@ void main() {
       final other0 = Chacha20(
         macAlgorithm: Hmac.sha512(),
       );
-      final other1 = AesCtr.with256bits(
+      final other1 = DartAesCtr.with256bits(
         macAlgorithm: Hmac.sha256(),
       );
       expect(algorithm, clone);
@@ -43,9 +44,16 @@ void main() {
     test('toString', () {
       expect(
         algorithm.toString(),
-        'Chacha20(macAlgorithm: Hmac.sha256())',
+        'DartChacha20(macAlgorithm: DartHmac.sha256())',
       );
-    });
+    }, testOn: 'vm');
+
+    test('toString', () {
+      expect(
+        algorithm.toString(),
+        'DartChacha20(macAlgorithm: BrowserHmac.sha256())',
+      );
+    }, testOn: 'browser');
 
     test('information', () {
       expect(algorithm.macAlgorithm, Hmac.sha256());

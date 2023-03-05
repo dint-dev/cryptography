@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Gohilla Ltd.
+// Copyright 2019-2020 Gohilla.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,18 +25,38 @@ import 'package:cryptography/src/utils.dart';
 ///  * [mac] (message authentication code)
 ///
 /// ## Concatenating fields
-/// When you storing / loading secret boxes, you can use [concatenation] and
-/// [fromConcatenation]:
-/// ```
-/// // Returns nonce + cipherText + mac
-/// final bytes = secretBox.concatenation();
 ///
-/// // Splits the bytes into nonce, ciphertext, and MAC.
-/// final newSecretBox = SecretBox.fromConcatenation(
-///   bytes,
-///   nonceLength:16,
-///   macLength: 16,
-/// );
+/// You can use [concatenation] and [SecretBox.fromConcatenation] to concatenate
+/// the fields into a single byte array:
+/// ```
+/// import 'package:cryptography/cryptography.dart';
+///
+/// void main() async {
+///   final aesGcm = AesGcm.with256bits();
+///   final secretKey = await aesGcm.newSecretKey();
+///   final secretBox = await aesGcm.encrypt(
+///     [1,2,3],
+///     secretKey: secretKey,
+///   );
+///
+///   // Returns nonce + cipherText + mac
+///   final bytes = secretBox.concatenation();
+///   print('Encrypted: $bytes');
+///
+///   // Splits the bytes into nonce, ciphertext, and MAC.
+///   final newSecretBox = SecretBox.fromConcatenation(
+///     bytes,
+///     nonceLength: aesGcm.nonceLength,
+///     macLength: aesGcm.macAlgorithm.macLength,
+///     copy: false, // Don't copy the bytes unless necessary.
+///   );
+///
+///   final clearText = await aesGcm.decrypt(
+///     newSecretBox,
+///     secretKey: secretKey,
+///   );
+///   print('Decrypted: $clearText');
+/// }
 /// ```
 class SecretBox {
   /// Encrypted data.
@@ -46,7 +66,7 @@ class SecretBox {
   final Mac mac;
 
   /// Nonce ("initialization vector", "IV", "salt") is a non-secret sequence of
-  /// bytes required by most algorithms.
+  /// bytes required by most [Cipher] algorithms.
   final List<int> nonce;
 
   SecretBox(
@@ -83,7 +103,7 @@ class SecretBox {
       aad: aad,
     );
     if (correctMac != mac) {
-      throw SecretBoxAuthenticationError(secretBox: this);
+      throw SecretBoxAuthenticationError();
     }
   }
 
@@ -124,10 +144,15 @@ class SecretBox {
 
   /// Constructs a [SecretBox] from a concatenation of [nonce], [cipherText]
   /// and [mac].
+  ///
+  /// If [copy] is `true`, the [cipherText], [nonce] and [mac] are copied from
+  /// the data. If [copy] is `false` and [data] is [Uint8List],
+  /// [Uint8List.view] will be used.
   static SecretBox fromConcatenation(
     List<int> data, {
     required int nonceLength,
     required int macLength,
+    bool copy = true,
   }) {
     if (nonceLength < 0) {
       throw ArgumentError.value(nonceLength, 'nonceLength');
@@ -143,27 +168,39 @@ class SecretBox {
       );
     }
     if (data is Uint8List) {
-      final nonce = List<int>.unmodifiable(Uint8List.view(
+      final nonce = Uint8List.view(
         data.buffer,
         data.offsetInBytes,
         nonceLength,
-      ));
-      final cipherText = List<int>.unmodifiable(Uint8List.view(
+      );
+      final cipherText = Uint8List.view(
         data.buffer,
         data.offsetInBytes + nonceLength,
         data.length - nonceLength - macLength,
-      ));
-      final macBytes = List<int>.unmodifiable(Uint8List.view(
+      );
+      final macBytes = Uint8List.view(
         data.buffer,
         data.offsetInBytes + data.lengthInBytes - macLength,
         macLength,
-      ));
-      return SecretBox(cipherText, nonce: nonce, mac: Mac(macBytes));
+      );
+      if (copy) {
+        return SecretBox(
+          Uint8List.fromList(cipherText),
+          nonce: Uint8List.fromList(nonce),
+          mac: Mac(Uint8List.fromList(macBytes)),
+        );
+      }
+      return SecretBox(
+        cipherText,
+        nonce: nonce,
+        mac: Mac(macBytes),
+      );
     } else {
       return fromConcatenation(
         Uint8List.fromList(data),
         nonceLength: nonceLength,
         macLength: macLength,
+        copy: false,
       );
     }
   }

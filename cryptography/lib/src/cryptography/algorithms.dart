@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
@@ -7,7 +8,7 @@ import 'package:meta/meta.dart';
 
 /// _AES-CBC_ (cipher block chaining mode) [Cipher].
 ///
-/// On browsers, the default implementation will use
+/// In browsers, the default implementation will use
 /// [Web Cryptography API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API).
 /// On other platforms, [DartAesCbc] will be used.
 ///
@@ -52,7 +53,7 @@ import 'package:meta/meta.dart';
 ///   print('MAC: ${secretBox.mac.bytes}')
 ///
 ///   // Decrypt
-///   final clearText = await algorithm.decrypt(
+///   final clearText = await algorithm.encrypt(
 ///     secretBox,
 ///     secretKey: secretKey,
 ///   );
@@ -60,30 +61,46 @@ import 'package:meta/meta.dart';
 /// }
 /// ```
 abstract class AesCbc extends Cipher {
+  /// Number of bytes in a block.
+  static const blockLengthInBytes = 16;
+
   /// Constructor for classes that extend this class.
-  @protected
-  const AesCbc.constructor();
+  const AesCbc.constructor({
+    Random? random,
+  }) : super(random: random);
 
   /// Constructs 128-bit AES-CBC.
-  factory AesCbc.with128bits({required MacAlgorithm macAlgorithm}) {
+  factory AesCbc.with128bits({
+    required MacAlgorithm macAlgorithm,
+    PaddingAlgorithm paddingAlgorithm = PaddingAlgorithm.pkcs7,
+  }) {
     return AesCbc._(
       macAlgorithm: macAlgorithm,
+      paddingAlgorithm: paddingAlgorithm,
       secretKeyLength: 16,
     );
   }
 
   /// Constructs 192-bit AES-CBC.
-  factory AesCbc.with192bits({required MacAlgorithm macAlgorithm}) {
+  factory AesCbc.with192bits({
+    required MacAlgorithm macAlgorithm,
+    PaddingAlgorithm paddingAlgorithm = PaddingAlgorithm.pkcs7,
+  }) {
     return AesCbc._(
       macAlgorithm: macAlgorithm,
+      paddingAlgorithm: paddingAlgorithm,
       secretKeyLength: 24,
     );
   }
 
   /// Constructs 256-bit AES-CBC.
-  factory AesCbc.with256bits({required MacAlgorithm macAlgorithm}) {
+  factory AesCbc.with256bits({
+    required MacAlgorithm macAlgorithm,
+    PaddingAlgorithm paddingAlgorithm = PaddingAlgorithm.pkcs7,
+  }) {
     return AesCbc._(
       macAlgorithm: macAlgorithm,
+      paddingAlgorithm: paddingAlgorithm,
       secretKeyLength: 32,
     );
   }
@@ -91,9 +108,11 @@ abstract class AesCbc extends Cipher {
   factory AesCbc._({
     required MacAlgorithm macAlgorithm,
     required int secretKeyLength,
+    required PaddingAlgorithm paddingAlgorithm,
   }) {
     return Cryptography.instance.aesCbc(
       macAlgorithm: macAlgorithm,
+      paddingAlgorithm: paddingAlgorithm,
       secretKeyLength: secretKeyLength,
     );
   }
@@ -104,21 +123,33 @@ abstract class AesCbc extends Cipher {
   @override
   int get nonceLength => 16;
 
+  /// [PaddingAlgorithm] used by AES-CBC.
+  PaddingAlgorithm get paddingAlgorithm;
+
   @override
   bool operator ==(other) =>
       other is AesCbc &&
       secretKeyLength == other.secretKeyLength &&
-      macAlgorithm == other.macAlgorithm;
+      macAlgorithm == other.macAlgorithm &&
+      paddingAlgorithm == other.paddingAlgorithm;
+
+  @override
+  int cipherTextLength(int clearTextLength) {
+    return (clearTextLength + (blockLengthInBytes - 1)) ~/ blockLengthInBytes;
+  }
 
   @override
   String toString() {
-    return 'AesCbc.with${secretKeyLength * 8}bits(macAlgorithm: $macAlgorithm)';
+    if (identical(paddingAlgorithm, PaddingAlgorithm.pkcs7)) {
+      return '$runtimeType.with${secretKeyLength * 8}bits(macAlgorithm: $macAlgorithm)';
+    }
+    return '$runtimeType.with${secretKeyLength * 8}bits(macAlgorithm: $macAlgorithm, paddingAlgorithm: $paddingAlgorithm)';
   }
 }
 
 /// _AES-CTR_ (counter mode) [Cipher].
 ///
-/// On browsers, the default implementation will use
+/// In browsers, the default implementation will use
 /// [Web Cryptography API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API).
 /// On other platforms, [DartAesCtr] will be used.
 ///
@@ -162,7 +193,7 @@ abstract class AesCbc extends Cipher {
 ///   print('MAC: ${secretBox.mac.bytes}')
 ///
 ///   // Decrypt
-///   final clearText = await algorithm.decrypt(
+///   final clearText = await algorithm.encrypt(
 ///     secretBox,
 ///     secretKey: secretKey,
 ///   );
@@ -174,8 +205,7 @@ abstract class AesCtr extends StreamingCipher {
   static const int defaultCounterBits = 64;
 
   /// Constructor for classes that extend this class.
-  @protected
-  const AesCtr.constructor();
+  const AesCtr.constructor({Random? random}) : super(random: random);
 
   /// Constructs 128-bit AES-CTR.
   factory AesCtr.with128bits({
@@ -233,14 +263,36 @@ abstract class AesCtr extends StreamingCipher {
       macAlgorithm == other.macAlgorithm;
 
   @override
+  void checkParameters({
+    int? length,
+    required SecretKey secretKey,
+    required int nonceLength,
+    int aadLength = 0,
+    int keyStreamIndex = 0,
+  }) {
+    // Allow nonce length to be anything.
+    // TODO: Should we require 12 bytes?
+    if (nonceLength != this.nonceLength) {
+      nonceLength = this.nonceLength;
+    }
+    super.checkParameters(
+      length: length,
+      secretKey: secretKey,
+      nonceLength: nonceLength,
+      aadLength: aadLength,
+      keyStreamIndex: keyStreamIndex,
+    );
+  }
+
+  @override
   String toString() {
-    return 'AesCtr.with${secretKeyLength * 8}bits(macAlgorithm: $macAlgorithm, counterBits: $counterBits)';
+    return '$runtimeType.with${secretKeyLength * 8}bits(macAlgorithm: $macAlgorithm, counterBits: $counterBits)';
   }
 }
 
 /// _AES-GCM_ (Galois/Counter Mode) [Cipher].
 ///
-/// On browsers, the default implementation will use
+/// In browsers, the default implementation will use
 /// [Web Cryptography API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API).
 /// On other platforms, [DartAesGcm] will be used.
 ///
@@ -283,23 +335,24 @@ abstract class AesCtr extends StreamingCipher {
 ///   print('MAC: ${secretBox.mac.bytes}')
 ///
 ///   // Decrypt
-///   final clearText = await algorithm.decrypt(
+///   final clearText = await algorithm.encrypt(
 ///     secretBox,
 ///     secretKey: secretKey,
 ///   );
 ///   print('Cleartext: $clearText');
 /// }
 /// ```
-abstract class AesGcm extends StreamingCipher {
+abstract class AesGcm extends Cipher {
   /// MAC algorithm used by _AES-GCM_.
   static const MacAlgorithm aesGcmMac = DartGcm();
 
+  static const int defaultNonceLength = 12;
+
   /// Constructor for classes that extend this class.
-  @protected
-  const AesGcm.constructor();
+  const AesGcm.constructor({Random? random}) : super(random: random);
 
   factory AesGcm.with128bits({
-    int nonceLength = 12,
+    int nonceLength = AesGcm.defaultNonceLength,
   }) {
     return AesGcm._(
       secretKeyLength: 16,
@@ -308,7 +361,7 @@ abstract class AesGcm extends StreamingCipher {
   }
 
   factory AesGcm.with192bits({
-    int nonceLength = 12,
+    int nonceLength = AesGcm.defaultNonceLength,
   }) {
     return AesGcm._(
       secretKeyLength: 24,
@@ -317,7 +370,7 @@ abstract class AesGcm extends StreamingCipher {
   }
 
   factory AesGcm.with256bits({
-    int nonceLength = 12,
+    int nonceLength = AesGcm.defaultNonceLength,
   }) {
     return AesGcm._(
       secretKeyLength: 32,
@@ -326,8 +379,8 @@ abstract class AesGcm extends StreamingCipher {
   }
 
   factory AesGcm._({
-    int secretKeyLength = 32,
-    int nonceLength = 12,
+    required int secretKeyLength,
+    required int nonceLength,
   }) {
     return Cryptography.instance.aesGcm(
       secretKeyLength: secretKeyLength,
@@ -352,7 +405,10 @@ abstract class AesGcm extends StreamingCipher {
 
   @override
   String toString() {
-    return 'AesGcm.with${secretKeyLength * 8}bits(nonceLength: $nonceLength)';
+    if (nonceLength == AesGcm.defaultNonceLength) {
+      return '$runtimeType.with${secretKeyLength * 8}bits()';
+    }
+    return '$runtimeType.with${secretKeyLength * 8}bits(nonceLength: $nonceLength)';
   }
 }
 
@@ -508,7 +564,7 @@ abstract class Blake2b extends HashAlgorithm {
   }
 
   /// Constructor for classes that extend this class.
-  @protected
+
   const Blake2b.constructor();
 
   @override
@@ -522,6 +578,9 @@ abstract class Blake2b extends HashAlgorithm {
 
   @override
   bool operator ==(other) => other is Blake2b;
+
+  @override
+  DartHashAlgorithm toSync() => const DartBlake2b();
 }
 
 /// _BLAKE2S_ ([RFC 7693](https://tools.ietf.org/html/rfc7693)) [HashAlgorithm].
@@ -568,7 +627,7 @@ abstract class Blake2s extends HashAlgorithm {
   }
 
   /// Constructor for classes that extend this class.
-  @protected
+
   const Blake2s.constructor();
 
   @override
@@ -582,13 +641,16 @@ abstract class Blake2s extends HashAlgorithm {
 
   @override
   bool operator ==(other) => other is Blake2s;
+
+  @override
+  DartHashAlgorithm toSync() => const DartBlake2s();
 }
 
 /// _ChaCha20_ ([RFC 7539](https://tools.ietf.org/html/rfc7539))
 /// [StreamingCipher].
 ///
-/// In almost every case, you should use constructor [Chacha20.poly1305Aead],
-/// which returns _AEAD_CHACHA20_POLY1305_ cipher
+/// Unless you really know what you are doing, you should use
+/// [Chacha20.poly1305Aead], which implements _AEAD_CHACHA20_POLY1305_ cipher
 /// (([RFC 7539](https://tools.ietf.org/html/rfc7539)).
 ///
 /// By default, [DartChacha20] will be used.
@@ -600,9 +662,8 @@ abstract class Blake2s extends HashAlgorithm {
 /// ## Things to know
 ///   * [secretKeyLength] is 32 bytes.
 ///   * [nonceLength] is 12 bytes.
-///   * If you use [Chacha20.poly1305Aead], then:
-///     * MAC length is 16 bytes.
-///     * Associated Authenticated Data (AAD) is supported.
+///   * You must specify some [MacAlgorithm]. If you use [Chacha20.poly1305Aead],
+///     this is not needed.
 ///
 /// ## Example
 /// ```dart
@@ -611,7 +672,7 @@ abstract class Blake2s extends HashAlgorithm {
 /// Future<void> main() async {
 ///   final message = <int>[1,2,3];
 ///
-///   final algorithm = Chacha20.poly1305();
+///   final algorithm = Chacha20(macAlgorithm: Hmac.sha256());
 ///   final secretKey = await algorithm.newSecretKey();
 ///
 ///   // Encrypt
@@ -635,22 +696,62 @@ abstract class Blake2s extends HashAlgorithm {
 abstract class Chacha20 extends StreamingCipher {
   /// Constructs a ChaCha20 with any MAC.
   ///
-  /// In almost every case, you should use constructor [Chacha20.poly1305Aead],
-  /// which returns _AEAD_CHACHA20_POLY1305_ cipher
+  /// Unless you really know what you are doing, you should use
+  /// [Chacha20.poly1305Aead], which implements _AEAD_CHACHA20_POLY1305_ cipher
   /// (([RFC 7539](https://tools.ietf.org/html/rfc7539)).
   factory Chacha20({required MacAlgorithm macAlgorithm}) {
+    if (macAlgorithm is DartChacha20Poly1305AeadMacAlgorithm) {
+      return Cryptography.instance.chacha20Poly1305Aead();
+    }
     return Cryptography.instance.chacha20(macAlgorithm: macAlgorithm);
   }
 
   /// Constructor for classes that extend this class.
-  @protected
-  const Chacha20.constructor();
-
-  /// Constructs _AEAD_CHACHA20_POLY1305_ cipher
-  /// (([RFC 7539](https://tools.ietf.org/html/rfc7539)).
   ///
-  /// The default implementation is [DartChacha20.poly1305Aead], which uses
-  /// [DartChacha20Poly1305AeadMacAlgorithm].
+  /// Optional parameter [random] is used by [newSecretKey] and [newNonce].
+  const Chacha20.constructor({Random? random}) : super(random: random);
+
+  /// _AEAD_CHACHA20_POLY1305_ cipher
+  /// (([RFC 7539](https://tools.ietf.org/html/rfc7539)), which is a popular
+  /// cipher based on _ChaCha20_ ([RFC 7539](https://tools.ietf.org/html/rfc7539))
+  ///
+  /// If you use Flutter, you can enable
+  /// [cryptography_flutter](https://pub.dev/packages/cryptography_flutter).
+  /// It can improve performance in many cases.
+  ///
+  /// ## Things to know
+  ///   * [secretKeyLength] is 32 bytes.
+  ///   * [nonceLength] is 12 bytes.
+  ///   * MAC length is 16 bytes.
+  ///   * Associated Authenticated Data (AAD) is supported.
+  ///
+  /// ## Example
+  /// ```dart
+  /// import 'package:cryptography/cryptography.dart';
+  ///
+  /// Future<void> main() async {
+  ///   final message = <int>[1,2,3];
+  ///
+  ///   final algorithm = Chacha20.poly1305Aead();
+  ///   final secretKey = await algorithm.newSecretKey();
+  ///
+  ///   // Encrypt
+  ///   final secretBox = await algorithm.encrypt(
+  ///     message,
+  ///     secretKey: secretKey,
+  ///   );
+  ///   print('Nonce: ${secretBox.nonce}')
+  ///   print('Ciphertext: ${secretBox.cipherText}')
+  ///   print('MAC: ${secretBox.mac.bytes}')
+  ///
+  ///   // Decrypt
+  ///   final clearText = await algorithm.decrypt(
+  ///     secretBox,
+  ///     secretKey: secretKey,
+  ///   );
+  ///   print('Cleartext: $clearText');
+  /// }
+  /// ```
   factory Chacha20.poly1305Aead() {
     return Cryptography.instance.chacha20Poly1305Aead();
   }
@@ -671,9 +772,9 @@ abstract class Chacha20 extends StreamingCipher {
   @override
   String toString() {
     if (macAlgorithm is DartChacha20Poly1305AeadMacAlgorithm) {
-      return 'Chacha20.poly1305Aead()';
+      return '$runtimeType.poly1305Aead()';
     }
-    return 'Chacha20(macAlgorithm: $macAlgorithm)';
+    return '$runtimeType(macAlgorithm: $macAlgorithm)';
   }
 }
 
@@ -681,7 +782,7 @@ abstract class Chacha20 extends StreamingCipher {
 ///
 /// Private keys must be instances of [EcKeyPair].
 ///
-/// On browsers, the default implementation will use
+/// In browsers, the default implementation will use
 /// [Web Cryptography API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API).
 /// On other platforms, [DartEcdh] will be used.
 ///
@@ -717,7 +818,6 @@ abstract class Chacha20 extends StreamingCipher {
 /// }
 abstract class Ecdh extends KeyExchangeAlgorithm {
   /// Constructor for classes that extend this class.
-  @protected
   const Ecdh.constructor();
 
   /// ECDH using _P-256_ (secp256r1 / prime256v1) elliptic curve.
@@ -752,7 +852,7 @@ abstract class Ecdh extends KeyExchangeAlgorithm {
   Future<EcKeyPair> newKeyPairFromSeed(List<int> seed);
 
   @override
-  String toString() => 'Ecdh.p${keyPairType.ellipticBits}()';
+  String toString() => '$runtimeType.p${keyPairType.ellipticBits}()';
 }
 
 /// ECDSA with P-256 / P-384 / P-521 elliptic curve.
@@ -763,7 +863,7 @@ abstract class Ecdh extends KeyExchangeAlgorithm {
 ///
 /// Key pairs must be instances of [EcKeyPair].
 ///
-/// On browsers, the default implementation will use
+/// In browsers, the default implementation will use
 /// [Web Cryptography API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API).
 /// On other platforms, [DartEcdsa] will be used.
 ///
@@ -805,7 +905,6 @@ abstract class Ecdh extends KeyExchangeAlgorithm {
 /// ```
 abstract class Ecdsa extends SignatureAlgorithm {
   /// Constructor for classes that extend this class.
-  @protected
   const Ecdsa.constructor();
 
   /// ECDSA using _P-256_ (secp256r1 / prime256v1) elliptic curve.
@@ -845,7 +944,8 @@ abstract class Ecdsa extends SignatureAlgorithm {
   Future<EcKeyPair> newKeyPairFromSeed(List<int> seed);
 
   @override
-  String toString() => 'Ecdsa.p${keyPairType.ellipticBits}($hashAlgorithm)';
+  String toString() =>
+      '$runtimeType.p${keyPairType.ellipticBits}($hashAlgorithm)';
 }
 
 /// _Ed25519_ ([RFC 8032](https://tools.ietf.org/html/rfc8032)) signature
@@ -899,18 +999,20 @@ abstract class Ecdsa extends SignatureAlgorithm {
 /// _package:cryptography/dart.dart_.
 ///
 abstract class Ed25519 extends SignatureAlgorithm {
+  final Random? _random;
+
   factory Ed25519() {
     return Cryptography.instance.ed25519();
   }
 
   /// Constructor for classes that extend this class.
-  @protected
-  const Ed25519.constructor();
+
+  const Ed25519.constructor({Random? random}) : _random = random;
 
   @override
   Future<SimpleKeyPair> newKeyPair() {
     final seed = Uint8List(keyPairType.privateKeyLength);
-    fillBytesWithSecureRandom(seed);
+    fillBytesWithSecureRandom(seed, random: _random);
     return newKeyPairFromSeed(seed);
   }
 
@@ -918,7 +1020,7 @@ abstract class Ed25519 extends SignatureAlgorithm {
   Future<SimpleKeyPair> newKeyPairFromSeed(List<int> seed);
 
   @override
-  String toString() => 'Ed25519()';
+  String toString() => '$runtimeType()';
 }
 
 /// _Hchacha20_ ([draft-irtf-cfrg-xchacha](https://tools.ietf.org/html/draft-arciszewski-xchacha-03))
@@ -952,7 +1054,7 @@ abstract class Hchacha20 {
 /// _HKDF_ ([RFC 5869](https://tools.ietf.org/html/rfc5869))
 /// key derivation algorithm.
 ///
-/// On browsers, the default implementation will use
+/// In browsers, the default implementation will use
 /// [Web Cryptography API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API).
 /// On other platforms, [DartHkdf] will be used.
 ///
@@ -982,7 +1084,7 @@ abstract class Hkdf extends KdfAlgorithm {
   }
 
   /// Constructor for classes that extend this class.
-  @protected
+
   const Hkdf.constructor();
 
   @override
@@ -1004,12 +1106,12 @@ abstract class Hkdf extends KdfAlgorithm {
   });
 
   @override
-  String toString() => 'Hkdf($hmac)';
+  String toString() => '$runtimeType($hmac)';
 }
 
 /// _HMAC_ [MacAlgorithm].
 ///
-/// On browsers, the default implementation will use
+/// In browsers, the default implementation will use
 /// [Web Cryptography API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API).
 /// On other platforms, [DartHmac] will be used.
 ///
@@ -1039,22 +1141,40 @@ abstract class Hkdf extends KdfAlgorithm {
 /// }
 /// ```
 abstract class Hmac extends MacAlgorithm {
+  /// Constructs HMAC with any hash algorithm.
   factory Hmac(HashAlgorithm hashAlgorithm) {
     return Cryptography.instance.hmac(hashAlgorithm);
   }
 
   /// Constructor for classes that extend this class.
-  @protected
   const Hmac.constructor();
 
+  /// HMAC with [Sha1].
+  factory Hmac.sha1() {
+    return Hmac(Sha1());
+  }
+
+  /// HMAC with [Sha224].
+  factory Hmac.sha224() {
+    return Hmac(Sha224());
+  }
+
+  /// HMAC with [Sha256].
   factory Hmac.sha256() {
     return Hmac(Sha256());
   }
 
+  /// HMAC with [Sha384].
+  factory Hmac.sha384() {
+    return Hmac(Sha384());
+  }
+
+  /// HMAC with [Sha512].
   factory Hmac.sha512() {
     return Hmac(Sha512());
   }
 
+  /// Hash algorithm used by the HMAC.
   HashAlgorithm get hashAlgorithm;
 
   @override
@@ -1071,18 +1191,30 @@ abstract class Hmac extends MacAlgorithm {
   String toString() {
     final hashAlgorithm = this.hashAlgorithm;
     if (hashAlgorithm is Sha256) {
-      return 'Hmac.sha256()';
+      return '$runtimeType.sha256()';
     }
     if (hashAlgorithm is Sha512) {
-      return 'Hmac.sha512()';
+      return '$runtimeType.sha512()';
     }
-    return 'Hmac($hashAlgorithm)';
+    return '$runtimeType($hashAlgorithm)';
+  }
+
+  @override
+  DartMacAlgorithm toSync() {
+    final hashAlgorithm = this.hashAlgorithm;
+    if (hashAlgorithm is Sha256) {
+      return const DartHmac(DartSha256());
+    }
+    if (hashAlgorithm is Sha512) {
+      return const DartHmac(DartSha512());
+    }
+    return DartHmac(hashAlgorithm.toSync());
   }
 }
 
 /// _PBKDF2_ password hashing algorithm implemented in pure Dart.
 ///
-/// On browsers, the default implementation will use
+/// In browsers, the default implementation will use
 /// [Web Cryptography API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API).
 /// On other platforms, [DartPbkdf2] will be used.
 ///
@@ -1134,7 +1266,7 @@ abstract class Pbkdf2 extends KdfAlgorithm {
   }
 
   /// Constructor for classes that extend this class.
-  @protected
+
   const Pbkdf2.constructor();
 
   int get bits;
@@ -1161,7 +1293,7 @@ abstract class Pbkdf2 extends KdfAlgorithm {
 
   @override
   String toString() =>
-      'Pbkdf2(macAlgorithm: $macAlgorithm, iterations: $iterations, bits: $bits)';
+      '$runtimeType(macAlgorithm: $macAlgorithm, iterations: $iterations, bits: $bits)';
 }
 
 /// _Poly1305_ ([RFC 7539](https://tools.ietf.org/html/rfc7539)) [MacAlgorithm].
@@ -1175,7 +1307,7 @@ abstract class Poly1305 extends MacAlgorithm {
   }
 
   /// Constructor for classes that extend this class.
-  @protected
+
   const Poly1305.constructor();
 
   @override
@@ -1186,11 +1318,14 @@ abstract class Poly1305 extends MacAlgorithm {
 
   @override
   bool operator ==(other) => other is Poly1305;
+
+  @override
+  DartMacAlgorithm toSync() => const DartPoly1305();
 }
 
 /// _RSA-PSS_ [SignatureAlgorithm].
 ///
-/// On browsers, the default implementation will use
+/// In browsers, the default implementation will use
 /// [Web Cryptography API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API).
 /// On other platforms, [DartRsaPss] will be used.
 ///
@@ -1244,7 +1379,7 @@ abstract class RsaPss extends SignatureAlgorithm {
   }
 
   /// Constructor for classes that extend this class.
-  @protected
+
   const RsaPss.constructor();
 
   HashAlgorithm get hashAlgorithm;
@@ -1271,7 +1406,7 @@ abstract class RsaPss extends SignatureAlgorithm {
 
 /// _RSA-SSA-PKCS1v15_ [SignatureAlgorithm].
 ///
-/// On browsers, the default implementation will use
+/// In browsers, the default implementation will use
 /// [Web Cryptography API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API).
 /// On other platforms, [DartRsaSsaPkcs1v15] will be used.
 ///
@@ -1318,7 +1453,7 @@ abstract class RsaSsaPkcs1v15 extends SignatureAlgorithm {
   }
 
   /// Constructor for classes that extend this class.
-  @protected
+
   const RsaSsaPkcs1v15.constructor();
 
   HashAlgorithm get hashAlgorithm;
@@ -1340,12 +1475,12 @@ abstract class RsaSsaPkcs1v15 extends SignatureAlgorithm {
   });
 
   @override
-  String toString() => 'RsaSsaPkcs1v15(hashAlgorithm: $hashAlgorithm)';
+  String toString() => '$runtimeType(hashAlgorithm: $hashAlgorithm)';
 }
 
 /// _SHA-1_ [HashAlgorithm].
 ///
-/// On browsers, the default implementation will use
+/// In browsers, the default implementation will use
 /// [Web Cryptography API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API).
 /// On other platforms, [DartSha1] will be used.
 ///
@@ -1388,7 +1523,7 @@ abstract class Sha1 extends HashAlgorithm {
   factory Sha1() => Cryptography.instance.sha1();
 
   /// Constructor for classes that extend this class.
-  @protected
+
   const Sha1.constructor();
 
   @override
@@ -1404,7 +1539,7 @@ abstract class Sha1 extends HashAlgorithm {
   bool operator ==(other) => other is Sha1;
 
   @override
-  String toString() => 'Sha1()';
+  DartHashAlgorithm toSync() => const DartSha1();
 }
 
 /// _SHA-224_ (SHA2-224) [HashAlgorithm].
@@ -1450,7 +1585,7 @@ abstract class Sha224 extends HashAlgorithm {
   factory Sha224() => Cryptography.instance.sha224();
 
   /// Constructor for classes that extend this class.
-  @protected
+
   const Sha224.constructor();
 
   @override
@@ -1466,12 +1601,12 @@ abstract class Sha224 extends HashAlgorithm {
   bool operator ==(other) => other is Sha224;
 
   @override
-  String toString() => 'Sha224()';
+  DartHashAlgorithm toSync() => const DartSha224();
 }
 
 /// _SHA-256_ (SHA2-256) [HashAlgorithm].
 ///
-/// On browsers, the default implementation will use
+/// In browsers, the default implementation will use
 /// [Web Cryptography API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API).
 /// On other platforms, [DartSha256] will be used.
 ///
@@ -1514,7 +1649,7 @@ abstract class Sha256 extends HashAlgorithm {
   factory Sha256() => Cryptography.instance.sha256();
 
   /// Constructor for classes that extend this class.
-  @protected
+
   const Sha256.constructor();
 
   @override
@@ -1530,12 +1665,12 @@ abstract class Sha256 extends HashAlgorithm {
   bool operator ==(other) => other is Sha256;
 
   @override
-  String toString() => 'Sha256()';
+  DartHashAlgorithm toSync() => const DartSha256();
 }
 
 /// _SHA-384_ (SHA2-384) [HashAlgorithm].
 ///
-/// On browsers, the default implementation will use
+/// In browsers, the default implementation will use
 /// [Web Cryptography API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API).
 /// On other platforms, [DartSha384] will be used.
 ///
@@ -1578,7 +1713,7 @@ abstract class Sha384 extends HashAlgorithm {
   factory Sha384() => Cryptography.instance.sha384();
 
   /// Constructor for classes that extend this class.
-  @protected
+
   const Sha384.constructor();
 
   @override
@@ -1594,12 +1729,12 @@ abstract class Sha384 extends HashAlgorithm {
   bool operator ==(other) => other is Sha384;
 
   @override
-  String toString() => 'Sha384()';
+  DartHashAlgorithm toSync() => const DartSha384();
 }
 
-/// _SHA-512_ (SHA2-512) [HashAlgorithm].
+/// _SHA-512_ [HashAlgorithm] (sometimes called _SHA2-512_).
 ///
-/// On browsers, the default implementation will use
+/// In browsers, the default implementation will use
 /// [Web Cryptography API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API).
 /// On other platforms, [DartSha512] will be used.
 ///
@@ -1642,7 +1777,7 @@ abstract class Sha512 extends HashAlgorithm {
   factory Sha512() => Cryptography.instance.sha512();
 
   /// Constructor for classes that extend this class.
-  @protected
+
   const Sha512.constructor();
 
   @override
@@ -1658,13 +1793,16 @@ abstract class Sha512 extends HashAlgorithm {
   bool operator ==(other) => other is Sha512;
 
   @override
-  String toString() => 'Sha512()';
+  DartHashAlgorithm toSync() => const DartSha512();
 }
 
 /// Superclass of streaming ciphers such as [AesGcm] and [Chacha20] that allow
 /// encrypter/decrypter to choose an offset in the keystream.
 abstract class StreamingCipher extends Cipher {
-  const StreamingCipher();
+  /// Constructor for subclasses.
+  ///
+  /// Optional parameter [random] is used by [newSecretKey] and [newNonce].
+  const StreamingCipher({Random? random}) : super(random: random);
 
   /// Decrypts a ciphertext.
   ///
@@ -1677,6 +1815,7 @@ abstract class StreamingCipher extends Cipher {
     required SecretKey secretKey,
     List<int> aad = const <int>[],
     int keyStreamIndex = 0,
+    Uint8List? possibleBuffer,
   });
 
   /// Encrypts a cleartext.
@@ -1691,6 +1830,7 @@ abstract class StreamingCipher extends Cipher {
     List<int>? nonce,
     List<int> aad = const <int>[],
     int keyStreamIndex = 0,
+    Uint8List? possibleBuffer,
   });
 }
 
@@ -1739,18 +1879,19 @@ abstract class StreamingCipher extends Cipher {
 /// _package:cryptography/dart.dart_.
 ///
 abstract class X25519 extends KeyExchangeAlgorithm {
+  final Random? _random;
+
   factory X25519() {
     return Cryptography.instance.x25519();
   }
 
   /// Constructor for classes that extend this class.
-  @protected
-  const X25519.constructor();
+  const X25519.constructor({Random? random}) : _random = random;
 
   @override
   Future<SimpleKeyPair> newKeyPair() {
     final seed = Uint8List(keyPairType.privateKeyLength);
-    fillBytesWithSecureRandom(seed);
+    fillBytesWithSecureRandom(seed, random: _random);
     return newKeyPairFromSeed(seed);
   }
 
@@ -1758,7 +1899,7 @@ abstract class X25519 extends KeyExchangeAlgorithm {
   Future<SimpleKeyPair> newKeyPairFromSeed(List<int> seed);
 
   @override
-  String toString() => 'X25519()';
+  String toString() => '$runtimeType()';
 }
 
 /// _Xchacha20_ ([draft-irtf-cfrg-xchacha](https://tools.ietf.org/html/draft-arciszewski-xchacha-03)).
@@ -1774,20 +1915,18 @@ abstract class X25519 extends KeyExchangeAlgorithm {
 /// It can improve performance in many cases.
 ///
 /// ## Things to know
-///   * [SecretKey] must be 32 bytes.
-///   * [Nonce] must be 24 bytes.
+///   * Secret key must be 32 bytes.
+///   * Nonce must be 24 bytes.
 ///   * `keyStreamIndex` enables choosing index in the key  stream.
 ///   * It's dangerous to use the same (key, nonce) combination twice.
 ///   * It's dangerous to use the cipher without authentication.
 abstract class Xchacha20 extends StreamingCipher {
   factory Xchacha20({required MacAlgorithm macAlgorithm}) {
-    // ignore: deprecated_member_use_from_same_package
     return Cryptography.instance.xchacha20(macAlgorithm: macAlgorithm);
   }
 
   /// Constructor for classes that extend this class.
-  @protected
-  const Xchacha20.constructor();
+  const Xchacha20.constructor({Random? random}) : super(random: random);
 
   /// _XAEAD_CHACHA20_POLY1305_ ([draft-irtf-cfrg-xchacha](https://tools.ietf.org/html/draft-arciszewski-xchacha-03)) cipher.
   ///
@@ -1809,4 +1948,9 @@ abstract class Xchacha20 extends StreamingCipher {
   @override
   bool operator ==(other) =>
       other is Xchacha20 && macAlgorithm == other.macAlgorithm;
+
+  @override
+  String toString() {
+    return '$runtimeType(macAlgorithm: $macAlgorithm)';
+  }
 }

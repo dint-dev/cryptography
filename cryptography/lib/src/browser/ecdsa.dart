@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Gohilla Ltd.
+// Copyright 2019-2020 Gohilla.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,106 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/src/browser/hash.dart';
-import 'package:js/js_util.dart' as js;
 
-import 'javascript_bindings.dart' as web_crypto;
-
-Future<web_crypto.CryptoKey> jsCryptoKeyFromEcdsaKeyPair(
-    EcKeyPair keyPair) async {
-  final keyPairData = await keyPair.extract();
-  final webCryptoAlgorithm = const <KeyPairType, String>{
-    KeyPairType.p256: 'P-256',
-    KeyPairType.p384: 'P-384',
-    KeyPairType.p521: 'P-521',
-  }[keyPairData.type];
-  if (webCryptoAlgorithm == null) {
-    throw ArgumentError.value(
-      keyPair,
-      'keyPair',
-    );
-  }
-  if (keyPair is _BrowserEcdsaKeyPair &&
-      keyPairData.type == keyPair.keyPairType) {
-    return keyPair.jsCryptoKeyPair.privateKey;
-  }
-  final type = keyPairData.type;
-  final crv = {
-    KeyPairType.p256: 'P-256',
-    KeyPairType.p384: 'P-384',
-    KeyPairType.p521: 'P-521',
-  }[type];
-  if (crv == null) {
-    throw ArgumentError.value(
-      keyPair,
-      'keyPair',
-      'Invalid key type: $type',
-    );
-  }
-  final jsJwk = web_crypto.Jwk(
-    kty: 'EC',
-    crv: crv,
-    ext: true,
-    key_ops: const ['sign'],
-    d: web_crypto.base64UrlEncode(keyPairData.d),
-    x: web_crypto.base64UrlEncode(keyPairData.x),
-    y: web_crypto.base64UrlEncode(keyPairData.y),
-  );
-  try {
-    return await js.promiseToFuture<web_crypto.CryptoKey>(
-      web_crypto.importKey(
-        'jwk',
-        jsJwk,
-        web_crypto.EcKeyImportParams(
-          name: 'ECDSA',
-          namedCurve: webCryptoAlgorithm,
-        ),
-        true,
-        const ['sign'],
-      ),
-    );
-  } catch (error) {
-    throw StateError(
-      'Web Cryptography returned an error when importing ECDH key pair: $error',
-    );
-  }
-}
-
-Future<web_crypto.CryptoKey> jsCryptoKeyFromEcdsaPublicKey(
-  PublicKey publicKey, {
-  required String webCryptoCurve,
-  required String webCryptoHash,
-}) async {
-  if (publicKey is! EcPublicKey) {
-    throw ArgumentError.value(
-      publicKey,
-      'publicKey',
-      'Should be EcPublicKey',
-    );
-  }
-  return js.promiseToFuture<web_crypto.CryptoKey>(
-    web_crypto.importKey(
-      'jwk',
-      web_crypto.Jwk(
-        kty: 'EC',
-        crv: webCryptoCurve,
-        ext: true,
-        key_ops: const ['verify'],
-        x: web_crypto.base64UrlEncode(publicKey.x),
-        y: web_crypto.base64UrlEncode(publicKey.y),
-      ),
-      web_crypto.EcKeyImportParams(
-        name: 'ECDSA',
-        namedCurve: webCryptoCurve,
-      ),
-      true,
-      const ['verify'],
-    ),
-  );
-}
+import '_javascript_bindings.dart' as web_crypto;
+import 'browser_ec_key_pair.dart';
 
 class BrowserEcdsa extends Ecdsa {
   @override
@@ -120,32 +28,45 @@ class BrowserEcdsa extends Ecdsa {
   @override
   final KeyPairType keyPairType;
 
-  BrowserEcdsa.p256(BrowserHashAlgorithmMixin hashAlgorithm)
-      : this._(KeyPairType.p256, hashAlgorithm);
+  BrowserEcdsa({
+    required this.keyPairType,
+    required this.hashAlgorithm,
+  }) : super.constructor();
 
-  BrowserEcdsa.p384(BrowserHashAlgorithmMixin hashAlgorithm)
-      : this._(KeyPairType.p384, hashAlgorithm);
+  BrowserEcdsa.p256(
+    BrowserHashAlgorithmMixin hashAlgorithm, {
+    Random? random,
+  }) : this(
+          keyPairType: KeyPairType.p256,
+          hashAlgorithm: hashAlgorithm,
+        );
 
-  BrowserEcdsa.p521(BrowserHashAlgorithmMixin hashAlgorithm)
-      : this._(KeyPairType.p521, hashAlgorithm);
+  BrowserEcdsa.p384(
+    BrowserHashAlgorithmMixin hashAlgorithm, {
+    Random? random,
+  }) : this(
+          keyPairType: KeyPairType.p384,
+          hashAlgorithm: hashAlgorithm,
+        );
 
-  BrowserEcdsa._(this.keyPairType, this.hashAlgorithm) : super.constructor();
+  BrowserEcdsa.p521(
+    BrowserHashAlgorithmMixin hashAlgorithm, {
+    Random? random,
+  }) : this(
+          keyPairType: KeyPairType.p521,
+          hashAlgorithm: hashAlgorithm,
+        );
 
   @override
-  Future<EcKeyPair> newKeyPair() async {
-    final jsCryptoKeyPair = await js.promiseToFuture<web_crypto.CryptoKeyPair>(
-      web_crypto.generateKey(
-        web_crypto.EcKeyGenParams(
-          name: 'ECDSA',
-          namedCurve: keyPairType.webCryptoCurve!,
-        ),
-        true,
-        const ['sign', 'verify'],
-      ),
-    );
-    return _BrowserEcdsaKeyPair._(
-      jsCryptoKeyPair,
-      keyPairType,
+  Future<EcKeyPair> newKeyPair({
+    bool isExtractable = true,
+    bool allowDeriveBits = true,
+  }) async {
+    return BrowserEcKeyPair.generate(
+      keyPairType: keyPairType,
+      isExtractable: isExtractable,
+      allowDeriveBits: allowDeriveBits,
+      allowSign: true,
     );
   }
 
@@ -165,18 +86,20 @@ class BrowserEcdsa extends Ecdsa {
       );
     }
     final publicKeyFuture = keyPair.extractPublicKey();
-    final jsSecretKey = await jsCryptoKeyFromEcdsaKeyPair(
+    final browserEcKeyPair = await BrowserEcKeyPair.from(
       keyPair,
+      isExtractable: false,
+      allowSign: true,
+      allowDeriveBits: true,
     );
-    final byteBuffer = await js.promiseToFuture<ByteBuffer>(
-      web_crypto.sign(
-        web_crypto.EcdsaParams(
-          name: 'ECDSA',
-          hash: hashAlgorithm.webCryptoName,
-        ),
-        jsSecretKey,
-        web_crypto.jsArrayBufferFrom(message),
+    final jsCryptoKey = browserEcKeyPair.jsPrivateKeyForEcdsa!;
+    final byteBuffer = await web_crypto.sign(
+      web_crypto.EcdsaParams(
+        name: 'ECDSA',
+        hash: hashAlgorithm.webCryptoName,
       ),
+      jsCryptoKey,
+      web_crypto.jsArrayBufferFrom(message),
     );
     return Signature(
       Uint8List.view(byteBuffer),
@@ -197,12 +120,12 @@ class BrowserEcdsa extends Ecdsa {
         'Public key should be an instance of EcPublicKey, not: $publicKey',
       );
     }
-    final jsCryptoKey = await jsCryptoKeyFromEcdsaPublicKey(
+    final jsCryptoKey = await jsPublicKeyFrom(
       signature.publicKey,
       webCryptoCurve: keyPairType.webCryptoCurve!,
       webCryptoHash: hashAlgorithm.webCryptoName,
     );
-    return js.promiseToFuture<bool>(web_crypto.verify(
+    return await web_crypto.verify(
       web_crypto.EcdsaParams(
         name: 'ECDSA',
         hash: hashAlgorithm.webCryptoName,
@@ -210,62 +133,36 @@ class BrowserEcdsa extends Ecdsa {
       jsCryptoKey,
       web_crypto.jsArrayBufferFrom(signature.bytes),
       web_crypto.jsArrayBufferFrom(message),
-    ));
-  }
-}
-
-class _BrowserEcdsaKeyPair extends KeyPair implements EcKeyPair {
-  final web_crypto.CryptoKeyPair jsCryptoKeyPair;
-  final KeyPairType keyPairType;
-  Future<EcKeyPairData>? _keyPairData;
-  Future<EcPublicKey>? _publicKey;
-
-  _BrowserEcdsaKeyPair._(
-    this.jsCryptoKeyPair,
-    this.keyPairType,
-  );
-
-  @override
-  Future<EcKeyPairData> extract() {
-    return _keyPairData ??= js
-        .promiseToFuture<web_crypto.Jwk>(
-      web_crypto.exportKey(
-        'jwk',
-        jsCryptoKeyPair.privateKey,
-      ),
-    )
-        .then(
-      (jwk) => EcKeyPairData(
-        type: keyPairType,
-        d: List<int>.unmodifiable(web_crypto.base64UrlDecode(jwk.d!)!),
-        x: List<int>.unmodifiable(web_crypto.base64UrlDecode(jwk.x!)!),
-        y: List<int>.unmodifiable(web_crypto.base64UrlDecode(jwk.y!)!),
-      ),
-      onError: (error) {
-        throw StateError(
-          'Web Cryptography returned an error when exporting ECDSA key pair: $error',
-        );
-      },
     );
   }
 
-  @override
-  Future<EcPublicKey> extractPublicKey() {
-    return _publicKey ??= js
-        .promiseToFuture<web_crypto.Jwk>(
-      web_crypto.exportKey('jwk', jsCryptoKeyPair.publicKey),
-    )
-        .then(
-      (jwk) => EcPublicKey(
-        type: keyPairType,
-        x: web_crypto.base64UrlDecode(jwk.x!)!,
-        y: web_crypto.base64UrlDecode(jwk.y!)!,
+  static Future<web_crypto.CryptoKey> jsPublicKeyFrom(
+    PublicKey publicKey, {
+    required String webCryptoCurve,
+    required String webCryptoHash,
+  }) async {
+    if (publicKey is! EcPublicKey) {
+      throw ArgumentError.value(
+        publicKey,
+        'publicKey',
+        'Should be $EcPublicKey',
+      );
+    }
+    return web_crypto.importKeyWhenJwk(
+      web_crypto.Jwk(
+        kty: 'EC',
+        crv: webCryptoCurve,
+        ext: true,
+        key_ops: const ['verify'],
+        x: web_crypto.base64UrlEncode(publicKey.x),
+        y: web_crypto.base64UrlEncode(publicKey.y),
       ),
-      onError: (error) {
-        throw StateError(
-          'Web Cryptography returned an error when exporting ECDSA public key: $error',
-        );
-      },
+      web_crypto.EcKeyImportParams(
+        name: 'ECDSA',
+        namedCurve: webCryptoCurve,
+      ),
+      false,
+      const ['verify'],
     );
   }
 }

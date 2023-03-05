@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Gohilla Ltd.
+// Copyright 2019-2020 Gohilla.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
@@ -20,206 +21,50 @@ import 'package:cryptography/src/utils.dart';
 
 /// [Chacha20] implemented in pure Dart.
 ///
-/// In almost every case, you should use constructor [DartChacha20.poly1305Aead],
+/// In almost every case, you should use [DartChacha20Poly1305Aead],
 /// which returns _AEAD_CHACHA20_POLY1305_ cipher
 /// (([RFC 7539](https://tools.ietf.org/html/rfc7539)).
-/// The AEAD implementation uses [DartChacha20Poly1305AeadMacAlgorithm].
 ///
 /// For examples and more information about the algorithm, see documentation for
 /// the class [Chacha20].
-class DartChacha20 extends Chacha20 {
-  static const int _rounds = 20;
-
+class DartChacha20 extends Chacha20
+    with DartStreamingCipherMixin, DartCipherWithStateMixin {
   @override
   final MacAlgorithm macAlgorithm;
 
+  @override
+  final Random? random;
+
   /// Constructs [DartChacha20] with any MAC.
   ///
-  /// In almost every case, you should use constructor [DartChacha20.poly1305Aead],
-  /// which returns _AEAD_CHACHA20_POLY1305_ cipher
-  /// (([RFC 7539](https://tools.ietf.org/html/rfc7539)).
-  /// The AEAD implementation uses [DartChacha20Poly1305AeadMacAlgorithm].
+  /// In almost every case, you should use [DartChacha20.poly1305Aead],
+  /// which constructs _AEAD_CHACHA20_POLY1305_ cipher
+  /// ([RFC 7539](https://tools.ietf.org/html/rfc7539)).
   const DartChacha20({
     required this.macAlgorithm,
-  }) : super.constructor();
+    this.random,
+  }) : super.constructor(random: random);
 
   /// Constructs _AEAD_CHACHA20_POLY1305_ cipher
-  /// (([RFC 7539](https://tools.ietf.org/html/rfc7539)).
+  /// ([RFC 7539](https://tools.ietf.org/html/rfc7539)).
+  const DartChacha20.poly1305Aead({
+    this.random,
+  })  : macAlgorithm = const DartChacha20Poly1305AeadMacAlgorithm(),
+        super.constructor(random: random);
+
+  @override
+  DartCipherState newState() => DartChacha20State(cipher: this);
+
+  /// Computes [Chacha20] rounds.
   ///
-  /// The implementation uses [DartChacha20Poly1305AeadMacAlgorithm].
-  const DartChacha20.poly1305Aead()
-      : macAlgorithm = const DartChacha20Poly1305AeadMacAlgorithm(),
-        super.constructor();
-
-  @override
-  Future<List<int>> decrypt(
-    SecretBox secretBox, {
-    required SecretKey secretKey,
-    List<int> aad = const <int>[],
-    int keyStreamIndex = 0,
-  }) async {
-    if (keyStreamIndex < 0) {
-      throw ArgumentError.value(
-        keyStreamIndex,
-        'keyStreamIndex',
-        'Must be non-negative',
-      );
-    }
-    if (secretBox.nonce.length != 12) {
-      throw ArgumentError.value(
-        secretBox,
-        'secretBox',
-        'Nonce must have 12 bytes',
-      );
-    }
-    final secretKeyData = await secretKey.extract();
-    if (secretKeyData.bytes.length != 32) {
-      throw ArgumentError.value(
-        secretKey,
-        'secretKey',
-        'Must have 32 bytes',
-      );
-    }
-    final macAlgorithm = this.macAlgorithm;
-    if (macAlgorithm is DartChacha20Poly1305AeadMacAlgorithm) {
-      if (keyStreamIndex != 0) {
-        throw ArgumentError.value(
-          keyStreamIndex,
-          'keyStreamIndex',
-          'Must be zero when AEAD is used',
-        );
-      }
-      keyStreamIndex = 64;
-    }
-
-    // Authenticate
-    await secretBox.checkMac(
-      macAlgorithm: macAlgorithm,
-      secretKey: secretKey,
-      aad: aad,
-    );
-
-    return _xorSync(
-      secretBox.cipherText,
-      secretKey: secretKeyData,
-      nonce: secretBox.nonce,
-      aad: aad,
-      keyStreamIndex: keyStreamIndex,
-    );
-  }
-
-  @override
-  Future<SecretBox> encrypt(
-    List<int> clearText, {
-    required SecretKey secretKey,
-    List<int>? nonce,
-    List<int> aad = const <int>[],
-    int keyStreamIndex = 0,
-  }) async {
-    if (keyStreamIndex < 0) {
-      throw ArgumentError.value(
-        keyStreamIndex,
-        'keyStreamIndex',
-        'Must be non-negative',
-      );
-    }
-    nonce ??= newNonce();
-    if (nonce.length != 12) {
-      throw ArgumentError.value(
-        nonce,
-        'nonce',
-        'Nonce must have 12 bytes',
-      );
-    }
-    final macAlgorithm = this.macAlgorithm;
-    if (macAlgorithm is DartChacha20Poly1305AeadMacAlgorithm) {
-      if (keyStreamIndex != 0) {
-        throw ArgumentError.value(
-          keyStreamIndex,
-          'keyStreamIndex',
-          'Must be zero when AEAD is used',
-        );
-      }
-      keyStreamIndex = 64;
-    }
-
-    final secretKeyData = await secretKey.extract();
-    if (secretKeyData.bytes.length != 32) {
-      throw ArgumentError.value(
-        secretKey,
-        'secretKey',
-        'length must be 32 bytes',
-      );
-    }
-    final cipherText = _xorSync(
-      clearText,
-      secretKey: secretKeyData,
-      nonce: nonce,
-      aad: aad,
-      keyStreamIndex: keyStreamIndex,
-    );
-    final mac = await macAlgorithm.calculateMac(
-      cipherText,
-      secretKey: secretKey,
-      nonce: nonce,
-      aad: aad,
-    );
-    return SecretBox(
-      cipherText,
-      nonce: nonce,
-      mac: mac,
-    );
-  }
-
-  Uint8List _xorSync(
-    List<int> clearText, {
-    required SecretKeyData secretKey,
-    required List<int> nonce,
-    List<int> aad = const <int>[],
-    int keyStreamIndex = 0,
-  }) {
-    if (keyStreamIndex < 0) {
-      throw ArgumentError.value(keyStreamIndex, 'keyStreamIndex');
-    }
-    if (secretKey.bytes.length != 32) {
-      throw ArgumentError.value(
-        secretKey,
-        'secretKey',
-      );
-    }
-    if (nonce.length != 12) {
-      throw ArgumentError.value(nonce, 'nonce', 'Nonce must have 12 bytes');
-    }
-    final secretKeyBytes = secretKey.bytes;
-    final initialState = Uint32List(16);
-    initializeChacha(
-      initialState,
-      key: secretKeyBytes,
-      nonce: nonce,
-      keyStreamIndex: keyStreamIndex,
-    );
-    final skipped = keyStreamIndex % 64;
-    final stateAsUint32List = Uint32List(
-      (skipped + clearText.length + 63) ~/ 64 * 16,
-    );
-    final stateAsUint8List = Uint8List.view(stateAsUint32List.buffer);
-    stateAsUint8List.setAll(skipped, clearText);
-    for (var i = 0; i < stateAsUint32List.length; i += 16) {
-      chachaRounds(
-        stateAsUint32List,
-        i,
-        initialState,
-        rounds: _rounds,
-      );
-      initialState[12]++;
-    }
-    return Uint8List.view(
-      stateAsUint32List.buffer,
-      skipped,
-      clearText.length,
-    );
-  }
-
+  /// Parameter [state] is the state that will be XORrred with the key stream.
+  /// If [addAndXor] is false, it will receive the state variables.
+  ///
+  /// Parameter [si] is the index of the first state element.
+  ///
+  /// Parameter [initialState] is the initial state.
+  ///
+  /// Parameter [addAndXor] is for [DartXchacha20].
   static void chachaRounds(
     Uint32List state,
     int si,
@@ -437,5 +282,58 @@ class DartChacha20 extends Chacha20 {
         state[i] = stateByteData.getUint32(4 * i, Endian.little);
       }
     }
+  }
+}
+
+/// State for [DartChacha20].
+class DartChacha20State extends DartCipherState {
+  final Uint32List _initialState = Uint32List(16);
+
+  @override
+  final Uint32List blockAsUint32List = Uint32List(16);
+
+  @override
+  late final Uint8List block = Uint8List.view(blockAsUint32List.buffer);
+
+  DartChacha20State({
+    required super.cipher,
+  });
+
+  @override
+  void beforeData({
+    required SecretKeyData secretKey,
+    required List<int> nonce,
+    List<int> aad = const [],
+  }) {
+    _initialState.fillRange(0, 16, 0);
+    DartChacha20.initializeChacha(
+      _initialState,
+      key: secretKey.bytes,
+      nonce: nonce,
+      keyStreamIndex: cipher.macAlgorithm.keyStreamUsed + keyStreamIndex,
+    );
+  }
+
+  @override
+  void setBlock(int blockIndex) {
+    // Fill state with zeroes
+    final stateAsUint32List = blockAsUint32List;
+    stateAsUint32List.fillRange(0, 16, 0);
+
+    // Set block counter
+    final initialState = _initialState;
+
+    // In AEAD_CHACHA20_POLY1305, the counter is set to 1 for the first block
+    // because the first block is used for the MAC.
+    // Thus its `cipher.macAlgorithm.keyStreamUsed` will return 64.
+    initialState[12] = cipher.macAlgorithm.keyStreamUsed ~/ 64 + blockIndex;
+
+    // Compute key stream block
+    DartChacha20.chachaRounds(
+      stateAsUint32List,
+      0,
+      initialState,
+      rounds: 20,
+    );
   }
 }

@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Gohilla Ltd.
+// Copyright 2019-2020 Gohilla.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,8 +19,23 @@ import 'package:cryptography/dart.dart';
 
 /// An implementation of [Hmac] in pure Dart.
 ///
+/// Optional argument [nonce] does not affect the MAC. If optional argument
+/// [aad] is not empty, [ArgumentError] is thrown.
+///
 /// For examples and more information about the algorithm, see documentation for
 /// the class [Hmac].
+///
+/// ## Using synchronous methods
+///
+/// If you want to use synchronous methods ([calculateMacSync],
+/// [newMacSinkSync]), the hash algorithm must be synchronous too.
+///
+/// For example, to compute HMAC-SHA256:
+///
+/// ```dart
+/// final algorithm = DartHmac(DartSha256());
+/// final mac = algorithm.calculateMac(bytes, secretKey: secretKey);
+/// ```
 class DartHmac extends Hmac with DartMacAlgorithmMixin {
   /// Hash algorithm used by this HMAC.
   @override
@@ -35,55 +50,30 @@ class DartHmac extends Hmac with DartMacAlgorithmMixin {
     List<int> nonce = const <int>[],
     List<int> aad = const <int>[],
   }) async {
-    if (aad.isNotEmpty) {
-      throw ArgumentError.value(
-        aad,
-        'aad',
-        'AAD is not supported',
-      );
-    }
-    final secretKeyData = await secretKey.extract();
-    var hmacKey = secretKeyData.bytes;
-    if (hmacKey.isEmpty) {
-      throw ArgumentError.value(
-        secretKey,
-        'secretKey',
-        'Must be non-empty',
-      );
-    }
-
-    final hashAlgorithm = this.hashAlgorithm;
-
-    final blockLength = hashAlgorithm.blockLengthInBytes;
-    if (hmacKey.length > blockLength) {
-      hmacKey = (await hashAlgorithm.hash(hmacKey)).bytes;
-    }
-
-    // Inner hash
-    final innerPadding = Uint8List(blockLength);
-    _preparePadding(innerPadding, hmacKey, 0x36);
-    final innerInput = Uint8List(innerPadding.length + bytes.length);
-    innerInput.setAll(0, innerPadding);
-    innerInput.setAll(innerPadding.length, bytes);
-    final innerHash = await hashAlgorithm.hash(innerInput);
-
-    // Outer hash
-    final outerPadding = Uint8List(blockLength);
-    _preparePadding(outerPadding, hmacKey, 0x5c);
-    final outerInput = Uint8List(outerPadding.length + innerHash.bytes.length);
-    outerInput.setAll(0, outerPadding);
-    outerInput.setAll(outerPadding.length, innerHash.bytes);
-    final outerHash = await hashAlgorithm.hash(outerInput);
-
-    return Mac(outerHash.bytes);
+    final sink = await newMacSink(
+      secretKey: secretKey,
+      nonce: nonce,
+      aad: aad,
+    );
+    sink.add(bytes);
+    sink.close();
+    return await sink.mac();
   }
 
   /// Synchronous version of [calculateMac].
   ///
+  /// Optional argument [nonce] does not affect the MAC. If optional argument
+  /// [aad] is not empty, [ArgumentError] is thrown.
+  ///
   /// Throws [UnsupportedError] if [hashAlgorithm] does not support synchronous
   /// evaluation (it's not a subclass of [DartHashAlgorithmMixin]).
   ///
-  /// For other parameters, see documentation of [calculateMac].
+  /// For example, to compute HMAC-SHA256:
+  ///
+  /// ```dart
+  /// final algorithm = DartHmac(DartSha256());
+  /// final mac = algorithm.calculateMac(bytes, secretKey: secretKey);
+  /// ```
   @override
   Mac calculateMacSync(
     List<int> input, {
@@ -91,89 +81,55 @@ class DartHmac extends Hmac with DartMacAlgorithmMixin {
     List<int> nonce = const <int>[],
     List<int> aad = const <int>[],
   }) {
-    final hashAlgorithm = this.hashAlgorithm as DartHashAlgorithmMixin;
-    if (aad.isNotEmpty) {
-      throw ArgumentError.value(aad, 'aad', 'AAD is not supported');
-    }
-    var hmacKey = secretKeyData.bytes;
-    if (hmacKey.isEmpty) {
-      throw ArgumentError.value(
-        secretKeyData,
-        'secretKeyData',
-        'Must be non-empty',
-      );
-    }
-
-    final blockLength = hashAlgorithm.blockLengthInBytes;
-    if (hmacKey.length > blockLength) {
-      hmacKey = hashAlgorithm.hashSync(hmacKey).bytes;
-    }
-
-    // Inner hash
-    final innerPadding = Uint8List(blockLength);
-    _preparePadding(innerPadding, hmacKey, 0x36);
-    final innerInput = Uint8List(innerPadding.length + input.length);
-    innerInput.setAll(0, innerPadding);
-    innerInput.setAll(innerPadding.length, input);
-    final innerHash = hashAlgorithm.hashSync(innerInput);
-
-    // Outer hash
-    final outerPadding = Uint8List(blockLength);
-    _preparePadding(outerPadding, hmacKey, 0x5c);
-    final outerInput = Uint8List(outerPadding.length + innerHash.bytes.length);
-    outerInput.setAll(0, outerPadding);
-    outerInput.setAll(outerPadding.length, innerHash.bytes);
-    final outerHash = hashAlgorithm.hashSync(outerInput);
-
-    return Mac(outerHash.bytes);
+    final sink = newMacSinkSync(
+      secretKeyData: secretKeyData,
+      nonce: nonce,
+      aad: aad,
+    );
+    sink.add(input);
+    sink.close();
+    return sink.macSync();
   }
 
+  /// Synchronous version of [newMacSink].
+  ///
+  /// Optional argument [nonce] does not affect the MAC. If optional argument
+  /// [aad] is not empty, [ArgumentError] is thrown.
+  ///
+  /// Throws [UnsupportedError] if [hashAlgorithm] does not support synchronous
+  /// evaluation (it's not a subclass of [DartHashAlgorithmMixin]).
+  ///
+  /// For example, to compute HMAC-SHA256:
+  ///
+  /// ```dart
+  /// final algorithm = DartHmac(DartSha256());
+  /// final mac = algorithm.calculateMac(bytes, secretKey: secretKey);
+  /// ```
   @override
   Future<MacSink> newMacSink({
     required SecretKey secretKey,
     List<int> nonce = const <int>[],
     List<int> aad = const <int>[],
   }) async {
+    final secretKeyData = await secretKey.extract();
+    final blockLength = hashAlgorithm.blockLengthInBytes;
     if (aad.isNotEmpty) {
       throw ArgumentError.value(aad, 'aad', 'AAD is not supported');
     }
-
-    final hashAlgorithm = this.hashAlgorithm;
-    final blockLength = hashAlgorithm.blockLengthInBytes;
-
-    //
-    // secret
-    //
-    final secretKeyData = await secretKey.extract();
-    var hmacKey = secretKeyData.bytes;
-    if (hmacKey.isEmpty) {
+    if (secretKeyData.bytes.isEmpty) {
       throw ArgumentError.value(
-        secretKey,
-        'secretKey',
-        'SecretKey bytes must be non-empty',
+        secretKeyData,
+        'secretKeyData',
+        'Secret key must be non-empty',
       );
     }
-    if (hmacKey.length > blockLength) {
-      hmacKey = (await hashAlgorithm.hash(hmacKey)).bytes;
+    if (secretKeyData.bytes.length > blockLength) {
+      final hash =
+          await hashAlgorithm.hash(Uint8List.fromList(secretKeyData.bytes));
+      return _newMacSinkSync(hash.bytes, eraseKey: true);
+    } else {
+      return _newMacSinkSync(secretKeyData.bytes, eraseKey: false);
     }
-
-    //
-    // inner sink
-    //
-    final innerSink = hashAlgorithm.newHashSink();
-    final innerPadding = Uint8List(blockLength);
-    _preparePadding(innerPadding, hmacKey, 0x36);
-    innerSink.add(innerPadding);
-
-    //
-    // outer sink
-    //
-    final outerSink = hashAlgorithm.newHashSink();
-    final outerPadding = Uint8List(blockLength);
-    _preparePadding(outerPadding, hmacKey, 0x5c);
-    outerSink.add(outerPadding);
-
-    return _HmacSink(innerSink, outerSink);
   }
 
   @override
@@ -185,41 +141,58 @@ class DartHmac extends Hmac with DartMacAlgorithmMixin {
     if (aad.isNotEmpty) {
       throw ArgumentError.value(aad, 'aad', 'AAD is not supported');
     }
-
-    final hashAlgorithm = this.hashAlgorithm;
-    final blockLength = hashAlgorithm.blockLengthInBytes;
-
-    //
-    // secret
-    //
-    var hmacKey = secretKeyData.bytes;
-    if (hmacKey.isEmpty) {
+    if (secretKeyData.bytes.isEmpty) {
       throw ArgumentError.value(
         secretKeyData,
         'secretKeyData',
-        'SecretKeyData bytes must be non-empty',
+        'Secret key must be non-empty',
       );
     }
-    if (hmacKey.length > blockLength) {
+
+    // Copy the bytes so destruction of the key won't affect.
+    final blockLength = hashAlgorithm.blockLengthInBytes;
+    if (secretKeyData.bytes.length > blockLength) {
       final dartHashAlgorithm = hashAlgorithm as DartHashAlgorithmMixin;
-      hmacKey = dartHashAlgorithm.hashSync(hmacKey).bytes;
+      final hash = dartHashAlgorithm.hashSync(secretKeyData.bytes);
+      return _newMacSinkSync(hash.bytes, eraseKey: true);
+    } else {
+      return _newMacSinkSync(secretKeyData.bytes, eraseKey: false);
+    }
+  }
+
+  DartMacSink _newMacSinkSync(List<int> hmacKey, {required bool eraseKey}) {
+    // Make a copy
+    final hashAlgorithm = this.hashAlgorithm;
+    final blockLength = hashAlgorithm.blockLengthInBytes;
+    if (hmacKey.length > blockLength) {
+      throw ArgumentError();
     }
 
-    //
-    // inner sink
-    //
-    final innerSink = hashAlgorithm.newHashSink();
-    final innerPadding = Uint8List(blockLength);
-    _preparePadding(innerPadding, hmacKey, 0x36);
-    innerSink.add(innerPadding);
+    // Allocate a temporary buffer
+    final tmp = Uint8List(blockLength);
 
-    //
-    // outer sink
-    //
+    // Initialize inner sink
+    final innerSink = hashAlgorithm.newHashSink();
+    _preparePadding(tmp, hmacKey, 0x36);
+    innerSink.add(tmp);
+
+    // Erase the temporary buffer
+    tmp.fillRange(0, tmp.length, 0);
+
+    // Initialize outer sink
     final outerSink = hashAlgorithm.newHashSink();
-    final outerPadding = Uint8List(blockLength);
-    _preparePadding(outerPadding, hmacKey, 0x5c);
-    outerSink.add(outerPadding);
+    _preparePadding(tmp, hmacKey, 0x5c);
+    outerSink.add(tmp);
+
+    // Erase copy of the secret key copy
+    // (safer to not leave the data in memory)
+    if (eraseKey && hmacKey is! UnmodifiableUint8ListView) {
+      hmacKey.fillRange(0, hmacKey.length, 0);
+    }
+
+    // Erase the temporary buffer
+    // (safer to not leave the data in memory)
+    tmp.fillRange(0, tmp.length, 0);
 
     return _HmacSink(innerSink, outerSink);
   }

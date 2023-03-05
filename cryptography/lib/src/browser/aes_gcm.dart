@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Gohilla Ltd.
+// Copyright 2019-2020 Gohilla.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,41 +13,39 @@
 // limitations under the License.
 
 import 'dart:html' as html;
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
-import 'package:js/js_util.dart' as js;
+import 'package:cryptography/src/browser/browser_secret_key.dart';
 
-import 'aes.dart';
-import 'javascript_bindings.dart' show jsArrayBufferFrom;
-import 'javascript_bindings.dart' as web_crypto;
+import '_javascript_bindings.dart' show jsArrayBufferFrom;
+import '_javascript_bindings.dart' as web_crypto;
 
 /// AES-GCM implementation that uses _Web Cryptography API_ in browsers.
-class BrowserAesGcm extends AesGcm
-    with BrowserAesMixin
-    implements StreamingCipher {
+class BrowserAesGcm extends AesGcm implements StreamingCipher {
+  static const String _webCryptoName = 'AES-GCM';
+
   @override
   final int secretKeyLength;
 
   @override
   final int nonceLength;
 
-  /// Implementation used when:
-  ///   * `keyStreamIndex` is non-zero.
-  ///   * key is 192-bit.
+  /// Fallback is the implementation used when `keyStreamIndex` is non-zero.
   ///
-  /// If null, [ArgumentError] will be thrown when `keyStreamIndex` is non-zero
-  /// and 192-bit keys will not be accepted.
+  /// If null, [ArgumentError] will be thrown when `keyStreamIndex` is non-zero.
   final AesGcm? fallback;
+
+  final Random? _random;
 
   BrowserAesGcm({
     this.secretKeyLength = 32,
-    this.nonceLength = 12,
+    this.nonceLength = AesGcm.defaultNonceLength,
     this.fallback,
-  }) : super.constructor();
-
-  @override
-  String get webCryptoName => 'AES-GCM';
+    Random? random,
+  })  : _random = random,
+        super.constructor(random: random);
 
   @override
   Future<List<int>> decrypt(
@@ -55,39 +53,13 @@ class BrowserAesGcm extends AesGcm
     required SecretKey secretKey,
     List<int> aad = const <int>[],
     int keyStreamIndex = 0,
+    Uint8List? possibleBuffer,
   }) async {
     if (keyStreamIndex != 0) {
-      final fallback = this.fallback;
-      if (fallback == null) {
-        throw ArgumentError.value(
-          keyStreamIndex,
-          'keyStreamIndex',
-          'Must be 0',
-        );
-      }
-      // Key stream offset can't be passed to Web Cryptography API.
-      return fallback.decrypt(
-        secretBox,
-        secretKey: secretKey,
-        aad: aad,
-        keyStreamIndex: keyStreamIndex,
-      );
-    }
-
-    // Web Cryptography API does not support 192 bit keys.
-    if (secretKey is SecretKeyData && secretKey.bytes.length == 24) {
-      final fallback = this.fallback;
-      if (fallback == null) {
-        throw ArgumentError.value(
-          secretKey,
-          'secretKey',
-        );
-      }
-      return fallback.decrypt(
-        secretBox,
-        secretKey: secretKey,
-        aad: aad,
-        keyStreamIndex: keyStreamIndex,
+      throw ArgumentError.value(
+        keyStreamIndex,
+        'keyStreamIndex',
+        'Must be 0',
       );
     }
 
@@ -101,9 +73,13 @@ class BrowserAesGcm extends AesGcm
         'Expected MAC length $expectedMacLength, actually $actualMacLength',
       );
     }
-    final jsCryptoKey = await jsCryptoKeyFromAesSecretKey(
+    final jsCryptoKey = await BrowserSecretKey.jsCryptoKeyForAes(
       secretKey,
-      webCryptoAlgorithm: 'AES-GCM',
+      secretKeyLength: secretKeyLength,
+      webCryptoAlgorithm: _webCryptoName,
+      isExtractable: false,
+      allowEncrypt: false,
+      allowDecrypt: true,
     );
     final cipherText = secretBox.cipherText;
     final macBytes = actualMac.bytes;
@@ -111,22 +87,20 @@ class BrowserAesGcm extends AesGcm
     cipherTextAndMac.setAll(0, cipherText);
     cipherTextAndMac.setAll(cipherText.length, macBytes);
     try {
-      final byteBuffer = await js.promiseToFuture<ByteBuffer>(
-        web_crypto.decrypt(
-          web_crypto.AesGcmParams(
-            name: 'AES-GCM',
-            iv: jsArrayBufferFrom(secretBox.nonce),
-            additionalData: jsArrayBufferFrom(aad),
-            tagLength: macBytes.length * 8,
-          ),
-          jsCryptoKey,
-          jsArrayBufferFrom(cipherTextAndMac),
+      final byteBuffer = await web_crypto.decrypt(
+        web_crypto.AesGcmParams(
+          name: _webCryptoName,
+          iv: jsArrayBufferFrom(secretBox.nonce),
+          additionalData: jsArrayBufferFrom(aad),
+          tagLength: macBytes.length * 8,
         ),
+        jsCryptoKey,
+        jsArrayBufferFrom(cipherTextAndMac),
       );
       return Uint8List.view(byteBuffer);
     } on html.DomException catch (e) {
       if (e.name == 'OperationError') {
-        throw SecretBoxAuthenticationError(secretBox: secretBox);
+        throw SecretBoxAuthenticationError();
       }
       rethrow;
     }
@@ -139,69 +113,64 @@ class BrowserAesGcm extends AesGcm
     List<int>? nonce,
     List<int> aad = const <int>[],
     int keyStreamIndex = 0,
+    Uint8List? possibleBuffer,
   }) async {
-    // Key stream offset can't be passed to Web Cryptography API.
     if (keyStreamIndex != 0) {
-      final fallback = this.fallback;
-      if (fallback == null) {
-        throw ArgumentError.value(
-          keyStreamIndex,
-          'keyStreamIndex',
-          'Must be 0',
-        );
-      }
-      return fallback.encrypt(
-        clearText,
-        secretKey: secretKey,
-        nonce: nonce,
-        aad: aad,
-        keyStreamIndex: keyStreamIndex,
-      );
-    }
-
-    // Web Cryptography API does not support 192 bit keys.
-    if (secretKey is SecretKeyData && secretKey.bytes.length == 24) {
-      final fallback = this.fallback;
-      if (fallback == null) {
-        throw ArgumentError.value(
-          secretKey,
-          'secretKey',
-        );
-      }
-      return fallback.encrypt(
-        clearText,
-        secretKey: secretKey,
-        nonce: nonce,
-        aad: aad,
-        keyStreamIndex: keyStreamIndex,
+      throw ArgumentError.value(
+        keyStreamIndex,
+        'keyStreamIndex',
+        'Must be 0',
       );
     }
 
     nonce ??= newNonce();
-    final jsCryptoKey = await jsCryptoKeyFromAesSecretKey(
+    final jsCryptoKey = await BrowserSecretKey.jsCryptoKeyForAes(
       secretKey,
-      webCryptoAlgorithm: 'AES-GCM',
+      secretKeyLength: secretKeyLength,
+      webCryptoAlgorithm: _webCryptoName,
+      isExtractable: false,
+      allowEncrypt: true,
+      allowDecrypt: false,
     );
-    final byteBuffer = await js.promiseToFuture<ByteBuffer>(
-      web_crypto.encrypt(
-        web_crypto.AesGcmParams(
-          name: 'AES-GCM',
-          iv: jsArrayBufferFrom(nonce),
-          additionalData: jsArrayBufferFrom(aad),
-          tagLength: macAlgorithm.macLength * 8,
-        ),
-        jsCryptoKey,
-        jsArrayBufferFrom(clearText),
+    final byteBuffer = await web_crypto.encrypt(
+      web_crypto.AesGcmParams(
+        name: 'AES-GCM',
+        iv: jsArrayBufferFrom(nonce),
+        additionalData: jsArrayBufferFrom(aad),
+        tagLength: macAlgorithm.macLength * 8,
       ),
+      jsCryptoKey,
+      jsArrayBufferFrom(clearText),
     );
-    final cipherText = Uint8List.view(byteBuffer, 0, clearText.length);
-    final mac = Mac(UnmodifiableUint8ListView(
-      Uint8List.view(byteBuffer, clearText.length),
-    ));
+
+    final cipherText = Uint8List.view(
+      byteBuffer,
+      0,
+      clearText.length,
+    );
+
+    final mac = Mac(Uint8List.view(byteBuffer, clearText.length));
+
     return SecretBox(
       cipherText,
       nonce: nonce,
       mac: mac,
+    );
+  }
+
+  @override
+  Future<BrowserSecretKey> newSecretKey({
+    bool isExtractable = true,
+    bool allowEncrypt = true,
+    bool allowDecrypt = true,
+  }) async {
+    return BrowserSecretKey.generateForAes(
+      webCryptoAlgorithm: _webCryptoName,
+      secretKeyLength: secretKeyLength,
+      isExtractable: isExtractable,
+      allowEncrypt: allowEncrypt,
+      allowDecrypt: allowDecrypt,
+      random: _random,
     );
   }
 }

@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Gohilla Ltd.
+// Copyright 2019-2020 Gohilla.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -66,7 +66,9 @@ class Blake2bSink extends DartHashSink {
 
   final _hash = Uint32List(32);
   final _bufferAsUint32List = Uint32List(32);
-  Uint8List? _bufferAsBytes;
+  late final Uint8List _bufferAsBytes = Uint8List.view(
+    _bufferAsUint32List.buffer,
+  );
   int _length = 0;
   Hash? _result;
   bool _isClosed = false;
@@ -87,11 +89,7 @@ class Blake2bSink extends DartHashSink {
       throw StateError('Already closed');
     }
 
-    var bufferAsBytes = _bufferAsBytes;
-    if (bufferAsBytes == null) {
-      bufferAsBytes ??= Uint8List.view(_bufferAsUint32List.buffer);
-      _bufferAsBytes = bufferAsBytes;
-    }
+    final bufferAsBytes = _bufferAsBytes;
     var length = _length;
     for (var i = start; i < end; i++) {
       final bufferIndex = length % 64;
@@ -132,7 +130,7 @@ class Blake2bSink extends DartHashSink {
     // Fill remaining indices with zeroes
     final blockLength = length % 64;
     if (blockLength > 0) {
-      _bufferAsBytes!.fillRange(blockLength, 64, 0);
+      _bufferAsBytes.fillRange(blockLength, 64, 0);
     }
 
     // Compress
@@ -144,7 +142,7 @@ class Blake2bSink extends DartHashSink {
       0,
       Uint8List.view(_hash.buffer, 0, 64),
     );
-    _result = Hash(UnmodifiableUint8ListView(resultBytes));
+    _result = Hash(resultBytes);
   }
 
   @override
@@ -237,14 +235,14 @@ class Blake2bSink extends DartHashSink {
     var vdLow = v[d];
     var vdHigh = v[d + 1];
 
-    // sum(v, a, b, m[x], m[x + 1]);
+    // va = va + bv + m[x]
     {
       final low = vaLow + vbLow + m[x];
       vaLow = uint32mask & low;
       vaHigh = uint32mask & (low ~/ _bit32 + vaHigh + vbHigh + m[x + 1]);
     }
 
-    // xorAndRotate(v, d, a, 32);
+    // vd = rotateRight(vd ^ va, 32);
     {
       final low = vdLow ^ vaLow;
       final high = vdHigh ^ vaHigh;
@@ -252,44 +250,44 @@ class Blake2bSink extends DartHashSink {
       vdHigh = low;
     }
 
-    // sum(v, c, d, 0, 0);
+    // vc = c + d
     {
       final low = vcLow + vdLow;
       vcLow = uint32mask & low;
       vcHigh = uint32mask & (low ~/ _bit32 + vcHigh + vdHigh);
     }
 
-    // xorAndRotate(v, b, c, 24);
+    // vb = rotateRight(b ^ c, 24);
     {
       final low = vbLow ^ vcLow;
       final high = vbHigh ^ vcHigh;
-      vbLow = (uint32mask & (high << 8)) | low >> 24;
-      vbHigh = (uint32mask & (low << 8)) | high >> 24;
+      vbLow = ((high << 8)) | low >> 24;
+      vbHigh = ((low << 8)) | high >> 24;
     }
 
-    // sum(v, a, b, m[y], m[y + 1]);
+    // va = va + vb + m[y]
     {
       final low = vaLow + vbLow + m[y];
       vaLow = uint32mask & low;
       vaHigh = uint32mask & (low ~/ _bit32 + vaHigh + vbHigh + m[y + 1]);
     }
 
-    // xorAndRotate(v, d, a, 16);
+    // vd = rotateRight(vd ^ va, 16);
     {
       final low = vdLow ^ vaLow;
       final high = vdHigh ^ vaHigh;
-      vdLow = (uint32mask & (high << 16)) | low >> 16;
-      vdHigh = (uint32mask & (low << 16)) | high >> 16;
+      vdLow = (high << 16) | low >> 16;
+      vdHigh = (low << 16) | high >> 16;
     }
 
-    // sum(v, c, d, 0, 0);
+    // vc = c + d
     {
       final low = vcLow + vdLow;
       vcLow = uint32mask & low;
       vcHigh = uint32mask & (low ~/ _bit32 + vcHigh + vdHigh);
     }
 
-    // xorAndRotate(v, b, c, 63);
+    // vb = rotateRight(vb ^ vc, 63);
     {
       final low = vbLow ^ vcLow;
       final high = vbHigh ^ vcHigh;

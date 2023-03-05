@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Gohilla Ltd.
+// Copyright 2019-2020 Gohilla.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,8 +14,7 @@
 
 import 'dart:typed_data';
 
-import 'package:cryptography/src/utils.dart';
-
+import '../_internal/big_int.dart';
 import 'x25519_impl.dart';
 
 final _mask16 = BigInt.from(0xFFFF);

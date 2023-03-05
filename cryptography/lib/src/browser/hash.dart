@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Gohilla Ltd.
+// Copyright 2019-2020 Gohilla.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,14 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:js_util' as js;
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
 import 'package:meta/meta.dart';
 
-import 'javascript_bindings.dart' as web_crypto;
-import 'javascript_bindings.dart' show jsArrayBufferFrom;
+import '_javascript_bindings.dart' as web_crypto;
+import '_javascript_bindings.dart' show jsArrayBufferFrom;
 
 mixin BrowserHashAlgorithmMixin implements HashAlgorithm {
   /// Web Cryptography API algorithm name ("SHA-256", etc.).
@@ -27,12 +26,11 @@ mixin BrowserHashAlgorithmMixin implements HashAlgorithm {
 
   @override
   Future<Hash> hash(List<int> bytes) async {
-    final byteBuffer = await js.promiseToFuture<ByteBuffer>(
-      web_crypto.digest(webCryptoName, jsArrayBufferFrom(bytes)),
+    final byteBuffer = await web_crypto.digest(
+      webCryptoName,
+      jsArrayBufferFrom(bytes),
     );
-    return Hash(List<int>.unmodifiable(
-      Uint8List.view(byteBuffer),
-    ));
+    return Hash(Uint8List.view(byteBuffer));
   }
 }
 

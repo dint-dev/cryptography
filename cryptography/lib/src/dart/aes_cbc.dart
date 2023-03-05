@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Gohilla Ltd.
+// Copyright 2019-2020 Gohilla.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,10 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
 
+import '../utils.dart';
 import 'aes_impl.dart';
 
 /// [AesCbc] implemented in pure Dart.
@@ -23,26 +25,58 @@ import 'aes_impl.dart';
 /// For examples and more information about the algorithm, see documentation for
 /// the class [AesCbc].
 class DartAesCbc extends AesCbc with DartAesMixin {
+  static const int _blockLength = 16;
+
   @override
   final MacAlgorithm macAlgorithm;
 
   @override
+  final PaddingAlgorithm paddingAlgorithm;
+
+  @override
   final int secretKeyLength;
 
-  const DartAesCbc({required this.macAlgorithm, this.secretKeyLength = 32})
-      : assert(secretKeyLength == 16 ||
+  @override
+  final Random? random;
+
+  const DartAesCbc({
+    required this.macAlgorithm,
+    this.paddingAlgorithm = PaddingAlgorithm.pkcs7,
+    this.secretKeyLength = 32,
+    this.random,
+  })  : assert(secretKeyLength == 16 ||
             secretKeyLength == 24 ||
             secretKeyLength == 32),
-        super.constructor();
+        super.constructor(
+          random: random,
+        );
 
-  const DartAesCbc.with128bits({required MacAlgorithm macAlgorithm})
-      : this(macAlgorithm: macAlgorithm, secretKeyLength: 16);
+  const DartAesCbc.with128bits({
+    required MacAlgorithm macAlgorithm,
+    PaddingAlgorithm paddingAlgorithm = PaddingAlgorithm.pkcs7,
+  }) : this(
+          macAlgorithm: macAlgorithm,
+          paddingAlgorithm: paddingAlgorithm,
+          secretKeyLength: 16,
+        );
 
-  const DartAesCbc.with192bits({required MacAlgorithm macAlgorithm})
-      : this(macAlgorithm: macAlgorithm, secretKeyLength: 24);
+  const DartAesCbc.with192bits({
+    required MacAlgorithm macAlgorithm,
+    PaddingAlgorithm paddingAlgorithm = PaddingAlgorithm.pkcs7,
+  }) : this(
+          macAlgorithm: macAlgorithm,
+          paddingAlgorithm: paddingAlgorithm,
+          secretKeyLength: 24,
+        );
 
-  const DartAesCbc.with256bits({required MacAlgorithm macAlgorithm})
-      : this(macAlgorithm: macAlgorithm, secretKeyLength: 32);
+  const DartAesCbc.with256bits({
+    required MacAlgorithm macAlgorithm,
+    PaddingAlgorithm paddingAlgorithm = PaddingAlgorithm.pkcs7,
+  }) : this(
+          macAlgorithm: macAlgorithm,
+          paddingAlgorithm: paddingAlgorithm,
+          secretKeyLength: 32,
+        );
 
   @override
   Future<List<int>> decrypt(
@@ -50,6 +84,7 @@ class DartAesCbc extends AesCbc with DartAesMixin {
     required SecretKey secretKey,
     List<int> aad = const <int>[],
     int keyStreamIndex = 0,
+    Uint8List? possibleBuffer,
   }) async {
     // Validate arguments
     final secretKeyData = await secretKey.extract();
@@ -63,7 +98,7 @@ class DartAesCbc extends AesCbc with DartAesMixin {
       );
     }
     final nonceLength = secretBox.nonce.length;
-    if (nonceLength != 16) {
+    if (nonceLength != nonceLength) {
       throw ArgumentError.value(
         secretBox,
         'secretBox',
@@ -147,29 +182,20 @@ class DartAesCbc extends AesCbc with DartAesMixin {
       }
     }
 
-    // PKCS7 padding:
-    // The last byte has padding length.
-    final paddingLength = outputAsUint8List.last;
-    if (paddingLength == 0 || paddingLength > 16) {
+    // Handle big-endian systems.
+    flipUint32ListEndianUnless(outputAsUint32List, Endian.little);
+
+    // Determine length of padding.
+    final paddingLength = paddingAlgorithm.getBlockPadding(
+      _blockLength,
+      outputAsUint8List,
+    );
+    if (paddingLength < 0) {
       throw SecretBoxPaddingError(
-        message:
-            'The decrypted bytes have invalid PKCS7 padding length in the end: $paddingLength',
+        message: 'Invalid padding. Padding algorithm is $paddingAlgorithm.',
       );
     }
 
-    // Check that all padding bytes are correct PKCS7 padding bytes.
-    for (var i = outputAsUint8List.length - paddingLength;
-        i < outputAsUint8List.length;
-        i++) {
-      if (outputAsUint8List[i] != paddingLength) {
-        throw SecretBoxPaddingError(
-          message: 'The decrypted bytes are missing PKCS7 padding',
-        );
-      }
-    }
-    if (paddingLength == 0) {
-      return outputAsUint8List;
-    }
     return Uint8List.view(
       outputAsUint32List.buffer,
       outputAsUint32List.offsetInBytes,
@@ -184,6 +210,7 @@ class DartAesCbc extends AesCbc with DartAesMixin {
     List<int>? nonce,
     List<int> aad = const <int>[],
     int keyStreamIndex = 0,
+    Uint8List? possibleBuffer,
   }) async {
     // Check parameters
     final secretKeyData = await secretKey.extract();
@@ -215,25 +242,27 @@ class DartAesCbc extends AesCbc with DartAesMixin {
     final expandedKey = aesExpandKeyForEncrypting(secretKeyData);
 
     // Construct Uint32List list for the output
-    final paddingLength = 16 - clearText.length % 16;
+    final paddingLength = paddingAlgorithm.paddingLength(
+      _blockLength,
+      clearText.length,
+    );
     final cipherTextBlocks = Uint32List(
       (clearText.length + paddingLength) ~/ 16 * 4,
     );
     final cipherTextBytes = Uint8List.view(cipherTextBlocks.buffer);
 
-    // Fill output with input + PKCS7 padding
+    // Write clear text to buffer
     cipherTextBytes.setRange(0, clearText.length, clearText);
-    cipherTextBytes.fillRange(
+
+    // Fill output with input + PKCS7 padding
+    paddingAlgorithm.setBlockPadding(
+      _blockLength,
+      cipherTextBytes,
       clearText.length,
-      cipherTextBytes.lengthInBytes,
-      paddingLength,
     );
-    if (Endian.host == Endian.big) {
-      final outputByteData = ByteData.view(cipherTextBytes.buffer);
-      for (var i = 0; i < cipherTextBytes.length; i += 4) {
-        cipherTextBytes[i] = outputByteData.getUint32(i, Endian.big);
-      }
-    }
+
+    // Handle big-endian systems.
+    flipUint32ListEndianUnless(cipherTextBlocks, Endian.little);
 
     for (var i = 0; i < cipherTextBlocks.length; i += 4) {
       if (i == 0) {

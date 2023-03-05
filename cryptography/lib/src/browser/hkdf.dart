@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Gohilla Ltd.
+// Copyright 2019-2020 Gohilla.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,11 +15,10 @@
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
-import 'package:js/js_util.dart' as js;
 
+import '_javascript_bindings.dart' show jsArrayBufferFrom;
+import '_javascript_bindings.dart' as web_crypto;
 import 'hmac.dart';
-import 'javascript_bindings.dart' show jsArrayBufferFrom;
-import 'javascript_bindings.dart' as web_crypto;
 
 /// HKDF implementation that uses _Web Cryptography API_ in browsers.
 ///
@@ -41,31 +40,26 @@ class BrowserHkdf extends Hkdf {
     List<int> info = const <int>[],
   }) async {
     final jsCryptoKey = await _jsCryptoKey(secretKey);
-    final byteBuffer = await js.promiseToFuture<ByteBuffer>(
-      web_crypto.deriveBits(
-        web_crypto.HkdfParams(
-          name: 'HKDF',
-          hash: hmac.hashAlgorithmWebCryptoName,
-          salt: jsArrayBufferFrom(nonce),
-          info: jsArrayBufferFrom(info),
-        ),
-        jsCryptoKey,
-        8 * outputLength,
+    final byteBuffer = await web_crypto.deriveBits(
+      web_crypto.HkdfParams(
+        name: 'HKDF',
+        hash: hmac.hashAlgorithmWebCryptoName,
+        salt: jsArrayBufferFrom(nonce),
+        info: jsArrayBufferFrom(info),
       ),
+      jsCryptoKey,
+      8 * outputLength,
     );
     return SecretKey(Uint8List.view(byteBuffer));
   }
 
   Future<web_crypto.CryptoKey> _jsCryptoKey(SecretKey secretKey) async {
     final secretKeyBytes = await secretKey.extractBytes();
-    return await js.promiseToFuture<web_crypto.CryptoKey>(
-      web_crypto.importKey(
-        'raw',
-        web_crypto.jsArrayBufferFrom(secretKeyBytes),
-        'HKDF',
-        false,
-        const ['deriveBits'],
-      ),
+    return await web_crypto.importKeyWhenRaw(
+      web_crypto.jsArrayBufferFrom(secretKeyBytes),
+      'HKDF',
+      false,
+      const ['deriveBits'],
     );
   }
 }

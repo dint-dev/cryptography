@@ -15,10 +15,11 @@
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
+import 'package:cryptography/src/_internal/hex.dart';
 import 'package:cryptography/src/dart/aes_impl.dart' as aes;
 import 'package:cryptography/src/dart/aes_impl_constants.dart' as constants;
-import 'package:cryptography/src/utils/hex.dart';
-import 'package:test/test.dart';
+import 'package:test/expect.dart';
+import 'package:test/scaffolding.dart';
 
 void main() {
   test('AES S-Box constants', () {

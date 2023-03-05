@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Gohilla Ltd.
+// Copyright 2019-2020 Gohilla.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -11,6 +11,9 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
+import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/dart.dart';
@@ -25,9 +28,7 @@ void main() {
 
   group('Chacha20.poly1305Aead():', () {
     test('== / hashCode', () {
-      final clone = Chacha20(
-        macAlgorithm: DartChacha20Poly1305AeadMacAlgorithm(),
-      );
+      final clone = Chacha20.poly1305Aead();
       final other0 = Chacha20(
         macAlgorithm: Hmac.sha256(),
       );
@@ -40,21 +41,21 @@ void main() {
     test('toString', () {
       expect(
         algorithm.toString(),
-        'Chacha20.poly1305Aead()',
+        'DartChacha20.poly1305Aead()',
       );
     });
 
     test('information', () {
       expect(
         algorithm.macAlgorithm,
-        isA<DartChacha20Poly1305AeadMacAlgorithm>(),
+        same(const DartChacha20Poly1305AeadMacAlgorithm()),
       );
       expect(algorithm.macAlgorithm.supportsAad, isTrue);
       expect(algorithm.secretKeyLength, 32);
       expect(algorithm.nonceLength, 12);
     });
 
-    group('Checks MAC', () {
+    group('Throws $SecretBoxAuthenticationError if MAC is incorrect', () {
       Future<void> f(List<int> message) async {
         final secretKey = await algorithm.newSecretKey();
         final secretBox = await algorithm.encrypt(
@@ -68,7 +69,7 @@ void main() {
           mac: badMac,
         );
         await expectLater(
-          algorithm.decrypt(badSecretBox, secretKey: secretKey),
+          () => algorithm.decrypt(badSecretBox, secretKey: secretKey),
           throwsA(isA<SecretBoxAuthenticationError>()),
         );
       }
@@ -94,30 +95,76 @@ void main() {
       expect(secretBox.mac.bytes, hasLength(16));
     });
 
+    test('encrypt() / decrypt() does not block the event loop', () async {
+      var n = 0;
+      final timer = Timer.periodic(const Duration(milliseconds: 1), (timer) {
+        n++;
+      });
+      addTearDown(() {
+        timer.cancel();
+      });
+      final data = Uint8List(16 * 1024 * 1024);
+      final secretKey = await algorithm.newSecretKey();
+      final nonce = algorithm.newNonce();
+      n = 0;
+      final secretBox = await algorithm.encrypt(
+        data,
+        secretKey: secretKey,
+        nonce: nonce,
+      );
+      expect(n, greaterThan(10));
+      n = 0;
+      await algorithm.decrypt(
+        secretBox,
+        secretKey: secretKey,
+      );
+      expect(n, greaterThan(10));
+      timer.cancel();
+    });
+
+    test('decrypt() does not block', () async {
+      var n = 0;
+      final timer = Timer.periodic(const Duration(milliseconds: 1), (timer) {
+        n++;
+      });
+      addTearDown(() {
+        timer.cancel();
+      });
+      final data = Uint8List(16 * 1024 * 1024);
+      final secretKey = await algorithm.newSecretKey();
+      final nonce = algorithm.newNonce();
+      await algorithm.encrypt(
+        data,
+        secretKey: secretKey,
+        nonce: nonce,
+      );
+      expect(n, greaterThan(10));
+      timer.cancel();
+    });
+
     group('RFC 7539: test vectors', () {
       // -------------------------------------------------------------------------
       // The following input/output constants are copied from the RFC 7539:
       // https://tools.ietf.org/html/rfc7539
       // -------------------------------------------------------------------------
-      final clearText =
+      final clearText = List<int>.unmodifiable(
           "Ladies and Gentlemen of the class of '99: If I could offer you only one tip for the future, sunscreen would be it."
-              .runes
-              .toList();
+              .runes);
 
-      final aad = hexToBytes(
+      final aad = List<int>.unmodifiable(hexToBytes(
         '50 51 52 53 c0 c1 c2 c3 c4 c5 c6 c7',
-      );
-
-      final secretKey = SecretKey(hexToBytes(
-        '80 81 82 83 84 85 86 87 88 89 8a 8b 8c 8d 8e 8f'
-        '90 91 92 93 94 95 96 97 98 99 9a 9b 9c 9d 9e 9f',
       ));
 
-      final nonce = hexToBytes(
-        '07 00 00 00 40 41 42 43 44 45 46 47',
-      );
+      final secretKey = SecretKeyData(List<int>.unmodifiable(hexToBytes(
+        '80 81 82 83 84 85 86 87 88 89 8a 8b 8c 8d 8e 8f'
+        '90 91 92 93 94 95 96 97 98 99 9a 9b 9c 9d 9e 9f',
+      )));
 
-      final expectedCipherText = hexToBytes('''
+      final nonce = List<int>.unmodifiable(hexToBytes(
+        '07 00 00 00 40 41 42 43 44 45 46 47',
+      ));
+
+      final expectedCipherText = List<int>.unmodifiable(hexToBytes('''
 d3 1a 8d 34 64 8e 60 db 7b 86 af bc 53 ef 7e c2
 a4 ad ed 51 29 6e 08 fe a9 e2 b5 a7 36 ee 62 d6
 3d be a4 5e 8c a9 67 12 82 fa fb 69 da 92 72 8b
@@ -126,11 +173,11 @@ a4 ad ed 51 29 6e 08 fe a9 e2 b5 a7 36 ee 62 d6
 fa b3 24 e4 fa d6 75 94 55 85 80 8b 48 31 d7 bc
 3f f4 de f0 8e 4b 7a 9d e5 76 d2 65 86 ce c6 4b
 61 16
-''');
+'''));
 
-      final expectedMac = Mac(hexToBytes(
+      final expectedMac = Mac(List<int>.unmodifiable(hexToBytes(
         '1a:e1:0b:59:4f:09:e2:6a:7e:90:2e:cb:d0:60:06:91',
-      ));
+      )));
 
       // -----------------------------------------------------------------------
       // End of constants from RFC 7539
@@ -148,7 +195,73 @@ fa b3 24 e4 fa d6 75 94 55 85 80 8b 48 31 d7 bc
           hexFromBytes(expectedCipherText),
         );
         expect(
+          hexFromBytes(secretBox.nonce),
+          hexFromBytes(nonce),
+        );
+        expect(
           hexFromBytes(secretBox.mac.bytes),
+          hexFromBytes(expectedMac.bytes),
+        );
+      });
+
+      test('encryptSync(...)', () {
+        final algorithm = DartChacha20.poly1305Aead();
+        final secretBox = algorithm.encryptSync(
+          clearText,
+          secretKey: secretKey,
+          nonce: nonce,
+          aad: aad,
+        );
+        expect(
+          hexFromBytes(secretBox.cipherText),
+          hexFromBytes(expectedCipherText),
+        );
+        expect(
+          hexFromBytes(secretBox.nonce),
+          hexFromBytes(nonce),
+        );
+        expect(
+          hexFromBytes(secretBox.mac.bytes),
+          hexFromBytes(expectedMac.bytes),
+        );
+      });
+
+      test('encryptStream(...)', () async {
+        final algorithm = DartChacha20.poly1305Aead();
+        final inputChunks = [
+          clearText.sublist(0, 1),
+          clearText.sublist(1, 3),
+          clearText.sublist(3),
+        ];
+        final inputStream = Stream<List<int>>.fromIterable(inputChunks);
+        Mac? actualMac;
+        final outputChunks = await algorithm.encryptStream(
+          inputStream,
+          secretKey: secretKey,
+          nonce: nonce,
+          onMac: (arg) {
+            actualMac = arg;
+          },
+          aad: aad,
+        ).toList();
+
+        // We want each chunk to be a new Uint8List instance
+        expect(
+          outputChunks.first,
+          isNot(same(inputChunks.first)),
+        );
+        expect(outputChunks, everyElement(isA<Uint8List>()));
+
+        // Test that the cipher text is computed correctly
+        expect(
+          hexFromBytes(_concatenate(outputChunks)),
+          hexFromBytes(expectedCipherText),
+        );
+
+        // Test that the MAC is computed correctly
+        expect(actualMac?.bytes, isA<Uint8List>());
+        expect(
+          hexFromBytes(actualMac?.bytes ?? const []),
           hexFromBytes(expectedMac.bytes),
         );
       });
@@ -169,6 +282,58 @@ fa b3 24 e4 fa d6 75 94 55 85 80 8b 48 31 d7 bc
           hexFromBytes(clearText),
         );
       });
+
+      test('decryptSync(...)', () {
+        final algorithm = DartChacha20.poly1305Aead();
+        final secretBox = SecretBox(
+          expectedCipherText,
+          nonce: nonce,
+          mac: expectedMac,
+        );
+        final actualClearText = algorithm.decryptSync(
+          secretBox,
+          secretKey: secretKey,
+          aad: aad,
+        );
+        expect(
+          hexFromBytes(actualClearText),
+          hexFromBytes(clearText),
+        );
+      });
+
+      test('decryptStream(...)', () async {
+        final algorithm = DartChacha20.poly1305Aead();
+        final inputChunks = [
+          expectedCipherText.sublist(0, 1),
+          expectedCipherText.sublist(1, 3),
+          expectedCipherText.sublist(3),
+        ];
+        final inputStream = Stream<List<int>>.fromIterable(
+          inputChunks,
+        );
+        final outputChunks = await algorithm
+            .decryptStream(
+              inputStream,
+              secretKey: secretKey,
+              nonce: nonce,
+              mac: expectedMac,
+              aad: aad,
+            )
+            .toList();
+
+        // We want each chunk to be a new Uint8List instance
+        expect(outputChunks.first, isNot(same(inputChunks.first)));
+        // expect(outputChunks, everyElement(isA<Uint8List>()));
+
+        expect(
+          hexFromBytes(_concatenate(outputChunks)),
+          hexFromBytes(clearText),
+        );
+      });
     });
   });
+}
+
+List<int> _concatenate(List<List<int>> chunks) {
+  return chunks.reduce((previous, element) => [...previous, ...element]);
 }

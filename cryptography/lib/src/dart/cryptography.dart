@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Gohilla Ltd.
+// Copyright 2019-2020 Gohilla.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -11,6 +11,8 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
+import 'dart:math';
 
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/dart.dart';
@@ -25,7 +27,7 @@ import 'package:cryptography/dart.dart';
 ///   * [Blake2b]
 ///   * [Blake2s]
 ///   * [Chacha20]
-///   * [Chacha20Poly1305Aead]
+///   * [Chacha20.poly1305Aead]
 ///   * [Ed25519]
 ///   * [Hmac]
 ///   * [Hkdf]
@@ -37,7 +39,7 @@ import 'package:cryptography/dart.dart';
 ///   * [Sha384]
 ///   * [Sha512]
 ///   * [Xchacha20]
-///   * [Xchacha20Poly1305Aead]
+///   * [Xchacha20.poly1305Aead]
 ///   * [X25519]
 ///
 /// SHA-1/SHA-2 implementations use [package:crypto](https://pub.dev/packages/crypto),
@@ -45,16 +47,32 @@ import 'package:cryptography/dart.dart';
 class DartCryptography extends Cryptography {
   static final DartCryptography defaultInstance = DartCryptography();
 
-  DartCryptography();
+  final Random? _random;
+
+  @override
+  DartCryptography withRandom(Random? random) {
+    return DartCryptography(random: random);
+  }
+
+  /// Constructs instance of [DartCryptography].
+  ///
+  /// If [random] is not given, a cryptographically secure random number
+  /// generator (CSRNG) is used.
+  DartCryptography({
+    Random? random,
+  }) : _random = random;
 
   @override
   AesCbc aesCbc({
     required MacAlgorithm macAlgorithm,
+    PaddingAlgorithm paddingAlgorithm = PaddingAlgorithm.pkcs7,
     int secretKeyLength = 32,
   }) {
     return DartAesCbc(
       macAlgorithm: macAlgorithm,
+      paddingAlgorithm: paddingAlgorithm,
       secretKeyLength: secretKeyLength,
+      random: _random,
     );
   }
 
@@ -68,6 +86,7 @@ class DartCryptography extends Cryptography {
       macAlgorithm: macAlgorithm,
       secretKeyLength: secretKeyLength,
       counterBits: counterBits,
+      random: _random,
     );
   }
 
@@ -79,6 +98,7 @@ class DartCryptography extends Cryptography {
     return DartAesGcm(
       secretKeyLength: secretKeyLength,
       nonceLength: nonceLength,
+      random: _random,
     );
   }
 
@@ -107,46 +127,68 @@ class DartCryptography extends Cryptography {
   Chacha20 chacha20({required MacAlgorithm macAlgorithm}) {
     return DartChacha20(
       macAlgorithm: macAlgorithm,
+      random: _random,
     );
   }
 
   @override
   Chacha20 chacha20Poly1305Aead() {
-    return const DartChacha20.poly1305Aead();
+    return DartChacha20.poly1305Aead(
+      random: _random,
+    );
   }
 
   @override
   Ecdh ecdhP256({required int length}) {
-    return DartEcdh.p256();
+    return DartEcdh.p256(
+      random: _random,
+    );
   }
 
   @override
   Ecdh ecdhP384({required int length}) {
-    return DartEcdh.p384();
+    return DartEcdh.p384(
+      random: _random,
+    );
   }
 
   @override
   Ecdh ecdhP521({required int length}) {
-    return DartEcdh.p521();
+    return DartEcdh.p521(
+      random: _random,
+    );
   }
 
   @override
   Ecdsa ecdsaP256(HashAlgorithm hashAlgorithm) {
-    return DartEcdsa.p256(hashAlgorithm);
+    return DartEcdsa.p256(
+      hashAlgorithm,
+      random: _random,
+    );
   }
 
   @override
   Ecdsa ecdsaP384(HashAlgorithm hashAlgorithm) {
-    return DartEcdsa.p384(hashAlgorithm);
+    return DartEcdsa.p384(
+      hashAlgorithm,
+      random: _random,
+    );
   }
 
   @override
   Ecdsa ecdsaP521(HashAlgorithm hashAlgorithm) {
-    return DartEcdsa.p521(hashAlgorithm);
+    return DartEcdsa.p521(
+      hashAlgorithm,
+      random: _random,
+    );
   }
 
   @override
-  Ed25519 ed25519() => DartEd25519();
+  Ed25519 ed25519() {
+    return DartEd25519(
+      random: _random,
+    );
+  }
 
   @override
   Hchacha20 hchacha20() => DartHChacha20();
@@ -197,12 +239,16 @@ class DartCryptography extends Cryptography {
     return DartRsaPss(
       hashAlgorithm,
       nonceLengthInBytes: nonceLengthInBytes,
+      random: _random,
     );
   }
 
   @override
   RsaSsaPkcs1v15 rsaSsaPkcs1v15(HashAlgorithm hashAlgorithm) {
-    return DartRsaSsaPkcs1v15(hashAlgorithm);
+    return DartRsaSsaPkcs1v15(
+      hashAlgorithm,
+      random: _random,
+    );
   }
 
   @override
@@ -221,15 +267,24 @@ class DartCryptography extends Cryptography {
   Sha512 sha512() => const DartSha512();
 
   @override
-  X25519 x25519() => const DartX25519();
+  X25519 x25519() {
+    return DartX25519(
+      random: _random,
+    );
+  }
 
   @override
   Xchacha20 xchacha20({required MacAlgorithm macAlgorithm}) {
-    return DartXchacha20(macAlgorithm: macAlgorithm);
+    return DartXchacha20(
+      macAlgorithm: macAlgorithm,
+      random: _random,
+    );
   }
 
   @override
   Xchacha20 xchacha20Poly1305Aead() {
-    return const DartXchacha20.poly1305Aead();
+    return DartXchacha20.poly1305Aead(
+      random: _random,
+    );
   }
 }

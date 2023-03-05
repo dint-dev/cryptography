@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Gohilla Ltd.
+// Copyright 2019-2020 Gohilla.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,10 +21,11 @@ import 'benchmark_helpers.dart';
 Future<void> main() async {
   // ignore: constant_identifier_names
   const MB = 1000000;
+
   {
     const messageLength = 100;
+    print('10k x 100 byte messages (total 1 MB):');
 
-    print('10k x 100b messages:');
     await _Encrypt(
       Chacha20(macAlgorithm: MacAlgorithm.empty),
       MB,
@@ -65,6 +66,7 @@ Future<void> main() async {
 
   {
     print('1 MB messages:');
+
     await _Encrypt(
       Chacha20(macAlgorithm: MacAlgorithm.empty),
       MB,
@@ -113,13 +115,15 @@ class _Encrypt extends SimpleBenchmark {
 
   @override
   Future<void> run() async {
+    final futures = <Future>[];
     for (var i = 0; i < totalLength ~/ messageLength; i++) {
-      await algorithm.encrypt(
+      futures.add(algorithm.encrypt(
         cleartext,
         secretKey: secretKey,
         nonce: nonce,
-      );
+      ));
     }
+    await Future.wait(futures);
   }
 
   @override

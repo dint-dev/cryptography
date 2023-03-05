@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Gohilla Ltd.
+// Copyright 2019-2020 Gohilla.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,15 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:js_util' as js;
 import 'dart:typed_data';
 
-import 'package:cryptography/browser.dart';
 import 'package:cryptography/cryptography.dart';
 
+import '_javascript_bindings.dart' as web_crypto;
+import '_javascript_bindings.dart' show jsArrayBufferFrom;
 import 'hash.dart';
-import 'javascript_bindings.dart' as web_crypto;
-import 'javascript_bindings.dart' show jsArrayBufferFrom;
 
 /// HMAC implementation that uses _Web Cryptography API_ in browsers.
 ///
@@ -57,16 +55,12 @@ class BrowserHmac extends Hmac {
       throw ArgumentError.value(aad, 'aad', 'AAD is unsupported by HMAC');
     }
     final jsCryptoKey = await _jsCryptoKey(secretKey);
-    final byteBuffer = await js.promiseToFuture<ByteBuffer>(
-      web_crypto.sign(
-        'HMAC',
-        jsCryptoKey,
-        jsArrayBufferFrom(bytes),
-      ),
+    final byteBuffer = await web_crypto.sign(
+      'HMAC',
+      jsCryptoKey,
+      jsArrayBufferFrom(bytes),
     );
-    return Mac(List<int>.unmodifiable(
-      Uint8List.view(byteBuffer),
-    ));
+    return Mac(Uint8List.view(byteBuffer));
   }
 
   Future<web_crypto.CryptoKey> _jsCryptoKey(SecretKey secretKey) async {
@@ -78,17 +72,14 @@ class BrowserHmac extends Hmac {
         'SecretKey bytes must be non-empty',
       );
     }
-    return await js.promiseToFuture<web_crypto.CryptoKey>(
-      web_crypto.importKey(
-        'raw',
-        web_crypto.jsArrayBufferFrom(secretKeyBytes),
-        web_crypto.HmacImportParams(
-          name: 'HMAC',
-          hash: hashAlgorithmWebCryptoName,
-        ),
-        false,
-        const ['sign'],
+    return await web_crypto.importKeyWhenRaw(
+      web_crypto.jsArrayBufferFrom(secretKeyBytes),
+      web_crypto.HmacImportParams(
+        name: 'HMAC',
+        hash: hashAlgorithmWebCryptoName,
       ),
+      false,
+      const ['sign'],
     );
   }
 }

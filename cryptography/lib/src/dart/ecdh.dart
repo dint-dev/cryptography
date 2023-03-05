@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Gohilla Ltd.
+// Copyright 2019-2020 Gohilla.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,6 +12,8 @@
 // For specification, see the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:math';
+
 import 'package:cryptography/cryptography.dart';
 
 /// [Ecdh] (P256, P384, P521) implementation in pure Dart. Currently it throws
@@ -23,13 +25,28 @@ class DartEcdh extends Ecdh {
   @override
   final KeyPairType keyPairType;
 
-  DartEcdh.p256() : this._(KeyPairType.p256);
+  DartEcdh.p256({Random? random})
+      : this._(
+          KeyPairType.p256,
+          random: random,
+        );
 
-  DartEcdh.p384() : this._(KeyPairType.p384);
+  DartEcdh.p384({Random? random})
+      : this._(
+          KeyPairType.p384,
+          random: random,
+        );
 
-  DartEcdh.p521() : this._(KeyPairType.p521);
+  DartEcdh.p521({Random? random})
+      : this._(
+          KeyPairType.p521,
+          random: random,
+        );
 
-  DartEcdh._(this.keyPairType) : super.constructor();
+  DartEcdh._(
+    this.keyPairType, {
+    Random? random,
+  }) : super.constructor();
 
   @override
   Future<EcKeyPair> newKeyPair() {

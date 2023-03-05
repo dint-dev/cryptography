@@ -4,14 +4,14 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'cryptography_flutter'
-  s.version          = '0.1.0'
+  s.version          = '0.2.0'
   s.summary          = 'A cryptography plugin for Flutter.'
   s.description      = <<-DESC
 A new flutter plugin project.
                        DESC
   s.homepage         = 'http://github.com/dint-dev/cryptography'
   s.license          = { :file => '../LICENSE' }
-  s.author           = { 'Gohilla Ltd' => 'opensource@gohilla.com' }
+  s.author           = { 'Gohilla' => 'opensource@gohilla.com' }
   s.source           = { :path => '.' }
   s.source_files     = 'Classes/**/*'
   s.dependency 'FlutterMacOS'

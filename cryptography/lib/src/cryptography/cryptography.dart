@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Gohilla Ltd.
+// Copyright 2019-2020 Gohilla.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:cryptography/browser.dart';
+import 'dart:math';
+
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/dart.dart';
 
@@ -57,7 +58,7 @@ import 'package:cryptography/dart.dart';
 ///   // Change the default cryptography
 ///   Cryptography.freezeInstance(MyCryptography());
 ///
-///   final sha256 = Shaa256(); // --> SomeOtherSha256Implementation
+///   final sha256 = Sha256(); // --> SomeOtherSha256Implementation
 /// }
 /// ```
 abstract class Cryptography {
@@ -83,11 +84,14 @@ abstract class Cryptography {
     _instance = cryptography;
   }
 
+  Cryptography withRandom(Random random);
+
   const Cryptography();
 
   /// A factory used by [AesCbc].
   AesCbc aesCbc({
     required MacAlgorithm macAlgorithm,
+    PaddingAlgorithm paddingAlgorithm = PaddingAlgorithm.pkcs7,
     int secretKeyLength = 32,
   });
 

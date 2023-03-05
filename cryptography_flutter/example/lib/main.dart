@@ -1,11 +1,23 @@
+// Copyright 2019-2020 Gohilla.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 import 'dart:convert';
 
 import 'package:cryptography/cryptography.dart';
-import 'package:cryptography_flutter/cryptography_flutter.dart';
 import 'package:flutter/material.dart';
 
 void main() {
-  FlutterCryptography.enable();
   runApp(const MaterialApp(
     title: 'Cryptography demo',
     home: CipherPage(),
@@ -114,6 +126,9 @@ class _CipherPageState extends State<CipherPage> {
                   Expanded(
                     child: TextField(
                       controller: _secretKeyController,
+                      onChanged: (value) {
+                        _encrypt();
+                      },
                       minLines: 1,
                       maxLines: 16,
                       enableInteractiveSelection: true,
@@ -137,6 +152,9 @@ class _CipherPageState extends State<CipherPage> {
                   Expanded(
                     child: TextField(
                       controller: _nonceController,
+                      onChanged: (value) {
+                        _encrypt();
+                      },
                       minLines: 1,
                       maxLines: 16,
                       enableInteractiveSelection: true,
@@ -200,9 +218,6 @@ class _CipherPageState extends State<CipherPage> {
   }
 
   Future<void> _encrypt() async {
-    setState(() {
-      _error = null;
-    });
     try {
       final cipher = _cipher;
       final secretBox = await cipher.encrypt(
@@ -214,9 +229,12 @@ class _CipherPageState extends State<CipherPage> {
       );
       _cipherTextController.text = _toHex(secretBox.cipherText);
       _macController.text = _toHex(secretBox.mac.bytes);
-    } catch (error) {
       setState(() {
-        _error = error;
+        _error = null;
+      });
+    } catch (error, stackTrace) {
+      setState(() {
+        _error = '$error\n\n$stackTrace';
         _cipherTextController.text = '';
         _macController.text = '';
       });

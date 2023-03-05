@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Gohilla Ltd.
+// Copyright 2019-2020 Gohilla.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,18 +15,25 @@
 /// An optimized version of [package:cryptography](https://pub.dev/packages/cryptography).
 ///
 /// See [FlutterCryptography] for usage instructions.
-library cryptography;
+library cryptography_flutter;
 
-import 'package:cryptography_flutter/src/flutter_cryptography.dart';
+import 'package:cryptography_flutter/cryptography_flutter.dart';
 
-export 'src/aes_cbc.dart';
-export 'src/aes_ctr.dart';
-export 'src/aes_gcm.dart';
-export 'src/chacha20.dart';
-export 'src/cipher.dart';
-export 'src/ecdh.dart';
-export 'src/ecdsa.dart';
-export 'src/ed25519.dart';
+export 'src/background/background_aes_gcm.dart';
+export 'src/background/background_chacha20.dart';
+export 'src/background/background_ed25519.dart';
+export 'src/background/background_x25519.dart';
+export 'src/background_cipher.dart';
+export 'src/cryptography_channel_policy.dart';
+export 'src/cryptography_channel_queue.dart';
+export 'src/cryptography_unsupported_error.dart';
+export 'src/flutter/flutter_aes_gcm.dart';
+export 'src/flutter/flutter_chacha20.dart';
+export 'src/flutter/flutter_ecdh.dart';
+export 'src/flutter/flutter_ecdsa.dart';
+export 'src/flutter/flutter_ed25519.dart';
+export 'src/flutter/flutter_rsa_pss.dart';
+export 'src/flutter/flutter_rsa_ssa_pkcs1v15.dart';
+export 'src/flutter/flutter_x25519.dart';
+export 'src/flutter_cipher.dart';
 export 'src/flutter_cryptography.dart';
-export 'src/rsa_pss.dart';
-export 'src/rsa_ssa_pkcs1v15.dart';

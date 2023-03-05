@@ -1,23 +1,23 @@
 name: cryptography_flutter
 description:
-  A version of 'package:cryptography' that speeds up asynchronous invocations with native APIs of
-  Android, iOS, and Mac OS X.
-version: 2.0.2
+  Makes 'package:cryptography' use platform APIs in Android, iOS, and Mac OS X. The package can
+  make performance up to 100 times better.
+version: 2.2.0
 homepage: https://github.com/dint-dev/cryptography
 
 environment:
-  sdk: '>=2.14.0 <3.0.0'
-  flutter: '>=2.5.0'
+  sdk: '>=2.17.0 <3.0.0'
+  flutter: '>=3.7.0'
 
 dependencies:
-  cryptography: ^2.1.0
+  cryptography: ^2.3.0
   flutter:
     sdk: flutter
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^1.0.4
+  flutter_lints: ^2.0.1
 
 dependency_overrides:
   cryptography:
@@ -29,7 +29,14 @@ flutter:
       android:
         package: dev.dint.cryptography_flutter
         pluginClass: CryptographyFlutterPlugin
+        dartPluginClass: FlutterCryptography
       ios:
         pluginClass: CryptographyFlutterPlugin
+        dartPluginClass: FlutterCryptography
+      linux:
+        dartPluginClass: FlutterCryptography
       macos:
         pluginClass: CryptographyFlutterPlugin
+        dartPluginClass: FlutterCryptography
+      windows:
+        dartPluginClass: FlutterCryptography

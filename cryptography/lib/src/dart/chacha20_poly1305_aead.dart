@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Gohilla Ltd.
+// Copyright 2019-2020 Gohilla.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@ import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/src/utils.dart';
+import 'package:meta/meta.dart';
 
 import '../../dart.dart';
 
@@ -23,14 +24,8 @@ import '../../dart.dart';
 /// authentication.
 ///
 /// Used by [Chacha20.poly1305Aead] and [Xchacha20.poly1305Aead].
-class DartChacha20Poly1305AeadMacAlgorithm extends MacAlgorithm {
-  static final _tmpByteData = ByteData(16);
-  static final _tmpUint8List = Uint8List.view(_tmpByteData.buffer);
-
-  final StreamingCipher _chacha20;
-  final Poly1305 _poly1305;
-  final bool _useStaticBuffer;
-
+class DartChacha20Poly1305AeadMacAlgorithm extends MacAlgorithm
+    with DartMacAlgorithmMixin {
   /// Constructs _AEAD_CHACHA20_POLY1305_.
   ///
   /// Optional parameter [chacha20] defines the non-AEAD _ChaCha20_
@@ -48,17 +43,19 @@ class DartChacha20Poly1305AeadMacAlgorithm extends MacAlgorithm {
   ///   // ...
   /// }
   /// ```
+  @literal
   const DartChacha20Poly1305AeadMacAlgorithm({
-    Chacha20? chacha20,
-    Poly1305? poly1305,
-    bool useStaticBuffer = false,
-  })  : _chacha20 =
-            chacha20 ?? const DartChacha20(macAlgorithm: MacAlgorithm.empty),
-        _poly1305 = poly1305 ?? const DartPoly1305(),
-        _useStaticBuffer = useStaticBuffer;
+    @Deprecated('Do not use') Chacha20? chacha20,
+    @Deprecated('Do not use') Poly1305? poly1305,
+    @Deprecated('Do not use') bool useStaticBuffer = false,
+  });
 
   @override
   int get hashCode => (DartChacha20Poly1305AeadMacAlgorithm).hashCode;
+
+  // The first block of the ChaCha20 stream is used as the Poly1305 key.
+  @override
+  int get keyStreamUsed => 64;
 
   @override
   int get macLength => 16;
@@ -70,64 +67,47 @@ class DartChacha20Poly1305AeadMacAlgorithm extends MacAlgorithm {
   bool operator ==(other) => other is DartChacha20Poly1305AeadMacAlgorithm;
 
   @override
-  Future<Mac> calculateMac(
-    List<int> bytes, {
-    required SecretKey secretKey,
+  DartMacSink newMacSinkSync({
+    required SecretKeyData secretKeyData,
     List<int> nonce = const <int>[],
     List<int> aad = const <int>[],
-  }) async {
-    if (_chacha20.macAlgorithm is DartChacha20Poly1305AeadMacAlgorithm) {
-      throw StateError('Chacha20 must be non-AEAD');
-    }
-    final secretKeyForPoly1305 = await _poly1305SecretKeyFromChacha20(
-      secretKey: secretKey,
+  }) {
+    final sink = DartChacha20Poly1305AeadMacAlgorithmSink();
+    sink.initialize(
+      secretKeyData: secretKeyData,
       nonce: nonce,
+      aad: aad,
     );
-    final sink = await _poly1305.newMacSink(
-      secretKey: secretKeyForPoly1305,
-    );
+    return sink;
+  }
+}
 
-    var length = 0;
+class DartChacha20Poly1305AeadMacAlgorithmSink extends DartPoly1305Sink {
+  int _aadLength = 0;
+  final _tmpByteData = ByteData(16);
+  late final _tmpUint8List = Uint8List.view(_tmpByteData.buffer);
+  final _chacha20State = const DartChacha20(
+    macAlgorithm: MacAlgorithm.empty,
+  ).newState();
 
-    late ByteData tmpByteData;
-    late Uint8List tmpUint8List;
-    if (_useStaticBuffer) {
-      tmpByteData = _tmpByteData;
-      tmpUint8List = _tmpUint8List;
-    } else {
-      tmpByteData = ByteData(16);
-      tmpUint8List = Uint8List.view(tmpByteData.buffer);
+  @override
+  List<int> afterData() {
+    // Length without the initial AAD.
+    final aadLength = _aadLength;
+    final dataLength = length - (aadLength + 15) ~/ 16 * 16;
+
+    final lengthRem = dataLength % 16;
+    if (lengthRem != 0) {
+      // Add padding
+      final paddingLength = 16 - lengthRem;
+      _tmpUint8List.fillRange(0, paddingLength, 0);
+      addSlice(_tmpUint8List, 0, paddingLength, false);
     }
+    final tmpByteData = _tmpByteData;
     tmpByteData.setUint32(0, 0);
     tmpByteData.setUint32(4, 0);
     tmpByteData.setUint32(8, 0);
     tmpByteData.setUint32(12, 0);
-
-    // Add Additional Authenticated Data (AAD)
-    final aadLength = aad.length;
-    if (aadLength != 0) {
-      sink.add(aad);
-      length += aad.length;
-
-      final rem = length % 16;
-      if (rem != 0) {
-        // Add padding
-        final paddingLength = 16 - rem;
-        sink.add(tmpUint8List.sublist(0, paddingLength));
-        length += paddingLength;
-      }
-    }
-
-    // Add cipherText
-    sink.add(bytes);
-    length += bytes.length;
-    final rem = length % 16;
-    if (rem != 0) {
-      // Add padding
-      final paddingLength = 16 - rem;
-      sink.add(tmpUint8List.sublist(0, paddingLength));
-      length += paddingLength;
-    }
 
     // Add 16-byte footer.
     // We can't use setUint64() because it's not supported in the browsers.
@@ -143,33 +123,59 @@ class DartChacha20Poly1305AeadMacAlgorithm extends MacAlgorithm {
     );
     tmpByteData.setUint32(
       8,
-      uint32mask & bytes.length,
+      uint32mask & dataLength,
       Endian.little,
     );
     tmpByteData.setUint32(
       12,
-      bytes.length ~/ (uint32mask + 1),
+      dataLength ~/ (uint32mask + 1),
       Endian.little,
     );
-    sink.add(tmpUint8List);
+    add(_tmpUint8List);
+    _aadLength = 0;
 
-    // Reset the static buffer.
-    tmpByteData.setUint32(0, 0);
-    tmpByteData.setUint32(4, 0);
-    tmpByteData.setUint32(8, 0);
-    tmpByteData.setUint32(12, 0);
-
-    // Return MAC
-    sink.close();
-
-    return sink.mac();
+    return const [];
   }
 
-  /// A function needed by _AEAD_CHACHA20_POLY1305_.
-  Future<SecretKeyData> _poly1305SecretKeyFromChacha20({
-    required SecretKey secretKey,
+  @override
+  void beforeData({
+    required SecretKeyData secretKey,
     required List<int> nonce,
-  }) async {
+    List<int> aad = const [],
+  }) {
+    // Add Additional Authenticated Data (AAD)
+    final aadLength = aad.length;
+    _aadLength = aadLength;
+    if (aadLength != 0) {
+      add(aad);
+
+      final rem = aad.length % 16;
+      if (rem != 0) {
+        _tmpByteData.setUint32(0, 0);
+        _tmpByteData.setUint32(4, 0);
+        _tmpByteData.setUint32(8, 0);
+        _tmpByteData.setUint32(12, 0);
+
+        // Add padding to the MAC
+        // `_tmpUint8List` is full of zeroes because we called reset() before
+        final paddingLength = 16 - rem;
+        addSlice(_tmpUint8List, 0, paddingLength, false);
+      }
+    }
+
+    // Initialize ChaCha20 initial state
+    super.beforeData(
+      secretKey: secretKey,
+      nonce: nonce,
+      aad: const [],
+    );
+  }
+
+  /// Used by [DartXchacha20Poly1305AeadMacAlgorithmSink].
+  SecretKeyData deriveSecretKey({
+    required SecretKeyData secretKey,
+    required List<int> nonce,
+  }) {
     if (nonce.length != 12) {
       throw ArgumentError.value(
         nonce,
@@ -177,11 +183,36 @@ class DartChacha20Poly1305AeadMacAlgorithm extends MacAlgorithm {
         'Nonce must have 12 bytes, got ${nonce.length} bytes',
       );
     }
-    final secretBox = await _chacha20.encrypt(
-      Uint8List(32),
+    List<int> newSecretKey = Uint8List(32);
+    _chacha20State.initializeSync(
+      isEncrypting: true,
       secretKey: secretKey,
       nonce: nonce,
     );
-    return SecretKeyData(secretBox.cipherText);
+    newSecretKey = _chacha20State.convertSync(
+      newSecretKey,
+      possibleBuffer: newSecretKey is Uint8List ? newSecretKey : null,
+    );
+    return SecretKeyData(
+      newSecretKey,
+      overwriteWhenDestroyed: true,
+    );
+  }
+
+  @override
+  void initialize({
+    required SecretKeyData secretKeyData,
+    required List<int> nonce,
+    required List<int> aad,
+  }) {
+    secretKeyData = deriveSecretKey(
+      secretKey: secretKeyData,
+      nonce: nonce,
+    );
+    super.initialize(
+      secretKeyData: secretKeyData,
+      nonce: nonce,
+      aad: aad,
+    );
   }
 }

@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Gohilla Ltd.
+// Copyright 2019-2020 Gohilla.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,11 +19,14 @@ void main() {
   group('AES', () {
     test('fromJson / toJson', () {
       final json = <String, Object>{
-        'kty': 'OCK',
+        'kty': 'OCT',
         'alg': 'A128KW',
         'k': Jwk.base64UriEncode([1, 2, 3]),
       };
       final key = Jwk.fromJson(json);
+      expect(key.kty, 'OCT');
+      expect(key.alg, 'A128KW');
+      expect(key.k, [1, 2, 3]);
       expect(key.toJson(), json);
     });
   });
@@ -31,7 +34,7 @@ void main() {
   group('Chacha20', () {
     test('fromJson / toJson', () {
       final json = <String, Object>{
-        'kty': 'OCK',
+        'kty': 'OCT',
         'alg': 'C20',
         'k': Jwk.base64UriEncode([1, 2, 3]),
       };
@@ -43,7 +46,7 @@ void main() {
   group('Xchacha20', () {
     test('fromJson / toJson', () {
       final json = <String, Object>{
-        'kty': 'OCK',
+        'kty': 'OCT',
         'alg': 'XC20',
         'x': Jwk.base64UriEncode([1, 2, 3]),
       };
@@ -69,7 +72,12 @@ void main() {
     test('toKeyPair() / fromKeyPair()', () async {
       final jwk = Jwk.fromJson(json);
       final keyPair = jwk.toKeyPair();
-      final jwkFromKeyPair = Jwk.fromKeyPair(keyPair);
+      final jwkFromKeyPair = await Jwk.fromKeyPair(keyPair);
+      expect(jwkFromKeyPair.kty, 'EC');
+      expect(jwkFromKeyPair.crv, 'P-256');
+      expect(jwkFromKeyPair.d, [1]);
+      expect(jwkFromKeyPair.x, [2]);
+      expect(jwkFromKeyPair.y, [3]);
       expect(jwkFromKeyPair.toJson(), json);
     });
   });
@@ -79,11 +87,13 @@ void main() {
       'crv': 'P-256',
       'kty': 'EC',
       'x': Jwk.base64UriEncode([1]),
-      'y': Jwk.base64UriEncode([1]),
+      'y': Jwk.base64UriEncode([2]),
     };
 
     test('fromJson / toJson', () {
       final key = Jwk.fromJson(json);
+      expect(key.x, [1]);
+      expect(key.y, [2]);
       expect(key.toJson(), json);
     });
 
@@ -91,6 +101,8 @@ void main() {
       final jwk = Jwk.fromJson(json);
       final publicKey = jwk.toPublicKey()!;
       final jwkFromPublicKey = Jwk.fromPublicKey(publicKey);
+      expect(jwkFromPublicKey.x, [1]);
+      expect(jwkFromPublicKey.y, [2]);
       expect(jwkFromPublicKey.toJson(), json);
     });
   });
@@ -116,7 +128,7 @@ void main() {
     test('toKeyPair() / fromKeyPair()', () async {
       final jwk = Jwk.fromJson(json);
       final keyPair = jwk.toKeyPair();
-      final jwkFromKeyPair = Jwk.fromKeyPair(keyPair);
+      final jwkFromKeyPair = await Jwk.fromKeyPair(keyPair);
       expect(jwkFromKeyPair.toJson(), json);
     });
   });

@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Gohilla Ltd.
+// Copyright 2019-2020 Gohilla.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,38 +12,45 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
-import 'package:js/js_util.dart' as js;
 
-import 'aes.dart';
-import 'javascript_bindings.dart' show jsArrayBufferFrom;
-import 'javascript_bindings.dart' as web_crypto;
+import '_javascript_bindings.dart' show jsArrayBufferFrom;
+import '_javascript_bindings.dart' as web_crypto;
+import 'browser_secret_key.dart';
 
 /// AES-CBC implementation that uses _Web Cryptography API_ in browsers.
 ///
 /// Web Cryptography API supports only PKCS7 padding.
-class BrowserAesCbc extends AesCbc with BrowserAesMixin {
+class BrowserAesCbc extends AesCbc {
+  static const String _webCryptoName = 'AES-CBC';
+
   @override
   final MacAlgorithm macAlgorithm;
 
   @override
   final int secretKeyLength;
 
+  final Random? _random;
+
   const BrowserAesCbc({
     required this.macAlgorithm,
     this.secretKeyLength = 32,
-  }) : super.constructor();
+    Random? random,
+  })  : _random = random,
+        super.constructor(random: random);
 
   @override
-  String get webCryptoName => 'AES-CBC';
+  PaddingAlgorithm get paddingAlgorithm => PaddingAlgorithm.pkcs7;
 
   @override
   Future<Uint8List> decrypt(
     SecretBox secretBox, {
     required SecretKey secretKey,
     List<int> aad = const <int>[],
+    Uint8List? possibleBuffer,
   }) async {
     // Authenticate
     await secretBox.checkMac(
@@ -52,19 +59,21 @@ class BrowserAesCbc extends AesCbc with BrowserAesMixin {
       aad: aad,
     );
 
-    final jsCryptoKey = await jsCryptoKeyFromAesSecretKey(
+    final jsCryptoKey = await BrowserSecretKey.jsCryptoKeyForAes(
       secretKey,
-      webCryptoAlgorithm: 'AES-CBC',
+      secretKeyLength: secretKeyLength,
+      webCryptoAlgorithm: _webCryptoName,
+      isExtractable: false,
+      allowEncrypt: false,
+      allowDecrypt: true,
     );
-    final byteBuffer = await js.promiseToFuture<ByteBuffer>(
-      web_crypto.decrypt(
-        web_crypto.AesCbcParams(
-          name: 'AES-CBC',
-          iv: jsArrayBufferFrom(secretBox.nonce),
-        ),
-        jsCryptoKey,
-        jsArrayBufferFrom(secretBox.cipherText),
+    final byteBuffer = await web_crypto.decrypt(
+      web_crypto.AesCbcParams(
+        name: _webCryptoName,
+        iv: jsArrayBufferFrom(secretBox.nonce),
       ),
+      jsCryptoKey,
+      jsArrayBufferFrom(secretBox.cipherText),
     );
     return Uint8List.view(byteBuffer);
   }
@@ -76,22 +85,25 @@ class BrowserAesCbc extends AesCbc with BrowserAesMixin {
     List<int>? nonce,
     List<int> aad = const <int>[],
     int keyStreamIndex = 0,
+    Uint8List? possibleBuffer,
   }) async {
     nonce ??= newNonce();
 
-    final jsCryptoKey = await jsCryptoKeyFromAesSecretKey(
+    final jsCryptoKey = await BrowserSecretKey.jsCryptoKeyForAes(
       secretKey,
-      webCryptoAlgorithm: 'AES-CBC',
+      secretKeyLength: secretKeyLength,
+      webCryptoAlgorithm: _webCryptoName,
+      isExtractable: false,
+      allowEncrypt: true,
+      allowDecrypt: false,
     );
-    final byteBuffer = await js.promiseToFuture<ByteBuffer>(
-      web_crypto.encrypt(
-        web_crypto.AesCbcParams(
-          name: 'AES-CBC',
-          iv: jsArrayBufferFrom(nonce),
-        ),
-        jsCryptoKey,
-        jsArrayBufferFrom(clearText),
+    final byteBuffer = await web_crypto.encrypt(
+      web_crypto.AesCbcParams(
+        name: _webCryptoName,
+        iv: jsArrayBufferFrom(nonce),
       ),
+      jsCryptoKey,
+      jsArrayBufferFrom(clearText),
     );
     final cipherText = Uint8List.view(byteBuffer);
 
@@ -106,6 +118,22 @@ class BrowserAesCbc extends AesCbc with BrowserAesMixin {
       cipherText,
       nonce: nonce,
       mac: mac,
+    );
+  }
+
+  @override
+  Future<BrowserSecretKey> newSecretKey({
+    bool isExtractable = true,
+    bool allowEncrypt = true,
+    bool allowDecrypt = true,
+  }) async {
+    return BrowserSecretKey.generateForAes(
+      webCryptoAlgorithm: _webCryptoName,
+      secretKeyLength: secretKeyLength,
+      isExtractable: isExtractable,
+      allowEncrypt: allowEncrypt,
+      allowDecrypt: allowDecrypt,
+      random: _random,
     );
   }
 }

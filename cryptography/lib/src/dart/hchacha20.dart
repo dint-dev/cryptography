@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Gohilla Ltd.
+// Copyright 2019-2020 Gohilla.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
-import 'package:cryptography/dart.dart';
 
+import '../_internal/bytes.dart';
 import 'chacha20.dart';
 
 /// [Hchacha20] implemented in pure Dart.
@@ -79,24 +79,19 @@ class DartHChacha20 extends Hchacha20 {
     state[7] = state[15];
 
     // Ensure that the integers are little endian
-    if (Endian.host != Endian.little) {
-      final stateByteData = ByteData.view(state.buffer);
-      for (var i = 0; i < 32; i += 4) {
-        stateByteData.setUint32(
-          i,
-          stateByteData.getUint32(i, Endian.host),
-          Endian.little,
-        );
-      }
-    }
+    flipUint32ListEndianUnless(state, Endian.little);
 
     // Our 256-bit key is ready
-    return SecretKeyData(List<int>.unmodifiable(
-      Uint8List.view(
-        state.buffer,
-        state.offsetInBytes,
-        32,
-      ),
+    // Copy the first 32 bytes to a new list.
+    final copyOfFirst32Bytes = Uint8List.fromList(Uint8List.view(
+      state.buffer,
+      state.offsetInBytes,
+      32,
     ));
+    state.fillRange(0, state.length, 0);
+    return SecretKeyData(
+      copyOfFirst32Bytes,
+      overwriteWhenDestroyed: true,
+    );
   }
 }
