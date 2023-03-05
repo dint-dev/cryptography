@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:convert';
-
 import 'package:jwk/jwk.dart';
 import 'package:test/test.dart';
 
@@ -23,7 +21,7 @@ void main() {
       final json = <String, Object>{
         'kty': 'OCK',
         'alg': 'A128KW',
-        'd': base64Url.encode([1, 2, 3]),
+        'd': Jwk.base64UriEncode([1, 2, 3]),
       };
       final key = Jwk.fromJson(json);
       expect(key.toJson(), json);
@@ -35,7 +33,7 @@ void main() {
       final json = <String, Object>{
         'kty': 'OCK',
         'alg': 'C20',
-        'x': base64Url.encode([1, 2, 3]),
+        'x': Jwk.base64UriEncode([1, 2, 3]),
       };
       final key = Jwk.fromJson(json);
       expect(key.toJson(), json);
@@ -47,7 +45,7 @@ void main() {
       final json = <String, Object>{
         'kty': 'OCK',
         'alg': 'XC20',
-        'x': base64Url.encode([1, 2, 3]),
+        'x': Jwk.base64UriEncode([1, 2, 3]),
       };
       final key = Jwk.fromJson(json);
       expect(key.toJson(), json);
@@ -58,9 +56,9 @@ void main() {
     final json = <String, Object>{
       'kty': 'EC',
       'crv': 'P-256',
-      'd': base64Url.encode([1]),
-      'x': base64Url.encode([2]),
-      'y': base64Url.encode([3]),
+      'd': Jwk.base64UriEncode([1]),
+      'x': Jwk.base64UriEncode([2]),
+      'y': Jwk.base64UriEncode([3]),
     };
 
     test('fromJson / toJson', () {
@@ -80,7 +78,7 @@ void main() {
     final json = <String, Object>{
       'crv': 'P-256',
       'kty': 'EC',
-      'x': base64Url.encode([1]),
+      'x': Jwk.base64UriEncode([1]),
     };
 
     test('fromJson / toJson', () {
@@ -98,15 +96,15 @@ void main() {
 
   group('RSA private key', () {
     final json = <String, Object>{
-      'd': base64Url.encode([1]),
-      'dp': base64Url.encode([2]),
-      'dq': base64Url.encode([3]),
-      'e': base64Url.encode([4]),
+      'd': Jwk.base64UriEncode([1]),
+      'dp': Jwk.base64UriEncode([2]),
+      'dq': Jwk.base64UriEncode([3]),
+      'e': Jwk.base64UriEncode([4]),
       'kty': 'RSA',
-      'n': base64Url.encode([5]),
-      'p': base64Url.encode([6]),
-      'q': base64Url.encode([7]),
-      'qi': base64Url.encode([8]),
+      'n': Jwk.base64UriEncode([5]),
+      'p': Jwk.base64UriEncode([6]),
+      'q': Jwk.base64UriEncode([7]),
+      'qi': Jwk.base64UriEncode([8]),
     };
 
     test('fromJson / toJson', () {
@@ -125,8 +123,8 @@ void main() {
   group('RSA public key', () {
     final json = <String, Object>{
       'kty': 'RSA',
-      'n': base64Url.encode([1]),
-      'e': base64Url.encode([2]),
+      'n': Jwk.base64UriEncode([1]),
+      'e': Jwk.base64UriEncode([2]),
     };
 
     test('fromJson / toJson', () {
