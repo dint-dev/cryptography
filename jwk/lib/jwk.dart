@@ -606,6 +606,7 @@ class Jwk {
     if (publicKey is EcPublicKey) {
       final crv = const <KeyPairType, String>{
         KeyPairType.p256: 'P-256',
+        KeyPairType.p256k: 'secp256k1',
         KeyPairType.p384: 'P-384',
         KeyPairType.p521: 'P-521',
       }[publicKey.type];

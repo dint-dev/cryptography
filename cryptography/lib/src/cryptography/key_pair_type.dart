@@ -35,6 +35,15 @@ class KeyPairType<S extends KeyPairData, P extends PublicKey> {
     webCryptoCurve: 'P-256',
   );
 
+  /// Key pair type for [Ecdh] and [Ecdsa] with P-256 curve.
+  ///
+  /// Keys of this type can be generated with [EcKeyPairGenerator].
+  static const KeyPairType p256k = KeyPairType<EcKeyPairData, EcPublicKey>._(
+    name: 'p256k',
+    ellipticBits: 256,
+    webCryptoCurve: 'P-256K',
+  );
+
   /// Key pair type for [Ecdh] and [Ecdsa] with P-384 curve.
   ///
   /// Keys of this type can be generated with [EcKeyPairGenerator].
