@@ -145,6 +145,16 @@ abstract class AesCbc extends Cipher {
     }
     return '$runtimeType.with${secretKeyLength * 8}bits(macAlgorithm: $macAlgorithm, paddingAlgorithm: $paddingAlgorithm)';
   }
+
+  @override
+  DartAesCbc toSync() {
+    return DartAesCbc(
+      macAlgorithm: macAlgorithm,
+      secretKeyLength: secretKeyLength,
+      paddingAlgorithm: paddingAlgorithm,
+      random: random,
+    );
+  }
 }
 
 /// _AES-CTR_ (counter mode) [Cipher].
@@ -288,6 +298,15 @@ abstract class AesCtr extends StreamingCipher {
   String toString() {
     return '$runtimeType.with${secretKeyLength * 8}bits(macAlgorithm: $macAlgorithm, counterBits: $counterBits)';
   }
+
+  @override
+  DartAesCtr toSync() {
+    return DartAesCtr(
+      macAlgorithm: macAlgorithm,
+      secretKeyLength: secretKeyLength,
+      random: random,
+    );
+  }
 }
 
 /// _AES-GCM_ (Galois/Counter Mode) [Cipher].
@@ -410,6 +429,15 @@ abstract class AesGcm extends Cipher {
     }
     return '$runtimeType.with${secretKeyLength * 8}bits(nonceLength: $nonceLength)';
   }
+
+  @override
+  DartAesGcm toSync() {
+    return DartAesGcm(
+      secretKeyLength: secretKeyLength,
+      nonceLength: nonceLength,
+      random: random,
+    );
+  }
 }
 
 /// _Argon2id_ ([draft-irtf-cfrg-argon2-03](https://tools.ietf.org/html/draft-irtf-cfrg-argon2-03))
@@ -419,7 +447,7 @@ abstract class AesGcm extends Cipher {
 /// algorithm can provide much better security than older algorithms such as
 /// [Pbkdf2].
 ///
-/// By default, [DartArgon2id] will be used.
+/// By default, [DartArgon2id], our pure Dart implementation, will be used.
 ///
 /// ## Example
 /// ```
@@ -463,6 +491,7 @@ abstract class Argon2id extends KdfAlgorithm {
     );
   }
 
+  /// Constructor subclasses.
   const Argon2id.constructor();
 
   @override
@@ -585,10 +614,10 @@ abstract class Blake2b extends HashAlgorithm {
 
 /// _BLAKE2S_ ([RFC 7693](https://tools.ietf.org/html/rfc7693)) [HashAlgorithm].
 ///
-/// By default, [DartBlake2s] will be used.
+/// By default, [DartBlake2s], our pure Dart implementation, will be used.
 ///
 /// ## Asynchronous usage
-/// ```
+/// ```dart
 /// import 'package:cryptography/cryptography.dart';
 ///
 /// Future<void> main() async {
@@ -600,7 +629,7 @@ abstract class Blake2b extends HashAlgorithm {
 /// ```
 ///
 /// ## Streaming usage
-/// ```
+/// ```dart
 /// import 'package:cryptography/cryptography.dart';
 ///
 /// void main() async {
@@ -650,10 +679,11 @@ abstract class Blake2s extends HashAlgorithm {
 /// [StreamingCipher].
 ///
 /// Unless you really know what you are doing, you should use
-/// [Chacha20.poly1305Aead], which implements _AEAD_CHACHA20_POLY1305_ cipher
-/// (([RFC 7539](https://tools.ietf.org/html/rfc7539)).
+/// [Chacha20.poly1305Aead] constructor, which constructs the popular AEAD
+/// version of the cipher.
 ///
-/// By default, [DartChacha20] will be used.
+/// ## Implementations
+/// By default, [DartChacha20] will be used. It is a pure Dart implementation.
 ///
 /// If you use Flutter, you can enable
 /// [cryptography_flutter](https://pub.dev/packages/cryptography_flutter).
@@ -662,8 +692,8 @@ abstract class Blake2s extends HashAlgorithm {
 /// ## Things to know
 ///   * [secretKeyLength] is 32 bytes.
 ///   * [nonceLength] is 12 bytes.
-///   * You must specify some [MacAlgorithm]. If you use [Chacha20.poly1305Aead],
-///     this is not needed.
+///   * If you use [Chacha20.poly1305Aead] (like you should), MAC algorithm
+///     is not needed. Otherwise must specify some [MacAlgorithm].
 ///
 /// ## Example
 /// ```dart
@@ -711,9 +741,10 @@ abstract class Chacha20 extends StreamingCipher {
   /// Optional parameter [random] is used by [newSecretKey] and [newNonce].
   const Chacha20.constructor({Random? random}) : super(random: random);
 
-  /// _AEAD_CHACHA20_POLY1305_ cipher
-  /// (([RFC 7539](https://tools.ietf.org/html/rfc7539)), which is a popular
-  /// cipher based on _ChaCha20_ ([RFC 7539](https://tools.ietf.org/html/rfc7539))
+  /// Constructs ChaCha20-Poly1305-AEAD cipher
+  /// (([RFC 7539](https://tools.ietf.org/html/rfc7539), also known as
+  /// _AEAD_CHACHA20_POLY1305_), which is a popular authenticating cipher based
+  /// on _ChaCha20_.
   ///
   /// If you use Flutter, you can enable
   /// [cryptography_flutter](https://pub.dev/packages/cryptography_flutter).
@@ -775,6 +806,19 @@ abstract class Chacha20 extends StreamingCipher {
       return '$runtimeType.poly1305Aead()';
     }
     return '$runtimeType(macAlgorithm: $macAlgorithm)';
+  }
+
+  @override
+  DartChacha20 toSync() {
+    if (macAlgorithm is DartChacha20Poly1305AeadMacAlgorithm) {
+      return DartChacha20.poly1305Aead(
+        random: random,
+      );
+    }
+    return DartChacha20(
+      macAlgorithm: macAlgorithm,
+      random: random,
+    );
   }
 }
 
@@ -1006,7 +1050,6 @@ abstract class Ed25519 extends SignatureAlgorithm {
   }
 
   /// Constructor for classes that extend this class.
-
   const Ed25519.constructor({Random? random}) : _random = random;
 
   @override
@@ -1029,6 +1072,7 @@ abstract class Ed25519 extends SignatureAlgorithm {
 /// Hchacha20 produces a 256-bit secret key from 256-bit secret key and 96-bit
 /// nonce. The algorithm is used by [Xchacha20].
 ///
+/// The only implementation we have is [DartHChacha20].
 abstract class Hchacha20 {
   factory Hchacha20() {
     return Cryptography.instance.hchacha20();
@@ -1054,9 +1098,15 @@ abstract class Hchacha20 {
 /// _HKDF_ ([RFC 5869](https://tools.ietf.org/html/rfc5869))
 /// key derivation algorithm.
 ///
-/// In browsers, the default implementation will use
-/// [Web Cryptography API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API).
-/// On other platforms, [DartHkdf] will be used.
+/// [DartHkdf] is the pure Dart implementation of the HKDF algorithm. It's
+/// used when no faster implementation is available.
+///
+/// In browsers, "package:cryptography" will automatically attempt to use
+/// [Web Crypto API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API),
+/// which has very good HKDF performance.
+///
+/// Flutter developers should add [cryptography_flutter](https://pub.dev/packages/cryptography_flutter),
+/// as a dependency for the best possible HKDF performance.
 ///
 /// ## Example
 /// ```
@@ -1099,7 +1149,7 @@ abstract class Hkdf extends KdfAlgorithm {
       other is Hkdf && hmac == other.hmac && outputLength == other.outputLength;
 
   @override
-  Future<SecretKey> deriveKey({
+  Future<SecretKeyData> deriveKey({
     required SecretKey secretKey,
     List<int> nonce = const <int>[],
     List<int> info = const <int>[],
@@ -1109,20 +1159,35 @@ abstract class Hkdf extends KdfAlgorithm {
   String toString() => '$runtimeType($hmac)';
 }
 
-/// _HMAC_ [MacAlgorithm].
+/// _HMAC_, a widely used [MacAlgorithm].
 ///
-/// In browsers, the default implementation will use
-/// [Web Cryptography API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API).
-/// On other platforms, [DartHmac] will be used.
+/// [DartHmac] is the pure Dart implementation of the HMAC algorithm. It's
+/// used when no faster implementation is available.
 ///
-/// You should use:
+/// In browsers, "package:cryptography" will automatically attempt to use
+/// [Web Crypto API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API),
+/// which has very good HMAC performance.
+///
+/// Flutter developers should add [cryptography_flutter](https://pub.dev/packages/cryptography_flutter),
+/// as a dependency for the best possible HMAC performance.
+///
+/// ## Things to know
+///   * You must choose some [HashAlgorithm]. We have shorthands constructors
+///     such as [Hmac.sha256], but the hash algorithm can be anything.
+///   * HMAC does not support nonces. Our implementation ignores any nonce.
+///   * HMAC does not support AAD (Associated Authenticated Data). Our
+///     implementation throws [ArgumentError] if you try to give some.
+///
+/// ## Constructors
+///   * [Hmac.blake2b] for _HMAC-BLAKE2B_.
+///   * [Hmac.blake2s] for _HMAC-BLAKE2S_.
 ///   * [Hmac.sha1] for _HMAC-SHA1_.
+///   * [Hmac.sha224] for _HMAC-SHA224_.
 ///   * [Hmac.sha256] for _HMAC-SHA256_.
+///   * [Hmac.sha384] for _HMAC-SHA384_.
 ///   * [Hmac.sha512] for _HMAC-SHA512_.
 ///   * For other combinations, give hash algorithm in the constructor
 ///     (example: `Hmac(Blake2s())`).
-///
-/// If you really need synchronous computations, use [DartHmac].
 ///
 /// ## Example
 /// ```
@@ -1140,10 +1205,37 @@ abstract class Hkdf extends KdfAlgorithm {
 ///   );
 /// }
 /// ```
+///
+/// ## Example: synchronous usage
+/// [DartHmac], a pure Dart implementation of HMAC, can be used when you
+/// absolutely need do computations synchronously:
+///
+/// ```dart
+/// import 'package:cryptography/cryptography.dart';
+/// import 'package:cryptography/dart.dart';
+///
+/// void main() {
+///   final algorithm = DartHmac.sha256();
+///   final mac = algorithm.calculateMacSync(
+///     bytes,
+///     secretKey: secretKey,
+///   );
+/// }
+/// ```
 abstract class Hmac extends MacAlgorithm {
   /// Constructs HMAC with any hash algorithm.
   factory Hmac(HashAlgorithm hashAlgorithm) {
     return Cryptography.instance.hmac(hashAlgorithm);
+  }
+
+  /// HMAC-BLAKE2B.
+  factory Hmac.blake2b() {
+    return Hmac(Blake2b());
+  }
+
+  /// HMAC-BLAKE2S.
+  factory Hmac.blake2s() {
+    return Hmac(Blake2s());
   }
 
   /// Constructor for classes that extend this class.
@@ -1200,29 +1292,31 @@ abstract class Hmac extends MacAlgorithm {
   }
 
   @override
-  DartMacAlgorithm toSync() {
-    final hashAlgorithm = this.hashAlgorithm;
-    if (hashAlgorithm is Sha256) {
-      return const DartHmac(DartSha256());
-    }
-    if (hashAlgorithm is Sha512) {
-      return const DartHmac(DartSha512());
-    }
+  DartHmac toSync() {
     return DartHmac(hashAlgorithm.toSync());
   }
 }
 
 /// _PBKDF2_ password hashing algorithm implemented in pure Dart.
 ///
-/// In browsers, the default implementation will use
-/// [Web Cryptography API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API).
-/// On other platforms, [DartPbkdf2] will be used.
+/// [DartPbkdf2] is the pure Dart implementation of the PBKDF2 algorithm. It's
+/// used when no faster implementation is available.
+///
+/// In browsers, "package:cryptography" will automatically attempt to use
+/// [Web Crypto API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API),
+/// which has very good PBKDF2 performance.
+///
+/// Flutter developers should add [cryptography_flutter](https://pub.dev/packages/cryptography_flutter),
+/// as a dependency for the best possible PBKDF2 performance.
 ///
 /// ## Things to know
-///   * `macAlgorithm` can be any [MacAlgorithm] (such as [Hmac.sha256()]).
-///   * `iterations` should be at least 100 000 for reasonable security in
-///     password hashing. The higher the better.
-///   * `bits` should be at least 128 for reasonable security in password hashing.
+///   * [macAlgorithm] can be any [MacAlgorithm] (such as [Hmac.sha256()]).
+///   * [iterations] is the number of times output of hashing will be used as
+///     input of the next hashing iteration. The idea of password hashing
+///     algorithms is to make password hashing as slow as possible so the higher
+///     the better. A good value is usually at least 10 000.
+///   * [bits] is the number of bits you want as output. A good value may be
+///     256 bits (32 bytes).
 ///   * PBKDF2 is a popular choice for password hashing, but much better
 ///     algorithms exists (such as [Argon2id]).
 ///
@@ -1233,8 +1327,8 @@ abstract class Hmac extends MacAlgorithm {
 /// Future<void> main() async {
 ///   final pbkdf2 = Pbkdf2(
 ///     macAlgorithm: Hmac.sha256(),
-///     iterations: 100000,
-///     bits: 128,
+///     iterations: 10000, // 10k iterations
+///     bits: 128, // 128 bits = 16 bytes output
 ///   );
 ///
 ///   // Password we want to hash
@@ -1253,6 +1347,7 @@ abstract class Hmac extends MacAlgorithm {
 /// }
 /// ```
 abstract class Pbkdf2 extends KdfAlgorithm {
+  /// Constructs PBKDF2 with any [MacAlgorithm].
   factory Pbkdf2({
     required MacAlgorithm macAlgorithm,
     required int iterations,
@@ -1265,17 +1360,31 @@ abstract class Pbkdf2 extends KdfAlgorithm {
     );
   }
 
-  /// Constructor for classes that extend this class.
-
+  /// Constructor for subclasses.
   const Pbkdf2.constructor();
 
+  /// Constructs PBKDF2 with [Hmac.sha256].
+  factory Pbkdf2.hmacSha256({
+    required int iterations,
+    required int bits,
+  }) {
+    return Pbkdf2(
+      macAlgorithm: Hmac.sha256(),
+      iterations: iterations,
+      bits: bits,
+    );
+  }
+
+  /// Number of bits that will be returned by [deriveKey] method.
   int get bits;
 
   @override
   int get hashCode => macAlgorithm.hashCode ^ iterations ^ bits;
 
+  /// Number of iterations.
   int get iterations;
 
+  /// MAC algorithm.
   MacAlgorithm get macAlgorithm;
 
   @override
@@ -1292,22 +1401,41 @@ abstract class Pbkdf2 extends KdfAlgorithm {
   });
 
   @override
-  String toString() =>
-      '$runtimeType(macAlgorithm: $macAlgorithm, iterations: $iterations, bits: $bits)';
+  String toString() {
+    return '$runtimeType(\n'
+        '  macAlgorithm: $macAlgorithm,\n'
+        '  iterations: $iterations,\n'
+        '  bits: $bits,\n'
+        ')';
+  }
+
+  /// Returns a pure Dart implementation of PBKDF2 with the same parameters.
+  DartPbkdf2 toSync() {
+    return DartPbkdf2(
+      macAlgorithm: macAlgorithm.toSync(),
+      iterations: iterations,
+      bits: bits,
+    );
+  }
 }
 
 /// _Poly1305_ ([RFC 7539](https://tools.ietf.org/html/rfc7539)) [MacAlgorithm].
 ///
+/// If you want ChaCha20 with Poly1305 MAC, you should use
+/// [ChaCha20.poly1305Aead] constructor.
+///
 /// ## Things to know
+///   * Produces a 128 bit authentication code.
 ///   * DO NOT use the same (key, nonce) tuple twice.
 ///   * DO NOT use the algorithm for key derivation.
+///   * Poly1305 and Poly1305-AEAD ([DartChacha20Poly1305AeadMacAlgorithm])
+///     are NOT the same.
 abstract class Poly1305 extends MacAlgorithm {
   factory Poly1305() {
     return Cryptography.instance.poly1305();
   }
 
-  /// Constructor for classes that extend this class.
-
+  /// Constructor for subclasses.
   const Poly1305.constructor();
 
   @override
@@ -1320,7 +1448,7 @@ abstract class Poly1305 extends MacAlgorithm {
   bool operator ==(other) => other is Poly1305;
 
   @override
-  DartMacAlgorithm toSync() => const DartPoly1305();
+  DartPoly1305 toSync() => const DartPoly1305();
 }
 
 /// _RSA-PSS_ [SignatureAlgorithm].
@@ -1336,13 +1464,11 @@ abstract class Poly1305 extends MacAlgorithm {
 /// JSON Web Key (JWK) data.
 ///
 /// ## Example
-/// ```
+/// ```dart
 /// import 'package:cryptography/cryptography.dart';
 ///
 /// Future<void> main() async {
-///   final algorithm = RsaPss(
-///     hashAlgorithm: Sha256(),
-///   );
+///   final algorithm = RsaPss(Sha256());
 ///
 ///   // Generate a key pair
 ///   final keyPair = await algorithm.newKeyPair();
@@ -1364,10 +1490,19 @@ abstract class Poly1305 extends MacAlgorithm {
 /// }
 /// ```
 abstract class RsaPss extends SignatureAlgorithm {
+  /// Default nonce length (in bytes).
   static const int defaultNonceLengthInBytes = 16;
+
+  /// Default modulus length (in bits).
   static const int defaultModulusLength = 4096;
+
+  /// Default public exponent.
   static const List<int> defaultPublicExponent = <int>[0x01, 0x00, 0x01];
 
+  /// Constructs RSA-PSS with the given hash algorithm.
+  ///
+  /// You can also choose a [nonceLengthInBytes] that is different from the
+  /// default ([RsaPss.defaultNonceLengthInBytes]).
   factory RsaPss(
     HashAlgorithm hashAlgorithm, {
     int nonceLengthInBytes = defaultNonceLengthInBytes,
@@ -1378,10 +1513,30 @@ abstract class RsaPss extends SignatureAlgorithm {
     );
   }
 
-  /// Constructor for classes that extend this class.
-
+  /// Constructor for subclasses.
   const RsaPss.constructor();
 
+  /// A shorthand for constructing RSA-PSS-SHA256.
+  factory RsaPss.sha256({
+    int nonceLengthInBytes = defaultNonceLengthInBytes,
+  }) {
+    return RsaPss(
+      Sha256(),
+      nonceLengthInBytes: nonceLengthInBytes,
+    );
+  }
+
+  /// A shorthand for constructing RSA-PSS-SHA512.
+  factory RsaPss.sha512({
+    int nonceLengthInBytes = defaultNonceLengthInBytes,
+  }) {
+    return RsaPss(
+      Sha512(),
+      nonceLengthInBytes: nonceLengthInBytes,
+    );
+  }
+
+  /// Hash algorithm used by the RSA-PSS.
   HashAlgorithm get hashAlgorithm;
 
   @override
@@ -1390,9 +1545,13 @@ abstract class RsaPss extends SignatureAlgorithm {
   @override
   KeyPairType<KeyPairData, PublicKey> get keyPairType => KeyPairType.rsa;
 
+  int get nonceLengthInBytes;
+
   @override
   bool operator ==(other) =>
-      other is RsaPss && hashAlgorithm == other.hashAlgorithm;
+      other is RsaPss &&
+      hashAlgorithm == other.hashAlgorithm &&
+      nonceLengthInBytes == other.nonceLengthInBytes;
 
   @override
   Future<RsaKeyPair> newKeyPair({
@@ -1401,7 +1560,8 @@ abstract class RsaPss extends SignatureAlgorithm {
   });
 
   @override
-  String toString() => 'RsaPss(hashAlgorithm: $hashAlgorithm)';
+  String toString() =>
+      '$runtimeType($hashAlgorithm, nonceLengthInBytes: $nonceLengthInBytes)';
 }
 
 /// _RSA-SSA-PKCS1v15_ [SignatureAlgorithm].
@@ -1421,9 +1581,7 @@ abstract class RsaPss extends SignatureAlgorithm {
 /// import 'package:cryptography/cryptography.dart';
 ///
 /// Future<void> main() async {
-///   final algorithm = RsaSsaPkcs1v15(
-///     hashAlgorithm: Sha256(),
-///   );
+///   final algorithm = RsaSsaPkcs1v15(Sha256());
 ///
 ///   // Generate a key pair
 ///   final keyPair = await algorithm.newKeyPair();
@@ -1452,10 +1610,20 @@ abstract class RsaSsaPkcs1v15 extends SignatureAlgorithm {
     return Cryptography.instance.rsaSsaPkcs1v15(hashAlgorithm);
   }
 
-  /// Constructor for classes that extend this class.
-
+  /// Constructor for subclasses.
   const RsaSsaPkcs1v15.constructor();
 
+  /// A shorthand for RSA-SSA-PKCS1v15-SHA256.
+  factory RsaSsaPkcs1v15.sha256() {
+    return RsaSsaPkcs1v15(Sha256());
+  }
+
+  /// A shorthand for RSA-SSA-PKCS1v15-SHA512.
+  factory RsaSsaPkcs1v15.sha512() {
+    return RsaSsaPkcs1v15(Sha512());
+  }
+
+  /// Hashing algorithm.
   HashAlgorithm get hashAlgorithm;
 
   @override
@@ -1953,4 +2121,7 @@ abstract class Xchacha20 extends StreamingCipher {
   String toString() {
     return '$runtimeType(macAlgorithm: $macAlgorithm)';
   }
+
+  @override
+  DartXchacha20 toSync() => DartXchacha20(macAlgorithm: macAlgorithm);
 }

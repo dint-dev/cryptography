@@ -24,7 +24,9 @@ const _bit32 = 0x10000 * 0x10000;
 final _webCryptoRandom = html.window.crypto!.getRandomValues;
 
 void fillBytesWithSecureRandom(Uint8List bytes, {Random? random}) {
-  if (random == null && bytes.runtimeType == Uint8List) {
+  if (random == null &&
+      bytes.runtimeType == Uint8List &&
+      BrowserCryptography.isSupported) {
     // Use Web Cryptography API directly (instead of Random.secure()).
     _webCryptoRandom(bytes);
   }

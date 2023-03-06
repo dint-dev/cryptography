@@ -87,12 +87,12 @@ class KeyPairType<S extends KeyPairData, P extends PublicKey> {
 
   /// Maximum private key length (in bytes).
   ///
-  /// The value is -1 if any length is valid.
+  /// The value is -1 if multiple lengths is valid.
   final int privateKeyLength;
 
   /// Maximum public key length (in bytes).
   ///
-  /// The value is -1 if any length is valid.
+  /// The value is -1 if multiple lengths is valid.
   final int publicKeyLength;
 
   /// Web Crypto curve name.

@@ -15,7 +15,6 @@
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
-import 'package:cryptography/dart.dart';
 
 import 'benchmark_helpers.dart';
 
@@ -27,7 +26,6 @@ Future<void> main() async {
     print('100 byte messages $times times:');
     await _Hash(cryptography.sha256(), size, times).report();
     await _Hash(cryptography.sha512(), size, times).report();
-    await _Hash(const DartSha512(), size, times).report();
     await _Hash(cryptography.blake2s(), size, times).report();
     await _Hash(cryptography.blake2b(), size, times).report();
     print('');
@@ -39,7 +37,6 @@ Future<void> main() async {
     print('1 kB messages $times times:');
     await _Hash(cryptography.sha256(), size, times).report();
     await _Hash(cryptography.sha512(), size, times).report();
-    await _Hash(const DartSha512(), size, times).report();
     await _Hash(cryptography.blake2s(), size, times).report();
     await _Hash(cryptography.blake2b(), size, times).report();
     print('');
@@ -51,7 +48,6 @@ Future<void> main() async {
     print('1 MB messages $times times:');
     await _Hash(cryptography.sha256(), size, times).report();
     await _Hash(cryptography.sha512(), size, times).report();
-    await _Hash(const DartSha512(), size, times).report();
     await _Hash(cryptography.blake2s(), size, times).report();
     await _Hash(cryptography.blake2b(), size, times).report();
   }

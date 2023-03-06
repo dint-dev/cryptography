@@ -19,6 +19,9 @@ import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/helpers.dart';
+import 'package:meta/meta.dart';
+
+import '../../dart.dart';
 
 /// A cipher that supports [encrypt()] and [decrypt()].
 ///
@@ -66,15 +69,19 @@ import 'package:cryptography/helpers.dart';
 abstract class Cipher {
   /// Methods [encryptStream] and [decryptStream] do 1ms pauses every this many
   /// bytes to avoid blocking the event loop.
-  static const _pauseStreamEveryBytes = 4 * 1024 * 1024;
+  static const _pauseFrequencyInBytes = 4 * 1024 * 1024;
   static const _pauseDuration = Duration(milliseconds: 1);
 
   static final _emptyUint8List = Uint8List(0);
 
-  final Random? _random;
+  /// Random number generator used by [newSecretKey] for generating secret keys.
+  ///
+  /// If `null`, subclasses MUST use [Random.secure].
+  @protected
+  final Random? random;
 
   /// Constructor for subclasses.
-  const Cipher({Random? random}) : _random = random;
+  const Cipher({this.random});
 
   @override
   int get hashCode;
@@ -162,11 +169,11 @@ abstract class Cipher {
   ///
   /// You must give a [SecretKey] that has the correct length and type.
   ///
-  /// Optional parameter `nonce` (also known as "initialization vector",
+  /// Optional parameter [nonce] (also known as "initialization vector",
   /// "IV", or "salt") is some non-secret unique sequence of bytes.
   /// If you don't define it, the cipher will generate nonce for you.
   ///
-  /// Parameter `aad` can be used to pass _Associated Authenticated Data_ (AAD).
+  /// Parameter [aad] can be used to pass _Associated Authenticated Data_ (AAD).
   /// If you pass a non-empty list and the underlying cipher doesn't support
   /// AAD, the method will throw [ArgumentError].
   ///
@@ -219,7 +226,7 @@ abstract class Cipher {
       nonce: nonce,
       aad: aad,
     );
-    var count = 0;
+    var countForPausing = 0;
     await for (var chunk in stream) {
       final convertedChunk = state.convertChunkSync(
         chunk,
@@ -228,18 +235,18 @@ abstract class Cipher {
       yield (convertedChunk);
 
       // Pause every now and then to avoid blocking the event loop.
-      count += chunk.length;
-      if (count >= _pauseStreamEveryBytes) {
+      countForPausing += chunk.length;
+      if (countForPausing >= _pauseFrequencyInBytes) {
         await Future.delayed(_pauseDuration);
-        count = 0;
+        countForPausing = 0;
       }
     }
-    final convertedSuffix = await state.convert(
+    final lastConvertedBytes = await state.convert(
       _emptyUint8List,
       expectedMac: await mac,
     );
-    if (convertedSuffix.isNotEmpty) {
-      yield (convertedSuffix);
+    if (lastConvertedBytes.isNotEmpty) {
+      yield (lastConvertedBytes);
     }
     if (state.mac != await mac) {
       throw SecretBoxAuthenticationError();
@@ -268,14 +275,14 @@ abstract class Cipher {
   ///
   /// You must give a [SecretKey] that has the correct length and type.
   ///
-  /// Optional parameter `nonce` (also known as "initialization vector",
+  /// Optional parameter [nonce] (also known as "initialization vector",
   /// "IV", or "salt") is some sequence of bytes.
   /// You can generate a nonce with [newNonce].
   /// If you don't define it, the cipher will generate a random nonce for you.
   /// The nonce must be unique for each encryption with the same secret key.
   /// It doesn't have to be secret.
   ///
-  /// Parameter `aad` can be used to pass _Associated Authenticated Data_ (AAD).
+  /// Parameter [aad] can be used to pass _Associated Authenticated Data_ (AAD).
   /// If you pass a non-empty list and the underlying cipher doesn't support
   /// AAD, the method will throw [ArgumentError].
   ///
@@ -297,7 +304,7 @@ abstract class Cipher {
   /// Parameter [secretKey] is the secret key. You can generate a random secret
   /// key with [newSecretKey].
   ///
-  /// Optional parameter `nonce` (also known as "initialization vector",
+  /// Optional parameter [nonce] (also known as "initialization vector",
   /// "IV", or "salt") is some sequence of bytes.
   /// You can generate a nonce with [newNonce].
   /// If you don't define it, the cipher will generate a random nonce for you.
@@ -372,7 +379,7 @@ abstract class Cipher {
 
       // Pause every now and then to avoid blocking the event loop.
       count += chunk.length;
-      if (count >= _pauseStreamEveryBytes) {
+      if (count >= _pauseFrequencyInBytes) {
         await Future.delayed(_pauseDuration);
         count = 0;
       }
@@ -441,7 +448,10 @@ abstract class Cipher {
   /// when you constructed the cipher (or your [Cryptography]).
   List<int> newNonce() {
     final bytes = Uint8List(nonceLength);
-    fillBytesWithSecureRandom(bytes, random: _random);
+    fillBytesWithSecureRandom(
+      bytes,
+      random: random, // If null, the method will use Random.secure
+    );
     return bytes;
   }
 
@@ -455,7 +465,7 @@ abstract class Cipher {
   Future<SecretKey> newSecretKey() async {
     return SecretKeyData.random(
       length: secretKeyLength,
-      random: _random,
+      random: random,
     );
   }
 
@@ -476,6 +486,27 @@ abstract class Cipher {
 
   @override
   String toString();
+
+  /// Returns a synchronous, pure Dart implementation of this cipher.
+  ///
+  /// Pure Dart implementations can be slower than implementations that use
+  /// platform APIs. Therefore you shouldn't use this method unless you really
+  /// need to.
+  ///
+  /// ## Example
+  /// ```
+  /// import 'package:cryptography/cryptography.dart';
+  ///
+  /// void main() {
+  ///   final cipher = Chacha20.poly1305().toSync();
+  ///   final secretKey = cipher.newSecretKeySync();
+  ///   final secretBox = cipher.encryptSync(
+  ///     [1,2,3],
+  ///     secretKey,
+  ///   );
+  /// }
+  /// ```
+  DartCipher toSync();
 }
 
 class _CipherWand extends CipherWand {
@@ -561,14 +592,15 @@ class _DefaultCipherState extends CipherState {
   @override
   late final Cipher cipher;
   late final List<List<int>> _chunks = [];
-  late final SecretKey _secretKey;
-  late final List<int> _nonce;
-  late final List<int> _aad;
-  late final bool isEncrypting;
-  late final int _keyStreamIndex;
+  late SecretKey _secretKey = SecretKeyData.random(
+    length: cipher.secretKeyLength,
+  );
+  late List<int> _nonce = Uint8List(cipher.nonceLength);
+  List<int> _aad = const [];
+  bool _isEncrypting = false;
+  late int _keyStreamIndex;
   Mac? _mac;
-
-  Mac? _expectedMac;
+  bool _isInitialized = false;
 
   _DefaultCipherState({
     required this.cipher,
@@ -578,7 +610,7 @@ class _DefaultCipherState extends CipherState {
   Mac get mac {
     final mac = _mac;
     if (mac == null) {
-      throw StateError('close() has not been called or has not finished');
+      throw StateError('convert() has not been called or has not finished');
     }
     return mac;
   }
@@ -587,49 +619,20 @@ class _DefaultCipherState extends CipherState {
   Future<List<int>> convert(
     List<int> event, {
     Uint8List? possibleBuffer,
-    Mac? expectedMac,
+    required Mac? expectedMac,
   }) async {
-    final input = _concatenate();
-    final keyStreamIndex = _keyStreamIndex;
-    if (isEncrypting) {
-      final secretBox = keyStreamIndex == 0
-          ? await cipher.encrypt(
-              input,
-              secretKey: _secretKey,
-              nonce: _nonce,
-              aad: _aad,
-            )
-          : await (cipher as StreamingCipher).encrypt(
-              input,
-              secretKey: _secretKey,
-              nonce: _nonce,
-              aad: _aad,
-              keyStreamIndex: keyStreamIndex,
-            );
-      _mac = secretBox.mac;
-      return secretBox.cipherText;
+    if (_isEncrypting) {
+      return await encrypt(
+        event,
+        possibleBuffer: possibleBuffer,
+        expectedMac: expectedMac,
+      );
     } else {
-      final clearText = keyStreamIndex == 0
-          ? await cipher.decrypt(
-              SecretBox(
-                input,
-                nonce: _nonce,
-                mac: _expectedMac ?? Mac.empty,
-              ),
-              secretKey: _secretKey,
-              aad: _aad,
-            )
-          : await (cipher as StreamingCipher).decrypt(
-              SecretBox(
-                input,
-                nonce: _nonce,
-                mac: _expectedMac ?? Mac.empty,
-              ),
-              secretKey: _secretKey,
-              aad: _aad,
-              keyStreamIndex: keyStreamIndex,
-            );
-      return clearText;
+      return await decrypt(
+        event,
+        possibleBuffer: possibleBuffer,
+        expectedMac: expectedMac!,
+      );
     }
   }
 
@@ -638,8 +641,87 @@ class _DefaultCipherState extends CipherState {
     List<int> bytes, {
     Uint8List? possibleBuffer,
   }) {
-    _chunks.add(Uint8List.fromList(bytes));
+    if (!_isInitialized) {
+      throw StateError('initialize() has not been called');
+    }
+    _chunks.add(
+      identical(bytes, possibleBuffer) ? bytes : Uint8List.fromList(bytes),
+    );
     return _emptyUint8List;
+  }
+
+  Future<List<int>> decrypt(
+    List<int> event, {
+    required Mac expectedMac,
+    Uint8List? possibleBuffer,
+  }) async {
+    if (!_isInitialized) {
+      throw StateError('initialize() has not been called');
+    }
+    _isInitialized = false;
+    _chunks.add(event);
+    final input = _concatenate();
+    final keyStreamIndex = _keyStreamIndex;
+    if (keyStreamIndex == 0) {
+      final result = await cipher.decrypt(
+        SecretBox(
+          input,
+          nonce: _nonce,
+          mac: expectedMac,
+        ),
+        secretKey: _secretKey,
+        aad: _aad,
+      );
+      _mac = expectedMac;
+      return result;
+    } else {
+      final result = await (cipher as StreamingCipher).decrypt(
+        SecretBox(
+          input,
+          nonce: _nonce,
+          mac: expectedMac,
+        ),
+        secretKey: _secretKey,
+        aad: _aad,
+        keyStreamIndex: keyStreamIndex,
+      );
+      _mac = expectedMac;
+      return result;
+    }
+  }
+
+  Future<List<int>> encrypt(
+    List<int> event, {
+    Uint8List? possibleBuffer,
+    required Mac? expectedMac,
+  }) async {
+    if (!_isInitialized) {
+      throw StateError('initialize() has not been called');
+    }
+    _isInitialized = false;
+    _chunks.add(event);
+    final input = _concatenate();
+    final keyStreamIndex = _keyStreamIndex;
+    if (keyStreamIndex == 0) {
+      final secretBox = await cipher.encrypt(
+        input,
+        secretKey: _secretKey,
+        nonce: _nonce,
+        aad: _aad,
+      );
+      _mac = secretBox.mac;
+      return secretBox.cipherText;
+    } else {
+      final secretBox = await (cipher as StreamingCipher).encrypt(
+        input,
+        secretKey: _secretKey,
+        nonce: _nonce,
+        aad: _aad,
+        keyStreamIndex: keyStreamIndex,
+      );
+      _mac = secretBox.mac;
+      return secretBox.cipherText;
+    }
   }
 
   @override
@@ -651,10 +733,14 @@ class _DefaultCipherState extends CipherState {
     int keyStreamIndex = 0,
     bool allowUseSameBytes = false,
   }) async {
+    _isEncrypting = isEncrypting;
     _secretKey = secretKey;
     _nonce = nonce;
     _aad = aad;
     _keyStreamIndex = keyStreamIndex;
+    _isInitialized = true;
+    _chunks.clear();
+    _mac = null;
   }
 
   List<int> _concatenate() {
@@ -665,13 +751,19 @@ class _DefaultCipherState extends CipherState {
     if (chunks.length == 1) {
       return chunks.single;
     }
-    final length = chunks.fold<int>(0, (sum, chunk) => sum + chunk.length);
+    var length = 0;
+    for (var chunk in chunks) {
+      length += chunk.length;
+    }
     final result = Uint8List(length);
     var offset = 0;
     for (var chunk in chunks) {
-      result.setRange(offset, offset + chunk.length, chunk);
-      offset += chunk.length;
+      for (var i = 0; i < chunk.length; i++) {
+        result[offset] = chunk[i];
+        offset++;
+      }
     }
+    chunks.clear();
     return result;
   }
 }

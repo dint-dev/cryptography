@@ -43,10 +43,16 @@ abstract class SecretKey {
   @Deprecated('This will be removed')
   factory SecretKey.lazy(Future<SecretKeyData> Function() f) = _LazySecretKey;
 
+  /// Whether decryption is allowed with this key.
   bool get allowDecrypt => !isDestroyed;
 
+  /// Whether encryption is allowed with this key.
   bool get allowEncrypt => !isDestroyed;
+
+  /// Whether [destroy] has been called.
   bool get isDestroyed => _isDestroyed;
+
+  /// Whether [extract] will succeed.
   bool get isExtractable => !isDestroyed;
 
   /// Destroys the secret key.

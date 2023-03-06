@@ -84,8 +84,6 @@ abstract class Cryptography {
     _instance = cryptography;
   }
 
-  Cryptography withRandom(Random random);
-
   const Cryptography();
 
   /// A factory used by [AesCbc].
@@ -188,6 +186,8 @@ abstract class Cryptography {
 
   /// A factory used by [Sha512].
   Sha512 sha512();
+
+  Cryptography withRandom(Random random);
 
   /// A factory used by [X25519].
   X25519 x25519();

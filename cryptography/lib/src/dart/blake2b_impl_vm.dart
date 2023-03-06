@@ -14,11 +14,8 @@
 
 import 'dart:typed_data';
 
-import 'package:cryptography/cryptography.dart';
-
+import '../../dart.dart';
 import '_helpers.dart';
-import 'base_classes.dart';
-import 'blake2b.dart';
 
 class Blake2bSink extends DartHashSink {
   static const List<int> _initializationVector = <int>[
@@ -48,13 +45,20 @@ class Blake2bSink extends DartHashSink {
   ];
   final _hash = Uint64List(16);
   final _bufferAsUint64List = Uint64List(16);
+  int _length = 0;
+  bool _isClosed = false;
+  final _localValues = Uint64List(16);
+
   late final Uint8List _bufferAsBytes = Uint8List.view(
     _bufferAsUint64List.buffer,
   );
-  int _length = 0;
-  Hash? _result;
-  bool _isClosed = false;
-  final _localValues = Uint64List(16);
+
+  @override
+  late final Uint8List hashBufferAsUint8List = Uint8List.view(
+    _hash.buffer,
+    0,
+    64,
+  );
 
   Blake2bSink() {
     checkSystemIsLittleEndian();
@@ -65,27 +69,28 @@ class Blake2bSink extends DartHashSink {
   }
 
   @override
+  bool get isClosed => _isClosed;
+
+  @override
+  int get length => _length;
+
+  @override
   void addSlice(List<int> chunk, int start, int end, bool isLast) {
-    if (_isClosed) {
+    if (isClosed) {
       throw StateError('Already closed');
     }
 
     final bufferAsBytes = _bufferAsBytes;
     var length = _length;
     for (var i = start; i < end; i++) {
-      final bufferIndex = length % 64;
-
-      // If first byte of a new block
-      if (bufferIndex == 0 && length > 0) {
-        // Store length
+      // Compress?
+      if (length % 64 == 0 && length > 0) {
         _length = length;
-
-        // Compress the previous block
         _compress(false);
       }
 
       // Set byte
-      bufferAsBytes[bufferIndex] = chunk[i];
+      bufferAsBytes[length % 64] = chunk[i];
 
       // Increment length
       length++;
@@ -101,38 +106,30 @@ class Blake2bSink extends DartHashSink {
 
   @override
   void close() {
-    if (_isClosed) {
+    if (isClosed) {
       return;
     }
     _isClosed = true;
 
+    // Unfinished block?
     final length = _length;
-
-    // Fill remaining indices with zeroes
-    final blockLength = length % 64;
-    if (blockLength > 0) {
-      _bufferAsBytes.fillRange(blockLength, 64, 0);
+    for (var i = length % 64; i < 64; i++) {
+      _bufferAsBytes[i] = 0;
     }
-
-    // Compress
     _compress(true);
-
-    // Return bytes
-    final resultBytes = Uint8List(64);
-    resultBytes.setAll(
-      0,
-      Uint8List.view(_hash.buffer, 0, 64),
-    );
-    _result = Hash(resultBytes);
   }
 
   @override
-  Hash hashSync() {
-    final result = _result;
-    if (result == null) {
-      throw StateError('Not closed');
-    }
-    return result;
+  void reset() {
+    _isClosed = false;
+    _length = 0;
+    _bufferAsUint64List.fillRange(0, _bufferAsUint64List.length, 0);
+    _localValues.fillRange(0, _localValues.length, 0);
+
+    final h = _hash;
+    h.setAll(0, _initializationVector);
+    h.fillRange(_initializationVector.length, h.length, 0);
+    h[0] ^= 0x01010000 ^ 64;
   }
 
   void _compress(bool isLast) {

@@ -12,52 +12,61 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart' as crypto;
 import 'package:cryptography/cryptography.dart';
+import 'package:cryptography/dart.dart';
 import 'package:cryptography/src/utils.dart';
 import 'package:test/test.dart';
 
 void main() {
   group('Hmac:', () {
     group('non-browser:', () {
-      _main(isBrowser: false);
+      _main();
     }, testOn: '!browser');
+
     group('browser:', () {
-      _main(isBrowser: true);
+      _main();
     }, testOn: 'browser');
   });
 }
 
-void _main({
-  required bool isBrowser,
-}) {
+void _main() {
   late Hmac hmac;
+
   setUp(() {
     hmac = Hmac(Sha256());
   });
 
-  final prefix = isBrowser ? 'Browser' : 'Dart';
+  final prefix = BrowserCryptography.isSupported ? 'Browser' : 'Dart';
 
   test('Hmac.sha1().toString()', () {
     expect(Hmac.sha1().toString(), '${prefix}Hmac(${prefix}Sha1())');
+    expect(DartHmac.sha1().toString(), 'DartHmac(${prefix}Sha1())');
   });
 
   test('Hmac.sha224().toString()', () {
+    // Web Cryptography does not support Sha224
     expect(Hmac(Sha224()).toString(), 'DartHmac(DartSha224())');
+    expect(DartHmac.sha224().toString(), 'DartHmac(DartSha224())');
   });
 
   test('Hmac.sha256().toString()', () {
     expect(Hmac.sha256().toString(), '${prefix}Hmac.sha256()');
+    expect(DartHmac.sha256().toString(), 'DartHmac.sha256()');
   });
 
   test('Hmac.sha384().toString()', () {
     expect(Hmac.sha384().toString(), '${prefix}Hmac(${prefix}Sha384())');
+    expect(DartHmac.sha384().toString(), 'DartHmac(${prefix}Sha384())');
   });
 
   test('Hmac.sha512().toString()', () {
     expect(Hmac.sha512().toString(), '${prefix}Hmac.sha512()');
+    expect(DartHmac.sha512().toString(), 'DartHmac.sha512()');
   });
 
   test('hashAlgorithm', () {
@@ -93,16 +102,23 @@ void _main({
     expect(() => sink.addSlice([1], 0, 1, false), throwsStateError);
   });
 
-  test('calculateMac(...): different secretKey and data lengths', () async {
-    for (var n = 1; n < 1024; n++) {
-      final secretKey = SecretKey(Uint8List(n));
-      final data = Uint8List(n);
+  test('Hmac.sha256().calculateMac(...): different secretKey and data lengths',
+      () async {
+    final buffer = Uint8List(129);
+    for (var i = 0; i < buffer.length; i++) {
+      buffer[i] = i;
+    }
+
+    for (var n = 0; n < buffer.length; n++) {
+      final data = buffer.buffer.asUint8List(0, n);
+      final secretKey = SecretKeyData(data.buffer.asUint8List(max(1, n)));
+
       for (var i = 0; i < data.length; i++) {
         data[i] = 0xFF & i;
       }
 
       // ignore: unused_local_variable
-      final mac = await hmac.calculateMac(
+      final mac = await Hmac.sha256().calculateMac(
         data,
         secretKey: secretKey,
         nonce: const <int>[],
@@ -110,11 +126,115 @@ void _main({
 
       // // Use 'package:crypto' for calculating the correct answer
       final secretKeyData = await secretKey.extract();
-      final expectedBytes =
-          crypto.Hmac(crypto.sha256, secretKeyData.bytes).convert(data).bytes;
+      final expectedBytes = crypto.Hmac(
+        crypto.sha256,
+        secretKeyData.bytes,
+      ).convert(data).bytes;
       expect(
         hexFromBytes(mac.bytes),
         hexFromBytes(expectedBytes),
+        reason: 'length: $n',
+      );
+    }
+  });
+
+  test('Hmac.sha512().calculateMac(...): different secretKey and data lengths',
+      () async {
+    final buffer = Uint8List(129);
+    for (var i = 0; i < buffer.length; i++) {
+      buffer[i] = i;
+    }
+    for (var n = 0; n < buffer.length; n++) {
+      final data = buffer.buffer.asUint8List(0, n);
+      final secretKey = SecretKeyData(data.buffer.asUint8List(max(1, n)));
+
+      // ignore: unused_local_variable
+      final mac = await Hmac.sha512().calculateMac(
+        data,
+        secretKey: secretKey,
+        nonce: const <int>[],
+      );
+
+      // // Use 'package:crypto' for calculating the correct answer
+      final expectedBytes = crypto.Hmac(
+        crypto.sha512,
+        secretKey.bytes,
+      ).convert(data).bytes;
+      expect(
+        hexFromBytes(mac.bytes),
+        hexFromBytes(expectedBytes),
+        reason: 'length: $n',
+      );
+    }
+  });
+
+  test(
+      'Hmac.sha512(), addSlice(), addSlice(): different secretKey and data lengths',
+      () async {
+    final buffer = Uint8List(129);
+    for (var i = 0; i < buffer.length; i++) {
+      buffer[i] = i;
+    }
+    for (var n = 0; n < buffer.length; n++) {
+      final data = buffer.buffer.asUint8List(0, n);
+      final secretKey = SecretKeyData(data.buffer.asUint8List(max(1, n)));
+      for (var i = 0; i < data.length; i++) {
+        data[i] = 0xFF & i;
+      }
+
+      // ignore: unused_local_variable
+      final sink = await Hmac.sha512().newMacSink(
+        secretKey: secretKey,
+      );
+      sink.addSlice(data, 0, data.length ~/ 2, false);
+      sink.addSlice(data, data.length ~/ 2, data.length, true);
+      final mac = await sink.mac();
+
+      // // Use 'package:crypto' for calculating the correct answer
+      final expectedBytes = crypto.Hmac(
+        crypto.sha512,
+        secretKey.bytes,
+      ).convert(data).bytes;
+      expect(
+        hexFromBytes(mac.bytes),
+        hexFromBytes(expectedBytes),
+        reason: 'length: $n',
+      );
+    }
+  });
+
+  test(
+      'Hmac.sha512(), add(), add(), close(): different secretKey and data lengths',
+      () async {
+    final buffer = Uint8List(129);
+    for (var i = 0; i < buffer.length; i++) {
+      buffer[i] = i;
+    }
+    for (var n = 0; n < buffer.length; n++) {
+      final data = buffer.buffer.asUint8List(0, n);
+      final secretKey = SecretKeyData(data.buffer.asUint8List(max(1, n)));
+      for (var i = 0; i < data.length; i++) {
+        data[i] = 0xFF & i;
+      }
+
+      // ignore: unused_local_variable
+      final sink = await Hmac.sha512().newMacSink(
+        secretKey: secretKey,
+      );
+      sink.add(data.sublist(0, data.length ~/ 2));
+      sink.add(data.sublist(data.length ~/ 2, data.length));
+      sink.close();
+      final mac = await sink.mac();
+
+      // // Use 'package:crypto' for calculating the correct answer
+      final expectedBytes = crypto.Hmac(
+        crypto.sha512,
+        secretKey.bytes,
+      ).convert(data).bytes;
+      expect(
+        hexFromBytes(mac.bytes),
+        hexFromBytes(expectedBytes),
+        reason: 'length: $n',
       );
     }
   });
@@ -149,7 +269,7 @@ void _main({
       //   hexFromBytes(expectedBytes),
       // );
     }
-  });
+  }, timeout: Timeout.factor(4.0));
 
   group('RFC 4231:', () {
     group('test vector #1:', () {
@@ -162,7 +282,7 @@ void _main({
         '0b0b0b0b',
       ));
 
-      test('sha224', () async {
+      test('sha224, calculateMac()', () async {
         final expected = hexToBytes(
           '896fb1128abbdf196832107cd49df33f'
           '47b4b1169912ba4f53684b22',
@@ -187,7 +307,7 @@ void _main({
         );
       });
 
-      test('sha256', () async {
+      test('sha256, calculateMac()', () async {
         final expected = hexToBytes(
           'b0344c61d8db38535ca8afceaf0bf12b'
           '881dc200c9833da726e9376c2e32cff7',
@@ -212,7 +332,54 @@ void _main({
         );
       });
 
-      test('sha384', () async {
+      test('sha256, addSlice()', () async {
+        final expected = hexToBytes(
+          'b0344c61d8db38535ca8afceaf0bf12b'
+          '881dc200c9833da726e9376c2e32cff7',
+        );
+        final hmac = Hmac(Sha256());
+        final sink = await hmac.newMacSink(secretKey: secretKey);
+        sink.addSlice(input, 0, input.length, true);
+        final hash = await sink.mac();
+        expect(
+          hexFromBytes(hash.bytes),
+          hexFromBytes(expected),
+        );
+        expect(
+          await hmac.calculateMac(
+            input,
+            secretKey: secretKey,
+            nonce: const <int>[],
+          ),
+          hash,
+        );
+      });
+
+      test('sha256, add(), close()', () async {
+        final expected = hexToBytes(
+          'b0344c61d8db38535ca8afceaf0bf12b'
+          '881dc200c9833da726e9376c2e32cff7',
+        );
+        final hmac = Hmac(Sha256());
+        final sink = await hmac.newMacSink(secretKey: secretKey);
+        sink.add(input);
+        sink.close();
+        final hash = await sink.mac();
+        expect(
+          hexFromBytes(hash.bytes),
+          hexFromBytes(expected),
+        );
+        expect(
+          await hmac.calculateMac(
+            input,
+            secretKey: secretKey,
+            nonce: const <int>[],
+          ),
+          hash,
+        );
+      });
+
+      test('sha384, calculateMac()', () async {
         final expected = hexToBytes(
           'afd03944d84895626b0825f4ab46907f'
           '15f9dadbe4101ec682aa034c7cebc59c'
@@ -230,7 +397,7 @@ void _main({
         );
       });
 
-      test('sha512', () async {
+      test('sha512, calculateMac()', () async {
         final expected = hexToBytes(
           '87aa7cdea5ef619d4ff0b4241a1d6cb0'
           '2379f4e2ce4ec2787ad0b30545e17cde'
@@ -250,4 +417,76 @@ void _main({
       });
     });
   });
+
+  test(
+    'Hmac.sha256(): tests against package:crypto',
+    () {
+      final algorithm = Hmac.sha256().toSync();
+      final secretKeyData = SecretKeyData([1, 2, 3]);
+      final googleHmac = crypto.Hmac(crypto.sha256, secretKeyData.bytes);
+      final random = SecureRandom.fast;
+      final input = Uint8List(300);
+
+      for (var i = 0; i < 1000; i++) {
+        fillBytesWithSecureRandom(input, random: random);
+        for (var j = 1; j < input.length; j++) {
+          final slice = input.buffer.asUint8List(0, j);
+          final hash = algorithm.calculateMacSync(
+            slice,
+            secretKeyData: secretKeyData,
+            nonce: const [],
+          ).bytes;
+          final packageCryptoHash = googleHmac.convert(slice).bytes;
+          // Use if statement for better performance
+          if (!const ListEquality().equals(hash, packageCryptoHash)) {
+            expect(
+              hexFromBytes(hash),
+              hexFromBytes(packageCryptoHash),
+            );
+          }
+
+          {
+            final sink = algorithm.newMacSinkSync(
+              secretKeyData: secretKeyData,
+            );
+            sink.add(slice);
+            sink.close();
+            expect(
+              sink.macSync().bytes,
+              packageCryptoHash,
+            );
+          }
+
+          {
+            final sink = algorithm.newMacSinkSync(
+              secretKeyData: secretKeyData,
+            );
+            final n = slice.length ~/ 2;
+            sink.addSlice(slice, 0, n, false);
+            sink.addSlice(slice, n, slice.length, true);
+            expect(
+              sink.macSync().bytes,
+              packageCryptoHash,
+            );
+          }
+
+          {
+            final sink = algorithm.newMacSinkSync(
+              secretKeyData: secretKeyData,
+            );
+            final n = slice.length ~/ 3;
+            sink.addSlice(slice, 0, n, false);
+            sink.addSlice(slice, n, 2 * n, false);
+            sink.addSlice(slice, 2 * n, slice.length, true);
+            expect(
+              sink.macSync().bytes,
+              packageCryptoHash,
+            );
+          }
+        }
+      }
+    },
+    testOn: 'vm',
+    timeout: Timeout.factor(10),
+  );
 }

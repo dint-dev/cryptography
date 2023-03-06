@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
@@ -32,9 +31,6 @@ class DartChacha20 extends Chacha20
   @override
   final MacAlgorithm macAlgorithm;
 
-  @override
-  final Random? random;
-
   /// Constructs [DartChacha20] with any MAC.
   ///
   /// In almost every case, you should use [DartChacha20.poly1305Aead],
@@ -42,18 +38,21 @@ class DartChacha20 extends Chacha20
   /// ([RFC 7539](https://tools.ietf.org/html/rfc7539)).
   const DartChacha20({
     required this.macAlgorithm,
-    this.random,
-  }) : super.constructor(random: random);
+    super.random,
+  }) : super.constructor();
 
   /// Constructs _AEAD_CHACHA20_POLY1305_ cipher
   /// ([RFC 7539](https://tools.ietf.org/html/rfc7539)).
   const DartChacha20.poly1305Aead({
-    this.random,
+    super.random,
   })  : macAlgorithm = const DartChacha20Poly1305AeadMacAlgorithm(),
-        super.constructor(random: random);
+        super.constructor();
 
   @override
   DartCipherState newState() => DartChacha20State(cipher: this);
+
+  @override
+  DartChacha20 toSync() => this;
 
   /// Computes [Chacha20] rounds.
   ///
@@ -310,7 +309,6 @@ class DartChacha20State extends DartCipherState {
       _initialState,
       key: secretKey.bytes,
       nonce: nonce,
-      keyStreamIndex: cipher.macAlgorithm.keyStreamUsed + keyStreamIndex,
     );
   }
 

@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
@@ -36,20 +35,15 @@ class DartAesCbc extends AesCbc with DartAesMixin {
   @override
   final int secretKeyLength;
 
-  @override
-  final Random? random;
-
   const DartAesCbc({
     required this.macAlgorithm,
     this.paddingAlgorithm = PaddingAlgorithm.pkcs7,
     this.secretKeyLength = 32,
-    this.random,
+    super.random,
   })  : assert(secretKeyLength == 16 ||
             secretKeyLength == 24 ||
             secretKeyLength == 32),
-        super.constructor(
-          random: random,
-        );
+        super.constructor();
 
   const DartAesCbc.with128bits({
     required MacAlgorithm macAlgorithm,
@@ -295,4 +289,7 @@ class DartAesCbc extends AesCbc with DartAesMixin {
     );
     return SecretBox(cipherTextBytes, nonce: nonce, mac: mac);
   }
+
+  @override
+  DartAesCbc toSync() => this;
 }

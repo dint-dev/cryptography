@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Gohilla.
+// Copyright 2023 Gohilla.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,12 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/// @nodoc
-@Deprecated(
-  'This library will be removed in a future major version.'
-  ' You can find `BrowserCryptography` class in "package:cryptography/cryptography.dart".',
-)
-library cryptography.browser;
+import 'package:cryptography/cryptography.dart';
 
-export 'src/browser/browser_cryptography_when_not_browser.dart'
-    if (dart.library.html) 'src/browser/browser_cryptography.dart';
+import 'benchmark_helpers.dart';
+
+Future<void> main() async {
+  await _Benchmark(Pbkdf2.hmacSha256(iterations: 100000, bits: 128)).report();
+}
+
+class _Benchmark extends SimpleBenchmark {
+  final Pbkdf2 implementation;
+
+  _Benchmark(this.implementation) : super('$implementation.deriveKey(...)');
+
+  @override
+  Future<void> run() async {
+    await implementation.deriveKey(
+      secretKey: SecretKey([1, 2, 3]),
+      nonce: [4, 5, 6],
+    );
+  }
+}

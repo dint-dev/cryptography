@@ -11,7 +11,7 @@ Maintained by Gohilla. Licensed under the [Apache License 2.0](LICENSE).
 In _pubspec.yaml_
 ```yaml
 dependencies:
-  cryptography: ^2.3.0
+  cryptography: ^2.4.0
   jwk: ^0.2.0
 ``
 ```

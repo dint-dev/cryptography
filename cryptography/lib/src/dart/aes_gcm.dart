@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
+import 'package:cryptography/src/dart/dart_mac_algorithm.dart';
 import 'package:meta/meta.dart';
 
 import '../../helpers.dart';
@@ -47,18 +47,15 @@ class DartAesGcm extends AesGcm with DartAesMixin {
   @override
   final int secretKeyLength;
 
-  @override
-  final Random? random;
-
   DartAesGcm({
     this.secretKeyLength = 32,
     this.nonceLength = AesGcm.defaultNonceLength,
-    this.random,
+    super.random,
   })  : assert(secretKeyLength == 16 ||
             secretKeyLength == 24 ||
             secretKeyLength == 32),
         assert(nonceLength >= 4),
-        super.constructor(random: random) {
+        super.constructor() {
     if (Endian.host != Endian.little) {
       throw StateError('BigEndian systems are unsupported');
     }
@@ -254,6 +251,11 @@ class DartAesGcm extends AesGcm with DartAesMixin {
     return SecretBox(cipherText, nonce: nonce, mac: mac);
   }
 
+  @override
+  DartAesGcm toSync() {
+    return this;
+  }
+
   static void _ghash(Uint32List result, Uint32List h, List<int> data) {
     final ghashState = ByteData(16);
     ghashState.setUint32(0, 0);
@@ -382,7 +384,7 @@ class DartAesGcm extends AesGcm with DartAesMixin {
 }
 
 /// [AesGcm] MAC algorithm implemented in pure Dart.
-class DartGcm extends MacAlgorithm {
+class DartGcm extends MacAlgorithm with DartMacAlgorithmMixin {
   const DartGcm();
 
   @override
@@ -404,7 +406,20 @@ class DartGcm extends MacAlgorithm {
   }
 
   @override
+  DartMacSinkMixin newMacSinkSync(
+      {required SecretKeyData secretKeyData,
+      List<int> nonce = const <int>[],
+      List<int> aad = const <int>[]}) {
+    throw UnimplementedError();
+  }
+
+  @override
   String toString() => 'DartGcm()';
+
+  @override
+  DartGcm toSync() {
+    return this;
+  }
 
   Mac _calculateMacSync(
     List<int> cipherText, {

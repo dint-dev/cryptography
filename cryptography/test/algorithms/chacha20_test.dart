@@ -20,9 +20,13 @@ import 'package:cryptography/src/utils.dart';
 import 'package:test/test.dart';
 
 void main() {
-  final algorithm = Chacha20(macAlgorithm: Hmac.sha256());
-
   group('Chacha20:', () {
+    Chacha20 algorithm = Chacha20(macAlgorithm: Hmac.sha256());
+
+    setUp(() {
+      algorithm = Chacha20(macAlgorithm: Hmac.sha256());
+    });
+
     test('== / hashCode', () {
       final clone = Chacha20(
         macAlgorithm: Hmac.sha256(),
@@ -129,11 +133,12 @@ void main() {
       expect(decryptedSecretBox, clearText);
     });
 
-    test('1000 random inputs encrypted and decrypted', () async {
-      for (var i = 0; i < 1000; i++) {
+    test('random inputs encrypted and decrypted', () async {
+      for (var i = 0; i < 256; i++) {
         final secretKey = await algorithm.newSecretKey();
         final nonce = algorithm.newNonce();
         final clearText = Uint8List(i % 127);
+        fillBytesWithSecureRandom(clearText, random: SecureRandom.fast);
         final offset = i % 123;
         final secretBox = await algorithm.encrypt(
           clearText,
@@ -263,66 +268,65 @@ void main() {
         );
       });
     });
-  });
 
-  test('encrypt/decrypt inputs with lengths from 0 to 1000', () async {
-    // 1000 'a' letters
-    final clearText = Uint8List(1000);
-    clearText.fillRange(0, clearText.length, 'a'.codeUnits.single);
-    final secretKey = await algorithm.newSecretKey();
-    final nonce = algorithm.newNonce();
+    test('encrypt/decrypt inputs with lengths from 0 to 1000', () async {
+      // 1000 'a' letters
+      final clearText = Uint8List(1000);
+      clearText.fillRange(0, clearText.length, 'a'.codeUnits.single);
+      final secretKey = await algorithm.newSecretKey();
+      final nonce = algorithm.newNonce();
 
-    for (var sliceEnd = 0; sliceEnd < 1000; sliceEnd++) {
-      final sliceStart = sliceEnd < 129 ? 0 : sliceEnd % 129;
-      final slice = Uint8List.view(
-        clearText.buffer,
-        sliceStart,
-        sliceEnd - sliceStart,
+      for (var sliceEnd = 0; sliceEnd < 1000; sliceEnd++) {
+        final sliceStart = sliceEnd < 129 ? 0 : sliceEnd % 129;
+        final slice = Uint8List.view(
+          clearText.buffer,
+          sliceStart,
+          sliceEnd - sliceStart,
+        );
+
+        // Encrypt
+        final encrypted = await algorithm.encrypt(
+          slice,
+          secretKey: secretKey,
+          nonce: nonce,
+        );
+
+        // Decrypt
+        final decrypted = await algorithm.decrypt(
+          encrypted,
+          secretKey: secretKey,
+        );
+
+        // Test that the decrypted matches clear text.
+        expect(
+          decrypted,
+          slice,
+        );
+      }
+    }, timeout: Timeout.factor(4.0));
+
+    group('RFC 7539: encryption example', () {
+      // -----------------------------------------------------------------------
+      // The following constants are from RFC 7539:
+      // https://tools.ietf.org/html/rfc7539
+      // -----------------------------------------------------------------------
+
+      final cleartext =
+          "Ladies and Gentlemen of the class of '99: If I could offer you only one tip for the future, sunscreen would be it."
+              .runes
+              .toList();
+
+      final secretKey = SecretKey(hexToBytes(
+        '00:01:02:03:04:05:06:07:08:09:0a:0b:0c:0d:0e:0f:10:11:12:13:14:15:16:17:18:19:1a:1b:1c:1d:1e:1f',
+      ));
+
+      final nonce = hexToBytes(
+        '00:00:00:00:00:00:00:4a:00:00:00:00',
       );
 
-      // Encrypt
-      final encrypted = await algorithm.encrypt(
-        slice,
-        secretKey: secretKey,
-        nonce: nonce,
-      );
+      final initialKeyStreamIndex = 64;
 
-      // Decrypt
-      final decrypted = await algorithm.decrypt(
-        encrypted,
-        secretKey: secretKey,
-      );
-
-      // Test that the decrypted matches clear text.
-      expect(
-        decrypted,
-        slice,
-      );
-    }
-  });
-
-  group('RFC 7539: encryption example', () {
-    // -----------------------------------------------------------------------
-    // The following constants are from RFC 7539:
-    // https://tools.ietf.org/html/rfc7539
-    // -----------------------------------------------------------------------
-
-    final cleartext =
-        "Ladies and Gentlemen of the class of '99: If I could offer you only one tip for the future, sunscreen would be it."
-            .runes
-            .toList();
-
-    final secretKey = SecretKey(hexToBytes(
-      '00:01:02:03:04:05:06:07:08:09:0a:0b:0c:0d:0e:0f:10:11:12:13:14:15:16:17:18:19:1a:1b:1c:1d:1e:1f',
-    ));
-
-    final nonce = hexToBytes(
-      '00:00:00:00:00:00:00:4a:00:00:00:00',
-    );
-
-    final initialKeyStreamIndex = 64;
-
-    final expectedCipherText = hexToBytes('''
+      final expectedCipherText = hexToBytes('''
         6e 2e 35 9a 25 68 f9 80 41 ba 07 28 dd 0d 69 81
         e9 7e 7a ec 1d 43 60 c2 0a 27 af cc fd 9f ae 0b
         f9 1b 65 c5 52 47 33 ab 8f 59 3d ab cd 62 b3 57
@@ -333,39 +337,40 @@ void main() {
         87 4d                   
       ''');
 
-    // -----------------------------------------------------------------------
-    // End of constants from RFC 7539
-    // -----------------------------------------------------------------------
+      // -----------------------------------------------------------------------
+      // End of constants from RFC 7539
+      // -----------------------------------------------------------------------
 
-    test('encrypt', () async {
-      final secretBox = await algorithm.encrypt(
-        cleartext,
-        secretKey: secretKey,
-        nonce: nonce,
-        keyStreamIndex: initialKeyStreamIndex,
-      );
-      expect(
-        hexFromBytes(secretBox.cipherText),
-        hexFromBytes(expectedCipherText),
-      );
-    });
+      test('encrypt', () async {
+        final secretBox = await algorithm.encrypt(
+          cleartext,
+          secretKey: secretKey,
+          nonce: nonce,
+          keyStreamIndex: initialKeyStreamIndex,
+        );
+        expect(
+          hexFromBytes(secretBox.cipherText),
+          hexFromBytes(expectedCipherText),
+        );
+      });
 
-    test('decrypt', () async {
-      final algorithm = Chacha20(macAlgorithm: MacAlgorithm.empty);
-      final secretBox = SecretBox(
-        expectedCipherText,
-        nonce: nonce,
-        mac: Mac.empty,
-      );
-      final decrypted = await algorithm.decrypt(
-        secretBox,
-        secretKey: secretKey,
-        keyStreamIndex: initialKeyStreamIndex,
-      );
-      expect(
-        hexFromBytes(decrypted),
-        hexFromBytes(cleartext),
-      );
+      test('decrypt', () async {
+        final algorithm = Chacha20(macAlgorithm: MacAlgorithm.empty);
+        final secretBox = SecretBox(
+          expectedCipherText,
+          nonce: nonce,
+          mac: Mac.empty,
+        );
+        final decrypted = await algorithm.decrypt(
+          secretBox,
+          secretKey: secretKey,
+          keyStreamIndex: initialKeyStreamIndex,
+        );
+        expect(
+          hexFromBytes(decrypted),
+          hexFromBytes(cleartext),
+        );
+      });
     });
   });
 }

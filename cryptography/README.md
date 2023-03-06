@@ -27,59 +27,70 @@ Any feedback, issue reports, or pull requests are appreciated!
 # Getting started
 
 In _pubspec.yaml_:
-
 ```yaml
 dependencies:
-  cryptography: ^2.3.0
-  cryptography_flutter: ^2.2.0 # Remove this if you don't use Flutter
+  cryptography: ^2.4.0
+  cryptography_flutter: ^2.2.0 # Remove this if you are writing a pure Dart package without Flutter
 ```
 
 You are ready to go!
 
+# Issues and discussions
+
+Please report bugs at [github.com/dint-dev/cryptography/issues](https://github.com/dint-dev/cryptography/issues).
+
+If you want discuss cryptography in Flutter/Dart projects with other developers, feel free to join
+our community discussion at [github.com/dint-dev/cryptography/discussions](https://github.com/dint-dev/cryptography/discussions):
+* Your experiences with the documentation and API design?
+* What is the best way to achieve X?
+* Etc.
+
 # Concepts
 ## Cryptographic keys
-
-The usual arguments to algorithms are:
-
 * [SecretKey](https://pub.dev/documentation/cryptography/latest/cryptography/SecretKey-class.html)
     * Used by ciphers, message authentication codes, and key derivation functions.
 * [KeyPair](https://pub.dev/documentation/cryptography/latest/cryptography/KeyPair-class.html)
     * [SimpleKeyPair](https://pub.dev/documentation/cryptography/latest/cryptography/SimpleKeyPair-class.html)
-      (Byte sequences such as Ed25519 / X25519 32-byte private keys)
+      (Octet sequences such as Ed25519 / X25519 32-byte private keys)
     * [EcKeyPairData](https://pub.dev/documentation/cryptography/latest/cryptography/EcKeyPair-class.html)
       (P-256, P-384, P-521 private keys)
     * [RsaKeyPairData](https://pub.dev/documentation/cryptography/latest/cryptography/RsaKeyPair-class.html)
       (RSA private keys)
 * [PublicKey](https://pub.dev/documentation/cryptography/latest/cryptography/PublicKey-class.html)
     * [SimplePublicKey](https://pub.dev/documentation/cryptography/latest/cryptography/SimplePublicKey-class.html)
-      (Byte sequences such as Ed25519 / X25519 32-byte public keys)
+      (Octet sequences such as Ed25519 / X25519 32-byte public keys)
     * [EcPublicKey](https://pub.dev/documentation/cryptography/latest/cryptography/EcPublicKey-class.html)
       (P-256 / P-384 / P-512 public keys)
     * [RsaPublicKey](https://pub.dev/documentation/cryptography/latest/cryptography/RsaPublicKey-class.html)
       (RSA public keys)
+* Nonces (also known as "IV", "Initialization Vector", "salt") are non-secret byte sequences.
+* AAD (Additional Authenticated Data) is some additional byte sequence that you want a cipher to
+  authenticate when you encrypt/decrypt.
 
 Note that SecretKey and KeyPair instances are opaque and asynchronous by default. They may not be in
 the memory and may not be readable at all. If a SecretKey or KeyPair instance is in memory, it's an
 instance of one of the following:
-  * [SecretKeyData](https://pub.dev/documentation/cryptography/latest/cryptography/SecretKeyData-class.html)
-  * [SimpleKeyPairData](https://pub.dev/documentation/cryptography/latest/cryptography/SimpleKeyPairData-class.html)
-  * [EcKeyPairData](https://pub.dev/documentation/cryptography/latest/cryptography/EcKeyPairData-class.html)
-  * [RsaKeyPairData](https://pub.dev/documentation/cryptography/latest/cryptography/RsaKeyPairData-class.html)
-
-For a bit higher API abstraction, we encourage developers to use
-[Wand](https://pub.dev/documentation/cryptography/latest/cryptography/SecretKeyData-class.html)
-instances for performing operations without visible keys (thus "magic wands"). There are currently
-three types of wands:
-  * [CipherWand](https://pub.dev/documentation/cryptography/latest/cryptography/CipherWand-class.html)
-  * [KeyExchangeWand](https://pub.dev/documentation/cryptography/latest/cryptography/KeyExchangeWand-class.html)
-  * [SignatureWand](https://pub.dev/documentation/cryptography/latest/cryptography/SignatureWand-class.html)
+* [SecretKeyData](https://pub.dev/documentation/cryptography/latest/cryptography/SecretKeyData-class.html)
+* [SimpleKeyPairData](https://pub.dev/documentation/cryptography/latest/cryptography/SimpleKeyPairData-class.html)
+* [EcKeyPairData](https://pub.dev/documentation/cryptography/latest/cryptography/EcKeyPairData-class.html)
+* [RsaKeyPairData](https://pub.dev/documentation/cryptography/latest/cryptography/RsaKeyPairData-class.html)
 
 For encoding/decoding private/public keys in JWK (JSON Web Key) format, use
 [package:jwk](https://pub.dev/packages/jwk).
 For encoding/decoding X.509, PKCS12, and other formats, we don't have recommended packages
 at the moment.
 
-## Algorithms by type
+## Wands (recommended)
+
+For a bit higher API abstraction and sometimes a performance boost, we encourage developers to use
+[Wand](https://pub.dev/documentation/cryptography/latest/cryptography/Wand-class.html)
+instances which do operations with fixed, "invisible" key (thus "magic wands"). There are currently
+three types of wands:
+* [CipherWand](https://pub.dev/documentation/cryptography/latest/cryptography/CipherWand-class.html)
+* [KeyExchangeWand](https://pub.dev/documentation/cryptography/latest/cryptography/KeyExchangeWand-class.html)
+* [SignatureWand](https://pub.dev/documentation/cryptography/latest/cryptography/SignatureWand-class.html)
+
+In the future version 3.x, we plan to transition to wands as the default API for doing operations.
 
 ### Ciphers
 
@@ -171,62 +182,65 @@ implementations are available:
 The following [HashAlgorithm](https://pub.dev/documentation/cryptography/latest/cryptography/HashAlgorithm-class.html)
 implementations are available:
 
-* [Blake2b](https://pub.dev/documentation/cryptography/latest/cryptography/Blake2b-class.html) (
-  BLAKE2B)
-* [Blake2s](https://pub.dev/documentation/cryptography/latest/cryptography/Blake2s-class.html) (
-  BLAKE2S)
+* [Blake2b](https://pub.dev/documentation/cryptography/latest/cryptography/Blake2b-class.html)
+  (BLAKE2B)
+* [Blake2s](https://pub.dev/documentation/cryptography/latest/cryptography/Blake2s-class.html)
+  (BLAKE2S)
 * [Sha1](https://pub.dev/documentation/cryptography/latest/cryptography/Sha1-class.html) (SHA1)
-* [Sha224](https://pub.dev/documentation/cryptography/latest/cryptography/Sha224-class.html) (
-  SHA2-224)
-* [Sha256](https://pub.dev/documentation/cryptography/latest/cryptography/Sha256-class.html) (
-  SHA2-256)
-* [Sha384](https://pub.dev/documentation/cryptography/latest/cryptography/Sha384-class.html) (
-  SHA2-384)
-* [Sha512](https://pub.dev/documentation/cryptography/latest/cryptography/Sha512-class.html) (
-  SHA2-512)
+* [Sha224](https://pub.dev/documentation/cryptography/latest/cryptography/Sha224-class.html)
+  (SHA2-224)
+* [Sha256](https://pub.dev/documentation/cryptography/latest/cryptography/Sha256-class.html)
+  (SHA2-256)
+* [Sha384](https://pub.dev/documentation/cryptography/latest/cryptography/Sha384-class.html)
+  (SHA2-384)
+* [Sha512](https://pub.dev/documentation/cryptography/latest/cryptography/Sha512-class.html)
+  (SHA2-512)
+
+The performance is excellent! Our pure Dart implementation of Sha256 is around 2 times faster than
+implementation in the older "package:crypto" because of inlining and smarter integer use. If you do
+lots of small hashes, the advantage is even bigger because this package allows you re-use the hash
+state. Therefore our HMAC-SHA256 is much faster too. In browsers, hashes can be over 100 times
+faster because this package automatically uses Web Crypto API.
 
 ### Random number generators
 
-We continue to use the old good `Random.secure()` as the default random number in all APIs. It 
-generates only up to 1 MB of random data per second, but this is rarely a performance bottleneck.
+We continue to use the old good `Random.secure()` as the default random number in all APIs.
 
-If you do want faster cryptographically reasonably strong random numbers, this package contains
+If you do want much faster cryptographically reasonably strong random numbers, this package contains
 [SecureRandom.fast](https://pub.dev/documentation/cryptography/latest/cryptography/SecureRandom/fast.html).
 It generates random numbers by using 12 round version ChaCha cipher. It can generate up to 0.25 GB
 random data per second because it makes expensive operating system call less frequently after the
 initial seeding from the operating system. While ChaCha is not designed to be a cryptographic random
-number generator, it's hard to imagine a scenario where an attacker could use the generated random
-numbers to break the security of the system.
+number generator, it can be acceptable and a related (Blake2-based) RNG is used by Linux kernel.
 
 If you need a deterministic random number generator for tests, the package contains
-[ChachaRandom.forTesting](https://pub.dev/documentation/cryptography/latest/cryptography/SecureRandom/SecureRandom.forTesting.html).
+[SecureRandom.forTesting](https://pub.dev/documentation/cryptography/latest/cryptography/SecureRandom/SecureRandom.forTesting.html),
+which uses the aforementioned ChaCha-based RNG with a fixed seed and no re-seeding.
 
 ## Cryptographic factory class
 
-The
-class [Cryptography](https://pub.dev/documentation/cryptography/latest/cryptography/Cryptography-class.html)
+The class [Cryptography](https://pub.dev/documentation/cryptography/latest/cryptography/Cryptography-class.html)
 has factory methods that return implementations of cryptographic algorithms. The default
 implementation is _BrowserCryptography_ (which works in all platforms, not just browser).
 
 We wrote the following three implementations of `Cryptography`:
 
 * [DartCryptography](https://pub.dev/documentation/cryptography/latest/cryptography.dart/DartCryptography-class.html)
-  * Gives you implementations written in pure Dart implementations. They work in all platforms.
-  * SHA1 / SHA2 uses implementation in [package:crypto](https://pub.dev/packages/crypto), which
-    is maintained by Google. The rest of the algorithms in _DartCryptography_ are written and
-    tested by us.
-  * See the [class documentation](https://pub.dev/documentation/cryptography/latest/cryptography.dart/DartCryptography-class.html)
-    for list algorithms supported by it.
-* [BrowserCryptography](https://pub.dev/documentation/cryptography/latest/cryptography.browser/BrowserCryptography-class.html)
-  * Uses [Web Cryptography API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API)
-    (_crypto.subtle_) whenever possible. Methods return pure Dart implementations when Web
-    Cryptography API is not available.
-  * See the [class documentation](https://pub.dev/documentation/cryptography/latest/cryptography/BrowserCryptography-class.html)
-    for list algorithms supported by it.
+    * Gives you implementations written in pure Dart implementations. They work in all platforms.
+    * The algorithms are written and tested by us. They are are licensed under the Apache 2.0 License.
+    * See the [class documentation](https://pub.dev/documentation/cryptography/latest/cryptography.dart/DartCryptography-class.html)
+      for list algorithms supported by it.
+* [BrowserCryptography](https://pub.dev/documentation/cryptography/latest/cryptography/BrowserCryptography-class.html)
+    * Uses [Web Cryptography API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API)
+      (_crypto.subtle_) whenever possible. Methods return pure Dart implementations when Web
+      Cryptography API is not available.
+    * See the [class documentation](https://pub.dev/documentation/cryptography/latest/cryptography/BrowserCryptography-class.html)
+      for list algorithms supported by it.
 * [FlutterCryptography](https://pub.dev/documentation/cryptography_flutter/latest/cryptography_flutter/FlutterCryptography-class.html)
-  * Available in the package [cryptography_flutter](https://pub.dev/packages/cryptography_flutter).
-  * See the [class documentation](https://pub.dev/documentation/cryptography_flutter/latest/cryptography_flutter/FlutterCryptography-class.html)
-    for list algorithms supported by it.
+    * Makes cryptographic algorithms up to 100 times faster in Android, iOS, and Mac OS X.
+    * Available in the package [cryptography_flutter](https://pub.dev/packages/cryptography_flutter).
+    * See the [class documentation](https://pub.dev/documentation/cryptography_flutter/latest/cryptography_flutter/FlutterCryptography-class.html)
+      for list algorithms supported by it.
 
 ## Deterministic behavior in tests
 If you want to have deterministic behavior in tests, you can supply your own random number
@@ -258,7 +272,8 @@ void main() {
 ## Digital signature
 
 In this example, we use
-[Ed25519](https://pub.dev/documentation/cryptography/latest/cryptography/Ed25519-class.html).
+[Ed25519](https://pub.dev/documentation/cryptography/latest/cryptography/Ed25519-class.html),
+a popular signature algorithm:
 
 ```dart
 import 'package:cryptography/cryptography.dart';
@@ -291,7 +306,8 @@ Future<void> main() async {
 ## Key agreement
 
 In this example, we
-use [X25519](https://pub.dev/documentation/cryptography/latest/cryptography/X25519-class.html).
+use [X25519](https://pub.dev/documentation/cryptography/latest/cryptography/X25519-class.html),
+a popular key agreement algorithm:
 
 ```dart
 import 'package:cryptography/cryptography.dart';
@@ -317,20 +333,32 @@ Future<void> main() async {
 ```
 
 ## Authenticated encryption
+When you encrypt, you need:
+* Clear text (bytes you are encrypting)
+* [SecretKey](https://pub.dev/documentation/cryptography/latest/cryptography/SecretKey-class.html).
+  You can generate a random secret key with
+  [cipher.newSecretKey()](https://pub.dev/documentation/cryptography/latest/cryptography/Cipher/newSecretKey.html).
+* An optional _nonce_ (also known as "IV", "Initialization Vector", "salt"), which is some
+  non-secret byte sequence that MUST be unique each time you encrypt. If you don't provide a
+  nonce, a random nonce will be automatically generated for you.
 
-In this example, we encrypt a message
+The output of encrypting is [SecretBox](https://pub.dev/documentation/cryptography/latest/cryptography/SecretBox-class.html)
+that contains the nonce, the cipher text (the encrypted message), and
+[Mac](https://pub.dev/documentation/cryptography/latest/cryptography/Mac-class.html) (a message
+authentication code).
+
+When you decrypt, you need the _SecretBox_ and the secret key.
+
+In the following example, we encrypt a message
 with [AesCtr](https://pub.dev/documentation/cryptography/latest/cryptography/AesCtr-class.html)
-and append a [Hmac](https://pub.dev/documentation/cryptography/latest/cryptography/Hmac-class.html)
-message authentication code.
-
+and a [Hmac](https://pub.dev/documentation/cryptography/latest/cryptography/Hmac-class.html) message
+authentication code that uses [Sha256](https://pub.dev/documentation/cryptography/latest/cryptography/Sha256-class.html)
+hash algorithm:
 ```dart
 import 'dart:convert';
 import 'package:cryptography/cryptography.dart';
 
 Future<void> main() async {
-  // Message we want to encrypt
-  final message = utf8.encode('Hello encryption!');
-
   // Choose the cipher
   final algorithm = AesCtr(macAlgorithm: Hmac.sha256());
 
@@ -340,33 +368,34 @@ Future<void> main() async {
   print('Secret key: ${secretKeyBytes}');
 
   // Encrypt
-  final secretBox = await algorithm.encrypt(
-    message,
+  final secretBox = await algorithm.encryptString(
+    'Hello!',
     secretKey: secretKey,
   );
-  print('Nonce: ${secretBox.nonce}');
-  print('Ciphertext: ${secretBox.cipherText}');
-  print('MAC: ${secretBox.mac.bytes}');
+  print('Nonce: ${secretBox.nonce}'); // Randomly generated nonce
+  print('Ciphertext: ${secretBox.cipherText}'); // Encrypted message
+  print('MAC: ${secretBox.mac}'); // Message authentication code
+  
+  // If you are sending the secretBox somewhere, you can concatenate all parts of it:
+  final concatenatedBytes = secretBox.concatenation();
+  print('All three parts concatenated: $concatenatedBytes');
 
   // Decrypt
-  final clearText = await algorithm.decrypt(
+  final clearText = await algorithm.decryptString(
     secretBox,
     secretKey: secretKey,
   );
-  print('Cleartext: ${utf8.decode(clearText)}');
+  print('Cleartext: $clearText'); // Hello!
 }
 ```
 
 ## Hashing
-
-In this example, we
-use [Sha512](https://pub.dev/documentation/cryptography/latest/cryptography/Sha512-class.html).
-
+In this example, we use [Sha256](https://pub.dev/documentation/cryptography/latest/cryptography/Sha256-class.html):
 ```dart
 import 'package:cryptography/cryptography.dart';
 
 Future<void> main() async {
-  final sink = Sha512().newHashSink();
+  final sink = Sha256().newHashSink();
 
   // Add all parts of the authenticated message
   sink.add([1, 2, 3]);

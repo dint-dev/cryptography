@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
@@ -36,19 +35,17 @@ class DartAesCtr extends AesCtr with DartAesMixin, DartCipherWithStateMixin {
   @override
   final int secretKeyLength;
 
-  @override
-  final Random? random;
-
   const DartAesCtr({
     required this.macAlgorithm,
     this.secretKeyLength = 32,
     this.counterBits = AesCtr.defaultCounterBits,
-    this.random,
+    super.random,
   })  : assert(secretKeyLength == 16 ||
             secretKeyLength == 24 ||
             secretKeyLength == 32),
-        super.constructor(random: random);
+        super.constructor();
 
+  /// Constructs [DartAesCtr] with 128-bit secret keys.
   const DartAesCtr.with128bits({
     required MacAlgorithm macAlgorithm,
     int counterBits = AesCtr.defaultCounterBits,
@@ -58,6 +55,7 @@ class DartAesCtr extends AesCtr with DartAesMixin, DartCipherWithStateMixin {
           counterBits: counterBits,
         );
 
+  /// Constructs [DartAesCtr] with 192-bit secret keys.
   const DartAesCtr.with192bits({
     required MacAlgorithm macAlgorithm,
     int counterBits = AesCtr.defaultCounterBits,
@@ -67,6 +65,7 @@ class DartAesCtr extends AesCtr with DartAesMixin, DartCipherWithStateMixin {
           counterBits: counterBits,
         );
 
+  /// Constructs [DartAesCtr] with 256-bit secret keys.
   const DartAesCtr.with256bits({
     required MacAlgorithm macAlgorithm,
     int counterBits = AesCtr.defaultCounterBits,
@@ -82,6 +81,9 @@ class DartAesCtr extends AesCtr with DartAesMixin, DartCipherWithStateMixin {
       cipher: this,
     );
   }
+
+  @override
+  DartAesCtr toSync() => this;
 }
 
 class _DartAesCtrState extends DartCipherState {

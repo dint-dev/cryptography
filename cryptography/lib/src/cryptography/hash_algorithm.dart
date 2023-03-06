@@ -113,9 +113,9 @@ abstract class HashAlgorithm {
   @override
   String toString() => '$runtimeType()';
 
-  DartHashAlgorithm toSync() {
-    throw UnsupportedError('$this does not have a synchronous implementation');
-  }
+  /// For synchronous computations, returns a pure Dart implementation of the
+  /// hash algorithm.
+  DartHashAlgorithm toSync();
 }
 
 /// A sink for calculating [Hash] for long sequences.
@@ -167,6 +167,9 @@ class _HashSink extends HashSink {
       chunk = chunk.sublist(start, end);
     }
     _bytesBuilder.add(chunk);
+    if (isLast) {
+      close();
+    }
   }
 
   @override
@@ -180,5 +183,10 @@ class _HashSink extends HashSink {
       throw StateError('Sink is not closed');
     }
     return hashAlgorithm.hash(_bytesBuilder.toBytes());
+  }
+
+  void reset() {
+    _bytesBuilder.clear();
+    _isClosed = false;
   }
 }

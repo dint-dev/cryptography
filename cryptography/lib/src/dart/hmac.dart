@@ -19,23 +19,8 @@ import 'package:cryptography/dart.dart';
 
 /// An implementation of [Hmac] in pure Dart.
 ///
-/// Optional argument [nonce] does not affect the MAC. If optional argument
-/// [aad] is not empty, [ArgumentError] is thrown.
-///
 /// For examples and more information about the algorithm, see documentation for
-/// the class [Hmac].
-///
-/// ## Using synchronous methods
-///
-/// If you want to use synchronous methods ([calculateMacSync],
-/// [newMacSinkSync]), the hash algorithm must be synchronous too.
-///
-/// For example, to compute HMAC-SHA256:
-///
-/// ```dart
-/// final algorithm = DartHmac(DartSha256());
-/// final mac = algorithm.calculateMac(bytes, secretKey: secretKey);
-/// ```
+/// the superclass [Hmac].
 class DartHmac extends Hmac with DartMacAlgorithmMixin {
   /// Hash algorithm used by this HMAC.
   @override
@@ -43,229 +28,145 @@ class DartHmac extends Hmac with DartMacAlgorithmMixin {
 
   const DartHmac(this.hashAlgorithm) : super.constructor();
 
-  @override
-  Future<Mac> calculateMac(
-    List<int> bytes, {
-    required SecretKey secretKey,
-    List<int> nonce = const <int>[],
-    List<int> aad = const <int>[],
-  }) async {
-    final sink = await newMacSink(
-      secretKey: secretKey,
-      nonce: nonce,
-      aad: aad,
-    );
-    sink.add(bytes);
-    sink.close();
-    return await sink.mac();
-  }
+  /// HMAC-BLAKE2B.
+  factory DartHmac.blake2b() => DartHmac(Blake2b());
 
-  /// Synchronous version of [calculateMac].
-  ///
-  /// Optional argument [nonce] does not affect the MAC. If optional argument
-  /// [aad] is not empty, [ArgumentError] is thrown.
-  ///
-  /// Throws [UnsupportedError] if [hashAlgorithm] does not support synchronous
-  /// evaluation (it's not a subclass of [DartHashAlgorithmMixin]).
-  ///
-  /// For example, to compute HMAC-SHA256:
-  ///
-  /// ```dart
-  /// final algorithm = DartHmac(DartSha256());
-  /// final mac = algorithm.calculateMac(bytes, secretKey: secretKey);
-  /// ```
+  /// HMAC-BLAKE2S.
+  factory DartHmac.blake2s() => DartHmac(Blake2s());
+
+  /// HMAC-SHA1.
+  factory DartHmac.sha1() => DartHmac(Sha1());
+
+  /// HMAC-SHA224.
+  factory DartHmac.sha224() => DartHmac(Sha224());
+
+  /// HMAC-SHA256.
+  factory DartHmac.sha256() => DartHmac(Sha256());
+
+  /// HMAC-SHA384.
+  factory DartHmac.sha384() => DartHmac(Sha384());
+
+  /// HMAC-SHA512.
+  factory DartHmac.sha512() => DartHmac(Sha512());
+
   @override
-  Mac calculateMacSync(
-    List<int> input, {
+  DartMacSinkMixin newMacSinkSync({
     required SecretKeyData secretKeyData,
     List<int> nonce = const <int>[],
     List<int> aad = const <int>[],
   }) {
-    final sink = newMacSinkSync(
-      secretKeyData: secretKeyData,
-      nonce: nonce,
-      aad: aad,
+    final sink = _DartHmacSink(
+      hashAlgorithm,
+      Uint8List(hashAlgorithm.blockLengthInBytes),
+      hashAlgorithm.toSync().newHashSink(),
+      hashAlgorithm.toSync().newHashSink(),
     );
-    sink.add(input);
-    sink.close();
-    return sink.macSync();
-  }
-
-  /// Synchronous version of [newMacSink].
-  ///
-  /// Optional argument [nonce] does not affect the MAC. If optional argument
-  /// [aad] is not empty, [ArgumentError] is thrown.
-  ///
-  /// Throws [UnsupportedError] if [hashAlgorithm] does not support synchronous
-  /// evaluation (it's not a subclass of [DartHashAlgorithmMixin]).
-  ///
-  /// For example, to compute HMAC-SHA256:
-  ///
-  /// ```dart
-  /// final algorithm = DartHmac(DartSha256());
-  /// final mac = algorithm.calculateMac(bytes, secretKey: secretKey);
-  /// ```
-  @override
-  Future<MacSink> newMacSink({
-    required SecretKey secretKey,
-    List<int> nonce = const <int>[],
-    List<int> aad = const <int>[],
-  }) async {
-    final secretKeyData = await secretKey.extract();
-    final blockLength = hashAlgorithm.blockLengthInBytes;
-    if (aad.isNotEmpty) {
-      throw ArgumentError.value(aad, 'aad', 'AAD is not supported');
-    }
-    if (secretKeyData.bytes.isEmpty) {
-      throw ArgumentError.value(
-        secretKeyData,
-        'secretKeyData',
-        'Secret key must be non-empty',
-      );
-    }
-    if (secretKeyData.bytes.length > blockLength) {
-      final hash =
-          await hashAlgorithm.hash(Uint8List.fromList(secretKeyData.bytes));
-      return _newMacSinkSync(hash.bytes, eraseKey: true);
-    } else {
-      return _newMacSinkSync(secretKeyData.bytes, eraseKey: false);
-    }
+    sink.initializeSync(
+      secretKey: secretKeyData,
+      nonce: nonce,
+    );
+    return sink;
   }
 
   @override
-  DartMacSink newMacSinkSync({
-    required SecretKeyData secretKeyData,
-    List<int> nonce = const <int>[],
-    List<int> aad = const <int>[],
+  DartHmac toSync() => this;
+}
+
+class _DartHmacSink extends MacSink with DartMacSinkMixin {
+  final HashAlgorithm hashAlgorithm;
+  final Uint8List _tmp;
+  final DartHashSink _innerSink;
+  final DartHashSink _outerSink;
+  bool _isClosed = false;
+
+  _DartHmacSink(
+    this.hashAlgorithm,
+    this._tmp,
+    this._innerSink,
+    this._outerSink,
+  );
+
+  @override
+  bool get isClosed => _isClosed;
+
+  @override
+  Uint8List get macStateAsUint8List => _outerSink.hashBufferAsUint8List;
+
+  @override
+  void addSlice(List<int> chunk, int start, int end, bool isLast) {
+    if (isClosed) {
+      throw StateError('Sink is closed');
+    }
+    final innerSink = _innerSink;
+    innerSink.addSlice(chunk, start, end, isLast);
+    if (isLast) {
+      _isClosed = true;
+      final innerDigest = innerSink.hashBufferAsUint8List;
+      final outerSink = _outerSink;
+      outerSink.addSlice(innerDigest, 0, innerDigest.length, true);
+    }
+  }
+
+  @override
+  void initializeSync({
+    required SecretKeyData secretKey,
+    required List<int> nonce,
+    List<int> aad = const [],
   }) {
     if (aad.isNotEmpty) {
-      throw ArgumentError.value(aad, 'aad', 'AAD is not supported');
-    }
-    if (secretKeyData.bytes.isEmpty) {
       throw ArgumentError.value(
-        secretKeyData,
-        'secretKeyData',
+        aad,
+        'aad',
+        'AAD is not supported by HMAC',
+      );
+    }
+    if (secretKey.bytes.isEmpty) {
+      throw ArgumentError.value(
+        secretKey,
+        'secretKey',
         'Secret key must be non-empty',
       );
     }
-
-    // Copy the bytes so destruction of the key won't affect.
+    _isClosed = false;
+    var hmacKey = secretKey.bytes;
+    var eraseKey = false;
     final blockLength = hashAlgorithm.blockLengthInBytes;
-    if (secretKeyData.bytes.length > blockLength) {
-      final dartHashAlgorithm = hashAlgorithm as DartHashAlgorithmMixin;
-      final hash = dartHashAlgorithm.hashSync(secretKeyData.bytes);
-      return _newMacSinkSync(hash.bytes, eraseKey: true);
-    } else {
-      return _newMacSinkSync(secretKeyData.bytes, eraseKey: false);
-    }
-  }
-
-  DartMacSink _newMacSinkSync(List<int> hmacKey, {required bool eraseKey}) {
-    // Make a copy
-    final hashAlgorithm = this.hashAlgorithm;
-    final blockLength = hashAlgorithm.blockLengthInBytes;
+    final innerSink = _innerSink;
+    innerSink.reset();
     if (hmacKey.length > blockLength) {
-      throw ArgumentError();
+      innerSink.addSlice(hmacKey, 0, hmacKey.length, true);
+      hmacKey = Uint8List.fromList(innerSink.hashBufferAsUint8List);
+      innerSink.reset();
+      eraseKey = true;
     }
 
     // Allocate a temporary buffer
-    final tmp = Uint8List(blockLength);
+    final tmp = _tmp;
 
     // Initialize inner sink
-    final innerSink = hashAlgorithm.newHashSink();
     _preparePadding(tmp, hmacKey, 0x36);
-    innerSink.add(tmp);
+    innerSink.addSlice(tmp, 0, tmp.length, false);
 
     // Erase the temporary buffer
     tmp.fillRange(0, tmp.length, 0);
 
     // Initialize outer sink
-    final outerSink = hashAlgorithm.newHashSink();
+    final outerSink = _outerSink;
+    outerSink.reset();
     _preparePadding(tmp, hmacKey, 0x5c);
-    outerSink.add(tmp);
-
-    // Erase copy of the secret key copy
-    // (safer to not leave the data in memory)
-    if (eraseKey && hmacKey is! UnmodifiableUint8ListView) {
-      hmacKey.fillRange(0, hmacKey.length, 0);
-    }
+    outerSink.addSlice(tmp, 0, tmp.length, false);
 
     // Erase the temporary buffer
     // (safer to not leave the data in memory)
     tmp.fillRange(0, tmp.length, 0);
-
-    return _HmacSink(innerSink, outerSink);
+    if (eraseKey) {
+      hmacKey.fillRange(0, hmacKey.length, 0);
+    }
   }
 
   static void _preparePadding(List<int> padding, List<int> key, int byte) {
     for (var i = 0; i < padding.length; i++) {
       padding[i] = i < key.length ? (key[i] ^ byte) : byte;
     }
-  }
-}
-
-class _HmacSink extends MacSink with DartMacSink {
-  final HashSink _innerSink;
-  final HashSink _outerSink;
-  bool _isClosed = false;
-
-  Future<Mac>? _macFuture;
-
-  _HmacSink(this._innerSink, this._outerSink);
-
-  @override
-  void add(List<int> bytes) {
-    if (_isClosed) {
-      throw StateError('Already closed.');
-    }
-    _innerSink.add(bytes);
-  }
-
-  @override
-  void addSlice(List<int> chunk, int start, int end, bool isLast) {
-    if (_isClosed) {
-      throw StateError('Already closed.');
-    }
-    _innerSink.addSlice(chunk, start, end, isLast);
-    if (isLast) {
-      close();
-    }
-  }
-
-  @override
-  void close() {
-    _isClosed = true;
-  }
-
-  @override
-  Future<Mac> mac() {
-    if (!_isClosed) {
-      throw StateError('Sink is not closed');
-    }
-    return _macFuture ??= () async {
-      final innerSink = _innerSink;
-      innerSink.close();
-      final innerHash = await innerSink.hash();
-      final outerSink = _outerSink;
-      outerSink.add(innerHash.bytes);
-      outerSink.close();
-      final outerHash = await outerSink.hash();
-      return Mac(outerHash.bytes);
-    }();
-  }
-
-  @override
-  Mac macSync() {
-    if (!_isClosed) {
-      throw StateError('Sink is not closed');
-    }
-    final innerSink = _innerSink as DartHashSink;
-    innerSink.close();
-    final innerHash = innerSink.hashSync();
-    final outerSink = _outerSink as DartHashSink;
-    outerSink.add(innerHash.bytes);
-    outerSink.close();
-    final outerHash = outerSink.hashSync();
-    return Mac(outerHash.bytes);
   }
 }

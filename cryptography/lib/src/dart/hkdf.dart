@@ -31,7 +31,7 @@ class DartHkdf extends Hkdf {
       : super.constructor();
 
   @override
-  Future<SecretKey> deriveKey({
+  Future<SecretKeyData> deriveKey({
     required SecretKey secretKey,
     List<int> nonce = const <int>[],
     List<int> info = const <int>[],
@@ -72,6 +72,6 @@ class DartHkdf extends Hkdf {
         result.setAll(offset, bytes.take(result.length - offset));
       }
     }
-    return SecretKey(result);
+    return SecretKeyData(result);
   }
 }

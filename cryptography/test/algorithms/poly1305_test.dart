@@ -53,8 +53,8 @@ void main() {
       );
     });
 
-    test('Empty message', () async {
-      final inputBytes = hexToBytes('');
+    group('Empty message', () {
+      final data = hexToBytes('');
       final secretKey = SecretKey(hexToBytes(
         '85:d6:be:78:57:55:6d:33:7f:44:52:fe:42:d5:06:a8:01:03:80:8a:fb:0d:b2:fd:4a:bf:f6:af:41:49:f5:1b',
       ));
@@ -62,25 +62,56 @@ void main() {
         '86 d9 3e 93 4f 63 1f 01 c7 03 49 be 81 1e fc 23',
       ));
 
-      final mac = await algorithm.calculateMac(
-        inputBytes,
-        secretKey: secretKey,
-        nonce: const <int>[],
-      );
-      expect(
-        hexFromBytes(mac.bytes),
-        hexFromBytes(expectedMac.bytes),
-      );
+      test('calculateMac()', () async {
+        final mac = await algorithm.calculateMac(
+          data,
+          secretKey: secretKey,
+          nonce: const <int>[],
+        );
+        expect(
+          hexFromBytes(mac.bytes),
+          hexFromBytes(expectedMac.bytes),
+        );
+      });
+
+      test('add(), add(), close()', () async {
+        final sink = await algorithm.newMacSink(
+          secretKey: secretKey,
+          nonce: const <int>[],
+        );
+        sink.add(const []);
+        sink.add(const []);
+        sink.close();
+        final mac = await sink.mac();
+        expect(
+          hexFromBytes(mac.bytes),
+          hexFromBytes(expectedMac.bytes),
+        );
+      });
+
+      test('addSlice(), addSlice(), close()', () async {
+        final sink = await algorithm.newMacSink(
+          secretKey: secretKey,
+          nonce: const <int>[],
+        );
+        sink.addSlice(const [], 0, 0, false);
+        sink.addSlice(const [], 0, 0, true);
+        final mac = await sink.mac();
+        expect(
+          hexFromBytes(mac.bytes),
+          hexFromBytes(expectedMac.bytes),
+        );
+      });
     });
 
-    test('RFC example: full message', () async {
+    group('RFC example: full message:', () {
       // -------------------------------------------------------------------------
       // The following input/output constants are copied from the RFC 7539:
       // https://tools.ietf.org/html/rfc7539
       // -------------------------------------------------------------------------
-      final inputBytes = utf8.encode('Cryptographic Forum Research Group');
+      final data = utf8.encode('Cryptographic Forum Research Group');
 
-      final secretKey = SecretKey(hexToBytes(
+      final secretKey = SecretKeyData(hexToBytes(
         '85:d6:be:78:57:55:6d:33:7f:44:52:fe:42:d5:06:a8:01:03:80:8a:fb:0d:b2:fd:4a:bf:f6:af:41:49:f5:1b',
       ));
 
@@ -88,15 +119,46 @@ void main() {
         'a8:06:1d:c1:30:51:36:c6:c2:2b:8b:af:0c:01:27:a9',
       ));
 
-      final mac = await algorithm.calculateMac(
-        inputBytes,
-        secretKey: secretKey,
-        nonce: const <int>[],
-      );
-      expect(
-        hexFromBytes(mac.bytes),
-        hexFromBytes(expectedMac.bytes),
-      );
+      test('calculateMac()', () async {
+        final mac = await algorithm.calculateMac(
+          data,
+          secretKey: secretKey,
+          nonce: const <int>[],
+        );
+        expect(
+          hexFromBytes(mac.bytes),
+          hexFromBytes(expectedMac.bytes),
+        );
+      });
+
+      test('add(), add(), close()', () async {
+        final sink = await algorithm.newMacSink(
+          secretKey: secretKey,
+          nonce: const <int>[],
+        );
+        sink.add(data.sublist(0, 16));
+        sink.add(data.sublist(16));
+        sink.close();
+        final mac = await sink.mac();
+        expect(
+          hexFromBytes(mac.bytes),
+          hexFromBytes(expectedMac.bytes),
+        );
+      });
+
+      test('addSlice(), addSlice(), close()', () async {
+        final sink = await algorithm.newMacSink(
+          secretKey: secretKey,
+          nonce: const <int>[],
+        );
+        sink.addSlice(data, 0, 1, false);
+        sink.addSlice(data, 1, data.length, true);
+        final mac = await sink.mac();
+        expect(
+          hexFromBytes(mac.bytes),
+          hexFromBytes(expectedMac.bytes),
+        );
+      });
     });
 
     test('RFC: additional test vector #1', () async {
@@ -115,7 +177,7 @@ void main() {
       );
     });
 
-    test('RFC: additional test vector #2', () async {
+    group('RFC: additional test vector #2:', () {
       final key = hexToBytes('''
       00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
       36 e5 f6 b5 c5 e0 60 70 f0 ef ca 96 22 7a 86 3e
@@ -148,19 +210,50 @@ void main() {
       368  73 73 65 64 20 74 6f
       ''');
 
-      final tag = hexToBytes('''
+      final expectedMac = Mac(hexToBytes('''
       36 e5 f6 b5 c5 e0 60 70 f0 ef ca 96 22 7a 86 3e
-      ''');
+      '''));
 
-      final mac = await algorithm.calculateMac(
-        text,
-        secretKey: SecretKeyData(key),
-        nonce: const <int>[],
-      );
-      expect(
-        hexFromBytes(mac.bytes),
-        hexFromBytes(tag),
-      );
+      test('calculateMac()', () async {
+        final mac = await algorithm.calculateMac(
+          text,
+          secretKey: SecretKeyData(key),
+          nonce: const <int>[],
+        );
+        expect(
+          hexFromBytes(mac.bytes),
+          hexFromBytes(expectedMac.bytes),
+        );
+      });
+
+      test('add(), add(), close()', () async {
+        final sink = await algorithm.newMacSink(
+          secretKey: SecretKeyData(key),
+          nonce: const <int>[],
+        );
+        sink.add(text.sublist(0, 16));
+        sink.add(text.sublist(16));
+        sink.close();
+        final mac = await sink.mac();
+        expect(
+          hexFromBytes(mac.bytes),
+          hexFromBytes(expectedMac.bytes),
+        );
+      });
+
+      test('addSlice(), addSlice(), close()', () async {
+        final sink = await algorithm.newMacSink(
+          secretKey: SecretKeyData(key),
+          nonce: const <int>[],
+        );
+        sink.addSlice(text, 0, 16, false);
+        sink.addSlice(text, 16, text.length, true);
+        final mac = await sink.mac();
+        expect(
+          hexFromBytes(mac.bytes),
+          hexFromBytes(expectedMac.bytes),
+        );
+      });
     });
   });
 }

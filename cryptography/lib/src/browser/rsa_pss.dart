@@ -32,6 +32,7 @@ import 'hash.dart';
 class BrowserRsaPss extends RsaPss {
   static const _webCryptoAlgorithm = 'RSA-PSS';
 
+  @override
   final int nonceLengthInBytes;
 
   @override

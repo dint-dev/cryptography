@@ -16,7 +16,9 @@ import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/dart.dart';
-import 'package:cryptography/src/utils.dart';
+import 'package:cryptography/src/dart/_helpers.dart';
+
+import '../_internal/rotate.dart';
 
 /// [Blake2s] implemented in pure Dart.
 ///
@@ -32,6 +34,17 @@ class DartBlake2s extends Blake2s with DartHashAlgorithmMixin {
 }
 
 class _Blake2sSink extends DartHashSink {
+  static const List<int> _initializationVector = <int>[
+    0x6a09e667,
+    0xbb67ae85,
+    0x3c6ef372,
+    0xa54ff53a,
+    0x510e527f,
+    0x9b05688c,
+    0x1f83d9ab,
+    0x5be0cd19,
+  ];
+
   static const List<int> _sigma = <int>[
     0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, // 16 bytes
     14, 10, 4, 8, 9, 15, 13, 6, 1, 12, 0, 2, 11, 7, 5, 3,
@@ -46,52 +59,54 @@ class _Blake2sSink extends DartHashSink {
     0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
     14, 10, 4, 8, 9, 15, 13, 6, 1, 12, 0, 2, 11, 7, 5, 3
   ];
-  static const List<int> _initializationVector = <int>[
-    0x6a09e667,
-    0xbb67ae85,
-    0x3c6ef372,
-    0xa54ff53a,
-    0x510e527f,
-    0x9b05688c,
-    0x1f83d9ab,
-    0x5be0cd19,
-  ];
-  final Uint32List _hash = Uint32List(16);
-  final Uint32List _buffer = Uint32List(16);
-  late final Uint8List _bufferAsBytes = Uint8List.view(_buffer.buffer);
-  int _length = 0;
-  Hash? _result;
-  bool _isClosed = false;
-  final Uint32List _localValues = Uint32List(16);
 
+  final Uint32List _hash = Uint32List(16);
+  final Uint32List _localValues = Uint32List(16);
+  final Uint32List _buffer = Uint32List(16);
+  int _length = 0;
+
+  @override
+  late final Uint8List hashBufferAsUint8List = Uint8List.view(
+    _hash.buffer,
+    0,
+    32,
+  );
+
+  late final Uint8List _bufferAsBytes = Uint8List.view(_buffer.buffer);
+
+  bool _isClosed = false;
   _Blake2sSink() {
-    final h = _hash;
-    h.setAll(0, _initializationVector);
-    h[0] ^= 0x01010000 ^ 32;
+    checkSystemIsLittleEndian();
+    _initializeH(_hash);
   }
+  @override
+  bool get isClosed => _isClosed;
+
+  @override
+  int get length => _length;
 
   @override
   void addSlice(List<int> chunk, int start, int end, bool isLast) {
-    if (_isClosed) {
+    if (isClosed) {
       throw StateError('Already closed');
     }
 
     final bufferAsBytes = _bufferAsBytes;
     var length = _length;
     for (var i = start; i < end; i++) {
-      final bufferIndex = length % 64;
-
-      // If first byte of a new block
-      if (bufferIndex == 0 && length > 0) {
-        // Store length
-        _length = length;
-
-        // Compress the previous block
-        _compress(false);
+      // Compress?
+      if (length % 64 == 0 && length > 0) {
+        _compress(
+          _hash,
+          _localValues,
+          _buffer,
+          length,
+          false,
+        );
       }
 
       // Set byte
-      bufferAsBytes[bufferIndex] = chunk[i];
+      bufferAsBytes[length % 64] = chunk[i];
 
       // Increment length
       length++;
@@ -101,93 +116,39 @@ class _Blake2sSink extends DartHashSink {
     _length = length;
 
     if (isLast) {
-      close();
-    }
-  }
-
-  @override
-  void close() {
-    if (_isClosed) {
-      return;
-    }
-    _isClosed = true;
-
-    final length = _length;
-
-    // Fill remaining indices with zeroes
-    final blockLength = length % 64;
-    if (blockLength > 0) {
-      _bufferAsBytes.fillRange(blockLength, 64, 0);
-    }
-
-    // Compress
-    _compress(true);
-
-    // Change:
-    // Host endian --> little endian
-    final hash = _hash;
-    if (Endian.host != Endian.little) {
-      final byteData = ByteData.view(hash.buffer);
-      for (var i = 0; i < 32; i += 4) {
-        byteData.setUint32(
-          i,
-          byteData.getUint32(i, Endian.host),
-          Endian.little,
-        );
+      _isClosed = true;
+      if (length == 0 || length % 64 != 0) {
+        for (var i = length % 64; i < 64; i++) {
+          bufferAsBytes[i] = 0;
+        }
       }
+      _compress(
+        _hash,
+        _localValues,
+        _buffer,
+        length,
+        true,
+      );
     }
-
-    // Return bytes
-    final resultBytes = Uint8List(32);
-    resultBytes.setAll(
-      0,
-      Uint8List.view(hash.buffer, 0, 32),
-    );
-    _result = Hash(resultBytes);
   }
 
   @override
-  Hash hashSync() {
-    final result = _result;
-    if (result == null) {
-      throw StateError('Not closed');
-    }
-    return result;
-  }
-
   void reset() {
     _length = 0;
-    _result = null;
     _isClosed = false;
     _buffer.fillRange(0, 16, 0);
     _localValues.fillRange(0, 16, 0);
-    final h = _hash;
-    h.setAll(0, _initializationVector);
-    h[0] ^= 0x01010000 ^ 32;
+    _initializeH(_hash);
   }
 
-  void _compress(bool isLast) {
-    // Change:
-    // little endian --> host endian
-    if (Endian.host != Endian.little) {
-      // We need ByteData view
-      final bufferAsByteData = ByteData.view(_buffer.buffer);
-
-      // Every 4 bytes
-      for (var i = 0; i < 64; i += 4) {
-        // Convert endian
-        bufferAsByteData.setUint32(
-          i,
-          bufferAsByteData.getUint32(i, Endian.little),
-          Endian.host,
-        );
-      }
-    }
-
-    final h = _hash;
-    final v = _localValues;
-    final m = _buffer;
-
+  /// Internal compression function.
+  static void _compress(
+    Uint32List h,
+    Uint32List v,
+    Uint32List m,
+    int length,
+    bool isLast,
+  ) {
     // Initialize v[0..7]
     for (var i = 0; i < 8; i++) {
       v[i] = h[i];
@@ -201,7 +162,6 @@ class _Blake2sSink extends DartHashSink {
 
     // Set length.
     // We can't use setUint64(...) because it doesn't work in browsers.
-    final length = _length;
     v[12] ^= uint32mask & length;
     v[13] ^= length ~/ (uint32mask + 1);
 
@@ -230,7 +190,7 @@ class _Blake2sSink extends DartHashSink {
 
     // Copy.
     for (var i = 0; i < 8; i++) {
-      h[i] = h[i] ^ v[i] ^ v[8 + i];
+      h[i] ^= v[i] ^ v[8 + i];
     }
   }
 
@@ -268,5 +228,11 @@ class _Blake2sSink extends DartHashSink {
     v[b] = vb;
     v[c] = vc;
     v[d] = vd;
+  }
+
+  /// Internal initialization function.
+  static void _initializeH(Uint32List h) {
+    h.setAll(0, _initializationVector);
+    h[0] ^= 0x01010000 ^ 32;
   }
 }

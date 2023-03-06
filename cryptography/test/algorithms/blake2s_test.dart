@@ -31,6 +31,73 @@ void main() {
       expect(algorithm.blockLengthInBytes, 32);
     });
 
+    test('sink is reinitialized correctly', () {
+      final sink = algorithm.toSync().newHashSink();
+      expect(sink.isClosed, isFalse);
+      expect(sink.length, 0);
+
+      for (var length = 0; length < 256; length++) {
+        for (var cutN = 0; cutN < 129; cutN++) {
+          if (cutN > length) {
+            break;
+          }
+          final input = Uint8List(length);
+
+          sink.add(input);
+          sink.close();
+          expect(sink.isClosed, isTrue);
+          expect(sink.length, input.length);
+          expect(input, everyElement(0));
+          final mac = Uint8List.fromList(sink.hashBufferAsUint8List);
+
+          // Reset
+          sink.reset();
+          expect(sink.isClosed, isFalse);
+          expect(sink.length, 0);
+          expect(sink.hashBufferAsUint8List, isNot(mac));
+
+          // Do same again
+          sink.add(input);
+          sink.close();
+          expect(sink.isClosed, isTrue);
+          expect(sink.length, input.length);
+          expect(
+            sink.hashBufferAsUint8List,
+            mac,
+            reason: 'length=$length',
+          );
+
+          // Reset
+          sink.reset();
+          expect(sink.isClosed, isFalse);
+          expect(sink.length, 0);
+          expect(sink.hashBufferAsUint8List, isNot(mac));
+
+          // This time use:
+          // addSlice(..., 0, x, false)
+          // addSlice(..., x, n, true)
+          final cutAt = length - cutN;
+          sink.addSlice(input, 0, cutAt, false);
+          expect(sink.isClosed, isFalse);
+          expect(sink.length, cutAt);
+          sink.addSlice(input, cutAt, input.length, true);
+          expect(sink.isClosed, isTrue);
+          expect(sink.length, input.length);
+          expect(
+            sink.hashBufferAsUint8List,
+            mac,
+            reason: 'length=$length',
+          );
+          expect(() => sink.add([]), throwsStateError);
+
+          sink.reset();
+          expect(sink.isClosed, isFalse);
+          expect(sink.length, 0);
+          expect(sink.hashBufferAsUint8List, isNot(mac));
+        }
+      }
+    });
+
     test(
       '10 000 cycles',
       () async {
@@ -58,13 +125,13 @@ void main() {
       for (var i = 0; i < data.length; i++) {
         data[i] = i % 256;
       }
-      var actual = <int>[];
+      var previousHash = <int>[];
       for (var i = 0; i < 10000; i++) {
-        final sink = algorithm.newHashSink();
-        sink.add(actual);
+        final sink = algorithm.toSync().newHashSink();
+        sink.add(previousHash);
         sink.add(data.sublist(0, i));
         sink.close();
-        actual = (await sink.hash()).bytes;
+        previousHash = sink.hashBufferAsUint8List;
       }
 
       // Obtained from a Go program
@@ -73,7 +140,7 @@ void main() {
       );
 
       expect(
-        hexFromBytes(actual),
+        hexFromBytes(previousHash),
         hexFromBytes(expected),
       );
     });
@@ -122,7 +189,6 @@ void main() {
         sink.add(''.codeUnits);
         sink.addSlice('b'.codeUnits, 0, 1, false);
         sink.addSlice('c'.codeUnits, 0, 1, true);
-        sink.close();
         expect(
           hexFromBytes((await sink.hash()).bytes),
           hexFromBytes(expectedBytes),

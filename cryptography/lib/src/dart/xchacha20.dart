@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
@@ -29,21 +28,18 @@ class DartXchacha20 extends Xchacha20
       _DartXchacha20Poly1305AeadMacAlgorithm();
 
   @override
-  final Random? random;
-
-  @override
   final MacAlgorithm macAlgorithm;
 
   /// Constructs [Xchacha20] with any [MacAlgorithm].
   DartXchacha20({
     required this.macAlgorithm,
-    this.random,
-  }) : super.constructor(random: random);
+    super.random,
+  }) : super.constructor();
 
   const DartXchacha20.poly1305Aead({
-    this.random,
+    super.random,
   })  : macAlgorithm = poly1305AeadMacAlgorithm,
-        super.constructor(random: random);
+        super.constructor();
 
   @override
   int get nonceLength => 24;
@@ -65,18 +61,23 @@ class _DartXchacha20Poly1305AeadMacAlgorithm
   const _DartXchacha20Poly1305AeadMacAlgorithm();
 
   @override
-  DartMacSink newMacSinkSync({
+  DartMacSinkMixin newMacSinkSync({
     required SecretKeyData secretKeyData,
     List<int> nonce = const <int>[],
     List<int> aad = const <int>[],
   }) {
     final result = _DartXchacha20Poly1305AeadMacAlgorithmSink();
-    result.initialize(
-      secretKeyData: secretKeyData,
+    result.initializeSync(
+      secretKey: secretKeyData,
       nonce: nonce,
       aad: aad,
     );
     return result;
+  }
+
+  @override
+  _DartXchacha20Poly1305AeadMacAlgorithm toSync() {
+    return this;
   }
 }
 

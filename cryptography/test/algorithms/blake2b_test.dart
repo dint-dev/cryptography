@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/src/utils.dart';
@@ -28,6 +29,73 @@ void main() {
 
     test('block length', () {
       expect(algorithm.blockLengthInBytes, 64);
+    });
+
+    test('sink is reinitialized correctly', () {
+      final sink = algorithm.toSync().newHashSink();
+      expect(sink.isClosed, isFalse);
+      expect(sink.length, 0);
+
+      for (var length = 0; length < 1024; length++) {
+        for (var cutN = 0; cutN < 129; cutN++) {
+          if (cutN > length) {
+            break;
+          }
+          final input = Uint8List(length);
+
+          sink.add(input);
+          sink.close();
+          expect(sink.isClosed, isTrue);
+          expect(sink.length, input.length);
+          expect(input, everyElement(0));
+          final mac = Uint8List.fromList(sink.hashBufferAsUint8List);
+
+          // Reset
+          sink.reset();
+          expect(sink.isClosed, isFalse);
+          expect(sink.length, 0);
+          expect(sink.hashBufferAsUint8List, isNot(mac));
+
+          // Do same again
+          sink.add(input);
+          sink.close();
+          expect(sink.isClosed, isTrue);
+          expect(sink.length, input.length);
+          expect(
+            sink.hashBufferAsUint8List,
+            mac,
+            reason: 'length=$length',
+          );
+
+          // Reset
+          sink.reset();
+          expect(sink.isClosed, isFalse);
+          expect(sink.length, 0);
+          expect(sink.hashBufferAsUint8List, isNot(mac));
+
+          // This time use:
+          // addSlice(..., 0, x, false)
+          // addSlice(..., x, n, true)
+          final cutAt = length - cutN;
+          sink.addSlice(input, 0, cutAt, false);
+          expect(sink.isClosed, isFalse);
+          expect(sink.length, cutAt);
+          sink.addSlice(input, cutAt, input.length, true);
+          expect(sink.isClosed, isTrue);
+          expect(sink.length, input.length);
+          expect(
+            sink.hashBufferAsUint8List,
+            mac,
+            reason: 'length=$length',
+          );
+          expect(() => sink.add([]), throwsStateError);
+
+          sink.reset();
+          expect(sink.isClosed, isFalse);
+          expect(sink.length, 0);
+          expect(sink.hashBufferAsUint8List, isNot(mac));
+        }
+      }
     });
 
     test('test vector from RFC 7693', () async {

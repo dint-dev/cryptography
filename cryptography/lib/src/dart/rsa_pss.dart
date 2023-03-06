@@ -25,6 +25,7 @@ class DartRsaPss extends RsaPss {
   @override
   final HashAlgorithm hashAlgorithm;
 
+  @override
   final int nonceLengthInBytes;
 
   const DartRsaPss(

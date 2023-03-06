@@ -15,10 +15,6 @@
 import 'package:cryptography/cryptography.dart';
 import 'package:test/test.dart';
 
-int _bit16 = 0x10000;
-int _bit32 = 0x100000000;
-int _bit52 = (1 << 4) * _bit16 * _bit32;
-
 void main() {
   group('SecureRandom.instance', () {
     test('toString()', () {
@@ -121,3 +117,8 @@ void main() {
     });
   });
 }
+
+int _bit16 = 0x10000;
+int _bit32 = 0x100000000;
+
+int _bit52 = (1 << 4) * _bit16 * _bit32;

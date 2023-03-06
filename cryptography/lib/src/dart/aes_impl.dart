@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/helpers.dart';
 
+import '../../dart.dart';
 import 'aes_impl_constants.dart' as constants;
 
 const _numberOfRounds = {
@@ -329,10 +329,7 @@ int _uint32ChangeEndian(int v) {
       (0xFF & (v >> 24));
 }
 
-mixin DartAesMixin implements Cipher {
-  /// Random number generator used by [newSecretKey].
-  Random? get random;
-
+mixin DartAesMixin implements DartCipher {
   @override
   Future<SecretKey> newSecretKey() {
     final bytes = Uint8List(secretKeyLength);

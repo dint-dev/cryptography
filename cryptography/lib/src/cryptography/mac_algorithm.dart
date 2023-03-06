@@ -148,9 +148,7 @@ abstract class MacAlgorithm {
   String toString() => '$runtimeType()';
 
   /// Returns a synchronous implementation of this algorithm.
-  DartMacAlgorithm toSync() {
-    throw UnsupportedError('$this does not have a synchronous implementation');
-  }
+  DartMacAlgorithm toSync();
 }
 
 /// A sink for calculating a [Mac].
@@ -181,9 +179,20 @@ abstract class MacAlgorithm {
 /// }
 /// ```
 abstract class MacSink extends ByteConversionSink {
+  /// Whether the sink is closed.
+  bool get isClosed;
+
   @override
   void add(List<int> chunk) {
     addSlice(chunk, 0, chunk.length, false);
+  }
+
+  @override
+  void close() {
+    if (isClosed) {
+      return;
+    }
+    addSlice(const <int>[], 0, 0, true);
   }
 
   /// Calculates current MAC.
@@ -217,7 +226,7 @@ class _EmptyMacAlgorithm extends MacAlgorithm with DartMacAlgorithmMixin {
   }
 
   @override
-  DartMacSink newMacSinkSync({
+  DartMacSinkMixin newMacSinkSync({
     required SecretKeyData secretKeyData,
     List<int> nonce = const <int>[],
     List<int> aad = const <int>[],
@@ -227,14 +236,44 @@ class _EmptyMacAlgorithm extends MacAlgorithm with DartMacAlgorithmMixin {
 
   @override
   String toString() => 'MacAlgorithm.empty';
+
+  @override
+  DartMacAlgorithm toSync() {
+    return this;
+  }
 }
 
-class _EmptyMacSink extends MacSink with DartMacSink {
-  @override
-  void addSlice(List<int> chunk, int start, int end, bool isLast) {}
+class _EmptyMacSink extends MacSink with DartMacSinkMixin {
+  static final _empty = Uint8List(0);
+
+  bool _isClosed = false;
 
   @override
-  void close() {}
+  bool get isClosed => _isClosed;
+
+  @override
+  Uint8List get macStateAsUint8List => _empty;
+
+  @override
+  void addSlice(List<int> chunk, int start, int end, bool isLast) {
+    assert(!isClosed);
+    if (isLast) {
+      _isClosed = true;
+    }
+  }
+
+  @override
+  void close() {
+    _isClosed = true;
+  }
+
+  @override
+  void initializeSync(
+      {required SecretKeyData secretKey,
+      required List<int> nonce,
+      List<int> aad = const []}) {
+    _isClosed = false;
+  }
 
   @override
   Future<Mac> mac() async => Mac.empty;
@@ -243,11 +282,11 @@ class _EmptyMacSink extends MacSink with DartMacSink {
   Mac macSync() => Mac.empty;
 }
 
-class _MacSink extends MacSink with DartMacSink {
+class _MacSink extends MacSink with DartMacSinkMixin {
   final MacAlgorithm _macAlgorithm;
-  final SecretKey _secretKey;
-  final List<int> _nonce;
-  final List<int> _aad;
+  SecretKey _secretKey;
+  List<int> _nonce;
+  List<int> _aad;
   final BytesBuilder _input = BytesBuilder();
   Future<Mac>? _macFuture;
 
@@ -261,19 +300,30 @@ class _MacSink extends MacSink with DartMacSink {
         _secretKey = secretKey is SecretKeyData ? secretKey.copy() : secretKey;
 
   @override
+  bool get isClosed => _macFuture != null;
+
+  @override
+  Uint8List get macStateAsUint8List {
+    throw UnimplementedError();
+  }
+
+  @override
   void addSlice(List<int> chunk, int start, int end, bool isLast) {
-    if (_macFuture != null) {
+    if (isClosed) {
       throw StateError('Sink is closed');
     }
     if (start != 0 || end != chunk.length) {
       chunk = chunk.sublist(start, end);
     }
     _input.add(chunk);
+    if (isLast) {
+      close();
+    }
   }
 
   @override
   void close() {
-    if (_macFuture != null) {
+    if (isClosed) {
       return;
     }
     final secretKey = _secretKey;
@@ -292,6 +342,18 @@ class _MacSink extends MacSink with DartMacSink {
   }
 
   @override
+  void initializeSync(
+      {required SecretKeyData secretKey,
+      required List<int> nonce,
+      List<int> aad = const []}) {
+    _macFuture = null;
+    _input.clear();
+    _secretKey = _secretKey;
+    _nonce = nonce;
+    _aad = aad;
+  }
+
+  @override
   Future<Mac> mac() {
     final macFuture = _macFuture;
     if (macFuture == null) {
@@ -302,7 +364,6 @@ class _MacSink extends MacSink with DartMacSink {
 
   @override
   Mac macSync() {
-    // TODO: implement macSync
-    throw UnimplementedError();
+    throw UnsupportedError('$this does not support macSync()');
   }
 }

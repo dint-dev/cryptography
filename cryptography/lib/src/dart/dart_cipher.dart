@@ -20,11 +20,14 @@ import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/dart.dart';
 import 'package:meta/meta.dart';
 
-/// Base class for [Cipher] implementations written in Dart.
-mixin DartCipherMixin implements Cipher {
-  /// Random number generator used by [newSecret] and [newSecretKeySync].
-  Random? get random;
+/// Superclass for pure Dart implementations of [Cipher].
+abstract class DartCipher implements Cipher {
+  @override
+  DartCipher toSync() => this;
+}
 
+/// Base class for [Cipher] implementations written in Dart.
+mixin DartCipherMixin implements DartCipher {
   @nonVirtual
   @override
   Future<SecretKey> newSecretKey() async {
@@ -46,6 +49,8 @@ abstract class DartCipherState extends CipherState {
   /// Default chunk size for [convert] / [convertSync].
   static const int defaultChunkSize = 1024 * 1024;
 
+  static final _emptyUint8List = Uint8List(0);
+
   @override
   final Cipher cipher;
 
@@ -53,6 +58,7 @@ abstract class DartCipherState extends CipherState {
   ///
   /// If false, the state is decrypting.
   bool _isEncrypting = true;
+
   late MacSink _macSink;
 
   bool _isInitialized = false;
@@ -134,7 +140,10 @@ abstract class DartCipherState extends CipherState {
           await Future.delayed(const Duration(milliseconds: 1));
         }
         final thisChunkSize = min(chunkSize, input.length - i);
-        final inputChunk = input.buffer.asUint8List(i, thisChunkSize);
+        final inputChunk = input.buffer.asUint8List(
+          input.offsetInBytes + i,
+          thisChunkSize,
+        );
         final outputChunk = convertChunkSync(
           inputChunk,
           possibleBuffer: possibleBuffer,
@@ -175,6 +184,9 @@ abstract class DartCipherState extends CipherState {
     if (!allowUseSameBytes) {
       input = Uint8List.fromList(input);
     }
+
+    // If we are decrypting, the input is now the cipher text.
+    // So we add it to the sink.
     if (!_isEncrypting) {
       macSink.add(input);
     }
@@ -204,6 +216,10 @@ abstract class DartCipherState extends CipherState {
       keyStreamIndex++;
     }
     this.keyStreamIndex = keyStreamIndex;
+
+    // If we are encrypting, the input is now the cipher text.
+    // So we add it to the sink.
+    // (If we are decrypting, we added it earlier)
     if (_isEncrypting) {
       macSink.add(input);
     }
@@ -223,7 +239,7 @@ abstract class DartCipherState extends CipherState {
       possibleBuffer: possibleBuffer,
     );
     final suffix = beforeClose();
-    final macSink = this.macSink as DartMacSink;
+    final macSink = this.macSink as DartMacSinkMixin;
     if (suffix.isNotEmpty) {
       macSink.add(suffix);
       final tmp = Uint8List(output.length + suffix.length);
@@ -244,15 +260,17 @@ abstract class DartCipherState extends CipherState {
   SecretKeyData deriveKeySync({
     required SecretKeyData secretKey,
     required List<int> nonce,
-  }) =>
-      secretKey;
+  }) {
+    return secretKey;
+  }
 
   @protected
   List<int> deriveNonce({
     required SecretKeyData secretKey,
     required List<int> nonce,
-  }) =>
-      nonce;
+  }) {
+    return nonce;
+  }
 
   @override
   Future<void> initialize({
@@ -326,8 +344,6 @@ abstract class DartCipherState extends CipherState {
   /// Fills [block] with a new key stream block.
   @protected
   void setBlock(int blockIndex);
-
-  static final _emptyUint8List = Uint8List(0);
 
   static List<int> _concatenate(List<List<int>> chunks) {
     if (chunks.isEmpty) {
@@ -521,4 +537,74 @@ mixin DartCipherWithStateMixin implements StreamingCipher {
 
   @override
   DartCipherState newState();
+}
+
+/// Base class for [StreamingCipher] implementations written in Dart.
+mixin DartStreamingCipherMixin implements StreamingCipher, DartCipher {
+  @override
+  Future<List<int>> decrypt(
+    SecretBox secretBox, {
+    required SecretKey secretKey,
+    List<int> aad = const <int>[],
+    int keyStreamIndex = 0,
+    Uint8List? possibleBuffer,
+  }) async {
+    final secretKeyData = await secretKey.extract();
+    return decryptSync(
+      secretBox,
+      secretKey: secretKeyData,
+      aad: aad,
+      keyStreamIndex: keyStreamIndex,
+    );
+  }
+
+  /// Synchronous version of [decrypt].
+  List<int> decryptSync(
+    SecretBox secretBox, {
+    required SecretKeyData secretKey,
+    List<int> aad = const <int>[],
+    int keyStreamIndex = 0,
+  });
+
+  @override
+  Future<SecretBox> encrypt(
+    List<int> clearText, {
+    required SecretKey secretKey,
+    List<int>? nonce,
+    List<int> aad = const <int>[],
+    int keyStreamIndex = 0,
+    Uint8List? possibleBuffer,
+  }) async {
+    final secretKeyData = await secretKey.extract();
+    return encryptSync(
+      clearText,
+      secretKey: secretKeyData,
+      nonce: nonce,
+      aad: aad,
+      keyStreamIndex: keyStreamIndex,
+    );
+  }
+
+  /// Synchronous version of [encrypt].
+  SecretBox encryptSync(
+    List<int> clearText, {
+    required SecretKeyData secretKey,
+    List<int>? nonce,
+    List<int> aad = const <int>[],
+    int keyStreamIndex = 0,
+  });
+
+  @nonVirtual
+  @override
+  Future<SecretKey> newSecretKey() async {
+    return newSecretKeySync();
+  }
+
+  /// Synchronous version of [newSecretKey].
+  SecretKey newSecretKeySync() {
+    return SecretKeyData.random(
+      length: secretKeyLength,
+      random: random,
+    );
+  }
 }

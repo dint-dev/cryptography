@@ -374,6 +374,9 @@ abstract class DelegatingRsaPss extends DelegatingSignatureAlgorithm
   HashAlgorithm get hashAlgorithm => fallback.hashAlgorithm;
 
   @override
+  int get nonceLengthInBytes => fallback.nonceLengthInBytes;
+
+  @override
   Future<RsaKeyPair> newKeyPair({
     int modulusLength = RsaPss.defaultModulusLength,
     List<int> publicExponent = RsaPss.defaultPublicExponent,

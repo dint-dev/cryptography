@@ -30,7 +30,7 @@ void main() {
         Cryptography.instance = BrowserCryptography.defaultInstance;
       });
       _main();
-    });
+    }, testOn: 'browser');
   });
 }
 
@@ -162,6 +162,36 @@ void _main() {
     expect(
       hexFromBytes(actualBytes),
       hexFromBytes(expectedBytes),
+    );
+  });
+
+  test('deriveKey(...): Hmac(sha256), 10k iterations in 100ms', () async {
+    final macAlgorithm = Hmac.sha256();
+    final n = 10 * 1000;
+    const maxDuration = Duration(milliseconds: 100);
+
+    final pbkdf2 = Pbkdf2(
+      macAlgorithm: macAlgorithm,
+      bits: 128,
+      iterations: n,
+    );
+    printOnFailure('Class is: ${pbkdf2.runtimeType}');
+    if (pbkdf2 is DartPbkdf2 && BrowserCryptography.isSupported) {
+      return;
+    }
+
+    final stopwatch = Stopwatch()..start();
+    final result = await pbkdf2.deriveKey(
+      secretKey: SecretKey([1, 2, 3]),
+      nonce: const [],
+    );
+    final elapsed = stopwatch.elapsed;
+    print('Elapsed: $elapsed');
+
+    expect(elapsed, lessThan(maxDuration));
+    expect(
+      hexFromBytes(await result.extractBytes()),
+      'd1 c9 30 d5 39 aa f7 46 25 8c bf 31 fe 82 05 54',
     );
   });
 }

@@ -43,21 +43,24 @@ class DartPoly1305 extends Poly1305 with DartMacAlgorithmMixin {
     }
 
     final result = DartPoly1305Sink();
-    result.initialize(
-      secretKeyData: secretKeyData,
+    result.initializeSync(
+      secretKey: secretKeyData,
       nonce: nonce,
       aad: aad,
     );
     return result;
   }
+
+  @override
+  DartPoly1305 toSync() => this;
 }
 
 /// [MacSink] for [DartPoly1305].
-class DartPoly1305Sink extends MacSink with DartMacSink {
+class DartPoly1305Sink extends MacSink with DartMacSinkMixin {
   final _buffer = ByteData(20);
+  final _a = Uint16List(10);
   final _r = Uint16List(10);
   final _s = Uint16List(8);
-  final _a = Uint16List(10);
   final _tmp = Uint32List(10);
   int _blockLength = 0;
   bool _isClosed = false;
@@ -66,11 +69,20 @@ class DartPoly1305Sink extends MacSink with DartMacSink {
 
   DartPoly1305Sink();
 
+  @override
+  // TODO: implement isClosed
+  bool get isClosed => _isClosed;
+
   int get length => _length;
 
   @override
+  // TODO: implement macStateAsUint8List
+  Uint8List get macStateAsUint8List => _mac!.bytes as Uint8List;
+
+  @mustCallSuper
+  @override
   void addSlice(List<int> chunk, int start, int end, bool isLast) {
-    if (_isClosed) {
+    if (isClosed) {
       throw StateError('Closed already');
     }
     RangeError.checkValidRange(start, end, chunk.length);
@@ -83,10 +95,6 @@ class DartPoly1305Sink extends MacSink with DartMacSink {
     // The implementation has been inspired by "poly1305-donna-16.h" by Andrew
     // Moon, which has "MIT or PUBLIC DOMAIN" license. It can be found at:
     // https://github.com/floodyberry/poly1305-donna/blob/master/poly1305-donna-16.h
-    final a = _a;
-    final r = _r;
-    final s = _s;
-
     final chunkLength = end - start;
     if (chunkLength > 0) {
       // Increment length
@@ -96,17 +104,21 @@ class DartPoly1305Sink extends MacSink with DartMacSink {
       final buffer = _buffer;
       var blockLength = _blockLength;
       for (var i = start; i < end; i++) {
+        // Set byte
         buffer.setUint8(blockLength, chunk[i]);
         blockLength++;
+
+        // Full block?
         if (blockLength == 16) {
+          buffer.setUint8(16, 1);
           process(
             block: buffer,
             blockLength: 16,
-            a: a,
-            r: r,
-            s: s,
+            a: _a,
+            r: _r,
+            s: _s,
             tmp: _tmp,
-            isLast: isLast,
+            isLast: false,
           );
           blockLength = 0;
         }
@@ -114,11 +126,115 @@ class DartPoly1305Sink extends MacSink with DartMacSink {
       _blockLength = blockLength;
     }
 
-    if (!isLast) {
-      return;
+    if (isLast) {
+      // Call a protected method we needed for implementing
+      // ChaCha20-Poly1305-AEAD
+      afterData();
+
+      // Final block
+      _finalize();
+    }
+  }
+
+  /// A protected method required by
+  /// [DartChacha20Poly1305AeadMacAlgorithm] implementation.
+  @protected
+  void afterData() {}
+
+  /// A protected method required by
+  /// [DartChacha20Poly1305AeadMacAlgorithm] implementation.
+  @protected
+  void beforeData({
+    required SecretKeyData secretKey,
+    required List<int> nonce,
+    required List<int> aad,
+  }) {
+    if (aad.isNotEmpty) {
+      throw ArgumentError.value(aad, 'aad');
+    }
+  }
+
+  @override
+  void close() {
+    addSlice(const [], 0, 0, true);
+  }
+
+  @mustCallSuper
+  @override
+  void initializeSync({
+    required SecretKeyData secretKey,
+    required List<int> nonce,
+    List<int> aad = const [],
+  }) {
+    _blockLength = 0;
+    _isClosed = false;
+    _mac = null;
+    _length = 0;
+
+    // RFC variable `r`
+    final r = _r;
+    final keyBytes = secretKey.bytes;
+
+    final key = Uint16List.view(
+      keyBytes is Uint8List
+          ? keyBytes.buffer
+          : Uint8List.fromList(keyBytes).buffer,
+    );
+
+    // In RFC:
+    //  r = (le_bytes_to_num(key[0..15])
+    //  clamp(r)
+    final k0 = key[0];
+    r[0] = 0x1FFF & k0;
+    final k1 = key[1];
+    r[1] = 0x1FFF & ((k0 >> 13) | (k1 << 3));
+    final k2 = key[2];
+    r[2] = 0x1F03 & ((k1 >> 10) | (k2 << 6));
+    final k3 = key[3];
+    r[3] = 0x1FFF & ((k2 >> 7) | (k3 << 9));
+    r[4] = 0xFF & (k3 >> 4);
+    final k4 = key[4];
+    r[5] = 0x1FFE & (k4 >> 1);
+    final k5 = key[5];
+    r[6] = 0x1FFF & ((k4 >> 14) | (k5 << 2));
+    final k6 = key[6];
+    r[7] = 0x1F81 & ((k5 >> 11) | (k6 << 5));
+    final k7 = key[7];
+    r[8] = 0x1FFF & ((k6 >> 8) | (k7 << 8));
+    r[9] = 0x7F & (k7 >> 5);
+
+    // In RFC:
+    // s = le_num(key[16..31])
+    final s = _s;
+    final sBytes = Uint8List.view(s.buffer);
+    for (var i = 0; i < 16; i++) {
+      sBytes[i] = keyBytes[16 + i];
     }
 
-    afterData();
+    // Erase helper `h`
+    final h = _a;
+    for (var i = 0; i < 10; i++) {
+      h[i] = 0;
+    }
+
+    final buffer = _buffer;
+    buffer.setUint32(0, 0);
+    buffer.setUint32(4, 0);
+    buffer.setUint32(8, 0);
+    buffer.setUint32(12, 0);
+    buffer.setUint32(16, 0);
+
+    beforeData(
+      secretKey: secretKey,
+      nonce: nonce,
+      aad: aad,
+    );
+  }
+
+  @override
+  Mac macSync() => _mac!;
+
+  void _finalize() {
     _isClosed = true;
 
     if (_blockLength > 0 || length == 0) {
@@ -130,14 +246,16 @@ class DartPoly1305Sink extends MacSink with DartMacSink {
       process(
         block: buffer,
         blockLength: 16,
-        a: a,
-        r: r,
-        s: s,
+        a: _a,
+        r: _r,
+        s: _s,
         tmp: _tmp,
         isLast: true,
       );
     }
 
+    final a = _a;
+    final s = _s;
     // Carry a
     {
       var a1 = a[1];
@@ -215,100 +333,6 @@ class DartPoly1305Sink extends MacSink with DartMacSink {
     _mac = Mac(bytes);
   }
 
-  /// An internal method overridden by [DartChacha20Poly1305AeadMacAlgorithm].
-  @protected
-  void afterData() {}
-
-  /// An internal method overridden by [DartChacha20Poly1305AeadMacAlgorithm].
-  @protected
-  void beforeData({
-    required SecretKeyData secretKey,
-    required List<int> nonce,
-    required List<int> aad,
-  }) {
-    if (aad.isNotEmpty) {
-      throw ArgumentError.value(aad, 'aad');
-    }
-  }
-
-  @override
-  void close() {
-    addSlice(const [], 0, 0, true);
-  }
-
-  void initialize({
-    required SecretKeyData secretKeyData,
-    required List<int> nonce,
-    required List<int> aad,
-  }) {
-    _blockLength = 0;
-    _isClosed = false;
-    _mac = null;
-    _length = 0;
-
-    // RFC variable `r`
-    final r = _r;
-    final keyBytes = secretKeyData.bytes;
-
-    final key = Uint16List.view(
-      keyBytes is Uint8List
-          ? keyBytes.buffer
-          : Uint8List.fromList(keyBytes).buffer,
-    );
-
-    // In RFC:
-    //  r = (le_bytes_to_num(key[0..15])
-    //  clamp(r)
-    final k0 = key[0];
-    r[0] = 0x1FFF & k0;
-    final k1 = key[1];
-    r[1] = 0x1FFF & ((k0 >> 13) | (k1 << 3));
-    final k2 = key[2];
-    r[2] = 0x1F03 & ((k1 >> 10) | (k2 << 6));
-    final k3 = key[3];
-    r[3] = 0x1FFF & ((k2 >> 7) | (k3 << 9));
-    r[4] = 0xFF & (k3 >> 4);
-    final k4 = key[4];
-    r[5] = 0x1FFE & (k4 >> 1);
-    final k5 = key[5];
-    r[6] = 0x1FFF & ((k4 >> 14) | (k5 << 2));
-    final k6 = key[6];
-    r[7] = 0x1F81 & ((k5 >> 11) | (k6 << 5));
-    final k7 = key[7];
-    r[8] = 0x1FFF & ((k6 >> 8) | (k7 << 8));
-    r[9] = 0x7F & (k7 >> 5);
-
-    // In RFC:
-    // s = le_num(key[16..31])
-    final s = _s;
-    final sBytes = Uint8List.view(s.buffer);
-    for (var i = 0; i < 16; i++) {
-      sBytes[i] = keyBytes[16 + i];
-    }
-
-    // Erase helper `h`
-    final h = _a;
-    for (var i = 0; i < 10; i++) {
-      h[i] = 0;
-    }
-
-    final buffer = _buffer;
-    buffer.setUint32(0, 0);
-    buffer.setUint32(4, 0);
-    buffer.setUint32(8, 0);
-    buffer.setUint32(12, 0);
-    buffer.setUint32(16, 0);
-
-    beforeData(
-      secretKey: secretKeyData,
-      nonce: nonce,
-      aad: aad,
-    );
-  }
-
-  @override
-  Mac macSync() => _mac!;
-
   static void process({
     required ByteData block,
     required Uint16List a,
@@ -322,6 +346,9 @@ class DartPoly1305Sink extends MacSink with DartMacSink {
     // Append 1
     //
     block.setUint8(blockLength, 1);
+    for (var i = blockLength + 1; i < 17; i++) {
+      block.setUint8(i, 0);
+    }
 
     //
     // a += block

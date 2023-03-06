@@ -34,7 +34,7 @@ class BrowserHkdf extends Hkdf {
       : super.constructor();
 
   @override
-  Future<SecretKey> deriveKey({
+  Future<SecretKeyData> deriveKey({
     required SecretKey secretKey,
     List<int> nonce = const <int>[],
     List<int> info = const <int>[],
@@ -50,7 +50,7 @@ class BrowserHkdf extends Hkdf {
       jsCryptoKey,
       8 * outputLength,
     );
-    return SecretKey(Uint8List.view(byteBuffer));
+    return SecretKeyData(Uint8List.view(byteBuffer));
   }
 
   Future<web_crypto.CryptoKey> _jsCryptoKey(SecretKey secretKey) async {

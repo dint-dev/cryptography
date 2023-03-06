@@ -67,43 +67,48 @@ class DartChacha20Poly1305AeadMacAlgorithm extends MacAlgorithm
   bool operator ==(other) => other is DartChacha20Poly1305AeadMacAlgorithm;
 
   @override
-  DartMacSink newMacSinkSync({
+  DartMacSinkMixin newMacSinkSync({
     required SecretKeyData secretKeyData,
     List<int> nonce = const <int>[],
     List<int> aad = const <int>[],
   }) {
     final sink = DartChacha20Poly1305AeadMacAlgorithmSink();
-    sink.initialize(
-      secretKeyData: secretKeyData,
+    sink.initializeSync(
+      secretKey: secretKeyData,
       nonce: nonce,
       aad: aad,
     );
     return sink;
   }
+
+  @override
+  DartChacha20Poly1305AeadMacAlgorithm toSync() {
+    return this;
+  }
 }
 
 class DartChacha20Poly1305AeadMacAlgorithmSink extends DartPoly1305Sink {
   int _aadLength = 0;
-  final _tmpByteData = ByteData(16);
-  late final _tmpUint8List = Uint8List.view(_tmpByteData.buffer);
+  final _tmpAsByteData = ByteData(16);
+  late final _tmpAsUint8List = Uint8List.view(_tmpAsByteData.buffer);
   final _chacha20State = const DartChacha20(
     macAlgorithm: MacAlgorithm.empty,
   ).newState();
 
   @override
-  List<int> afterData() {
+  void afterData() {
     // Length without the initial AAD.
     final aadLength = _aadLength;
     final dataLength = length - (aadLength + 15) ~/ 16 * 16;
 
     final lengthRem = dataLength % 16;
     if (lengthRem != 0) {
-      // Add padding
+      // Add padding until 16-byte aligned
       final paddingLength = 16 - lengthRem;
-      _tmpUint8List.fillRange(0, paddingLength, 0);
-      addSlice(_tmpUint8List, 0, paddingLength, false);
+      _tmpAsUint8List.fillRange(0, paddingLength, 0);
+      addSlice(_tmpAsUint8List, 0, paddingLength, false);
     }
-    final tmpByteData = _tmpByteData;
+    final tmpByteData = _tmpAsByteData;
     tmpByteData.setUint32(0, 0);
     tmpByteData.setUint32(4, 0);
     tmpByteData.setUint32(8, 0);
@@ -131,10 +136,8 @@ class DartChacha20Poly1305AeadMacAlgorithmSink extends DartPoly1305Sink {
       dataLength ~/ (uint32mask + 1),
       Endian.little,
     );
-    add(_tmpUint8List);
+    add(_tmpAsUint8List);
     _aadLength = 0;
-
-    return const [];
   }
 
   @override
@@ -149,17 +152,17 @@ class DartChacha20Poly1305AeadMacAlgorithmSink extends DartPoly1305Sink {
     if (aadLength != 0) {
       add(aad);
 
+      // Add padding until 16-byte aligned
       final rem = aad.length % 16;
       if (rem != 0) {
-        _tmpByteData.setUint32(0, 0);
-        _tmpByteData.setUint32(4, 0);
-        _tmpByteData.setUint32(8, 0);
-        _tmpByteData.setUint32(12, 0);
-
-        // Add padding to the MAC
-        // `_tmpUint8List` is full of zeroes because we called reset() before
+        // Fill `tmp` with zeroes
+        final tmp = _tmpAsByteData;
+        tmp.setUint32(0, 0);
+        tmp.setUint32(4, 0);
+        tmp.setUint32(8, 0);
+        tmp.setUint32(12, 0);
         final paddingLength = 16 - rem;
-        addSlice(_tmpUint8List, 0, paddingLength, false);
+        addSlice(_tmpAsUint8List, 0, paddingLength, false);
       }
     }
 
@@ -200,17 +203,19 @@ class DartChacha20Poly1305AeadMacAlgorithmSink extends DartPoly1305Sink {
   }
 
   @override
-  void initialize({
-    required SecretKeyData secretKeyData,
+  void initializeSync({
+    required SecretKeyData secretKey,
     required List<int> nonce,
-    required List<int> aad,
+    List<int> aad = const [],
   }) {
-    secretKeyData = deriveSecretKey(
-      secretKey: secretKeyData,
+    _aadLength = 0;
+    _tmpAsUint8List.fillRange(0, _tmpAsUint8List.length, 0);
+    secretKey = deriveSecretKey(
+      secretKey: secretKey,
       nonce: nonce,
     );
-    super.initialize(
-      secretKeyData: secretKeyData,
+    super.initializeSync(
+      secretKey: secretKey,
       nonce: nonce,
       aad: aad,
     );

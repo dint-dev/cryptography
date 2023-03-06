@@ -35,7 +35,7 @@ void main() {
 }
 
 void _main() {
-  test('Test case #1', () async {
+  test('Test case #1: Hkdf-Hmac-Sha256', () async {
     // Test vectors from RFC 5869:
     // https://tools.ietf.org/html/rfc5869
 
@@ -67,12 +67,12 @@ void _main() {
       info: info,
     );
     expect(
-      hexFromBytes((actual as SecretKeyData).bytes),
+      hexFromBytes(actual.bytes),
       hexFromBytes(expectedBytes),
     );
   });
 
-  test('Test case #2', () async {
+  test('Test case #2: Hkdf-Hmac-Sha256', () async {
     // Test vectors from RFC 5869:
     // https://tools.ietf.org/html/rfc5869
 
@@ -119,7 +119,7 @@ void _main() {
       info: info,
     );
     expect(
-      hexFromBytes((actual as SecretKeyData).bytes),
+      hexFromBytes(actual.bytes),
       hexFromBytes(expectedBytes),
     );
   });

@@ -1,3 +1,12 @@
+## 2.4.0
+* Fixes many issues found by adding more tests. Also improves documentation.
+* Improves performance of SHA256, HMAC, and PBKDF2 by cutting unnecessary state allocations and
+  futures.
+* Some small API refactoring and new class members that don't really affect the publicly visible
+  API. We plan to address most API design issues (some discussed in the issue tracker) in the next
+  major version (3.x).
+* Adds support for seck256k1 key type ([#135](https://github.com/dint-dev/cryptography/pull/135)).
+
 ## 2.3.0
   * Fixes some small issues.
   * Improves documentation.
