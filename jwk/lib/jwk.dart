@@ -255,31 +255,31 @@ class Jwk {
     {
       final value = d;
       if (value != null) {
-        result['d'] = _base64UriEncode(value);
+        result['d'] = base64UriEncode(value);
       }
     }
     {
       final value = dp;
       if (value != null) {
-        result['dp'] = _base64UriEncode(value);
+        result['dp'] = base64UriEncode(value);
       }
     }
     {
       final value = dq;
       if (value != null) {
-        result['dq'] = _base64UriEncode(value);
+        result['dq'] = base64UriEncode(value);
       }
     }
     {
       final value = e;
       if (value != null) {
-        result['e'] = _base64UriEncode(value);
+        result['e'] = base64UriEncode(value);
       }
     }
     {
       final value = k;
       if (value != null) {
-        result['k'] = _base64UriEncode(value);
+        result['k'] = base64UriEncode(value);
       }
     }
     {
@@ -303,25 +303,25 @@ class Jwk {
     {
       final value = n;
       if (value != null) {
-        result['n'] = _base64UriEncode(value);
+        result['n'] = base64UriEncode(value);
       }
     }
     {
       final value = p;
       if (value != null) {
-        result['p'] = _base64UriEncode(value);
+        result['p'] = base64UriEncode(value);
       }
     }
     {
       final value = q;
       if (value != null) {
-        result['q'] = _base64UriEncode(value);
+        result['q'] = base64UriEncode(value);
       }
     }
     {
       final value = qi;
       if (value != null) {
-        result['qi'] = _base64UriEncode(value);
+        result['qi'] = base64UriEncode(value);
       }
     }
     {
@@ -333,19 +333,19 @@ class Jwk {
     {
       final value = x;
       if (value != null) {
-        result['x'] = _base64UriEncode(value);
+        result['x'] = base64UriEncode(value);
       }
     }
     {
       final value = x5c;
       if (value != null) {
-        result['x5c'] = _base64UriEncode(value);
+        result['x5c'] = base64UriEncode(value);
       }
     }
     {
       final value = x5t;
       if (value != null) {
-        result['x5t'] = _base64UriEncode(value);
+        result['x5t'] = base64UriEncode(value);
       }
     }
     {
@@ -357,7 +357,7 @@ class Jwk {
     {
       final value = y;
       if (value != null) {
-        result['y'] = _base64UriEncode(value);
+        result['y'] = base64UriEncode(value);
       }
     }
     return result;
@@ -496,19 +496,19 @@ class Jwk {
           builder.crv = value as String;
           break;
         case 'd':
-          builder.d = _base64UriDecode(value as String);
+          builder.d = base64UriDecode(value as String);
           break;
         case 'dp':
-          builder.dp = _base64UriDecode(value as String);
+          builder.dp = base64UriDecode(value as String);
           break;
         case 'dq':
-          builder.dq = _base64UriDecode(value as String);
+          builder.dq = base64UriDecode(value as String);
           break;
         case 'e':
-          builder.e = _base64UriDecode(value as String);
+          builder.e = base64UriDecode(value as String);
           break;
         case 'k':
-          builder.k = _base64UriDecode(value as String);
+          builder.k = base64UriDecode(value as String);
           break;
         case 'key_ops':
           builder.keyOps = value as String;
@@ -520,34 +520,34 @@ class Jwk {
           builder.kty = value as String;
           break;
         case 'n':
-          builder.n = _base64UriDecode(value as String);
+          builder.n = base64UriDecode(value as String);
           break;
         case 'p':
-          builder.p = _base64UriDecode(value as String);
+          builder.p = base64UriDecode(value as String);
           break;
         case 'q':
-          builder.q = _base64UriDecode(value as String);
+          builder.q = base64UriDecode(value as String);
           break;
         case 'qi':
-          builder.qi = _base64UriDecode(value as String);
+          builder.qi = base64UriDecode(value as String);
           break;
         case 'use':
           builder.use = value as String;
           break;
         case 'x':
-          builder.x = _base64UriDecode(value as String);
+          builder.x = base64UriDecode(value as String);
           break;
         case 'x5c':
-          builder.x5c = _base64UriDecode(value as String);
+          builder.x5c = base64UriDecode(value as String);
           break;
         case 'x5t':
-          builder.x5t = _base64UriDecode(value as String);
+          builder.x5t = base64UriDecode(value as String);
           break;
         case 'x5u':
           builder.x5u = value as String;
           break;
         case 'y':
-          builder.y = _base64UriDecode(value as String);
+          builder.y = base64UriDecode(value as String);
           break;
       }
     }
@@ -676,12 +676,13 @@ class Jwk {
     return fromJson(json.decode(utf8.decode(bytes)) as Map);
   }
 
-  static List<int> _base64UriDecode(String s) {
-    return const Base64Codec.urlSafe().decode(s);
+  static List<int> base64UriDecode(String s) {
+    return const Base64Codec.urlSafe()
+        .decode(s + '=' * ((4 - s.length % 4) % 4));
   }
 
-  static String _base64UriEncode(List<int> bytes) {
-    return const Base64Codec.urlSafe().encode(bytes);
+  static String base64UriEncode(List<int> bytes) {
+    return const Base64Codec.urlSafe().encode(bytes).split('=').first;
   }
 }
 
