@@ -252,7 +252,7 @@ class _EmptyMacSink extends MacSink with DartMacSinkMixin {
   bool get isClosed => _isClosed;
 
   @override
-  Uint8List get macStateAsUint8List => _empty;
+  Uint8List get macBytes => _empty;
 
   @override
   void addSlice(List<int> chunk, int start, int end, bool isLast) {
@@ -303,7 +303,7 @@ class _MacSink extends MacSink with DartMacSinkMixin {
   bool get isClosed => _macFuture != null;
 
   @override
-  Uint8List get macStateAsUint8List {
+  Uint8List get macBytes {
     throw UnimplementedError();
   }
 

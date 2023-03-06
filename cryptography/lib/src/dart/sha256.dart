@@ -99,7 +99,7 @@ class _DartSha256BasedState extends DartHashSink implements HashSink {
   int _length = 0;
 
   @override
-  final Uint8List hashBufferAsUint8List;
+  final Uint8List hashBytes;
 
   factory _DartSha256BasedState(int digestLength, List<int> initialValues) {
     final digest = Uint32List(8);
@@ -107,8 +107,7 @@ class _DartSha256BasedState extends DartHashSink implements HashSink {
     return _DartSha256BasedState._(digest, digestView, initialValues);
   }
 
-  _DartSha256BasedState._(
-      this._digest, this.hashBufferAsUint8List, this._initialValues) {
+  _DartSha256BasedState._(this._digest, this.hashBytes, this._initialValues) {
     reset();
   }
 

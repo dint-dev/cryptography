@@ -90,7 +90,7 @@ class _DartHmacSink extends MacSink with DartMacSinkMixin {
   bool get isClosed => _isClosed;
 
   @override
-  Uint8List get macStateAsUint8List => _outerSink.hashBufferAsUint8List;
+  Uint8List get macBytes => _outerSink.hashBytes;
 
   @override
   void addSlice(List<int> chunk, int start, int end, bool isLast) {
@@ -101,7 +101,7 @@ class _DartHmacSink extends MacSink with DartMacSinkMixin {
     innerSink.addSlice(chunk, start, end, isLast);
     if (isLast) {
       _isClosed = true;
-      final innerDigest = innerSink.hashBufferAsUint8List;
+      final innerDigest = innerSink.hashBytes;
       final outerSink = _outerSink;
       outerSink.addSlice(innerDigest, 0, innerDigest.length, true);
     }
@@ -135,7 +135,7 @@ class _DartHmacSink extends MacSink with DartMacSinkMixin {
     innerSink.reset();
     if (hmacKey.length > blockLength) {
       innerSink.addSlice(hmacKey, 0, hmacKey.length, true);
-      hmacKey = Uint8List.fromList(innerSink.hashBufferAsUint8List);
+      hmacKey = Uint8List.fromList(innerSink.hashBytes);
       innerSink.reset();
       eraseKey = true;
     }

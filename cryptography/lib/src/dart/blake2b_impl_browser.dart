@@ -65,7 +65,7 @@ class Blake2bSink extends DartHashSink {
   final _hash = Uint32List(32);
 
   @override
-  late final Uint8List hashBufferAsUint8List = Uint8List.view(
+  late final Uint8List hashBytes = Uint8List.view(
     _hash.buffer,
     0,
     64,

@@ -77,7 +77,7 @@ class DartPoly1305Sink extends MacSink with DartMacSinkMixin {
 
   @override
   // TODO: implement macStateAsUint8List
-  Uint8List get macStateAsUint8List => _mac!.bytes as Uint8List;
+  Uint8List get macBytes => _mac!.bytes as Uint8List;
 
   @mustCallSuper
   @override

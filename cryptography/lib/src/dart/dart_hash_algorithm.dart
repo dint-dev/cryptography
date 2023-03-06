@@ -49,7 +49,10 @@ mixin DartHashAlgorithmMixin implements DartHashAlgorithm {
 
 /// A [HashSink] that supports synchronous evaluation ([hashSync]).
 abstract class DartHashSink extends HashSink {
-  Uint8List get hashBufferAsUint8List;
+  /// Unsafe view at the current hash bytes.
+  ///
+  /// You must copy the bytes if you want to keep them.
+  Uint8List get hashBytes;
 
   bool get isClosed;
 
@@ -81,7 +84,7 @@ abstract class DartHashSink extends HashSink {
     if (!isClosed) {
       throw StateError('Not closed');
     }
-    return Hash(Uint8List.fromList(hashBufferAsUint8List));
+    return Hash(Uint8List.fromList(hashBytes));
   }
 
   void reset();

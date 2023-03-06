@@ -105,8 +105,10 @@ mixin DartMacAlgorithmMixin implements DartMacAlgorithm {
 
 /// A mixin for pure Dart implementations of [MacSink]
 mixin DartMacSinkMixin implements MacSink {
-  /// View at bytes of the latest MAC.
-  Uint8List get macStateAsUint8List;
+  /// Unsafe view at the current MAC bytes.
+  ///
+  /// You must copy the bytes if you want to keep them.
+  Uint8List get macBytes;
 
   /// Re-initializes the sink.
   void initializeSync({
@@ -126,6 +128,6 @@ mixin DartMacSinkMixin implements MacSink {
     if (!isClosed) {
       throw StateError('Sink is not closed');
     }
-    return Mac(Uint8List.fromList(macStateAsUint8List));
+    return Mac(Uint8List.fromList(macBytes));
   }
 }

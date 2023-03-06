@@ -80,13 +80,13 @@ void _main() {
           expect(sink.isClosed, isTrue);
           expect(sink.length, input.length);
           expect(input, everyElement(0));
-          final mac = Uint8List.fromList(sink.hashBufferAsUint8List);
+          final mac = Uint8List.fromList(sink.hashBytes);
 
           // Reset
           sink.reset();
           expect(sink.isClosed, isFalse);
           expect(sink.length, 0);
-          expect(sink.hashBufferAsUint8List, isNot(mac));
+          expect(sink.hashBytes, isNot(mac));
 
           // Do same again
           sink.add(input);
@@ -94,7 +94,7 @@ void _main() {
           expect(sink.isClosed, isTrue);
           expect(sink.length, input.length);
           expect(
-            sink.hashBufferAsUint8List,
+            sink.hashBytes,
             mac,
             reason: 'length=$length',
           );
@@ -103,7 +103,7 @@ void _main() {
           sink.reset();
           expect(sink.isClosed, isFalse);
           expect(sink.length, 0);
-          expect(sink.hashBufferAsUint8List, isNot(mac));
+          expect(sink.hashBytes, isNot(mac));
 
           // This time use:
           // addSlice(..., 0, x, false)
@@ -116,7 +116,7 @@ void _main() {
           expect(sink.isClosed, isTrue);
           expect(sink.length, input.length);
           expect(
-            sink.hashBufferAsUint8List,
+            sink.hashBytes,
             mac,
             reason: 'length=$length',
           );
@@ -125,7 +125,7 @@ void _main() {
           sink.reset();
           expect(sink.isClosed, isFalse);
           expect(sink.length, 0);
-          expect(sink.hashBufferAsUint8List, isNot(mac));
+          expect(sink.hashBytes, isNot(mac));
         }
       }
     });
@@ -160,7 +160,7 @@ void _main() {
           sink.add(input.sublist(0, i));
           sink.add(input.sublist(i));
           sink.close();
-          final output = sink.hashBufferAsUint8List;
+          final output = sink.hashBytes;
           expect(
             hexFromBytes(output),
             hexFromBytes(expectedOutput),
@@ -262,7 +262,7 @@ void _main() {
               final sink = algorithm.toSync().newHashSink();
               sink.addSlice(slice, 0, slice.length, true);
               expect(
-                sink.hashBufferAsUint8List,
+                sink.hashBytes,
                 packageCryptoHash,
               );
             }
@@ -274,7 +274,7 @@ void _main() {
               sink.addSlice(slice, 0, c, false);
               sink.addSlice(slice, c, slice.length, true);
               expect(
-                sink.hashBufferAsUint8List,
+                sink.hashBytes,
                 packageCryptoHash,
               );
             }
@@ -287,7 +287,7 @@ void _main() {
               sink.addSlice(slice, c, 2 * c, false);
               sink.addSlice(slice, 2 * c, slice.length, true);
               expect(
-                sink.hashBufferAsUint8List,
+                sink.hashBytes,
                 packageCryptoHash,
               );
             }

@@ -90,10 +90,10 @@ class PackageCryptoHashSink extends DartHashSink {
   bool _isClosed = false;
 
   @override
-  final Uint8List hashBufferAsUint8List;
+  final Uint8List hashBytes;
 
-  PackageCryptoHashSink(this.hashBufferAsUint8List, this.hashAlgorithm,
-      this._sink, this._captureSink);
+  PackageCryptoHashSink(
+      this.hashBytes, this.hashAlgorithm, this._sink, this._captureSink);
 
   @override
   bool get isClosed => _isClosed;
@@ -130,7 +130,7 @@ class PackageCryptoHashSink extends DartHashSink {
     }
     _isClosed = true;
     _sink.close();
-    hashBufferAsUint8List.setAll(0, _captureSink._result!.bytes);
+    hashBytes.setAll(0, _captureSink._result!.bytes);
   }
 
   @override

@@ -48,13 +48,13 @@ void main() {
           expect(sink.isClosed, isTrue);
           expect(sink.length, input.length);
           expect(input, everyElement(0));
-          final mac = Uint8List.fromList(sink.hashBufferAsUint8List);
+          final mac = Uint8List.fromList(sink.hashBytes);
 
           // Reset
           sink.reset();
           expect(sink.isClosed, isFalse);
           expect(sink.length, 0);
-          expect(sink.hashBufferAsUint8List, isNot(mac));
+          expect(sink.hashBytes, isNot(mac));
 
           // Do same again
           sink.add(input);
@@ -62,7 +62,7 @@ void main() {
           expect(sink.isClosed, isTrue);
           expect(sink.length, input.length);
           expect(
-            sink.hashBufferAsUint8List,
+            sink.hashBytes,
             mac,
             reason: 'length=$length',
           );
@@ -71,7 +71,7 @@ void main() {
           sink.reset();
           expect(sink.isClosed, isFalse);
           expect(sink.length, 0);
-          expect(sink.hashBufferAsUint8List, isNot(mac));
+          expect(sink.hashBytes, isNot(mac));
 
           // This time use:
           // addSlice(..., 0, x, false)
@@ -84,7 +84,7 @@ void main() {
           expect(sink.isClosed, isTrue);
           expect(sink.length, input.length);
           expect(
-            sink.hashBufferAsUint8List,
+            sink.hashBytes,
             mac,
             reason: 'length=$length',
           );
@@ -93,7 +93,7 @@ void main() {
           sink.reset();
           expect(sink.isClosed, isFalse);
           expect(sink.length, 0);
-          expect(sink.hashBufferAsUint8List, isNot(mac));
+          expect(sink.hashBytes, isNot(mac));
         }
       }
     });
@@ -131,7 +131,7 @@ void main() {
         sink.add(previousHash);
         sink.add(data.sublist(0, i));
         sink.close();
-        previousHash = sink.hashBufferAsUint8List;
+        previousHash = sink.hashBytes;
       }
 
       // Obtained from a Go program

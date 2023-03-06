@@ -109,7 +109,7 @@ class DartPbkdf2 extends Pbkdf2 {
           nonce: nonce,
         );
         macState.addSlice(previous, 0, previous.length, true);
-        final macBytes = macState.macStateAsUint8List;
+        final macBytes = macState.macBytes;
 
         // XOR with the result
         for (var bi = 0; bi < block.length; bi++) {
