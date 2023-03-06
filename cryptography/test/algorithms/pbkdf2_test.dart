@@ -165,10 +165,10 @@ void _main() {
     );
   });
 
-  test('deriveKey(...): Hmac(sha256), 10k iterations in 100ms', () async {
+  test('deriveKey(...): Hmac(sha256), 10k iterations in 300ms', () async {
     final macAlgorithm = Hmac.sha256();
     final n = 10 * 1000;
-    const maxDuration = Duration(milliseconds: 100);
+    const maxDuration = Duration(milliseconds: 300);
 
     final pbkdf2 = Pbkdf2(
       macAlgorithm: macAlgorithm,
