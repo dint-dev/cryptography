@@ -17,6 +17,9 @@ jobs:
       - name: Run tests (cryptography)
         run: dart test --platform vm
         working-directory: ./cryptography
+      - name: Run tests (cryptography_test)
+        run: dart test --platform vm
+        working-directory: ./cryptography_test
       - name: Run tests (jwk)
         run: dart test --platform vm
         working-directory: ./jwk
