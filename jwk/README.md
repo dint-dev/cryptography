@@ -12,7 +12,7 @@ In _pubspec.yaml_
 ```yaml
 dependencies:
   cryptography: ^2.4.0
-  jwk: ^0.2.0
+  jwk: ^0.2.2
 ``
 ```
 
