@@ -1,3 +1,8 @@
+## 0.2.2
+
+* Adds p256k support ([#135](https://github.com/dint-dev/cryptography/pull/135)).
+* Fixes a padding issue ([#134](https://github.com/dint-dev/cryptography/pull/134)).
+
 ## 0.2.1
 
 * Improves documentation.
