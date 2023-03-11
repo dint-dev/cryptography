@@ -14,7 +14,7 @@
 
 import 'package:cryptography/cryptography.dart';
 
-import '../hash_algorithm.dart';
+import '../hash.dart';
 
 void testSha256() {
   testHashAlgorithm(

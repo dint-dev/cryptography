@@ -12,27 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/// Test utilities for [KeyExchangeAlgorithm] classes.
-library cryptography_test.key_exchange_algorithm;
-
 import 'package:cryptography/cryptography.dart';
-import 'package:test/test.dart';
 
-void testKeyExchangeAlgorithm({
-  required KeyExchangeAlgorithm Function() builder,
-  required void Function()? otherTests,
-}) {
-  group('${builder()}:', () {
-    setUp(() {
-      _keyExchangeAlgorithm = builder();
-    });
-    tearDown(() {
-      _keyExchangeAlgorithm = null;
-    });
-  });
+import '../signature.dart';
+
+void testRsaSsaPkcs5v1() {
+  testSignatureAlgorithm(
+    builder: () => RsaSsaPkcs1v15(Sha256()),
+    otherTests: () {
+      // TODO: Copy test vectors from "cryptography/test/..."
+    },
+  );
 }
-
-KeyExchangeAlgorithm? _keyExchangeAlgorithm;
-
-/// Currently tested [KeyExchangeAlgorithm].
-KeyExchangeAlgorithm get keyExchangeAlgorithm => _keyExchangeAlgorithm!;

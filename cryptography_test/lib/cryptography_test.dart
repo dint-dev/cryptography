@@ -14,14 +14,29 @@
 
 /// Test utilities for cryptographic algorithms.
 ///
+/// Use [testCryptography] to test all algorithms.
+///
 /// See also:
 ///   * [testCipher]
 ///   * [testHashAlgorithm]
 ///   * [testKeyExchangeAlgorithm]
 ///   * [testSignatureAlgorithm]
+///
+/// ## Example
+/// ```dart
+/// import 'package:cryptography_test/cryptography_test.dart';
+///
+/// void main() {
+///   Cryptography.instance = MyCryptography();
+///   testCryptography();
+/// }
+/// ```
 library cryptography_test;
 
 import 'dart:typed_data';
+
+import 'package:cryptography/cryptography.dart';
+import 'package:test/scaffolding.dart';
 
 import 'algorithms/aes_cbc.dart';
 import 'algorithms/aes_ctr.dart';
@@ -29,16 +44,23 @@ import 'algorithms/aes_gcm.dart';
 import 'algorithms/blake2b.dart';
 import 'algorithms/blake2s.dart';
 import 'algorithms/chacha20.dart';
+import 'algorithms/ecdsa.dart';
 import 'algorithms/ed25519.dart';
+import 'algorithms/hkdf.dart';
+import 'algorithms/hmac.dart';
+import 'algorithms/pbkdf2.dart';
+import 'algorithms/rsa_pss.dart';
+import 'algorithms/rsa_ssa_pkcs5v15.dart';
 import 'algorithms/sha224.dart';
 import 'algorithms/sha256.dart';
 import 'algorithms/sha384.dart';
 import 'algorithms/sha512.dart';
+import 'algorithms/x25519.dart';
 import 'algorithms/xchacha20.dart';
 import 'cipher.dart';
-import 'hash_algorithm.dart';
-import 'key_exchange_algorithm.dart';
-import 'signature_algorithm.dart';
+import 'hash.dart';
+import 'key_exchange.dart';
+import 'signature.dart';
 
 /// Converts a list of bytes to a hexadecimal string.
 ///
@@ -82,7 +104,21 @@ List<int> hexToBytes(String input) {
   return Uint8List.fromList(result);
 }
 
-void runAllTests() {
+/// Tests the current or the given [Cryptography].
+void testCryptography({Cryptography? cryptography}) {
+  if (cryptography != null) {
+    group('$cryptography:', () {
+      setUpAll(() {
+        Cryptography.instance = cryptography;
+      });
+      testCryptography();
+    });
+    return;
+  }
+
+  // testEcdh();
+  testEcdsa();
+
   // Hash algorithms
   testBlake2s();
   testBlake2b();
@@ -92,13 +128,24 @@ void runAllTests() {
   testSha512();
 
   // Ciphers
-
   testAesCbc();
   testAesCtr();
   testAesGcm();
   testChacha20();
   testXchacha20();
 
+  // Key exchange algorithms
+  // testEcdh();
+  testX25519();
+
   // Signature algorithms
+  testEcdsa();
   testEd25519();
+  testRsaPss();
+  testRsaSsaPkcs5v1();
+
+  // Other
+  testHmac();
+  testHkdf();
+  testPbkdf2();
 }

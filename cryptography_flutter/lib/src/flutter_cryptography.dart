@@ -15,6 +15,8 @@
 import 'dart:math';
 
 import 'package:cryptography/cryptography.dart';
+import 'package:cryptography/dart.dart';
+import 'package:cryptography_flutter/src/flutter/flutter_hmac.dart';
 import 'package:flutter/foundation.dart';
 
 import '../cryptography_flutter.dart';
@@ -55,10 +57,6 @@ class FlutterCryptography extends BrowserCryptography {
   FlutterCryptography({Random? random}) : super(random: random);
 
   @override
-  FlutterCryptography withRandom(Random? random) =>
-      FlutterCryptography(random: random);
-
-  @override
   AesGcm aesGcm({
     int secretKeyLength = 32,
     int nonceLength = AesGcm.defaultNonceLength,
@@ -92,12 +90,118 @@ class FlutterCryptography extends BrowserCryptography {
   }
 
   @override
+  Ecdh ecdhP256({required int length}) {
+    final impl = FlutterEcdh.p256(length: length);
+    if (impl.isSupportedPlatform) {
+      return impl;
+    }
+    return super.ecdhP256(length: length);
+  }
+
+  @override
+  Ecdh ecdhP384({required int length}) {
+    final impl = FlutterEcdh.p384(length: length);
+    if (impl.isSupportedPlatform) {
+      return impl;
+    }
+    return super.ecdhP384(length: length);
+  }
+
+  @override
+  Ecdh ecdhP521({required int length}) {
+    final impl = FlutterEcdh.p521(length: length);
+    if (impl.isSupportedPlatform) {
+      return impl;
+    }
+    return super.ecdhP521(length: length);
+  }
+
+  @override
+  Ecdsa ecdsaP256(HashAlgorithm hashAlgorithm) {
+    final impl = FlutterEcdsa.p256(hashAlgorithm);
+    if (impl.isSupportedPlatform) {
+      return impl;
+    }
+    return super.ecdsaP256(hashAlgorithm);
+  }
+
+  @override
+  Hmac hmac(HashAlgorithm hashAlgorithm) {
+    final impl = FlutterHmac(hashAlgorithm);
+    if (impl.isSupportedPlatform) {
+      return impl;
+    }
+    return super.hmac(hashAlgorithm);
+  }
+
+  @override
+  Ecdsa ecdsaP384(HashAlgorithm hashAlgorithm) {
+    final impl = FlutterEcdsa.p384(hashAlgorithm);
+    if (impl.isSupportedPlatform) {
+      return impl;
+    }
+    return super.ecdsaP384(hashAlgorithm);
+  }
+
+  @override
+  Ecdsa ecdsaP521(HashAlgorithm hashAlgorithm) {
+    final impl = FlutterEcdsa.p521(hashAlgorithm);
+    if (impl.isSupportedPlatform) {
+      return impl;
+    }
+    return super.ecdsaP521(hashAlgorithm);
+  }
+
+  @override
   Ed25519 ed25519() {
     if (kIsWeb) {
       return super.ed25519();
     }
     return _ed25519 ??= _chooseEd25519();
   }
+
+  @override
+  Pbkdf2 pbkdf2({
+    required MacAlgorithm macAlgorithm,
+    required int iterations,
+    required int bits,
+  }) {
+    // Platform implementation?
+    final platformImpl = FlutterPbkdf2(
+      macAlgorithm: macAlgorithm,
+      iterations: iterations,
+      bits: bits,
+      fallback: DartPbkdf2(
+        macAlgorithm: macAlgorithm,
+        iterations: iterations,
+        bits: bits,
+      ),
+    );
+    if (platformImpl.isSupported) {
+      return platformImpl;
+    }
+
+    // Background implementation?
+    final backgroundImpl = BackgroundPbkdf2(
+      macAlgorithm: macAlgorithm,
+      bits: bits,
+      iterations: iterations,
+    );
+    if (backgroundImpl.isSupported) {
+      return backgroundImpl;
+    }
+
+    // Default
+    return super.pbkdf2(
+      macAlgorithm: macAlgorithm,
+      iterations: iterations,
+      bits: bits,
+    );
+  }
+
+  @override
+  FlutterCryptography withRandom(Random? random) =>
+      FlutterCryptography(random: random);
 
   @override
   X25519 x25519() {
@@ -116,7 +220,7 @@ class FlutterCryptography extends BrowserCryptography {
   }
 
   Ed25519 _chooseEd25519() {
-    final backgroundImpl = BackgroundEd25519();
+    final backgroundImpl = DartEd25519();
     final platformImpl = FlutterEd25519(backgroundImpl);
     if (platformImpl.isSupportedPlatform) {
       return platformImpl;
@@ -125,7 +229,7 @@ class FlutterCryptography extends BrowserCryptography {
   }
 
   X25519 _chooseX25519() {
-    final backgroundImpl = BackgroundX25519();
+    const backgroundImpl = DartX25519();
     final platformImpl = FlutterX25519(backgroundImpl);
     if (platformImpl.isSupportedPlatform) {
       return platformImpl;

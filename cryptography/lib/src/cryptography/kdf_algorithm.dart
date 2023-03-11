@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:convert';
+
 import 'package:cryptography/cryptography.dart';
 
 /// Abstract superclass for Key Derivation Algorithms (KDFs).
@@ -25,8 +27,34 @@ abstract class KdfAlgorithm {
   const KdfAlgorithm();
 
   /// Generates a new secret key from a secret key and a nonce.
+  ///
+  /// The nonce ("salt") should be some random sequence of bytes. Nonce does not
+  /// need to be protected. If possible, you should have a different nonce for
+  /// each key derivation.
   Future<SecretKey> deriveKey({
     required SecretKey secretKey,
     required List<int> nonce,
   });
+
+  /// Generates a new secret key from a [password] and a [nonce].
+  ///
+  /// The [nonce] (also called a "salt") should be some random sequence of
+  /// bytes. Nonce does not need to be protected.
+  ///
+  /// If possible, you should have a different nonce for each password. For
+  /// example, if you are doing server-side password hashing, this could mean
+  /// generating a random 32-byte nonce and storing it in the database along
+  /// with the hashed password.
+  ///
+  /// The default implementation encodes the string using [utf8] and calls
+  /// [deriveKey].
+  Future<SecretKey> deriveKeyFromPassword({
+    required String password,
+    required List<int> nonce,
+  }) async {
+    return deriveKey(
+      secretKey: SecretKey(utf8.encode(password)),
+      nonce: nonce,
+    );
+  }
 }

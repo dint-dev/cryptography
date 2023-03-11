@@ -14,11 +14,11 @@
 
 import 'package:cryptography/cryptography.dart';
 
-import '../key_exchange_algorithm.dart';
+import '../signature.dart';
 
-void testX25519() {
-  testKeyExchangeAlgorithm(
-    builder: () => X25519(),
+void testRsaPss() {
+  testSignatureAlgorithm(
+    builder: () => RsaPss(Sha256()),
     otherTests: () {
       // TODO: Copy test vectors from "cryptography/test/..."
     },

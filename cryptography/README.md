@@ -6,9 +6,9 @@
 Popular cryptographic algorithms for [Dart](https://dart.dev) / [Flutter](https://flutter.dev)
 developers.
 
-Maintained by Gohilla. Licensed under the [Apache License 2.0](LICENSE).
+Maintained by [gohilla.com](https://gohilla.com). Licensed under the [Apache License 2.0](LICENSE).
 
-This package is:
+This package is designed to be:
 
 * __Easy to use__. The API is easy to understand and encourages good defaults.
 * __Multi-platform__. It's easy to customize implementation of X in platform Y.
@@ -26,11 +26,15 @@ Any feedback, issue reports, or pull requests are appreciated!
 
 # Getting started
 
+If you use Flutter, it's recommended (but not necessarily) that you also import our sibling package
+[cryptography_flutter](https://pub.dev/packages/cryptography_flutter), which improves performance
+by using operating system APIs.
+
 In _pubspec.yaml_:
 ```yaml
 dependencies:
-  cryptography: ^2.4.0
-  cryptography_flutter: ^2.2.0 # Remove this if you are writing a pure Dart package without Flutter
+  cryptography: ^2.5.0
+  cryptography_flutter: ^2.3.0 # Remove if you don't use Flutter
 ```
 
 You are ready to go!
@@ -39,14 +43,16 @@ You are ready to go!
 
 Please report bugs at [github.com/dint-dev/cryptography/issues](https://github.com/dint-dev/cryptography/issues).
 
-If you want discuss cryptography in Flutter/Dart projects with other developers, feel free to join
-our community discussion at [github.com/dint-dev/cryptography/discussions](https://github.com/dint-dev/cryptography/discussions):
-* Your experiences with the documentation and API design?
-* What is the best way to achieve X?
-* Etc.
+Having questions? Feel free to use our Github Discussions at
+[github.com/dint-dev/cryptography/discussions](https://github.com/dint-dev/cryptography/discussions).
 
-# Concepts
-## Cryptographic keys
+
+# Some things to know
+## General guidance on cryptography
+Please read [information about Mobile App Cryptography](https://mas.owasp.org/MASTG/General/0x04g-Testing-Cryptography/)
+by OWASP. It contains a lot of useful information that helps you build more secure software.
+
+## Common parameters
 * [SecretKey](https://pub.dev/documentation/cryptography/latest/cryptography/SecretKey-class.html)
     * Used by ciphers, message authentication codes, and key derivation functions.
 * [KeyPair](https://pub.dev/documentation/cryptography/latest/cryptography/KeyPair-class.html)
@@ -63,9 +69,6 @@ our community discussion at [github.com/dint-dev/cryptography/discussions](https
       (P-256 / P-384 / P-512 public keys)
     * [RsaPublicKey](https://pub.dev/documentation/cryptography/latest/cryptography/RsaPublicKey-class.html)
       (RSA public keys)
-* Nonces (also known as "IV", "Initialization Vector", "salt") are non-secret byte sequences.
-* AAD (Additional Authenticated Data) is some additional byte sequence that you want a cipher to
-  authenticate when you encrypt/decrypt.
 
 Note that SecretKey and KeyPair instances are opaque and asynchronous by default. They may not be in
 the memory and may not be readable at all. If a SecretKey or KeyPair instance is in memory, it's an
@@ -92,7 +95,7 @@ three types of wands:
 
 In the future version 3.x, we plan to transition to wands as the default API for doing operations.
 
-### Ciphers
+## Ciphers
 
 The following [Cipher](https://pub.dev/documentation/cryptography/latest/cryptography/Cipher-class.html)
 implementations are available:
@@ -118,7 +121,7 @@ implementations are available:
     * [Xchacha20.poly1305Aead](https://pub.dev/documentation/cryptography/latest/cryptography/Xchacha20/Xchacha20.poly1305Aead.html) (
       AEAD_XCHACHA20_POLY1305)
 
-### Digital signature algorithms
+## Digital signature algorithms
 
 The
 following [SignatureAlgorithm](https://pub.dev/documentation/cryptography/latest/cryptography/SignatureAlgorithm-class.html)
@@ -143,7 +146,7 @@ implementations are available:
       RSASSA-PKCS1v15)
     * We don't have implementations of these in pure Dart.
 
-### Key exchange algorithms
+## Key exchange algorithms
 
 The following [KeyExchangeAlgorithm](https://pub.dev/documentation/cryptography/latest/cryptography/KeyExchangeAlgorithm-class.html)
 implementations are available:
@@ -169,7 +172,7 @@ The following implementations are available:
 * [Pbkdf2](https://pub.dev/documentation/cryptography/latest/cryptography/Pbkdf2-class.html) (
   PBKDF2)
 
-### Message authentication codes
+## Message authentication codes
 
 The following [MacAlgorithm](https://pub.dev/documentation/cryptography/latest/cryptography/MacAlgorithm-class.html)
 implementations are available:
@@ -177,7 +180,7 @@ implementations are available:
 * [Hmac](https://pub.dev/documentation/cryptography/latest/cryptography/Hmac-class.html)
 * [Poly1305](https://pub.dev/documentation/cryptography/latest/cryptography/Poly1305-class.html)
 
-### Cryptographic hash functions
+## Cryptographic hash functions
 
 The following [HashAlgorithm](https://pub.dev/documentation/cryptography/latest/cryptography/HashAlgorithm-class.html)
 implementations are available:
@@ -202,7 +205,7 @@ lots of small hashes, the advantage is even bigger because this package allows y
 state. Therefore our HMAC-SHA256 is much faster too. In browsers, hashes can be over 100 times
 faster because this package automatically uses Web Crypto API.
 
-### Random number generators
+## Random number generators
 
 We continue to use the old good `Random.secure()` as the default random number in all APIs.
 

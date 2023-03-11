@@ -1,4 +1,4 @@
-// Copyright 2023 Gohilla.
+// Copyright 2019-2020 Gohilla.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,27 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/// Test utilities for [SignatureAlgorithm] classes.
-library cryptography_test.signature_algorithm;
-
 import 'package:cryptography/cryptography.dart';
-import 'package:test/scaffolding.dart';
+import 'package:cryptography/dart.dart';
+import 'package:cryptography_flutter/cryptography_flutter.dart';
+import 'package:cryptography_test/algorithms/rsa_ssa_pkcs5v15.dart' as shared;
+import 'package:flutter_test/flutter_test.dart';
 
-void testSignatureAlgorithm({
-  required SignatureAlgorithm Function() builder,
-  required void Function()? otherTests,
-}) {
-  group('${builder()}:', () {
-    setUp(() {
-      _signatureAlgorithm = builder();
-    });
-    tearDown(() {
-      _signatureAlgorithm = null;
-    });
+void testRsaSsaPkcs1v15() {
+  group('RsaSsaPkcs1v15', () {
+    if (!FlutterRsaSsaPkcs1v15(DartRsaSsaPkcs1v15(Sha256()))
+        .isSupportedPlatform) {
+      return;
+    }
+    shared.testRsaSsaPkcs5v1();
   });
 }
-
-SignatureAlgorithm? _signatureAlgorithm;
-
-/// Currently tested [SignatureAlgorithm].
-SignatureAlgorithm get signatureAlgorithm => _signatureAlgorithm!;

@@ -15,5 +15,5 @@
 import 'package:cryptography_test/cryptography_test.dart';
 
 void main() {
-  runAllTests();
+  testCryptography();
 }

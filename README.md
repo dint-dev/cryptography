@@ -11,10 +11,16 @@ Maintained by [gohilla.com](https://gohilla.com). Licensed under the [Apache Lic
 ## Packages
   * [cryptography](cryptography)
     * Cryptography API for Dart / Flutter.
-    * Contains cryptography implementations written in pure Dart.
-    * Contains cryptography implementations that use Web Cryptography API in browsers.
+    * Contains cryptographic algorithm implementations written in pure Dart.
+    * Contains cryptographic algorithm implementations that use Web Cryptography API in browsers.
   * [cryptography_flutter](cryptography_flutter)
-    * Contains cryptography implementations that use Android / iOS APIs.
+    * Contains cryptographic algorithm implementations that use operating system APIs in Android
+      and Apple operating systems (iOS, Mac OS X, etc.).
+  * [cryptography_flutter_integration_test](cryptography_flutter_integration_test)
+    * Integration test project for "cryptography_flutter".
+  * [cryptography_test](cryptography_flutter)
+    * Cross-platform tests. Note that "cryptography" and "cryptography_flutter_integration_test"
+      contain more tests than just these.
   * [jwk](jwk)
     * JWK (JSON Web Key) encoding / decoding.
 

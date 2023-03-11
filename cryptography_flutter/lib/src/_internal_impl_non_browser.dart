@@ -14,11 +14,11 @@
 
 import 'dart:io';
 
-bool get isAndroid => Platform.isAndroid;
+final bool isAndroid = Platform.isAndroid;
 
-bool get isIOS => Platform.isIOS;
+final bool isIOS = Platform.isIOS;
 
-bool get isMacOS => Platform.isMacOS;
+final bool isMacOS = Platform.isMacOS;
 
 /// For example, "iOS 13.3.1".
 String get operatingSystemNameAndVersion =>

@@ -1321,29 +1321,33 @@ abstract class Hmac extends MacAlgorithm {
 ///     algorithms exists (such as [Argon2id]).
 ///
 /// ## Example
-/// ```
+/// ```dart
 /// import 'package:cryptography/cryptography.dart';
 ///
 /// Future<void> main() async {
 ///   final pbkdf2 = Pbkdf2(
 ///     macAlgorithm: Hmac.sha256(),
-///     iterations: 10000, // 10k iterations
-///     bits: 128, // 128 bits = 16 bytes output
+///     iterations: 10000, // 20k iterations
+///     bits: 256, // 256 bits = 32 bytes output
 ///   );
-///
-///   // Password we want to hash
-///   final secretKey = SecretKey([1,2,3]);
-///
-///   // A random salt
-///   final nonce = [4,5,6];
 ///
 ///   // Calculate a hash that can be stored in the database
-///   final newSecretKey = await pbkdf2.deriveKey(
-///     secretKey: secretKey,
-///     nonce: nonce,
+///   final newSecretKey = await pbkdf2.deriveKeyFromPassword(
+///     // Password given by the user.
+///     password: 'qwerty',
+///
+///     // Nonce (also known as "salt") should be some random sequence of
+///     // bytes.
+///     //
+///     // You should have a different nonce for each user in the system
+///     // (which you store in the database along with the hash).
+///     // If you can't do that for some reason, choose a random value not
+///     // used by other applications.
+///     nonce: const [1,2,3],
 ///   );
-///   final newSecretKeyBytes = await newSecretKey.extractBytes();
-///   print('Result: $newSecretKeyBytes');
+///
+///   final secretKeyBytes = await secretKey.extractBytes();
+///   print('Result: $secretKeyBytes');
 /// }
 /// ```
 abstract class Pbkdf2 extends KdfAlgorithm {
@@ -1393,12 +1397,6 @@ abstract class Pbkdf2 extends KdfAlgorithm {
       iterations == other.iterations &&
       bits == other.bits &&
       macAlgorithm == other.macAlgorithm;
-
-  @override
-  Future<SecretKey> deriveKey({
-    required SecretKey secretKey,
-    required List<int> nonce,
-  });
 
   @override
   String toString() {

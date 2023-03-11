@@ -139,9 +139,11 @@ class CryptographyChannelQueue {
     required this.maxConcurrentSize,
     required this.maxConcurrentRequests,
   });
+
   int get totalRequests => _totalRequests;
 
   int get totalSize => _totalSize;
+
   CryptographyChannelCall newLock({required int size}) {
     return CryptographyChannelCall(this, size);
   }

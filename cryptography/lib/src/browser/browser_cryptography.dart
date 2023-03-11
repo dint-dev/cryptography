@@ -150,7 +150,7 @@ class BrowserCryptography extends DartCryptography {
 
   @override
   Ecdsa ecdsaP256(HashAlgorithm hashAlgorithm) {
-    if (isSupported && hashAlgorithm is BrowserHashAlgorithmMixin) {
+    if (isSupported && hashAlgorithm is Sha256) {
       return BrowserEcdsa.p256(
         hashAlgorithm,
         random: _random,
@@ -161,7 +161,7 @@ class BrowserCryptography extends DartCryptography {
 
   @override
   Ecdsa ecdsaP384(HashAlgorithm hashAlgorithm) {
-    if (isSupported && hashAlgorithm is BrowserHashAlgorithmMixin) {
+    if (isSupported && hashAlgorithm is Sha384) {
       return BrowserEcdsa.p384(
         hashAlgorithm,
         random: _random,
@@ -172,7 +172,7 @@ class BrowserCryptography extends DartCryptography {
 
   @override
   Ecdsa ecdsaP521(HashAlgorithm hashAlgorithm) {
-    if (isSupported && hashAlgorithm is BrowserHashAlgorithmMixin) {
+    if (isSupported && hashAlgorithm is Sha512) {
       return BrowserEcdsa.p521(
         hashAlgorithm,
         random: _random,
@@ -183,11 +183,14 @@ class BrowserCryptography extends DartCryptography {
 
   @override
   Hkdf hkdf({required Hmac hmac, required int outputLength}) {
-    if (isSupported && hmac is BrowserHmac) {
-      return BrowserHkdf(
-        hmac: hmac,
-        outputLength: outputLength,
-      );
+    if (isSupported) {
+      if (BrowserHashAlgorithmMixin.hashAlgorithmNameFor(hmac.hashAlgorithm) !=
+          null) {
+        return BrowserHkdf(
+          hmac: hmac,
+          outputLength: outputLength,
+        );
+      }
     }
     return super.hkdf(
       hmac: hmac,

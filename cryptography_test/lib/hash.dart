@@ -13,6 +13,9 @@
 // limitations under the License.
 
 /// Test utilities for [HashAlgorithm] classes.
+///
+/// ## Example
+/// See [testHashAlgorithm].
 library cryptography_test.hash_algorithm;
 
 import 'dart:async';
@@ -23,6 +26,25 @@ import 'package:cryptography/dart.dart';
 import 'package:cryptography_test/cryptography_test.dart';
 import 'package:test/test.dart';
 
+HashAlgorithm? _hashAlgorithm;
+
+/// Tests a hash algorithm.
+///
+/// ## Example
+/// ```dart
+/// import 'package:cryptography_test/hash.dart';
+///
+/// void main() {
+///   testHashAlgorithm(
+///     builder: () => MyAlgorithm(),
+///     otherTests: () {
+///       test('something', () {
+///         // ...
+///       });
+///     },
+///   );
+/// }
+/// ```
 void testHashAlgorithm({
   required HashAlgorithm Function() builder,
   required void Function()? otherTests,
@@ -50,8 +72,6 @@ void testHashAlgorithm({
     }
   });
 }
-
-HashAlgorithm? _hashAlgorithm;
 
 void testHashExample({
   String? summary,
@@ -188,6 +208,7 @@ class HashExample {
   final String? summary;
   final List<int> input;
   final List<int> expected;
+
   HashExample({
     this.summary,
     required this.input,

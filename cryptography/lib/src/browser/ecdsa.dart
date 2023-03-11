@@ -16,14 +16,14 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
-import 'package:cryptography/src/browser/hash.dart';
 
 import '_javascript_bindings.dart' as web_crypto;
 import 'browser_ec_key_pair.dart';
+import 'hash.dart';
 
 class BrowserEcdsa extends Ecdsa {
   @override
-  final BrowserHashAlgorithmMixin hashAlgorithm;
+  final HashAlgorithm hashAlgorithm;
 
   @override
   final KeyPairType keyPairType;
@@ -34,7 +34,7 @@ class BrowserEcdsa extends Ecdsa {
   }) : super.constructor();
 
   BrowserEcdsa.p256(
-    BrowserHashAlgorithmMixin hashAlgorithm, {
+    HashAlgorithm hashAlgorithm, {
     Random? random,
   }) : this(
           keyPairType: KeyPairType.p256,
@@ -42,7 +42,7 @@ class BrowserEcdsa extends Ecdsa {
         );
 
   BrowserEcdsa.p384(
-    BrowserHashAlgorithmMixin hashAlgorithm, {
+    HashAlgorithm hashAlgorithm, {
     Random? random,
   }) : this(
           keyPairType: KeyPairType.p384,
@@ -50,7 +50,7 @@ class BrowserEcdsa extends Ecdsa {
         );
 
   BrowserEcdsa.p521(
-    BrowserHashAlgorithmMixin hashAlgorithm, {
+    HashAlgorithm hashAlgorithm, {
     Random? random,
   }) : this(
           keyPairType: KeyPairType.p521,
@@ -96,7 +96,9 @@ class BrowserEcdsa extends Ecdsa {
     final byteBuffer = await web_crypto.sign(
       web_crypto.EcdsaParams(
         name: 'ECDSA',
-        hash: hashAlgorithm.webCryptoName,
+        hash: BrowserHashAlgorithmMixin.hashAlgorithmNameFor(
+          hashAlgorithm,
+        )!,
       ),
       jsCryptoKey,
       web_crypto.jsArrayBufferFrom(message),
@@ -120,15 +122,18 @@ class BrowserEcdsa extends Ecdsa {
         'Public key should be an instance of EcPublicKey, not: $publicKey',
       );
     }
+    final hashAlgorithmName = BrowserHashAlgorithmMixin.hashAlgorithmNameFor(
+      hashAlgorithm,
+    )!;
     final jsCryptoKey = await jsPublicKeyFrom(
       signature.publicKey,
       webCryptoCurve: keyPairType.webCryptoCurve!,
-      webCryptoHash: hashAlgorithm.webCryptoName,
+      webCryptoHash: hashAlgorithmName,
     );
     return await web_crypto.verify(
       web_crypto.EcdsaParams(
         name: 'ECDSA',
-        hash: hashAlgorithm.webCryptoName,
+        hash: hashAlgorithmName,
       ),
       jsCryptoKey,
       web_crypto.jsArrayBufferFrom(signature.bytes),

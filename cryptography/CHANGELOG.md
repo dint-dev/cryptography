@@ -1,3 +1,8 @@
+## 2.5.0
+* Adds enough DER encoding/decoding support for us to use Apple's CryptoKit ECDH/ECDSA functions.
+* Improves BrowserHmac/etc. parameter checks.
+* Improves documentation.
+
 ## 2.4.0
 * Fixes many issues found by adding more tests. Also improves documentation.
 * Improves performance of SHA256, HMAC, and PBKDF2 by cutting unnecessary state allocations and

@@ -13,6 +13,9 @@
 // limitations under the License.
 
 /// Test utilities for [KeyExchangeAlgorithm] classes.
+///
+/// ## Example
+/// See [testCipher].
 library cryptography_test.cipher;
 
 import 'dart:typed_data';
@@ -25,52 +28,28 @@ import 'package:typed_data/typed_buffers.dart';
 
 import 'cryptography_test.dart';
 
-class CipherTester {
-  /// Third-party encryption function.
-  final Future<SecretBox> Function({
-    required List<int> clearText,
-    required List<int> secretKey,
-    required List<int> nonce,
-    required List<int> aad,
-  })? thirdPartyEncrypt;
+Cipher? _cipher;
 
-  /// Dart implementation.
-  final DartCipher Function()? dartCipher;
+/// Currently tested cipher.
+Cipher get cipher => _cipher!;
 
-  CipherTester({
-    this.thirdPartyEncrypt,
-    this.dartCipher,
-  });
-
-  Future<SecretBox?> expectedSecretBox(
-    List<int> clearText, {
-    required List<int> secretKey,
-    required List<int> nonce,
-    required List<int> aad,
-  }) async {
-    final thirdParty = thirdPartyEncrypt;
-    if (thirdParty != null) {
-      return await thirdParty(
-        clearText: clearText,
-        secretKey: secretKey,
-        nonce: nonce,
-        aad: aad,
-      );
-    }
-    final dartCipher = this.dartCipher;
-    if (dartCipher != null) {
-      return await dartCipher().encrypt(
-        clearText,
-        secretKey: SecretKeyData(secretKey),
-        nonce: nonce,
-        aad: aad,
-      );
-    }
-    return null;
-  }
-}
-
-@override
+/// Tests a cipher algorithm.
+///
+/// ## Example
+/// ```dart
+/// import 'package:cryptography_test/cipher.dart';
+///
+/// void main() {
+///   testCipher(
+///     builder: () => MyAlgorithm(),
+///     otherTests: () {
+///       test('something', () {
+///         // ...
+///       });
+///     },
+///   );
+/// }
+/// ```
 void testCipher<T extends Cipher>({
   required T Function() builder,
   int? secretKeyLength,
@@ -243,11 +222,6 @@ void testCipher<T extends Cipher>({
     }
   });
 }
-
-Cipher? _cipher;
-
-/// Currently tested cipher.
-Cipher get cipher => _cipher!;
 
 void testCipherExample({
   required String summary,
@@ -720,4 +694,49 @@ void testCipherWithChunks({
       );
     }
   });
+}
+
+class CipherTester {
+  /// Third-party encryption function.
+  final Future<SecretBox> Function({
+    required List<int> clearText,
+    required List<int> secretKey,
+    required List<int> nonce,
+    required List<int> aad,
+  })? thirdPartyEncrypt;
+
+  /// Dart implementation.
+  final DartCipher Function()? dartCipher;
+
+  CipherTester({
+    this.thirdPartyEncrypt,
+    this.dartCipher,
+  });
+
+  Future<SecretBox?> expectedSecretBox(
+    List<int> clearText, {
+    required List<int> secretKey,
+    required List<int> nonce,
+    required List<int> aad,
+  }) async {
+    final thirdParty = thirdPartyEncrypt;
+    if (thirdParty != null) {
+      return await thirdParty(
+        clearText: clearText,
+        secretKey: secretKey,
+        nonce: nonce,
+        aad: aad,
+      );
+    }
+    final dartCipher = this.dartCipher;
+    if (dartCipher != null) {
+      return await dartCipher().encrypt(
+        clearText,
+        secretKey: SecretKeyData(secretKey),
+        nonce: nonce,
+        aad: aad,
+      );
+    }
+    return null;
+  }
 }

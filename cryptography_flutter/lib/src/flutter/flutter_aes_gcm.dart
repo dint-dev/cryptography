@@ -20,7 +20,7 @@ import 'package:flutter/services.dart';
 import '../../cryptography_flutter.dart';
 import '../_internal.dart';
 
-/// Flutter-optimized [AesGcm].
+/// [AesGcm] that uses platform APIs in Android, iOS, and Mac OS X.
 ///
 /// When operating system APIs are not available [fallback] is used. The
 /// default fallback implementation is [BackgroundAesGcm].

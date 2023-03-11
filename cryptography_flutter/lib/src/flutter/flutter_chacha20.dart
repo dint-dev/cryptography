@@ -20,7 +20,7 @@ import 'package:cryptography/dart.dart';
 import '../../cryptography_flutter.dart';
 import '../_internal.dart';
 
-/// Flutter-optimized [Chacha20.poly1305Aead].
+/// [Chacha20] that uses platform APIs in Android, iOS, and Mac OS X.
 ///
 /// When operating system APIs are not available [fallback] is used. The
 /// default fallback implementation is [BackgroundChacha].

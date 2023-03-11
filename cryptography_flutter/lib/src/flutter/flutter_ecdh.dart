@@ -12,37 +12,50 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:typed_data';
-
 import 'package:cryptography/cryptography.dart';
-import 'package:cryptography/helpers.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 
 import '../../cryptography_flutter.dart';
 import '../_flutter_cryptography_implementation.dart';
 import '../_internal.dart';
 
-/// [Ecdh] implemented with operating system APIs.
-class FlutterEcdh extends DelegatingEcdh
-    implements PlatformCryptographicAlgorithm {
+/// [Ecdh] that uses platform APIs in Android, iOS, and Mac OS X.
+class FlutterEcdh extends Ecdh implements PlatformCryptographicAlgorithm {
+  final int length;
+
   @override
-  final Ecdh fallback;
+  final Ecdh? fallback;
 
-  FlutterEcdh.p256({int length = 32})
-      : this._(
-          Cryptography.defaultInstance.ecdhP256(length: length),
-        );
+  /// Optional Android provider name (such as "BC").
+  final String? androidCryptoProvider;
 
-  FlutterEcdh.p384({int length = 32})
-      : this._(
-          Cryptography.defaultInstance.ecdhP384(length: length),
-        );
+  @override
+  final KeyPairType<KeyPairData, PublicKey> keyPairType;
 
-  FlutterEcdh.p521({int length = 32})
-      : this._(
-          Cryptography.defaultInstance.ecdhP521(length: length),
-        );
+  /// ECDH-P256
+  FlutterEcdh.p256({
+    this.length = 32,
+    this.androidCryptoProvider,
+    this.fallback,
+  })  : keyPairType = KeyPairType.p256,
+        super.constructor();
 
-  FlutterEcdh._(this.fallback);
+  /// ECDH-P384
+  FlutterEcdh.p384({
+    this.length = 32,
+    this.androidCryptoProvider,
+    this.fallback,
+  })  : keyPairType = KeyPairType.p384,
+        super.constructor();
+
+  /// ECDH-P521
+  FlutterEcdh.p521({
+    this.length = 32,
+    this.androidCryptoProvider,
+    this.fallback,
+  })  : keyPairType = KeyPairType.p521,
+        super.constructor();
 
   @override
   bool get isSupportedPlatform =>
@@ -57,7 +70,7 @@ class FlutterEcdh extends DelegatingEcdh
       case KeyPairType.p521:
         return 'p521';
       default:
-        throw StateError('Unsupported key pair type: ${fallback.keyPairType}');
+        throw StateError('Unsupported key pair type: $keyPairType');
     }
   }
 
@@ -67,9 +80,17 @@ class FlutterEcdh extends DelegatingEcdh
       final result = await invokeMethod(
         'Ecdh.newKeyPair',
         {
+          if (isAndroid) 'androidProvider': androidCryptoProvider,
           'curve': _curveName,
         },
       );
+      final der = result['der'] as Uint8List?;
+      if (der != null) {
+        return EcKeyPairData.parseDer(
+          der,
+          type: keyPairType,
+        );
+      }
       final d = result['d'] as Uint8List;
       final x = result['x'] as Uint8List;
       final y = result['y'] as Uint8List;
@@ -79,6 +100,45 @@ class FlutterEcdh extends DelegatingEcdh
         y: y,
         type: keyPairType,
       );
+    }
+    final fallback = this.fallback;
+    if (fallback == null) {
+      throw UnsupportedError('Unsupported and no fallback implementation');
+    }
+    return await fallback.newKeyPair();
+  }
+
+  @override
+  Future<EcKeyPair> newKeyPairFromSeed(List<int> seed) async {
+    if (isSupportedPlatform) {
+      final result = await invokeMethod(
+        'Ecdh.newKeyPair',
+        {
+          if (isAndroid) 'androidProvider': androidCryptoProvider,
+          'curve': _curveName,
+          'seed': asUint8List(seed),
+        },
+      );
+      final der = result['der'] as Uint8List?;
+      if (der != null) {
+        return EcKeyPairData.parseDer(
+          der,
+          type: keyPairType,
+        );
+      }
+      final d = result['d'] as Uint8List;
+      final x = result['x'] as Uint8List;
+      final y = result['y'] as Uint8List;
+      return EcKeyPairData(
+        d: d,
+        x: x,
+        y: y,
+        type: keyPairType,
+      );
+    }
+    final fallback = this.fallback;
+    if (fallback == null) {
+      throw UnsupportedError('Unsupported and no fallback implementation');
     }
     return await fallback.newKeyPair();
   }
@@ -104,22 +164,48 @@ class FlutterEcdh extends DelegatingEcdh
           'Expected EcPublicKey',
         );
       }
-      final result = await invokeMethod(
-        'Ecdh.sharedSecretKey',
-        {
-          'curve': _curveName,
-          'privateD': Uint8List.fromList(keyPairData.d),
-          'remoteX': Uint8List.fromList(remotePublicKey.x),
-        },
-      );
+      Map result;
+      if (isCupertino) {
+        result = await invokeMethod(
+          'Ecdh.sharedSecretKey',
+          {
+            if (isAndroid) 'androidProvider': androidCryptoProvider,
+            'curve': _curveName,
+            'localDer': keyPairData.toDer(),
+            'remoteDer': remotePublicKey.toDer(),
+          },
+        );
+      } else {
+        result = await invokeMethod(
+          'Ecdh.sharedSecretKey',
+          {
+            if (isAndroid) 'androidProvider': androidCryptoProvider,
+            'curve': _curveName,
+            'localD': asUint8List(keyPairData.d),
+            'localX': asUint8List(keyPairData.x),
+            'localY': asUint8List(keyPairData.y),
+            'remoteX': asUint8List(remotePublicKey.x),
+            'remoteY': asUint8List(remotePublicKey.y),
+          },
+        );
+      }
       final error = result['error'];
       if (error != null) {
         throw StateError(
           '"package:cryptography_flutter": invalid output from plugin: $error',
         );
       }
-      final bytes = result['bytes'] as Uint8List;
-      return SecretKey(bytes);
+      var bytes = result['bytes'] as Uint8List;
+      if (bytes.length >= length) {
+        if (bytes.length > length) {
+          bytes = bytes.sublist(0, length);
+        }
+        return SecretKey(bytes);
+      }
+    }
+    final fallback = this.fallback;
+    if (fallback == null) {
+      throw UnsupportedError('Unsupported and no fallback implementation');
     }
     return await fallback.sharedSecretKey(
       keyPair: keyPair,

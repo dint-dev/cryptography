@@ -21,7 +21,7 @@ import 'package:cryptography/helpers.dart';
 import '../_flutter_cryptography_implementation.dart';
 import '../_internal.dart';
 
-/// [RsaSsaPkcs1v15] implemented with operating system APIs.
+/// [RsaSsaPkcs1v15] that uses platform APIs in Android.
 class FlutterRsaSsaPkcs1v15 extends DelegatingSignatureAlgorithm
     implements PlatformCryptographicAlgorithm, RsaSsaPkcs1v15 {
   @override

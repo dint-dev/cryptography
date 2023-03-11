@@ -1,3 +1,33 @@
+## 2.3.0
+* Adds support for algorithms. In this version, the following operating system API adapters pass 
+  tests:
+  * Android:
+    * FlutterAesGcm
+    * FlutterChacha20.poly1305Aead()
+    * FlutterHmac.sha1()
+    * FlutterHmac.sha224()
+    * FlutterHmac.sha256()
+    * FlutterHmac.sha384()
+    * FlutterHmac.sha512()
+    * FlutterPbkdf2()
+  * Apple operating systems:
+    * FlutterAesGcm
+    * FlutterChacha20.poly1305Aead()
+    * FlutterEd25519()
+    * FlutterEcdh.p256()
+    * FlutterEcdh.p384()
+    * FlutterEcdh.p521()
+    * FlutterEcdsa.p256()
+    * FlutterEcdsa.p384()
+    * FlutterEcdsa.p521()
+    * FlutterHmac.sha256()
+    * FlutterHmac.sha512()
+    * FlutterX25519()
+* Requires "package:cryptography" 2.5.0, which has enough DER encoding/decoding support for us to
+  use Apple's CryptoKit ECDH/ECDSA functions.
+* Adds support for reading names of crypto providers in Android.
+* Adds more tests.
+
 ## 2.2.0
 * Makes the package use the new convention for enabling Flutter plugins. You no longer need to call
   `CryptographyFlutter.enable()` in your `main` function.

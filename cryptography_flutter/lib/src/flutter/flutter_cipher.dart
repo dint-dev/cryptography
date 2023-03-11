@@ -12,15 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:async';
+
 import 'package:cryptography/cryptography.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
-import '../cryptography_flutter.dart';
-import '_flutter_cryptography_implementation.dart';
-import '_internal.dart';
+import '../../cryptography_flutter.dart';
+import '../_flutter_cryptography_implementation.dart';
+import '../_internal.dart';
 
-/// Base class for [Cipher]s that use platform APIs.
+/// Superclass for [Cipher] classes that use platform APIs.
 abstract class FlutterCipher
     implements StreamingCipher, PlatformCryptographicAlgorithm {
   /// Default [CryptographyChannelPolicy] for communicating with the plugin.
@@ -277,6 +279,26 @@ mixin FlutterCipherMixin
   }
 
   @override
+  Stream<List<int>> decryptStream(
+    Stream<List<int>> stream, {
+    required SecretKey secretKey,
+    required List<int> nonce,
+    required FutureOr<Mac> mac,
+    List<int> aad = const [],
+    bool allowUseSameBytes = false,
+  }) {
+    // Currently streaming must be done in the main thread.
+    return toSync().decryptStream(
+      stream,
+      secretKey: secretKey,
+      nonce: nonce,
+      mac: mac,
+      aad: aad,
+      allowUseSameBytes: allowUseSameBytes,
+    );
+  }
+
+  @override
   Future<SecretBox> encrypt(
     List<int> clearText, {
     required SecretKey secretKey,
@@ -311,5 +333,31 @@ mixin FlutterCipherMixin
       nonce: nonce,
       aad: aad,
     );
+  }
+
+  @override
+  Stream<List<int>> encryptStream(
+    Stream<List<int>> stream, {
+    required SecretKey secretKey,
+    required List<int> nonce,
+    required void Function(Mac mac) onMac,
+    List<int> aad = const [],
+    bool allowUseSameBytes = false,
+  }) {
+    // Currently streaming must be done in the main thread.
+    return toSync().encryptStream(
+      stream,
+      secretKey: secretKey,
+      nonce: nonce,
+      onMac: onMac,
+      aad: aad,
+      allowUseSameBytes: allowUseSameBytes,
+    );
+  }
+
+  @override
+  CipherState newState() {
+    // Currently streaming must be done in the main thread.
+    return toSync().newState();
   }
 }

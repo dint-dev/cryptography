@@ -12,11 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:async';
+
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography_flutter/cryptography_flutter.dart';
 import 'package:flutter/foundation.dart';
 
-import '_internal.dart';
+import '../_internal.dart';
 
 /// Base class for ciphers that use background workers.
 abstract class BackgroundCipher implements Cipher {
@@ -34,6 +36,52 @@ abstract class BackgroundCipher implements Cipher {
   /// Uses [compute] to do encryption in the background.
   @protected
   Future<List> dispatchBackgroundEncrypt(List args);
+
+  @override
+  Stream<List<int>> encryptStream(
+    Stream<List<int>> stream, {
+    required SecretKey secretKey,
+    required List<int> nonce,
+    required void Function(Mac mac) onMac,
+    List<int> aad = const [],
+    bool allowUseSameBytes = false,
+  }) {
+    // Currently streaming must be done in the main thread.
+    return toSync().encryptStream(
+      stream,
+      secretKey: secretKey,
+      nonce: nonce,
+      onMac: onMac,
+      aad: aad,
+      allowUseSameBytes: allowUseSameBytes,
+    );
+  }
+
+  @override
+  Stream<List<int>> decryptStream(
+    Stream<List<int>> stream, {
+    required SecretKey secretKey,
+    required List<int> nonce,
+    required FutureOr<Mac> mac,
+    List<int> aad = const [],
+    bool allowUseSameBytes = false,
+  }) {
+    // Currently streaming must be done in the main thread.
+    return toSync().decryptStream(
+      stream,
+      secretKey: secretKey,
+      nonce: nonce,
+      mac: mac,
+      aad: aad,
+      allowUseSameBytes: allowUseSameBytes,
+    );
+  }
+
+  @override
+  CipherState newState() {
+    // Currently streaming must be done in the main thread.
+    return toSync().newState();
+  }
 
   /// A helper for implementing isolate channel RPC.
   static Future<List> receivedDecrypt(Cipher cipher, List args) async {
@@ -109,6 +157,7 @@ abstract class BackgroundCipher implements Cipher {
 
 mixin BackgroundCipherMixin implements BackgroundCipher {
   CryptographyChannelPolicy get channelPolicy;
+
   Cipher get fallback;
 
   @override

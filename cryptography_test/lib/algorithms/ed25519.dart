@@ -14,7 +14,7 @@
 
 import 'package:cryptography/cryptography.dart';
 
-import '../signature_algorithm.dart';
+import '../signature.dart';
 
 void testEd25519() {
   testSignatureAlgorithm(

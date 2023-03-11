@@ -15,17 +15,17 @@
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
+import 'package:cryptography/src/browser/hash.dart';
 
 import '_javascript_bindings.dart' show jsArrayBufferFrom;
 import '_javascript_bindings.dart' as web_crypto;
-import 'hmac.dart';
 
 /// HKDF implementation that uses _Web Cryptography API_ in browsers.
 ///
 /// See [BrowserCryptography].
 class BrowserHkdf extends Hkdf {
   @override
-  final BrowserHmac hmac;
+  final Hmac hmac;
 
   @override
   final int outputLength;
@@ -43,7 +43,9 @@ class BrowserHkdf extends Hkdf {
     final byteBuffer = await web_crypto.deriveBits(
       web_crypto.HkdfParams(
         name: 'HKDF',
-        hash: hmac.hashAlgorithmWebCryptoName,
+        hash: BrowserHashAlgorithmMixin.hashAlgorithmNameFor(
+          hmac.hashAlgorithm,
+        )!,
         salt: jsArrayBufferFrom(nonce),
         info: jsArrayBufferFrom(info),
       ),

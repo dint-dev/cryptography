@@ -20,7 +20,7 @@ import '../../cryptography_flutter.dart';
 import '../_flutter_cryptography_implementation.dart';
 import '../_internal.dart';
 
-/// [Ed25519] implemented with operating system APIs.
+/// [Ed25519] that uses platform APIs in Android, iOS, and Mac OS X.
 ///
 /// Note that:
 ///   * Apple's CryptoKit API returns intentionally non-deterministic

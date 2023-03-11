@@ -20,7 +20,7 @@ import '../../cryptography_flutter.dart';
 import '../_flutter_cryptography_implementation.dart';
 import '../_internal.dart';
 
-/// [X25519] implemented with operating system APIs.
+/// [X25519] that uses platform APIs in Android, iOS, and Mac OS X.
 class FlutterX25519 extends DelegatingKeyExchangeAlgorithm
     implements PlatformCryptographicAlgorithm, X25519 {
   @override

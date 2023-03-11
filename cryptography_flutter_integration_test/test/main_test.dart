@@ -16,9 +16,17 @@ import 'package:cryptography/cryptography.dart';
 import 'package:cryptography_flutter/cryptography_flutter.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '_android_crypto_provider.dart';
 import '_ciphers.dart';
-import '_key_exchange_algorithms.dart';
-import '_signature_algorithms.dart';
+import '_ecdh.dart';
+import '_ecdsa.dart';
+import '_ed25519.dart';
+import '_flutter_cryptography.dart';
+import '_hmac.dart';
+import '_pbkdf2.dart.dart';
+import '_rsa_pss.dart';
+import '_rsa_ssa_pkcs1v15.dart';
+import '_x25519.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -27,38 +35,34 @@ void main() {
 
 void runTests() {
   // IMPORTANT:
-  // This must NOT be inside setUp(() {...}).
+  // We must do this now so test descriptions are correct.
   Cryptography.instance = FlutterCryptography.defaultInstance;
 
-  test('FlutterCryptography is enabled', () {
-    expect(Cryptography.instance, same(FlutterCryptography.defaultInstance));
-  }, testOn: '!browser');
-
-  test('Cryptography.instance.aesGcm()', () {
-    expect(Cryptography.instance, same(FlutterCryptography.defaultInstance));
-    expect(
-      Cryptography.instance.aesGcm(),
-      anyOf(
-        isA<FlutterAesGcm>(),
-        isA<BackgroundAesGcm>(),
-      ),
-    );
+  setUp(() {
+    final oldCryptography = Cryptography.instance;
+    Cryptography.instance = FlutterCryptography.defaultInstance;
+    addTearDown(() {
+      Cryptography.instance = oldCryptography;
+    });
   });
 
-  test('Cryptography.instance.chachaPoly1305Aead()', () {
-    expect(Cryptography.instance, same(FlutterCryptography.defaultInstance));
-    expect(
-      Cryptography.instance.chacha20Poly1305Aead(),
-      anyOf(
-        isA<FlutterChacha20>(),
-        isA<BackgroundChacha>(),
-      ),
-    );
-  });
+  testAndroidCryptoProvider();
 
-  group('--:', () {
-    testCiphers();
-    testSignatureAlgorithms();
-    testKeyExchangeAlgorithms();
-  });
+  testFlutterCryptography();
+
+  testCiphers();
+
+  // Signatures
+  testEcdsa();
+  testEd25519();
+  testRsaPss();
+  testRsaSsaPkcs1v15();
+
+  // Key exchange
+  testEcdh();
+  testX25519();
+
+  // Other
+  testHmac();
+  testPbkdf2();
 }

@@ -13,16 +13,54 @@
 // limitations under the License.
 
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/dart.dart';
 import 'package:cryptography_flutter/cryptography_flutter.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '_helpers.dart';
 
+class _BackgroundCryptography extends FlutterCryptography {
+  @override
+  AesGcm aesGcm({
+    int secretKeyLength = 32,
+    int nonceLength = AesGcm.defaultNonceLength,
+  }) {
+    return BackgroundAesGcm(
+      secretKeyLength: secretKeyLength,
+      nonceLength: nonceLength,
+    );
+  }
+
+  @override
+  Chacha20 chacha20Poly1305Aead() {
+    return BackgroundChacha.poly1305Aead();
+  }
+}
+
 void testCiphers() {
+  group('$FlutterCryptography:', () {
+    _testCiphers();
+  });
+
+  group('$_BackgroundCryptography:', () {
+    // Using setUp() is not enough because we want correct test descriptions.
+    final oldCryptography = Cryptography.instance;
+    Cryptography.instance = _BackgroundCryptography();
+
+    setUp(() {
+      Cryptography.instance = _BackgroundCryptography();
+    });
+
+    _testCiphers();
+
+    Cryptography.instance = oldCryptography;
+  });
+}
+
+void _testCiphers() {
   // AES-GCM
   {
     const maxRelativeLatency = 2.0;

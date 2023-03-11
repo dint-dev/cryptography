@@ -23,6 +23,18 @@ public class CryptographyFlutterPlugin: NSObject, FlutterPlugin {
         registrar.addMethodCallDelegate(instance, channel: channel)
     }
 
+    // ---------------------------------------------------------------------------------------------
+    // IMPORTANT
+    //
+    // If you modify this file, copy-paste everything BELOW this comment to the following files:
+    //  * ios/Classes/CryptographyFlutterPlugin.swift
+    //  * macos/Classes/CryptographyFlutterPlugin.swift
+    //
+    // You must NOT copy-paste anything ABOVE this comment because it is different in each platform.
+    // (You would see a compile-time error if you did that.)
+    //
+    // ---------------------------------------------------------------------------------------------
+
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         guard let args = call.arguments as? [String: Any] else {
             result(FlutterError(
@@ -38,6 +50,16 @@ public class CryptographyFlutterPlugin: NSObject, FlutterPlugin {
 
             case "decrypt":
                 try self.decrypt(args: args, result: result)
+
+            case "hmac":
+                try self.hmac(args: args, result: result)
+
+            case "Ecdh.sharedSecretKey":
+                try self.ecdhSharedSecretKey(args: args, result: result)
+
+            case "Ecdh.newKeyPair":
+                // ECDSA and ECDH share the same key pair
+                try self.ecdsaNewKeyPair(args: args, result: result)
 
             case "Ecdsa.newKeyPair":
                 try self.ecdsaNewKeyPair(args: args, result: result)
@@ -78,6 +100,12 @@ public class CryptographyFlutterPlugin: NSObject, FlutterPlugin {
                 details: nil))
         }
     }
+
+    // ---------------------------------------------------------------------------------------------
+    //
+    // Ciphers
+    //
+    // ---------------------------------------------------------------------------------------------
 
     private func encrypt(args: [String: Any], result: @escaping FlutterResult) throws {
         if #available(iOS 13.0, OSX 10.15, tvOS 15.0, watchOS 8.0, *) {
@@ -217,42 +245,175 @@ public class CryptographyFlutterPlugin: NSObject, FlutterPlugin {
         result(FlutterError(code: "UNSUPPORTED_ALGORITHM", message:nil, details: nil))
     }
 
-    private func ecdsaNewKeyPair(args: [String: Any], result: @escaping FlutterResult) throws {
+    // ---------------------------------------------------------------------------------------------
+    //
+    // HMAC
+    //
+    // ---------------------------------------------------------------------------------------------
+    private func hmac(args: [String: Any], result: @escaping FlutterResult) throws {
         if #available(iOS 13.0, OSX 10.15, tvOS 15.0, watchOS 8.0, *) {
-            guard let curve = args["curve"] as? String else {
-                result(parameterError(name: "curve"))
+           guard let hash = args["hash"] as? String else {
+                result(parameterError(name: "hash"))
+                return
+           }
+           guard let key = (args["key"] as? FlutterStandardTypedData)?.data else {
+                result(parameterError(name: "key"))
                 return
             }
-            guard let seed = (args["seed"] as? FlutterStandardTypedData)?.data else {
-                result(parameterError(name: "seed"))
+           guard let data = (args["data"] as? FlutterStandardTypedData)?.data else {
+                result(parameterError(name: "data"))
+                return
+            }
+            switch hash {
+            case "SHA-256":
+                let mac = HMAC<SHA256>.authenticationCode(
+                  for: data,
+                  using: SymmetricKey(data: key))
+                let macData = mac.withUnsafeBytes {
+                    return Data(Array($0))
+                }
+                result([
+                    "mac": FlutterStandardTypedData(bytes: macData),
+                ])
+                return
+            case "SHA-512":
+                let mac = HMAC<SHA512>.authenticationCode(
+                  for: data,
+                  using: SymmetricKey(data: key))
+                let macData = mac.withUnsafeBytes {
+                    return Data(Array($0))
+                }
+                result([
+                    "mac": FlutterStandardTypedData(bytes: macData),
+                ])
+                return
+            default:
+                break;
+            }
+        }
+        result(FlutterError(code: "UNSUPPORTED_ALGORITHM", message:nil, details: nil))
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    //
+    // ECDH
+    //
+    // ---------------------------------------------------------------------------------------------
+
+    private func ecdhSharedSecretKey(args: [String: Any], result: @escaping FlutterResult) throws {
+        if #available(iOS 14.0, OSX 11.0, tvOS 15.0, watchOS 8.0, *) {
+           guard let curve = args["curve"] as? String else {
+                result(parameterError(name: "curve"))
+                return
+           }
+            guard let localDer = (args["localDer"] as? FlutterStandardTypedData)?.data else {
+                result(parameterError(name: "localDer"))
+                return
+            }
+            guard let remoteDer = (args["remoteDer"] as? FlutterStandardTypedData)?.data else {
+                result(parameterError(name: "remoteDer"))
                 return
             }
             switch curve {
             case "p256":
-                let privateKey = try P256.Signing.PrivateKey(rawRepresentation: seed)
-                let publicKey = privateKey.publicKey
+                let privateKey = try P256.KeyAgreement.PrivateKey(derRepresentation: localDer)
+                let publicKey = try P256.KeyAgreement.PublicKey(derRepresentation: remoteDer)
+                let sharedSecret = try privateKey.sharedSecretFromKeyAgreement(with: publicKey)
+                let sharedSecretData = sharedSecret.withUnsafeBytes {
+                    return Data(Array($0))
+                }
                 result([
-                    "privateKey": FlutterStandardTypedData(bytes: privateKey.rawRepresentation),
-                    "publicKey": FlutterStandardTypedData(bytes: publicKey.rawRepresentation),
-                    "publicKeyCompact": FlutterStandardTypedData(bytes: publicKey.compactRepresentation!),
+                    "bytes": FlutterStandardTypedData(bytes: sharedSecretData),
                 ])
                 return
             case "p384":
-                let privateKey = try P384.Signing.PrivateKey(rawRepresentation: seed)
-                let publicKey = privateKey.publicKey
+                let privateKey = try P384.KeyAgreement.PrivateKey(derRepresentation: localDer)
+                let publicKey = try P384.KeyAgreement.PublicKey(derRepresentation: remoteDer)
+                let sharedSecret = try privateKey.sharedSecretFromKeyAgreement(with: publicKey)
+                let sharedSecretData = sharedSecret.withUnsafeBytes {
+                    return Data(Array($0))
+                }
                 result([
-                    "privateKey": FlutterStandardTypedData(bytes: privateKey.rawRepresentation),
-                    "publicKey": FlutterStandardTypedData(bytes: publicKey.rawRepresentation),
-                    "publicKeyCompact": FlutterStandardTypedData(bytes: publicKey.compactRepresentation!),
+                    "bytes": FlutterStandardTypedData(bytes: sharedSecretData),
                 ])
                 return
             case "p521":
-                let privateKey = try P521.Signing.PrivateKey(rawRepresentation: seed)
-                let publicKey = privateKey.publicKey
+                let privateKey = try P521.KeyAgreement.PrivateKey(derRepresentation: localDer)
+                let publicKey = try P521.KeyAgreement.PublicKey(derRepresentation: remoteDer)
+                let sharedSecret = try privateKey.sharedSecretFromKeyAgreement(with: publicKey)
+                let sharedSecretData = sharedSecret.withUnsafeBytes {
+                    return Data(Array($0))
+                }
                 result([
-                    "privateKey": FlutterStandardTypedData(bytes: privateKey.rawRepresentation),
-                    "publicKey": FlutterStandardTypedData(bytes: publicKey.rawRepresentation),
-                    "publicKeyCompact": FlutterStandardTypedData(bytes: publicKey.compactRepresentation!),
+                    "bytes": FlutterStandardTypedData(bytes: sharedSecretData),
+                ])
+                return
+            default:
+                break;
+            }
+        }
+        result(FlutterError(code: "UNSUPPORTED_ALGORITHM", message:nil, details: nil))
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    //
+    // ECDSA
+    //
+    // ---------------------------------------------------------------------------------------------
+
+    private func ecdsaNewKeyPair(args: [String: Any], result: @escaping FlutterResult) throws {
+        if #available(iOS 14.0, OSX 11.0, tvOS 15.0, watchOS 8.0, *) {
+            guard let curve = args["curve"] as? String else {
+                result(parameterError(name: "curve"))
+                return
+            }
+            // TDDO: Support this as a parameter?
+            let compact = true
+            let seed = (args["seed"] as? FlutterStandardTypedData)?.data
+            switch curve {
+            case "p256":
+                var privateKey: P256.Signing.PrivateKey
+                if seed == nil {
+                    privateKey = P256.Signing.PrivateKey(compactRepresentable: compact)
+                } else {
+                    privateKey = try P256.Signing.PrivateKey(rawRepresentation: seed!)
+                }
+                // Unfortunately CryptoKit does not offer a way to extract d, x, y.
+                // Currently we are using the DER representation as a workaround.
+                result([
+                    "der": FlutterStandardTypedData(bytes: privateKey.derRepresentation),
+                    "publicKeyDer": FlutterStandardTypedData(bytes: privateKey.publicKey.derRepresentation),
+                    "publicKeyPem": privateKey.publicKey.pemRepresentation,
+                ])
+                return
+            case "p384":
+                var privateKey: P384.Signing.PrivateKey
+                if seed == nil {
+                    privateKey = P384.Signing.PrivateKey(compactRepresentable: compact)
+                } else {
+                    privateKey = try P384.Signing.PrivateKey(rawRepresentation: seed!)
+                }
+                // Unfortunately CryptoKit does not offer a way to extract d, x, y.
+                // Currently we are using the DER representation as a workaround.
+                result([
+                    "der": FlutterStandardTypedData(bytes: privateKey.derRepresentation),
+                    "publicKeyDer": FlutterStandardTypedData(bytes: privateKey.publicKey.derRepresentation),
+                    "publicKeyPem": privateKey.publicKey.pemRepresentation,
+                ])
+                return
+            case "p521":
+                var privateKey: P521.Signing.PrivateKey
+                if seed == nil {
+                    privateKey = P521.Signing.PrivateKey(compactRepresentable: compact)
+                } else {
+                    privateKey = try P521.Signing.PrivateKey(rawRepresentation: seed!)
+                }
+                // Unfortunately CryptoKit does not offer a way to extract d, x, y.
+                // Currently we are using the DER representation as a workaround.
+                result([
+                    "der": FlutterStandardTypedData(bytes: privateKey.derRepresentation),
+                    "publicKeyDer": FlutterStandardTypedData(bytes: privateKey.publicKey.derRepresentation),
+                    "publicKeyPem": privateKey.publicKey.pemRepresentation,
                 ])
                 return
             default:
@@ -264,7 +425,7 @@ public class CryptographyFlutterPlugin: NSObject, FlutterPlugin {
 
 
     private func ecdsaSign(args: [String: Any], result: @escaping FlutterResult) throws {
-        if #available(iOS 13.0, OSX 10.15, tvOS 15.0, watchOS 8.0, *) {
+        if #available(iOS 14.0, OSX 11.0, tvOS 15.0, watchOS 8.0, *) {
             guard let curve = args["curve"] as? String else {
                 result(parameterError(name: "curve"))
                 return
@@ -273,27 +434,27 @@ public class CryptographyFlutterPlugin: NSObject, FlutterPlugin {
                 result(parameterError(name: "data"))
                 return
             }
-            guard let privateKeyBytes = (args["privateKey"] as? FlutterStandardTypedData)?.data else {
-                result(parameterError(name: "privateKey"))
+            guard let der = (args["der"] as? FlutterStandardTypedData)?.data else {
+                result(parameterError(name: "der"))
                 return
             }
             switch curve {
             case "p256":
-                let privateKey = try P256.Signing.PrivateKey(rawRepresentation: privateKeyBytes)
+                let privateKey = try P256.Signing.PrivateKey(derRepresentation: der)
                 let signature = try privateKey.signature(for: data)
                 result([
                     "signature": FlutterStandardTypedData(bytes: signature.rawRepresentation),
                 ])
                 return
             case "p384":
-                let privateKey = try P384.Signing.PrivateKey(rawRepresentation: privateKeyBytes)
+                let privateKey = try P384.Signing.PrivateKey(derRepresentation: der)
                 let signature = try privateKey.signature(for: data)
                 result([
                     "signature": FlutterStandardTypedData(bytes: signature.rawRepresentation),
                 ])
                 return
             case "p521":
-                let privateKey = try P521.Signing.PrivateKey(rawRepresentation: privateKeyBytes)
+                let privateKey = try P521.Signing.PrivateKey(derRepresentation: der)
                 let signature = try privateKey.signature(for: data)
                 result([
                     "signature": FlutterStandardTypedData(bytes: signature.rawRepresentation),
@@ -307,7 +468,7 @@ public class CryptographyFlutterPlugin: NSObject, FlutterPlugin {
     }
 
     private func ecdsaVerify(args: [String: Any], result: @escaping FlutterResult) throws {
-        if #available(iOS 13.0, OSX 10.15, tvOS 15.0, watchOS 8.0, *) {
+        if #available(iOS 14.0, OSX 11.0, tvOS 15.0, watchOS 8.0, *) {
             guard let curve = args["curve"] as? String else {
                 result(parameterError(name: "curve"))
                 return
@@ -320,34 +481,34 @@ public class CryptographyFlutterPlugin: NSObject, FlutterPlugin {
                 result(parameterError(name: "signature"))
                 return
             }
-            guard let publicKeyBytes = (args["publicKey"] as? FlutterStandardTypedData)?.data else {
-                result(parameterError(name: "publicKey"))
+            guard let der = (args["der"] as? FlutterStandardTypedData)?.data else {
+                result(parameterError(name: "der"))
                 return
             }
             var ok = false
             switch curve {
             case "p256":
-                let publicKey = try P256.Signing.PublicKey(rawRepresentation: publicKeyBytes)
+                let publicKey = try P256.Signing.PublicKey(derRepresentation: der)
                 let signature = try P256.Signing.ECDSASignature(rawRepresentation: signatureBytes)
                 ok = publicKey.isValidSignature(signature, for: data)
                 result([
-                    "ok": ok,
+                    "result": ok,
                 ])
                 return
             case "p384":
-                let publicKey = try P384.Signing.PublicKey(rawRepresentation: publicKeyBytes)
+                let publicKey = try P384.Signing.PublicKey(derRepresentation: der)
                 let signature = try P384.Signing.ECDSASignature(rawRepresentation: signatureBytes)
                 ok = publicKey.isValidSignature(signature, for: data)
                 result([
-                    "ok": ok,
+                    "result": ok,
                 ])
                 return
             case "p521":
-                let publicKey = try P521.Signing.PublicKey(rawRepresentation: publicKeyBytes)
+                let publicKey = try P521.Signing.PublicKey(derRepresentation: der)
                 let signature = try P521.Signing.ECDSASignature(rawRepresentation: signatureBytes)
                 ok = publicKey.isValidSignature(signature, for: data)
                 result([
-                    "ok": ok,
+                    "result": ok,
                 ])
                 return
             default:
@@ -357,6 +518,12 @@ public class CryptographyFlutterPlugin: NSObject, FlutterPlugin {
         result(FlutterError(code: "UNSUPPORTED_ALGORITHM", message:nil, details: nil))
     }
 
+
+    // ---------------------------------------------------------------------------------------------
+    //
+    // Ed25519
+    //
+    // ---------------------------------------------------------------------------------------------
     private func ed25519NewKeyPair(args: [String: Any], result: @escaping FlutterResult) throws {
         if #available(iOS 13.0, OSX 10.15, tvOS 15.0, watchOS 8.0, *) {
             let privateKey = CryptoKit.Curve25519.Signing.PrivateKey()
@@ -414,6 +581,12 @@ public class CryptographyFlutterPlugin: NSObject, FlutterPlugin {
         result(FlutterError(code: "UNSUPPORTED_ALGORITHM", message:nil, details: nil))
     }
 
+
+    // ---------------------------------------------------------------------------------------------
+    //
+    // X25519
+    //
+    // ---------------------------------------------------------------------------------------------
     private func x25519NewKeyPair(args: [String: Any], result: @escaping FlutterResult) throws {
         if #available(iOS 13.0, OSX 10.15, tvOS 15.0, watchOS 8.0, *) {
             let privateKey = CryptoKit.Curve25519.KeyAgreement.PrivateKey()
@@ -452,6 +625,6 @@ public class CryptographyFlutterPlugin: NSObject, FlutterPlugin {
     }
 
     private func parameterError(name: String) -> FlutterError {
-        return FlutterError(code: "INVALID_ARGUMENT", message: "\(name) is invalid", details: nil)
+        return FlutterError(code: "INVALID_ARGUMENT", message: "Parameter '\(name)' is missing or invalid", details: nil)
     }
 }

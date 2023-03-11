@@ -32,6 +32,22 @@ mixin BrowserHashAlgorithmMixin implements HashAlgorithm {
     );
     return Hash(Uint8List.view(byteBuffer));
   }
+
+  static String? hashAlgorithmNameFor(HashAlgorithm hashAlgorithm) {
+    if (hashAlgorithm is Sha1) {
+      return 'SHA-1';
+    }
+    if (hashAlgorithm is Sha256) {
+      return 'SHA-256';
+    }
+    if (hashAlgorithm is Sha384) {
+      return 'SHA-384';
+    }
+    if (hashAlgorithm is Sha512) {
+      return 'SHA-512';
+    }
+    return null;
+  }
 }
 
 /// [Sha1] implementation that uses _Web Cryptography API_ in browsers.
