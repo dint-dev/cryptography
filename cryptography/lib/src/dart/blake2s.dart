@@ -75,10 +75,12 @@ class _Blake2sSink extends DartHashSink {
   late final Uint8List _bufferAsBytes = Uint8List.view(_buffer.buffer);
 
   bool _isClosed = false;
+
   _Blake2sSink() {
     checkSystemIsLittleEndian();
     _initializeH(_hash);
   }
+
   @override
   bool get isClosed => _isClosed;
 

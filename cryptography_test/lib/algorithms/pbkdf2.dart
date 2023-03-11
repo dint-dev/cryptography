@@ -16,7 +16,7 @@ import 'package:cryptography/cryptography.dart';
 import 'package:test/expect.dart';
 import 'package:test/scaffolding.dart';
 
-import '../cryptography_test.dart';
+import '../hex.dart';
 
 void testPbkdf2() {
   group('Pbkdf2:', () {
@@ -43,6 +43,7 @@ void testPbkdf2() {
         hexFromBytes(expectedBytes),
       );
     });
+
     test('deriveKey(...): Hmac(sha256), 1 iteration', () async {
       final macAlgorithm = Hmac(Sha256());
       const input = <int>[1, 2, 3];

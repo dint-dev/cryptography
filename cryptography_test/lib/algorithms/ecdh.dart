@@ -13,9 +13,10 @@
 // limitations under the License.
 
 import 'package:cryptography/cryptography.dart';
-import 'package:cryptography_test/cryptography_test.dart';
 import 'package:cryptography_test/key_exchange.dart';
 import 'package:test/test.dart';
+
+import '../hex.dart';
 
 void testEcdh() {
   testKeyExchangeAlgorithm(

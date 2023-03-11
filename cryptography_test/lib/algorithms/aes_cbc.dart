@@ -22,7 +22,7 @@ void testAesCbc() {
     builder: () => AesCbc.with128bits(
       macAlgorithm: MacAlgorithm.empty,
     ),
-    onTestSyncCipher: (a, b) {
+    onEquality: (a, b) {
       expect(a.paddingAlgorithm, b.paddingAlgorithm);
     },
   );
@@ -31,7 +31,7 @@ void testAesCbc() {
       macAlgorithm: MacAlgorithm.empty,
       paddingAlgorithm: PaddingAlgorithm.zero,
     ),
-    onTestSyncCipher: (a, b) {
+    onEquality: (a, b) {
       expect(a.paddingAlgorithm, b.paddingAlgorithm);
     },
   );

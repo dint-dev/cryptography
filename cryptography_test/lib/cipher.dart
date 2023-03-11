@@ -21,12 +21,11 @@ library cryptography_test.cipher;
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
-import 'package:cryptography/dart.dart';
 import 'package:test/expect.dart';
 import 'package:test/scaffolding.dart';
 import 'package:typed_data/typed_buffers.dart';
 
-import 'cryptography_test.dart';
+import 'hex.dart';
 
 Cipher? _cipher;
 
@@ -55,7 +54,7 @@ void testCipher<T extends Cipher>({
   int? secretKeyLength,
   int? nonceLength,
   bool toSync = true,
-  void Function(T a, T b)? onTestSyncCipher,
+  void Function(T a, T b)? onEquality,
   void Function(T cipher)? otherTests,
 }) {
   final platformCipher = builder();
@@ -94,8 +93,8 @@ void testCipher<T extends Cipher>({
         expect(syncCipher.secretKeyLength, cipher.secretKeyLength);
         expect(syncCipher.nonceLength, cipher.nonceLength);
         expect(syncCipher.macAlgorithm, cipher.macAlgorithm);
-        if (onTestSyncCipher != null) {
-          onTestSyncCipher(syncCipher as T, cipher as T);
+        if (onEquality != null) {
+          onEquality(syncCipher as T, cipher as T);
         }
         expect(syncCipher, cipher);
         expect(syncCipher.hashCode, cipher.hashCode);
@@ -215,7 +214,7 @@ void testCipher<T extends Cipher>({
       });
     }
 
-    testCipherWithChunks();
+    _testCipherWithChunks();
 
     if (otherTests != null) {
       otherTests(platformCipher);
@@ -251,13 +250,13 @@ void testCipherExample({
       expect(decrypted, clearText);
     });
 
-    testCipherWithChunks(
+    _testCipherWithChunks(
       input: clearText,
     );
   });
 }
 
-void testCipherWithChunks({
+void _testCipherWithChunks({
   List<int>? input,
   List<int> aad = const [],
 }) {
@@ -694,49 +693,4 @@ void testCipherWithChunks({
       );
     }
   });
-}
-
-class CipherTester {
-  /// Third-party encryption function.
-  final Future<SecretBox> Function({
-    required List<int> clearText,
-    required List<int> secretKey,
-    required List<int> nonce,
-    required List<int> aad,
-  })? thirdPartyEncrypt;
-
-  /// Dart implementation.
-  final DartCipher Function()? dartCipher;
-
-  CipherTester({
-    this.thirdPartyEncrypt,
-    this.dartCipher,
-  });
-
-  Future<SecretBox?> expectedSecretBox(
-    List<int> clearText, {
-    required List<int> secretKey,
-    required List<int> nonce,
-    required List<int> aad,
-  }) async {
-    final thirdParty = thirdPartyEncrypt;
-    if (thirdParty != null) {
-      return await thirdParty(
-        clearText: clearText,
-        secretKey: secretKey,
-        nonce: nonce,
-        aad: aad,
-      );
-    }
-    final dartCipher = this.dartCipher;
-    if (dartCipher != null) {
-      return await dartCipher().encrypt(
-        clearText,
-        secretKey: SecretKeyData(secretKey),
-        nonce: nonce,
-        aad: aad,
-      );
-    }
-    return null;
-  }
 }

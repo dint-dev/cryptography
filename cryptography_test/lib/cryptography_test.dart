@@ -33,8 +33,6 @@
 /// ```
 library cryptography_test;
 
-import 'dart:typed_data';
-
 import 'package:cryptography/cryptography.dart';
 import 'package:test/scaffolding.dart';
 
@@ -44,6 +42,7 @@ import 'algorithms/aes_gcm.dart';
 import 'algorithms/blake2b.dart';
 import 'algorithms/blake2s.dart';
 import 'algorithms/chacha20.dart';
+import 'algorithms/ecdh.dart';
 import 'algorithms/ecdsa.dart';
 import 'algorithms/ed25519.dart';
 import 'algorithms/hkdf.dart';
@@ -62,48 +61,6 @@ import 'hash.dart';
 import 'key_exchange.dart';
 import 'signature.dart';
 
-/// Converts a list of bytes to a hexadecimal string.
-///
-/// Example output:
-/// ```text
-/// 00 ff 00 ff 00 ff 00 ff 00 ff 00 ff 00 ff 00 ff
-/// 00 ff 00 ff 00 ff 00 ff 00 ff 00 ff 00 ff 00 ff
-/// ```
-String hexFromBytes(Iterable<int> iterable) {
-  final list = iterable.toList();
-  final sb = StringBuffer();
-  for (var i = 0; i < list.length; i++) {
-    if (i > 0) {
-      if (i % 16 == 0) {
-        sb.write('\n');
-      } else {
-        sb.write(' ');
-      }
-    }
-    sb.write(list[i].toRadixString(16).padLeft(2, '0'));
-  }
-  return sb.toString();
-}
-
-/// Converts a hexadecimal string to a list of bytes.
-///
-/// Whitespace in the string is ignored.
-List<int> hexToBytes(String input) {
-  final s = input.replaceAll(' ', '').replaceAll(':', '').replaceAll('\n', '');
-  if (s.length % 2 != 0) {
-    throw ArgumentError.value(input);
-  }
-  final result = Uint8List(s.length ~/ 2);
-  for (var i = 0; i < s.length; i += 2) {
-    var value = int.tryParse(s.substring(i, i + 2), radix: 16);
-    if (value == null) {
-      throw ArgumentError.value(input, 'input');
-    }
-    result[i ~/ 2] = value;
-  }
-  return Uint8List.fromList(result);
-}
-
 /// Tests the current or the given [Cryptography].
 void testCryptography({Cryptography? cryptography}) {
   if (cryptography != null) {
@@ -115,9 +72,6 @@ void testCryptography({Cryptography? cryptography}) {
     });
     return;
   }
-
-  // testEcdh();
-  testEcdsa();
 
   // Hash algorithms
   testBlake2s();
@@ -135,7 +89,7 @@ void testCryptography({Cryptography? cryptography}) {
   testXchacha20();
 
   // Key exchange algorithms
-  // testEcdh();
+  testEcdh();
   testX25519();
 
   // Signature algorithms

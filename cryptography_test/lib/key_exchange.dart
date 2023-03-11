@@ -20,8 +20,9 @@ library cryptography_test.key_exchange_algorithm;
 
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/dart.dart';
-import 'package:cryptography_test/cryptography_test.dart';
 import 'package:test/test.dart';
+
+import 'hex.dart';
 
 KeyExchangeAlgorithm? _keyExchangeAlgorithm;
 

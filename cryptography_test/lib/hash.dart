@@ -23,8 +23,9 @@ import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/dart.dart';
-import 'package:cryptography_test/cryptography_test.dart';
 import 'package:test/test.dart';
+
+import 'hex.dart';
 
 HashAlgorithm? _hashAlgorithm;
 

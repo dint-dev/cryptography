@@ -53,10 +53,6 @@ void _main() {
       expect(publicKey.y, hasLength(32));
     });
 
-    test('works in browser', () async {
-      await _testKeyExchange(algorithm);
-    });
-
     test('generated key pair can be used as ECDSA key pair', () async {
       final keyPair = await algorithm.newKeyPair();
 
@@ -99,10 +95,6 @@ void _main() {
       expect(publicKey.x, hasLength(48));
       expect(publicKey.y, hasLength(48));
     });
-
-    test('works in browser', () async {
-      await _testKeyExchange(algorithm);
-    });
   });
 
   group('ecdhP521:', () {
@@ -131,71 +123,103 @@ void _main() {
       expect(publicKey.x, hasLength(66));
       expect(publicKey.y, hasLength(66));
     });
+  });
 
-    test('works in browser', () async {
-      await _testKeyExchange(algorithm);
+  group('Ecdsa.p256(Sha256()):', () {
+    late Ecdsa algorithm;
+    setUp(() {
+      algorithm = Ecdsa.p256(Sha256());
+    });
+
+    test('information', () {
+      expect(algorithm.keyPairType.ellipticBits, 256);
+    });
+
+    test('extracting EcKeyPairData', () async {
+      final keyPair = await algorithm.newKeyPair();
+      final keyPairData = await keyPair.extract();
+      expect(keyPairData.type, KeyPairType.p256);
+      expect(keyPairData.d, hasLength(32));
+      expect(keyPairData.x, hasLength(32));
+      expect(keyPairData.y, hasLength(32));
+    });
+
+    test('extracting EcPublicKey', () async {
+      final keyPair = await algorithm.newKeyPair();
+      final publicKey = await keyPair.extractPublicKey();
+      expect(publicKey.type, KeyPairType.p256);
+      expect(publicKey.x, hasLength(32));
+      expect(publicKey.y, hasLength(32));
+    });
+
+    test('generated key pair can be used as ECDH key pair', () async {
+      final ecdh = Ecdh.p256(length: 32);
+      final aliceKeyPair = await algorithm.newKeyPair();
+      final bobKeyPair = await algorithm.newKeyPair();
+      final bobPublicKey = await bobKeyPair.extractPublicKey();
+
+      await ecdh.sharedSecretKey(
+        keyPair: aliceKeyPair,
+        remotePublicKey: bobPublicKey,
+      );
     });
   });
-}
 
-Future<void> _testKeyExchange(Ecdh algorithm) async {
-  // Generate two key pairs
-  final keyPair0 = await algorithm.newKeyPair();
-  final keyPair1 = await algorithm.newKeyPair();
-  final publicKey0 = await keyPair0.extractPublicKey();
-  final publicKey1 = await keyPair1.extractPublicKey();
+  group('Ecdsa.p384(Sha384()):', () {
+    late Ecdsa algorithm;
 
-  // Key pairs should be different
-  expect(
-    keyPair0,
-    isNot(keyPair1),
-  );
-  expect(
-    publicKey0,
-    isNot(publicKey1),
-  );
+    setUp(() {
+      algorithm = Ecdsa.p384(Sha384());
+    });
 
-  // Each generates a shared secret
-  final sharedKey0 = await algorithm.sharedSecretKey(
-    keyPair: keyPair0,
-    remotePublicKey: publicKey1,
-  );
-  final sharedKey1 = await algorithm.sharedSecretKey(
-    keyPair: keyPair1,
-    remotePublicKey: publicKey0,
-  );
+    test('information', () {
+      expect(algorithm.keyPairType.ellipticBits, 384);
+    });
 
-  // The shared secrets are equal
-  expect(
-    sharedKey0,
-    sharedKey1,
-    reason: 'Shared keys must be equal',
-  );
+    test('extracting EcKeyPairData', () async {
+      final keyPair = await algorithm.newKeyPair();
+      final keyPairData = await keyPair.extract();
+      expect(keyPairData.type, KeyPairType.p384);
+      expect(keyPairData.d, hasLength(48));
+      expect(keyPairData.x, hasLength(48));
+      expect(keyPairData.y, hasLength(48));
+    });
 
-  {
-    final extracted0 = await keyPair0.extract();
-    final extracted1 = await keyPair1.extract();
-    final newKeyPair0 = EcKeyPairData(
-      d: extracted0.d,
-      x: extracted0.x,
-      y: extracted0.y,
-      type: extracted0.type,
-    );
-    final newKeyPair1 = EcKeyPairData(
-      d: extracted1.d,
-      x: extracted1.x,
-      y: extracted1.y,
-      type: extracted1.type,
-    );
-    final newPublicKey1 = await newKeyPair1.extractPublicKey();
-    final newSharedSecretKey = await algorithm.sharedSecretKey(
-      keyPair: newKeyPair0,
-      remotePublicKey: newPublicKey1,
-    );
-    expect(
-      newSharedSecretKey,
-      sharedKey0,
-      reason: 'Shared keys must be equal',
-    );
-  }
+    test('extracting EcPublicKey', () async {
+      final keyPair = await algorithm.newKeyPair();
+      final publicKey = await keyPair.extractPublicKey();
+      expect(publicKey.type, KeyPairType.p384);
+      expect(publicKey.x, hasLength(48));
+      expect(publicKey.y, hasLength(48));
+    });
+  });
+
+  group('Ecdsa.p521(Sha512()):', () {
+    late Ecdsa algorithm;
+
+    setUp(() {
+      algorithm = Ecdsa.p521(Sha512());
+    });
+
+    test('information', () {
+      expect(algorithm.keyPairType.ellipticBits, 521);
+    });
+
+    test('extracting EcKeyPairData', () async {
+      final keyPair = await algorithm.newKeyPair();
+      final keyPairData = await keyPair.extract();
+      expect(keyPairData.type, KeyPairType.p521);
+      expect(keyPairData.d, hasLength(66));
+      expect(keyPairData.x, hasLength(66));
+      expect(keyPairData.y, hasLength(66));
+    });
+
+    test('extracting EcPublicKey', () async {
+      final keyPair = await algorithm.newKeyPair();
+      final publicKey = await keyPair.extractPublicKey();
+      expect(publicKey.type, KeyPairType.p521);
+      expect(publicKey.x, hasLength(66));
+      expect(publicKey.y, hasLength(66));
+    });
+  });
 }
