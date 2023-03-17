@@ -363,7 +363,7 @@ import 'package:cryptography/cryptography.dart';
 
 Future<void> main() async {
   // Choose the cipher
-  final algorithm = AesCtr(macAlgorithm: Hmac.sha256());
+  final algorithm = AesCtr.with256bits(macAlgorithm: Hmac.sha256());
 
   // Generate a random secret key.
   final secretKey = await algorithm.newSecretKey();
