@@ -68,6 +68,7 @@ class _CipherPageState extends State<CipherPage> {
   final _cipherTextController = TextEditingController();
   final _macController = TextEditingController();
   Object? _error;
+  String _decryptedText = '';
 
   @override
   Widget build(BuildContext context) {
@@ -190,6 +191,14 @@ class _CipherPageState extends State<CipherPage> {
                       const InputDecoration(labelText: 'Cleartext (text)'),
                 ),
                 const SizedBox(height: 10),
+                const Text('Decrypted Text'),
+                const SizedBox(height: 5),
+                Container(
+                  color: Colors.grey.shade500,
+                  padding: const EdgeInsets.all(4),
+                  child: Text(_decryptedText),
+                ),
+                const SizedBox(height: 10),
                 TextField(
                   controller: _cipherTextController,
                   minLines: 1,
@@ -229,6 +238,9 @@ class _CipherPageState extends State<CipherPage> {
       );
       _cipherTextController.text = _toHex(secretBox.cipherText);
       _macController.text = _toHex(secretBox.mac.bytes);
+
+      _decrypt();
+
       setState(() {
         _error = null;
       });
@@ -240,5 +252,20 @@ class _CipherPageState extends State<CipherPage> {
       });
       return;
     }
+  }
+
+  Future<void> _decrypt() async {
+    final cipher = _cipher;
+
+    _decryptedText = utf8.decode(await cipher.decrypt(
+      SecretBox(
+        _fromHex(_cipherTextController.text),
+        nonce: _fromHex(_nonceController.text),
+        mac: Mac(_fromHex(_macController.text)),
+      ),
+      secretKey: SecretKeyData(
+        _fromHex(_secretKeyController.text),
+      ),
+    ));
   }
 }
