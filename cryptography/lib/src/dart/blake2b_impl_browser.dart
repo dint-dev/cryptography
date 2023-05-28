@@ -62,7 +62,7 @@ class Blake2bSink extends DartHashSink {
     14, 10, 4, 8, 9, 15, 13, 6, 1, 12, 0, 2, 11, 7, 5, 3
   ];
 
-  final _hash = Uint32List(32);
+  final _hash = Uint32List(16);
 
   @override
   late final Uint8List hashBytes = Uint8List.view(
@@ -104,13 +104,13 @@ class Blake2bSink extends DartHashSink {
     var length = _length;
     for (var i = start; i < end; i++) {
       // Compress?
-      if (length % 64 == 0 && length > 0) {
+      if (length % 128 == 0 && length > 0) {
         _length = length;
         _compress(false);
       }
 
       // Set byte
-      bufferAsBytes[length % 64] = chunk[i];
+      bufferAsBytes[length % 128] = chunk[i];
 
       // Increment length
       length++;
@@ -133,8 +133,10 @@ class Blake2bSink extends DartHashSink {
 
     // Unfinished block?
     final length = _length;
-    for (var i = length % 64; i < 64; i++) {
-      _bufferAsBytes[i] = 0;
+    if (length == 0 || length % 128 != 0) {
+      for (var i = length % 128; i < 128; i++) {
+        _bufferAsBytes[i] = 0;
+      }
     }
     _compress(true);
   }
