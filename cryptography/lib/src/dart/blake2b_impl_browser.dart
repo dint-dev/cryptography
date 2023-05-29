@@ -150,7 +150,6 @@ class Blake2bSink extends DartHashSink {
 
     final h = _hash;
     h.setAll(0, _initializationVector);
-    h.fillRange(_initializationVector.length, h.length, 0);
     h[0] ^= 0x01010000 ^ 64;
   }
 
