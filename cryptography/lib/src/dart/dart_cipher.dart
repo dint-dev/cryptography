@@ -420,11 +420,11 @@ mixin DartCipherWithStateMixin implements StreamingCipher {
     );
     final clearText = await state.convert(
       secretBox.cipherText,
-      expectedMac: secretBox.mac,
+      expectedMac: secretBox.mac.bytes.isNotEmpty ? secretBox.mac : null,
       possibleBuffer: possibleBuffer,
       chunkSize: chunkSize,
     );
-    if (secretBox.mac != state.mac) {
+    if (secretBox.mac.bytes.isNotEmpty && secretBox.mac != state.mac) {
       throw SecretBoxAuthenticationError();
     }
     return clearText;
@@ -456,7 +456,7 @@ mixin DartCipherWithStateMixin implements StreamingCipher {
       secretBox.cipherText,
       possibleBuffer: possibleBuffer,
     );
-    if (secretBox.mac != state.mac) {
+    if (secretBox.mac.bytes.isNotEmpty && secretBox.mac != state.mac) {
       throw SecretBoxAuthenticationError();
     }
     return clearText;
