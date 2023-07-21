@@ -109,9 +109,11 @@ abstract class CipherWand extends Wand {
     try {
       return utf8.decode(clearText);
     } finally {
-      // Cut the amount of possibly sensitive data in the heap.
-      // This should be a cheap operation relative to decryption.
-      clearText.fillRange(0, clearText.length, 0);
+      try {
+        // Cut the amount of possibly sensitive data in the heap.
+        // This should be a cheap operation relative to decryption.
+        clearText.fillRange(0, clearText.length, 0);
+      } catch (_) {}
     }
   }
 
