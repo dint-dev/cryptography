@@ -54,7 +54,7 @@ import 'package:meta/meta.dart';
 ///
 ///   // Decrypt
 ///   final clearText = await algorithm.encrypt(
-///     secretBox,
+///     secretBox.cipherText,
 ///     secretKey: secretKey,
 ///   );
 ///   print('Cleartext: $clearText');
