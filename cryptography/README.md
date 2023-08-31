@@ -27,14 +27,14 @@ Any feedback, issue reports, or pull requests are appreciated!
 # Getting started
 
 If you use Flutter, it's recommended (but not necessarily) that you also import our sibling package
-[cryptography_flutter](https://pub.dev/packages/cryptography_flutter), which improves performance
-by using operating system APIs.
+[cryptography_flutter](https://pub.dev/packages/cryptography_flutter), which delegates calls to
+Android / iOS / Mac OS X operating system APIs whenever possible.
 
 In _pubspec.yaml_:
 ```yaml
 dependencies:
-  cryptography: ^2.5.0
-  cryptography_flutter: ^2.3.0 # Remove if you don't use Flutter
+  cryptography: ^2.5.1
+  cryptography_flutter: ^2.3.1 # Remove if you don't use Flutter
 ```
 
 You are ready to go!
@@ -207,7 +207,8 @@ faster because this package automatically uses Web Crypto API.
 
 ## Random number generators
 
-We continue to use the old good `Random.secure()` as the default random number in all APIs.
+We use Dart SDK [Random.secure()](https://api.dart.dev/stable/3.1.0/dart-math/Random/Random.secure.html)
+as the default random number in all APIs.
 
 If you do want much faster cryptographically reasonably strong random numbers, this package contains
 [SecureRandom.fast](https://pub.dev/documentation/cryptography/latest/cryptography/SecureRandom/fast.html).
@@ -353,17 +354,14 @@ authentication code).
 When you decrypt, you need the _SecretBox_ and the secret key.
 
 In the following example, we encrypt a message
-with [AesCtr](https://pub.dev/documentation/cryptography/latest/cryptography/AesCtr-class.html)
-and a [Hmac](https://pub.dev/documentation/cryptography/latest/cryptography/Hmac-class.html) message
-authentication code that uses [Sha256](https://pub.dev/documentation/cryptography/latest/cryptography/Sha256-class.html)
-hash algorithm:
+with [AesGcm](https://pub.dev/documentation/cryptography/latest/cryptography/AesGcm-class.html):
 ```dart
 import 'dart:convert';
 import 'package:cryptography/cryptography.dart';
 
 Future<void> main() async {
   // Choose the cipher
-  final algorithm = AesCtr(macAlgorithm: Hmac.sha256());
+  final algorithm = AesGcm.with256bits();
 
   // Generate a random secret key.
   final secretKey = await algorithm.newSecretKey();

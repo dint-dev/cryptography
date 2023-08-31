@@ -21,16 +21,28 @@ import 'package:cryptography/dart.dart';
 
 /// A Message Authentication Code (MAC) algorithm.
 ///
+/// You can compute a [Mac] by calling [calculateMac] or [newMacSink].
+///
 /// ## Available algorithms
 ///   * [Hmac]
-///   * [MacAlgorithm.empty]
 ///   * [Poly1305]
+///
+/// ## Not using MAC?
+///
+/// If are sure you don't need a MAC, you can use [MacAlgorithm.empty]:
+/// ```
+/// final example = ChaCha20(macAlgorithm: MacAlgorithm.empty);
+/// ```
 abstract class MacAlgorithm {
   /// MAC algorithm that always returns [Mac.empty].
   static const MacAlgorithm empty = _EmptyMacAlgorithm();
 
   const MacAlgorithm();
 
+  /// Number of bytes in key stream used to initialize the MAC algorithm.
+  ///
+  /// In [Chacha20.poly1305Aead], the first block of the ChaCha20 stream is used
+  /// as the Poly1305 key (thus [keyStreamUsed] is 64).
   int get keyStreamUsed => 0;
 
   /// Number of bytes in the message authentication code.
@@ -39,6 +51,7 @@ abstract class MacAlgorithm {
   /// Whether the algorithm supports Associated Authenticated Data (AAD).
   bool get supportsAad => false;
 
+  /// Whether the algorithm supports key stream index.
   bool get supportsKeyStreamIndex => keyStreamUsed == 0;
 
   /// Calculates message authentication code.
