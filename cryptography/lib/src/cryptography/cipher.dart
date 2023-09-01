@@ -59,7 +59,7 @@ import '../../dart.dart';
 ///   print('MAC: ${secretBox.mac.bytes}')
 ///
 ///   // Decrypt
-///   final clearText = await algorithm.encrypt(
+///   final clearText = await algorithm.decrypt(
 ///     secretBox,
 ///     secretKey: secretKey,
 ///   );
@@ -443,8 +443,9 @@ abstract class Cipher {
   /// It will have the correct length ([nonceLength]).
   ///
   /// The source of random bytes is [Random.secure] (a cryptographically secure
-  /// random number generator) unless specified another random number generator
-  /// when you constructed the cipher (or your [Cryptography]).
+  /// random number generator) unless a custom random number generator was
+  /// specified when you constructed the cipher (or your [Cryptography]
+  /// instance).
   List<int> newNonce() {
     final bytes = Uint8List(nonceLength);
     fillBytesWithSecureRandom(
@@ -459,8 +460,9 @@ abstract class Cipher {
   /// It will have the correct length ([secretKeyLength]).
   ///
   /// The source of random bytes is [Random.secure] (a cryptographically secure
-  /// random number generator) unless specified another random number generator
-  /// when you constructed the cipher (or your [Cryptography]).
+  /// random number generator) unless a custom random number generator was
+  /// specified when you constructed the cipher (or your [Cryptography]
+  /// instance).
   Future<SecretKey> newSecretKey() async {
     return SecretKeyData.random(
       length: secretKeyLength,
@@ -497,7 +499,7 @@ abstract class Cipher {
   /// import 'package:cryptography/cryptography.dart';
   ///
   /// void main() {
-  ///   final cipher = Chacha20.poly1305().toSync();
+  ///   final cipher = Chacha20.poly1305Aead().toSync();
   ///   final secretKey = cipher.newSecretKeySync();
   ///   final secretBox = cipher.encryptSync(
   ///     [1,2,3],

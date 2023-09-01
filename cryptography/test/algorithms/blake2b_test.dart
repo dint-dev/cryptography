@@ -20,7 +20,7 @@ import 'package:cryptography/src/utils.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group('blake2b', () {
+  group('Blake2b:', () {
     final algorithm = Blake2b();
 
     test('hash length', () {
@@ -31,49 +31,87 @@ void main() {
       expect(algorithm.blockLengthInBytes, 64);
     });
 
-    test('sink is reinitialized correctly', () {
+    test('hashLengthInBytes: default is 64', () {
+      expect(Blake2b().hashLengthInBytes, 64);
+    });
+
+    test('hashLengthInBytes: lengths 1..64 work', () async {
+      for (var n = 1; n <= 64; n++) {
+        final algorithm = Blake2b(hashLengthInBytes: n);
+        expect(algorithm.hashLengthInBytes, n);
+        expect(algorithm.toSync().hashLengthInBytes, n);
+        await algorithm.hash([]);
+        await algorithm.calculateMac([], secretKey: SecretKeyData([]));
+      }
+    });
+
+    test('hashLengthInBytes: throws ArgumentError if 0', () {
+      expect(() => Blake2b(hashLengthInBytes: 0), throwsArgumentError);
+    });
+
+    test('hashLengthInBytes: throws ArgumentError if 65', () {
+      expect(() => Blake2b(hashLengthInBytes: 65), throwsArgumentError);
+    });
+
+    test('sink: adding after closing fails', () {
+      final sink = algorithm.toSync().newHashSink();
+      sink.add(const []);
+      sink.close();
+      expect(() => sink.add([]), throwsStateError);
+    });
+
+    test('sink: addSlice() with different cut points', () {
       final sink = algorithm.toSync().newHashSink();
       expect(sink.isClosed, isFalse);
       expect(sink.length, 0);
 
-      for (var length = 0; length < 1024; length++) {
-        for (var cutN = 0; cutN < 129; cutN++) {
+      for (var length = 0; length <= 256; length++) {
+        final input = Uint8List(length);
+
+        for (var cutN = 0; cutN <= algorithm.blockLengthInBytes + 1; cutN++) {
           if (cutN > length) {
             break;
           }
-          final input = Uint8List(length);
 
           sink.add(input);
           sink.close();
           expect(sink.isClosed, isTrue);
           expect(sink.length, input.length);
           expect(input, everyElement(0));
-          final mac = Uint8List.fromList(sink.hashBytes);
+          final expectedHashBytes = Uint8List.fromList(sink.hashBytes);
 
+          //
           // Reset
+          //
           sink.reset();
           expect(sink.isClosed, isFalse);
           expect(sink.length, 0);
-          expect(sink.hashBytes, isNot(mac));
+          expect(sink.hashBytes, isNot(expectedHashBytes));
 
-          // Do same again
+          //
+          // Hash again
+          //
           sink.add(input);
           sink.close();
           expect(sink.isClosed, isTrue);
           expect(sink.length, input.length);
           expect(
             sink.hashBytes,
-            mac,
+            expectedHashBytes,
             reason: 'length=$length',
           );
 
+          //
           // Reset
+          //
           sink.reset();
           expect(sink.isClosed, isFalse);
           expect(sink.length, 0);
-          expect(sink.hashBytes, isNot(mac));
+          expect(sink.hashBytes, isNot(expectedHashBytes));
 
-          // This time use:
+          //
+          // Hash in two slices:
+          //
           // addSlice(..., 0, x, false)
           // addSlice(..., x, n, true)
           final cutAt = length - cutN;
@@ -85,15 +123,17 @@ void main() {
           expect(sink.length, input.length);
           expect(
             sink.hashBytes,
-            mac,
+            expectedHashBytes,
             reason: 'length=$length',
           );
-          expect(() => sink.add([]), throwsStateError);
 
+          //
+          // Reset
+          //
           sink.reset();
           expect(sink.isClosed, isFalse);
           expect(sink.length, 0);
-          expect(sink.hashBytes, isNot(mac));
+          expect(sink.hashBytes, isNot(expectedHashBytes));
         }
       }
     });
@@ -137,6 +177,7 @@ BA 80 A5 3F 98 1C 4D 0D 6A 27 97 B6 9F 12 F6 E9
         );
       }
     });
+
     test('empty input', () async {
       final expectedBytes = hexToBytes(
         '78 6a 02 f7 42 01 59 03 c6 c6 fd 85 25 52 d2 72\n'
@@ -151,6 +192,73 @@ BA 80 A5 3F 98 1C 4D 0D 6A 27 97 B6 9F 12 F6 E9
           hexFromBytes(expectedBytes),
         );
       }
+    });
+
+    const lengths = {
+      0: '786a02f742015903c6c6fd852552d272912f4740e15847618a86e217f71f5419d25e1031afee585313896444934eb04b903a685b1448b755d56f701afe9be2ce',
+      1: '2fa3f686df876995167e7c2e5d74c4c7b6e48f8068fe0e44208344d480f7904c36963e44115fe3eb2a3ac8694c28bcb4f5a0f3276f2e79487d8219057a506e4b',
+      127:
+          '93cac6a4bedd751e1c145f8e76fec88fec246675898475585603bd228f883bcf4ebcc68ead8fa5f27890a243fa938bd7323ad41f9f06048a732cce2070b212c3',
+      128:
+          '865939e120e6805438478841afb739ae4250cf372653078a065cdcfffca4caf798e6d462b65d658fc165782640eded70963449ae1500fb0f24981d7727e22c41',
+      129:
+          'a60edba343e7a6933c14d203d2e535f35e6deb6c8a4f8e624c1a6f6e2612860447cb4c37e5aa11bcf03b7c3eea7228eb8b998f922794f2d1b8f2dc63f03bd3fa',
+    };
+
+    lengths.forEach((n, expectedHex) {
+      test('length = $n', () async {
+        final data = Uint8List(n);
+        final hash = await algorithm.hash(data);
+        expect(
+          hexFromBytes(hash.bytes),
+          hexFromBytes(hexToBytes(expectedHex)),
+        );
+      });
+    });
+
+    test('length = 0, hashLength = 32 bytes', () async {
+      final data = Uint8List(0);
+      final hash = await Blake2b(hashLengthInBytes: 32).hash(data);
+      expect(
+        hexFromBytes(hash.bytes),
+        hexFromBytes(hexToBytes(
+            '0e5751c026e543b2e8ab2eb06099daa1d1e5df47778f7787faab45cdf12fe3a8')),
+      );
+    });
+
+    test('MAC fails if key is too large', () async {
+      final key = SecretKeyData(Uint8List(65));
+      expect(
+        () => algorithm.calculateMac([], secretKey: key),
+        throwsArgumentError,
+      );
+    });
+
+    test('10k cycles, each with a different length', () async {
+      const n = 10 * 1000;
+      final data = Uint8List(n);
+
+      var hashBytes = <int>[];
+      for (var i = 0; i < data.length; i++) {
+        final hash = await algorithm.hash(data.sublist(0, i));
+        hashBytes = hash.bytes;
+
+        // XOR data with the hash.
+        // Thus input for the next hash will be a function of the previous hash.
+        for (var i = 0; i < data.length; i++) {
+          data[i] ^= hashBytes[i % hashBytes.length];
+        }
+      }
+
+      // Obtained from a Go program
+      final expected = hexToBytes(
+        '4d3b7ddab812a2f28acc2795d18cedbcb3704c098c65d9a6f6038cf35f9f0280fdb90b6f28890165fbcbb32e18bd13d43d1a1b4660979cee85f92aa85160004f',
+      );
+
+      expect(
+        hexFromBytes(hashBytes),
+        hexFromBytes(expected),
+      );
     });
   });
 }

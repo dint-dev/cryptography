@@ -7,19 +7,20 @@ This is a Flutter plugin that
 enables [pub.dev/packages/cryptography](https://pub.dev/packages/cryptography)
 to use native APIs of Android, iOS, and Mac OS X.
 
-Licensed under the [Apache License 2.0](LICENSE).
+Maintained by [gohilla.com](https://gohilla.com). Licensed under the [Apache License 2.0](LICENSE).
 
 ## Why?
-
+* __Secure__
+  * Operating system APIs are preferable from security point of view.
 * __Performant__.
-    * Up to 100 times faster compared to pure Dart implementations in  "package:cryptography".
+  * Operating system APIs are up to 100 times faster than pure Dart implementations.
 * __Cross-platform__.
-    * The implementations fall back to "package:cryptography" implementations when operating system
-      APIs can't be used.
-* __Tested__.
-    * The package is tested with [cryptography_test](https://pub.dev/packages/cryptography_test).
+  * The implementations fall back to "package:cryptography" implementations when operating system
+    APIs can't be used.
 
 ## General behavior
+
+The package is tested with [cryptography_test](https://pub.dev/packages/cryptography_test).
 
 This package contains two kinds of classes:
 

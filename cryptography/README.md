@@ -177,6 +177,8 @@ The following implementations are available:
 The following [MacAlgorithm](https://pub.dev/documentation/cryptography/latest/cryptography/MacAlgorithm-class.html)
 implementations are available:
 
+* [Blake2b](https://pub.dev/documentation/cryptography/latest/cryptography/Blake2b-class.html)
+* [Blake2s](https://pub.dev/documentation/cryptography/latest/cryptography/Blake2s-class.html)
 * [Hmac](https://pub.dev/documentation/cryptography/latest/cryptography/Hmac-class.html)
 * [Poly1305](https://pub.dev/documentation/cryptography/latest/cryptography/Poly1305-class.html)
 

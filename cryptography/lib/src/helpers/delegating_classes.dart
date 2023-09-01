@@ -79,7 +79,7 @@ abstract class DelegatingCipher implements Cipher {
 }
 
 /// Delegating base class for [Cryptography] implementations.
-abstract class DelegatingCryptography implements Cryptography {
+abstract base class DelegatingCryptography implements Cryptography {
   const DelegatingCryptography();
 
   Cryptography get fallback;
@@ -134,13 +134,17 @@ abstract class DelegatingCryptography implements Cryptography {
   }
 
   @override
-  Blake2b blake2b() {
-    return fallback.blake2b();
+  Blake2b blake2b({int hashLengthInBytes = Blake2b.defaultHashLengthInBytes}) {
+    return fallback.blake2b(
+      hashLengthInBytes: hashLengthInBytes,
+    );
   }
 
   @override
-  Blake2s blake2s() {
-    return fallback.blake2s();
+  Blake2s blake2s({int hashLengthInBytes = Blake2s.defaultHashLengthInBytes}) {
+    return fallback.blake2s(
+      hashLengthInBytes: hashLengthInBytes,
+    );
   }
 
   @override

@@ -1,3 +1,6 @@
+## 0.2.3
+* Raises Dart SDK minimum to 3.1.0.
+
 ## 0.2.2
 
 * Adds p256k support ([#135](https://github.com/dint-dev/cryptography/pull/135)).
