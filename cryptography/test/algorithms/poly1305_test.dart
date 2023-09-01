@@ -27,7 +27,7 @@ void main() {
         ..[0] = 1
         ..[2] = 2;
       var k = SecretKey(secretKeyBytes);
-      var state = utf8.encode('Hello world');
+      List<int> state = utf8.encode('Hello world');
       for (var i = 0; i < 100000; i++) {
         final mac = await algorithm.calculateMac(
           state,

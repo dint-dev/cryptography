@@ -175,17 +175,16 @@ abstract class CipherWand extends Wand {
   /// }
   /// ```
   Future<SecretBox> encryptString(String clearText) async {
-    final bytes = utf8.encode(clearText);
+    final bytes = utf8.encode(clearText) as Uint8List;
     final secretBox = await encrypt(
       bytes,
-      possibleBuffer: bytes is Uint8List ? bytes : null,
+      possibleBuffer: bytes,
     );
 
     // Cut the amount of possibly sensitive data in the heap.
     // This should be a cheap operation relative to encryption.
     final cipherText = secretBox.cipherText;
-    if (bytes is! Uint8List ||
-        cipherText is! Uint8List ||
+    if (cipherText is! Uint8List ||
         !identical(bytes.buffer, cipherText.buffer)) {
       bytes.fillRange(0, bytes.length, 0);
     }

@@ -399,17 +399,16 @@ abstract class Cipher {
     String clearText, {
     required SecretKey secretKey,
   }) async {
-    final bytes = utf8.encode(clearText);
+    final bytes = utf8.encode(clearText) as Uint8List;
     final secretBox = await encrypt(
       bytes,
       secretKey: secretKey,
-      possibleBuffer: bytes is Uint8List ? bytes : null,
+      possibleBuffer: bytes,
     );
 
     // Overwrite `bytes` if it was not overwritten by the cipher.
     final cipherText = secretBox.cipherText;
-    if (bytes is! Uint8List ||
-        cipherText is! Uint8List ||
+    if (cipherText is! Uint8List ||
         !identical(bytes.buffer, cipherText.buffer)) {
       bytes.fillRange(0, bytes.length, 0);
     }

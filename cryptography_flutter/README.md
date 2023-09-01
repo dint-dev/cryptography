@@ -49,8 +49,8 @@ In _pubspec.yaml_:
 
 ```yaml
 dependencies:
-  cryptography: ^2.5.0
-  cryptography_flutter: ^2.3.0
+  cryptography: ^2.5.1
+  cryptography_flutter: ^2.3.1
 ```
 
 That's it!

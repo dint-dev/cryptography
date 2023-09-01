@@ -141,7 +141,8 @@ public class CryptographyFlutterPlugin: NSObject, FlutterPlugin {
                 result([
                     "cipherText": FlutterStandardTypedData(bytes: sealedBox.ciphertext),
                     "mac": FlutterStandardTypedData(bytes: sealedBox.tag),
-                ])
+                ] as [String: Any])
+                return
 
             case "CHACHA20_POLY1305_AEAD":
                 let symmetricKey = SymmetricKey(data: secretKey)
@@ -153,7 +154,8 @@ public class CryptographyFlutterPlugin: NSObject, FlutterPlugin {
                 result([
                     "cipherText": FlutterStandardTypedData(bytes: sealedBox.ciphertext),
                     "mac": FlutterStandardTypedData(bytes: sealedBox.tag),
-                ])
+                ] as [String: Any])
+                return
 
             default:
                 break
@@ -203,7 +205,7 @@ public class CryptographyFlutterPlugin: NSObject, FlutterPlugin {
                         authenticating: aad)
                     result([
                         "clearText": FlutterStandardTypedData(bytes: clearText),
-                    ])
+                    ] as [String: Any])
                     return
                 } catch CryptoKitError.authenticationFailure {
                     result(FlutterError(
@@ -227,7 +229,7 @@ public class CryptographyFlutterPlugin: NSObject, FlutterPlugin {
                         authenticating: aad)
                     result([
                         "clearText": FlutterStandardTypedData(bytes: clearText),
-                    ])
+                    ] as [String: Any])
                     return
                 } catch CryptoKitError.authenticationFailure {
                     result(FlutterError(
@@ -274,7 +276,7 @@ public class CryptographyFlutterPlugin: NSObject, FlutterPlugin {
                 }
                 result([
                     "mac": FlutterStandardTypedData(bytes: macData),
-                ])
+                ] as [String: Any])
                 return
             case "SHA-512":
                 let mac = HMAC<SHA512>.authenticationCode(
@@ -285,7 +287,7 @@ public class CryptographyFlutterPlugin: NSObject, FlutterPlugin {
                 }
                 result([
                     "mac": FlutterStandardTypedData(bytes: macData),
-                ])
+                ] as [String: Any])
                 return
             default:
                 break;
@@ -324,7 +326,7 @@ public class CryptographyFlutterPlugin: NSObject, FlutterPlugin {
                 }
                 result([
                     "bytes": FlutterStandardTypedData(bytes: sharedSecretData),
-                ])
+                ] as [String: Any])
                 return
             case "p384":
                 let privateKey = try P384.KeyAgreement.PrivateKey(derRepresentation: localDer)
@@ -335,7 +337,7 @@ public class CryptographyFlutterPlugin: NSObject, FlutterPlugin {
                 }
                 result([
                     "bytes": FlutterStandardTypedData(bytes: sharedSecretData),
-                ])
+                ] as [String: Any])
                 return
             case "p521":
                 let privateKey = try P521.KeyAgreement.PrivateKey(derRepresentation: localDer)
@@ -346,7 +348,7 @@ public class CryptographyFlutterPlugin: NSObject, FlutterPlugin {
                 }
                 result([
                     "bytes": FlutterStandardTypedData(bytes: sharedSecretData),
-                ])
+                ] as [String: Any])
                 return
             default:
                 break;
@@ -384,7 +386,7 @@ public class CryptographyFlutterPlugin: NSObject, FlutterPlugin {
                     "der": FlutterStandardTypedData(bytes: privateKey.derRepresentation),
                     "publicKeyDer": FlutterStandardTypedData(bytes: privateKey.publicKey.derRepresentation),
                     "publicKeyPem": privateKey.publicKey.pemRepresentation,
-                ])
+                ] as [String: Any])
                 return
             case "p384":
                 var privateKey: P384.Signing.PrivateKey
@@ -399,7 +401,7 @@ public class CryptographyFlutterPlugin: NSObject, FlutterPlugin {
                     "der": FlutterStandardTypedData(bytes: privateKey.derRepresentation),
                     "publicKeyDer": FlutterStandardTypedData(bytes: privateKey.publicKey.derRepresentation),
                     "publicKeyPem": privateKey.publicKey.pemRepresentation,
-                ])
+                ] as [String: Any])
                 return
             case "p521":
                 var privateKey: P521.Signing.PrivateKey
@@ -414,7 +416,7 @@ public class CryptographyFlutterPlugin: NSObject, FlutterPlugin {
                     "der": FlutterStandardTypedData(bytes: privateKey.derRepresentation),
                     "publicKeyDer": FlutterStandardTypedData(bytes: privateKey.publicKey.derRepresentation),
                     "publicKeyPem": privateKey.publicKey.pemRepresentation,
-                ])
+                ] as [String: Any])
                 return
             default:
                 break;
@@ -444,21 +446,21 @@ public class CryptographyFlutterPlugin: NSObject, FlutterPlugin {
                 let signature = try privateKey.signature(for: data)
                 result([
                     "signature": FlutterStandardTypedData(bytes: signature.rawRepresentation),
-                ])
+                ] as [String: Any])
                 return
             case "p384":
                 let privateKey = try P384.Signing.PrivateKey(derRepresentation: der)
                 let signature = try privateKey.signature(for: data)
                 result([
                     "signature": FlutterStandardTypedData(bytes: signature.rawRepresentation),
-                ])
+                ] as [String: Any])
                 return
             case "p521":
                 let privateKey = try P521.Signing.PrivateKey(derRepresentation: der)
                 let signature = try privateKey.signature(for: data)
                 result([
                     "signature": FlutterStandardTypedData(bytes: signature.rawRepresentation),
-                ])
+                ] as [String: Any])
                 return
             default:
                 break;
@@ -493,7 +495,7 @@ public class CryptographyFlutterPlugin: NSObject, FlutterPlugin {
                 ok = publicKey.isValidSignature(signature, for: data)
                 result([
                     "result": ok,
-                ])
+                ] as [String: Any])
                 return
             case "p384":
                 let publicKey = try P384.Signing.PublicKey(derRepresentation: der)
@@ -501,7 +503,7 @@ public class CryptographyFlutterPlugin: NSObject, FlutterPlugin {
                 ok = publicKey.isValidSignature(signature, for: data)
                 result([
                     "result": ok,
-                ])
+                ] as [String: Any])
                 return
             case "p521":
                 let publicKey = try P521.Signing.PublicKey(derRepresentation: der)
@@ -509,7 +511,7 @@ public class CryptographyFlutterPlugin: NSObject, FlutterPlugin {
                 ok = publicKey.isValidSignature(signature, for: data)
                 result([
                     "result": ok,
-                ])
+                ] as [String: Any])
                 return
             default:
                 break
@@ -531,7 +533,7 @@ public class CryptographyFlutterPlugin: NSObject, FlutterPlugin {
             result([
                 "privateKey": FlutterStandardTypedData(bytes: privateKey.rawRepresentation),
                 "publicKey": FlutterStandardTypedData(bytes: publicKey.rawRepresentation),
-            ])
+            ] as [String: Any])
             return
         }
         result(FlutterError(code: "UNSUPPORTED_ALGORITHM", message:nil, details: nil))
@@ -551,7 +553,7 @@ public class CryptographyFlutterPlugin: NSObject, FlutterPlugin {
             let signature = try privateKey.signature(for: data)
             result([
                 "signature": FlutterStandardTypedData(bytes: signature),
-            ])
+            ] as [String: Any])
             return
         }
         result(FlutterError(code: "UNSUPPORTED_ALGORITHM", message:nil, details: nil))
@@ -575,7 +577,7 @@ public class CryptographyFlutterPlugin: NSObject, FlutterPlugin {
             let ok = publicKey.isValidSignature(signature, for: data)
             result([
                 "ok": ok,
-            ])
+            ] as [String: Any])
             return
         }
         result(FlutterError(code: "UNSUPPORTED_ALGORITHM", message:nil, details: nil))
@@ -594,7 +596,7 @@ public class CryptographyFlutterPlugin: NSObject, FlutterPlugin {
             result([
                 "privateKey": FlutterStandardTypedData(bytes: privateKey.rawRepresentation),
                 "publicKey": FlutterStandardTypedData(bytes: publicKey.rawRepresentation),
-            ])
+            ] as [String: Any])
             return
         }
         result(FlutterError(code: "UNSUPPORTED_ALGORITHM", message:nil, details: nil))
@@ -618,7 +620,7 @@ public class CryptographyFlutterPlugin: NSObject, FlutterPlugin {
             }
             result([
                 "sharedSecretKey": FlutterStandardTypedData(bytes: sharedSecretData),
-            ])
+            ] as [String: Any])
             return
         }
         result(FlutterError(code: "UNSUPPORTED_ALGORITHM", message:nil, details: nil))

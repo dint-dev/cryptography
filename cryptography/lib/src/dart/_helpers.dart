@@ -29,7 +29,7 @@ void checkSystemIsLittleEndian() {
 }
 
 /// A helper for using "package:crypto" hash algorithms.
-class PackageCryptoDigestCaptureSink extends Sink<other.Digest> {
+class PackageCryptoDigestCaptureSink implements Sink<other.Digest> {
   Hash? _result;
 
   PackageCryptoDigestCaptureSink();

@@ -23,7 +23,9 @@ import 'package:test/test.dart';
 
 import '../hex.dart';
 
-void testHmac() {}
+void testHmac() {
+  _testHmac(Hmac.sha256());
+}
 
 void _testHmac(Hmac hmac) {
   test('newSink(): empty key fails', () async {
