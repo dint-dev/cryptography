@@ -115,10 +115,10 @@ abstract class Cryptography {
   });
 
   /// A factory used by [Blake2b].
-  Blake2b blake2b();
+  Blake2b blake2b({int hashLengthInBytes = 64});
 
   /// A factory used by [Blake2s].
-  Blake2s blake2s();
+  Blake2s blake2s({int hashLengthInBytes = 32});
 
   /// A factory used by [Chacha20].
   Chacha20 chacha20({required MacAlgorithm macAlgorithm});

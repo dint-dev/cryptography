@@ -548,11 +548,20 @@ abstract class Argon2id extends KdfAlgorithm {
       ')';
 }
 
-/// _BLAKE2B_ ([RFC 7693](https://tools.ietf.org/html/rfc7693)) [HashAlgorithm].
+/// _BLAKE2B_ ([RFC 7693](https://tools.ietf.org/html/rfc7693)), which can be
+/// used both as [HashAlgorithm] and [MacAlgorithm].
 ///
 /// By default, [DartBlake2b] will be used.
 ///
-/// ## Asynchronous usage
+/// ## Things to know
+///   * The default [hashLengthInBytes] / [macLength] is 64 bytes. You can
+///     choose a shorter hash length when you call the constructor. You should
+///     NOT truncate the hash yourself.
+///   * The algorithm was designed to be used directly as [MacAlgorithm] (no
+///     [Hmac] needed). Maximum secret key size is 64 bytes.
+///   * Blake2 hash/MAC function family includes also [Blake2s].
+///
+/// ## Example: Hashing a byte list
 /// ```
 /// import 'package:cryptography/cryptography.dart';
 ///
@@ -566,7 +575,7 @@ abstract class Argon2id extends KdfAlgorithm {
 ///
 /// If you need synchronous computations, use [DartBlake2b].
 ///
-/// ## Streaming usage
+/// ## Example: Hashing a sequence of chunks
 /// ```
 /// import 'package:cryptography/cryptography.dart';
 ///
@@ -587,14 +596,47 @@ abstract class Argon2id extends KdfAlgorithm {
 ///   print('Hash: ${hash.bytes}');
 /// }
 /// ```
-abstract class Blake2b extends HashAlgorithm {
-  factory Blake2b() {
-    return Cryptography.instance.blake2b();
+abstract class Blake2b extends HashAlgorithm implements MacAlgorithm {
+  /// Default value of [hashLengthInBytes] and [macLength].
+  static const int defaultHashLengthInBytes = 64;
+
+  factory Blake2b({
+    int hashLengthInBytes = defaultHashLengthInBytes,
+  }) {
+    if (hashLengthInBytes < 1 || hashLengthInBytes > defaultHashLengthInBytes) {
+      throw ArgumentError.value(hashLengthInBytes);
+    }
+    return Cryptography.instance.blake2b(
+      hashLengthInBytes: hashLengthInBytes,
+    );
   }
 
-  /// Constructor for classes that extend this class.
+  /// Constructor for subclasses.
+  const Blake2b.constructor({
+    this.hashLengthInBytes = defaultHashLengthInBytes,
+  })  : assert(hashLengthInBytes > 0),
+        assert(hashLengthInBytes <= defaultHashLengthInBytes);
 
-  const Blake2b.constructor();
+  @override
+  void checkParameters({
+    int? length,
+    required SecretKey secretKey,
+    required int nonceLength,
+    required int aadLength,
+    required int keyStreamIndex,
+  }) {}
+
+  @override
+  int get keyStreamUsed => 0;
+
+  @override
+  int get macLength => hashLengthInBytes;
+
+  @override
+  bool get supportsAad => false;
+
+  @override
+  bool get supportsKeyStreamIndex => false;
 
   @override
   int get blockLengthInBytes => 64;
@@ -603,20 +645,39 @@ abstract class Blake2b extends HashAlgorithm {
   int get hashCode => (Blake2b).hashCode;
 
   @override
-  int get hashLengthInBytes => 64;
+  final int hashLengthInBytes;
 
   @override
   bool operator ==(other) => other is Blake2b;
 
   @override
-  DartHashAlgorithm toSync() => const DartBlake2b();
+  DartBlake2b toSync() => DartBlake2b(
+        hashLengthInBytes: hashLengthInBytes,
+      );
+
+  @override
+  String toString() {
+    if (hashLengthInBytes == defaultHashLengthInBytes) {
+      return 'Blake2b()';
+    }
+    return 'Blake2b(hashLengthInBytes: $hashLengthInBytes)';
+  }
 }
 
-/// _BLAKE2S_ ([RFC 7693](https://tools.ietf.org/html/rfc7693)) [HashAlgorithm].
+/// _BLAKE2S_ ([RFC 7693](https://tools.ietf.org/html/rfc7693)), which can be
+/// used both as [HashAlgorithm] and [MacAlgorithm].
 ///
-/// By default, [DartBlake2s], our pure Dart implementation, will be used.
+/// By default, [DartBlake2s] will be used.
 ///
-/// ## Asynchronous usage
+/// ## Things to know
+///   * The default [hashLengthInBytes] / [macLength] is 32 bytes. You can
+///     choose a shorter hash length when you call the constructor. You should
+///     NOT truncate the hash yourself.
+///   * The algorithm was designed to be used directly as [MacAlgorithm] (no
+///     [Hmac] needed). Maximum secret key size is 32 bytes.
+///   * Blake2 hash/MAC function family includes also [Blake2b].
+///
+/// ## Example: Hashing a byte list
 /// ```dart
 /// import 'package:cryptography/cryptography.dart';
 ///
@@ -628,7 +689,7 @@ abstract class Blake2b extends HashAlgorithm {
 /// }
 /// ```
 ///
-/// ## Streaming usage
+/// ## Example: Hashing a sequence of chunks
 /// ```dart
 /// import 'package:cryptography/cryptography.dart';
 ///
@@ -650,14 +711,26 @@ abstract class Blake2b extends HashAlgorithm {
 /// }
 /// ```
 ///
-abstract class Blake2s extends HashAlgorithm {
-  factory Blake2s() {
-    return Cryptography.instance.blake2s();
+abstract class Blake2s extends HashAlgorithm implements MacAlgorithm {
+  /// Default value of [hashLengthInBytes] and [macLength].
+  static const int defaultHashLengthInBytes = 32;
+
+  factory Blake2s({
+    int hashLengthInBytes = defaultHashLengthInBytes,
+  }) {
+    if (hashLengthInBytes < 1 || hashLengthInBytes > defaultHashLengthInBytes) {
+      throw ArgumentError.value(hashLengthInBytes);
+    }
+    return Cryptography.instance.blake2s(
+      hashLengthInBytes: hashLengthInBytes,
+    );
   }
 
-  /// Constructor for classes that extend this class.
-
-  const Blake2s.constructor();
+  /// Constructor for subclasses.
+  const Blake2s.constructor({
+    this.hashLengthInBytes = defaultHashLengthInBytes,
+  })  : assert(hashLengthInBytes > 0),
+        assert(hashLengthInBytes <= defaultHashLengthInBytes);
 
   @override
   int get blockLengthInBytes => 32;
@@ -666,13 +739,44 @@ abstract class Blake2s extends HashAlgorithm {
   int get hashCode => (Blake2s).hashCode;
 
   @override
-  int get hashLengthInBytes => 32;
+  final int hashLengthInBytes;
+
+  @override
+  void checkParameters({
+    int? length,
+    required SecretKey secretKey,
+    required int nonceLength,
+    required int aadLength,
+    required int keyStreamIndex,
+  }) {}
+
+  @override
+  int get keyStreamUsed => 0;
+
+  @override
+  int get macLength => hashLengthInBytes;
+
+  @override
+  bool get supportsAad => false;
+
+  @override
+  bool get supportsKeyStreamIndex => false;
 
   @override
   bool operator ==(other) => other is Blake2s;
 
   @override
-  DartHashAlgorithm toSync() => const DartBlake2s();
+  String toString() {
+    if (hashLengthInBytes == defaultHashLengthInBytes) {
+      return 'Blake2s()';
+    }
+    return 'Blake2s(hashLengthInBytes: $hashLengthInBytes)';
+  }
+
+  @override
+  DartBlake2s toSync() => DartBlake2s(
+        hashLengthInBytes: hashLengthInBytes,
+      );
 }
 
 /// _ChaCha20_ ([RFC 7539](https://tools.ietf.org/html/rfc7539))

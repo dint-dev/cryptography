@@ -24,7 +24,9 @@ import 'package:cryptography/dart.dart';
 /// You can compute a [Mac] by calling [calculateMac] or [newMacSink].
 ///
 /// ## Available algorithms
-///   * [Hmac]
+///   * [Blake2b]
+///   * [Blake2s]
+///   * [Hmac] (with any hash algorithm)
 ///   * [Poly1305]
 ///
 /// ## Not using MAC?
@@ -137,20 +139,6 @@ abstract class MacAlgorithm {
     }
     return _MacSink(
       this,
-      secretKey: secretKey,
-      nonce: nonce,
-      aad: aad,
-    );
-  }
-
-  /// {@nodoc}
-  @Deprecated('Use newMacSink()')
-  Future<MacSink> newSink({
-    required SecretKey secretKey,
-    List<int> nonce = const <int>[],
-    List<int> aad = const <int>[],
-  }) {
-    return newMacSink(
       secretKey: secretKey,
       nonce: nonce,
       aad: aad,

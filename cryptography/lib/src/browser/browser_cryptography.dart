@@ -31,7 +31,7 @@ import 'hkdf.dart';
 import 'hmac.dart';
 import 'pbkdf2.dart';
 
-class BrowserCryptography extends DartCryptography {
+base class BrowserCryptography extends DartCryptography {
   // Documented in browser_cryptography_when_not_browser.dart
   static final Cryptography defaultInstance =
       isSupported ? BrowserCryptography() : DartCryptography();

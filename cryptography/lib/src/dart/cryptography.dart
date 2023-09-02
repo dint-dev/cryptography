@@ -113,10 +113,24 @@ class DartCryptography extends Cryptography {
   }
 
   @override
-  Blake2b blake2b() => const DartBlake2b();
+  Blake2b blake2b({int hashLengthInBytes = 64}) {
+    if (hashLengthInBytes == 64) {
+      return const DartBlake2b();
+    }
+    return DartBlake2b(
+      hashLengthInBytes: hashLengthInBytes,
+    );
+  }
 
   @override
-  Blake2s blake2s() => const DartBlake2s();
+  Blake2s blake2s({int hashLengthInBytes = 32}) {
+    if (hashLengthInBytes == 64) {
+      return const DartBlake2s();
+    }
+    return DartBlake2s(
+      hashLengthInBytes: hashLengthInBytes,
+    );
+  }
 
   @override
   Chacha20 chacha20({required MacAlgorithm macAlgorithm}) {

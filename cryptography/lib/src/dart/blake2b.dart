@@ -22,11 +22,36 @@ import 'blake2b_impl_vm.dart'
 ///
 /// For examples and more information about the algorithm, see documentation for
 /// the class [Blake2b].
-class DartBlake2b extends Blake2b with DartHashAlgorithmMixin {
-  const DartBlake2b() : super.constructor();
+class DartBlake2b extends Blake2b
+    with DartHashAlgorithmMixin, DartMacAlgorithmMixin {
+  const DartBlake2b({
+    super.hashLengthInBytes = Blake2b.defaultHashLengthInBytes,
+  }) : super.constructor();
+
+  @override
+  DartBlake2b toSync() {
+    return this;
+  }
+
+  @override
+  DartMacSinkMixin newMacSinkSync({
+    required SecretKeyData secretKeyData,
+    List<int> nonce = const <int>[],
+    List<int> aad = const <int>[],
+  }) {
+    return Blake2bSink(
+      hashLengthInBytes: hashLengthInBytes,
+    )..initializeSync(
+        secretKey: secretKeyData,
+        nonce: nonce,
+        aad: aad,
+      );
+  }
 
   @override
   DartHashSink newHashSink() {
-    return Blake2bSink();
+    return Blake2bSink(
+      hashLengthInBytes: hashLengthInBytes,
+    );
   }
 }

@@ -16,10 +16,21 @@ import 'dart:typed_data';
 
 import 'package:cryptography/src/utils.dart';
 
+import '../../cryptography.dart';
 import '../../dart.dart';
 import '_helpers.dart';
 
-class Blake2bSink extends DartHashSink {
+/// Block size (in bytes).
+const _blockSizeInBytes = 128;
+
+/// Maximum key size (in bytes).
+const _maxHashSizeInBytes = 64;
+
+/// Maximum key size (in bytes).
+const _maxKeySizeInBytes = 64;
+
+class Blake2bSink extends DartHashSink with DartMacSinkMixin {
+  /// Initialization vector.
   static const List<int> _initializationVector = <int>[
     // 0
     0xF3BCC908,
@@ -46,7 +57,10 @@ class Blake2bSink extends DartHashSink {
     0x137E2179,
     0x5BE0CD19,
   ];
+
   static const _bit32 = uint32mask + 1;
+
+  /// Sigma values.
   static const _sigma = <int>[
     0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, // 16 bytes
     14, 10, 4, 8, 9, 15, 13, 6, 1, 12, 0, 2, 11, 7, 5, 3,
@@ -62,30 +76,47 @@ class Blake2bSink extends DartHashSink {
     14, 10, 4, 8, 9, 15, 13, 6, 1, 12, 0, 2, 11, 7, 5, 3
   ];
 
-  final _hash = Uint32List(32);
+  /// Hash: 16 x uint32
+  final _hash = Uint32List(16);
 
+  /// Hash: N bytes (N <= 32)
   @override
   late final Uint8List hashBytes = Uint8List.view(
     _hash.buffer,
     0,
-    64,
+    hashLengthInBytes,
   );
 
+  /// Buffer for writing data: 32 x uint32
   final _bufferAsUint32List = Uint32List(32);
+
+  /// Buffer for writing data: 64 bytes
   late final Uint8List _bufferAsBytes = Uint8List.view(
     _bufferAsUint32List.buffer,
   );
+
+  /// Total length so far.
   int _length = 0;
+
+  /// Whether [close] was called.
   bool _isClosed = false;
 
+  /// State of the hash: 32 x uint32
   final _localValues = Uint32List(32);
 
-  Blake2bSink() {
+  /// Hash length in bytes (constructor parameter).
+  final int hashLengthInBytes;
+
+  Blake2bSink({
+    required this.hashLengthInBytes,
+  }) {
     checkSystemIsLittleEndian();
 
-    final h = _hash;
-    h.setAll(0, _initializationVector);
-    h[0] ^= 0x01010000 ^ 64;
+    if (hashLengthInBytes < 1 || hashLengthInBytes > _maxHashSizeInBytes) {
+      throw ArgumentError.value(hashLengthInBytes);
+    }
+
+    _initialize(key: null);
   }
 
   @override
@@ -93,6 +124,9 @@ class Blake2bSink extends DartHashSink {
 
   @override
   int get length => _length;
+
+  @override
+  Uint8List get macBytes => hashBytes;
 
   @override
   void addSlice(List<int> chunk, int start, int end, bool isLast) {
@@ -104,13 +138,13 @@ class Blake2bSink extends DartHashSink {
     var length = _length;
     for (var i = start; i < end; i++) {
       // Compress?
-      if (length % 64 == 0 && length > 0) {
+      if (length % _blockSizeInBytes == 0 && length > 0) {
         _length = length;
         _compress(false);
       }
 
       // Set byte
-      bufferAsBytes[length % 64] = chunk[i];
+      bufferAsBytes[length % _blockSizeInBytes] = chunk[i];
 
       // Increment length
       length++;
@@ -133,23 +167,30 @@ class Blake2bSink extends DartHashSink {
 
     // Unfinished block?
     final length = _length;
-    for (var i = length % 64; i < 64; i++) {
-      _bufferAsBytes[i] = 0;
+    if (length == 0 || length % _blockSizeInBytes != 0) {
+      for (var i = length % _blockSizeInBytes; i < _blockSizeInBytes; i++) {
+        _bufferAsBytes[i] = 0;
+      }
     }
     _compress(true);
   }
 
   @override
-  void reset() {
-    _isClosed = false;
-    _length = 0;
-    _bufferAsUint32List.fillRange(0, _bufferAsUint32List.length, 0);
-    _localValues.fillRange(0, _localValues.length, 0);
+  void initializeSync({
+    required SecretKeyData secretKey,
+    required List<int> nonce,
+    List<int> aad = const [],
+  }) {
+    final secretKeyBytes = secretKey.bytes;
+    if (secretKeyBytes.length > _maxKeySizeInBytes) {
+      throw ArgumentError.value(hashLengthInBytes, 'secretKey');
+    }
+    _initialize(key: secretKeyBytes);
+  }
 
-    final h = _hash;
-    h.setAll(0, _initializationVector);
-    h.fillRange(_initializationVector.length, h.length, 0);
-    h[0] ^= 0x01010000 ^ 64;
+  @override
+  void reset() {
+    _initialize(key: null);
   }
 
   void _compress(bool isLast) {
@@ -203,6 +244,30 @@ class Blake2bSink extends DartHashSink {
     // Copy.
     for (var i = 0; i < 16; i++) {
       h[i] = h[i] ^ v[i] ^ v[16 + i];
+    }
+  }
+
+  void _initialize({
+    required List<int>? key,
+  }) {
+    _isClosed = false;
+    _length = 0;
+    _bufferAsUint32List.fillRange(0, _bufferAsUint32List.length, 0);
+    _localValues.fillRange(0, _localValues.length, 0);
+
+    final h = _hash;
+    h.setAll(0, _initializationVector);
+    h[0] ^=
+        0x01010000 ^ (key == null ? 0 : key.length << 8) ^ hashLengthInBytes;
+
+    // If we have a key, add it
+    if (key != null) {
+      final keyLength = key.length;
+      if (keyLength > _maxKeySizeInBytes) {
+        throw ArgumentError();
+      }
+      add(key);
+      add(Uint8List(_blockSizeInBytes - keyLength % _blockSizeInBytes));
     }
   }
 

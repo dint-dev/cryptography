@@ -1,3 +1,14 @@
+## 2.6.0
+* Improves Blake2b/Blake2s support:
+  * Adds support for using as a MAC algorithm
+  * Adds support for custom output lengths
+  * Improves test coverage
+  * Fixes bugs
+* Removes long-deprecated `newSink()` methods in `HashAlgorithm` and `MacAlgorithm` (so Blake2
+  classes can implement both interfaces).
+* Raises Dart SDK minimum to 3.1.0 and other small changes related to dependency constraints.
+* Improves documentation.
+
 ## 2.5.0
 * Adds enough DER encoding/decoding support for us to use Apple's CryptoKit ECDH/ECDSA functions.
 * Improves BrowserHmac/etc. parameter checks.
