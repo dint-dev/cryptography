@@ -99,14 +99,14 @@ class DartCryptography extends Cryptography {
 
   @override
   Argon2id argon2id({
+    required int memory,
     required int parallelism,
-    required int memorySize,
     required int iterations,
     required int hashLength,
   }) {
     return DartArgon2id(
+      memory: memory,
       parallelism: parallelism,
-      memorySize: memorySize,
       iterations: iterations,
       hashLength: hashLength,
     );

@@ -1,3 +1,9 @@
+## 2.7.0
+* Adds a cross-platform of Argon2id, a highly recommended algorithm for password hashing.
+* Introduces a dependency on "package:ffi" (a package by Google). A memory allocator in the package
+  is used when the Argon2 implementation distributes computation to multiple isolates.
+* Small backwards-compatible changes in Blake2b and DartBlake2b API.
+
 ## 2.6.1
 * Fixes incorrect base class constraints.
 

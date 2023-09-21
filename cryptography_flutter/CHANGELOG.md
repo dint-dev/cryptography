@@ -1,3 +1,6 @@
+## 2.3.2
+* Improves documentation.
+
 ## 2.3.1
 * Raises Dart SDK minimum to 3.1.0 and other small changes related to dependency constraints.
 * Fixes type inference warnings by Swift compiler.

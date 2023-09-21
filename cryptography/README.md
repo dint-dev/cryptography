@@ -33,8 +33,8 @@ Android / iOS / Mac OS X operating system APIs whenever possible.
 In _pubspec.yaml_:
 ```yaml
 dependencies:
-  cryptography: ^2.6.1
-  cryptography_flutter: ^2.3.1 # Remove if you don't use Flutter
+  cryptography: ^2.7.0
+  cryptography_flutter: ^2.3.2 # Remove if you don't use Flutter
 ```
 
 You are ready to go!
@@ -163,14 +163,15 @@ implementations are available:
   curve25519 Diffie-Hellman)
     * Throughput of the pure Dart implementation is around 1000 key agreements per second (in VM).
 
-### Key derivation algorithms
+### Key derivation / password hashing algorithms
 
-The following implementations are available:
+The following [KdfAlgorithm](https://pub.dev/documentation/cryptography/latest/cryptography/KdfAlgorithm-class.html) implementations are available:
 
-* [Hchacha20](https://pub.dev/documentation/cryptography/latest/cryptography/Hchacha20-clas.html)
-* [Hkdf](https://pub.dev/documentation/cryptography/latest/cryptography/Hkdf-class.html) (HKDF)
-* [Pbkdf2](https://pub.dev/documentation/cryptography/latest/cryptography/Pbkdf2-class.html) (
-  PBKDF2)
+* [Hchacha20](https://pub.dev/documentation/cryptography/latest/cryptography/Hchacha20-class.html)
+* [Hkdf](https://pub.dev/documentation/cryptography/latest/cryptography/Hkdf-class.html)
+* [Pbkdf2](https://pub.dev/documentation/cryptography/latest/cryptography/Pbkdf2-class.html)
+* [Argon2id](https://pub.dev/documentation/cryptography/latest/cryptography/Argon2id-class.html)
+  * Argon2id is the recommended algorithm for password hashing.
 
 ## Message authentication codes
 
@@ -389,6 +390,29 @@ Future<void> main() async {
     secretKey: secretKey,
   );
   print('Cleartext: $clearText'); // Hello!
+}
+```
+
+## Password hashing
+In this example, we use [Argon2id](https://pub.dev/documentation/cryptography/latest/cryptography/Argon2id-class.html):
+```dart
+import 'package:cryptography/cryptography.dart';
+
+Future<void> main() async {
+  final algorithm = Argon2id(
+    memory: 10*1000, // 10 MB
+    parallelism: 2, // Use maximum two CPU cores.
+    iterations: 1, // For more security, you should usually raise memory parameter, not iterations.
+    hashLength: 32, // Number of bytes in the returned hash
+  );
+  
+  final secretKey = await algorithm.deriveKeyFromPassword(
+    password: 'qwerty',
+    nonce: [1, 2, 3],
+  );
+  final secretKeyBytes = await secretKey.extractBytes();
+
+  print('Hash: ${secretKeyBytes}');
 }
 ```
 
