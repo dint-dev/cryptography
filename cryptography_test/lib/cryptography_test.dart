@@ -34,6 +34,7 @@
 library cryptography_test;
 
 import 'package:cryptography/cryptography.dart';
+import 'package:cryptography_test/algorithms/argon2.dart';
 import 'package:test/scaffolding.dart';
 
 import 'algorithms/aes_cbc.dart';
@@ -102,4 +103,5 @@ void testCryptography({Cryptography? cryptography}) {
   testHmac();
   testHkdf();
   testPbkdf2();
+  testArgon2();
 }

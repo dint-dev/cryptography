@@ -440,14 +440,37 @@ abstract class AesGcm extends Cipher {
   }
 }
 
-/// _Argon2id_ ([draft-irtf-cfrg-argon2-03](https://tools.ietf.org/html/draft-irtf-cfrg-argon2-03))
-/// password hashing function.
+/// _Argon2id_ ([RFC 9106](https://datatracker.ietf.org/doc/rfc9106/))
+/// memory-hard password hashing function.
 ///
-/// _Argon2_ is known for winning _Password Hashing Competition_ 2015. The
-/// algorithm can provide much better security than older algorithms such as
-/// [Pbkdf2].
+/// _Argon2_ is known for winning _Password Hashing Competition_ 2015. OWASP
+/// [Password Storage Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html)
+/// describes it as first choice for password hashing.
 ///
-/// By default, [DartArgon2id], our pure Dart implementation, will be used.
+/// The default implementation is [DartArgon2id], our pure Dart implementation.
+///
+/// ## Things to know
+///   * You need to choose:
+///     * [memory]
+///       * Number of 1kB blocks of memory needed to compute the hash.
+///       * Higher is better for security. You should experiment what is good
+///         for your system. We recommend to start from 1000 (= 1 MB) and go
+///         as high as you can.
+///     * [parallelism]
+///       * Maximum number of parallel computations.
+///       * You should choose a small number such as 1 or 4.
+///     * [iterations]
+///       * Number of iterations. Higher is better for security, but usually
+///         you should use value `1` because it makes more sense (from security
+///         point of view) to raise [memory] parameter instead.
+///     * [hashLength]
+///       * The value should be at least 16 bytes. More than 32 bytes is
+///         unnecessary from security point of view.
+///   * OWASP [suggests](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html)
+///     the following parameter values:
+///       * memory = 19 MiB of memory
+///       * parallelism = 1
+///       * iterations = 2
 ///
 /// ## Example
 /// ```
@@ -455,8 +478,8 @@ abstract class AesGcm extends Cipher {
 ///
 /// Future<void> main() async {
 ///   final algorithm = Argon2id(
-///     parallelism: 3,
-///     memorySize: 10000000,
+///     parallelism: 4,
+///     memory: 10000, // 10 000 x 1kB block = 10 MB
 ///     iterations: 3,
 ///     hashLength: 32,
 ///   );
@@ -479,13 +502,13 @@ abstract class AesGcm extends Cipher {
 abstract class Argon2id extends KdfAlgorithm {
   factory Argon2id({
     required int parallelism,
-    required int memorySize,
+    required int memory,
     required int iterations,
     required int hashLength,
   }) {
     return Cryptography.instance.argon2id(
       parallelism: parallelism,
-      memorySize: memorySize,
+      memory: memory,
       iterations: iterations,
       hashLength: hashLength,
     );
@@ -495,7 +518,7 @@ abstract class Argon2id extends KdfAlgorithm {
   const Argon2id.constructor();
 
   @override
-  int get hashCode => parallelism ^ memorySize ^ iterations ^ hashLength;
+  int get hashCode => parallelism ^ memory ^ iterations ^ hashLength;
 
   /// Hash length.
   int get hashLength;
@@ -503,9 +526,8 @@ abstract class Argon2id extends KdfAlgorithm {
   /// Number of iterations.
   int get iterations;
 
-  /// Minimum number of bytes attacker needs to store in memory for each
-  /// attempt.
-  int get memorySize;
+  /// Minimum number of 1 kB blocks needed to compute the hash.
+  int get memory;
 
   /// Maximum number of processors attacker can use concurrently for each
   /// attempt.
@@ -513,13 +535,13 @@ abstract class Argon2id extends KdfAlgorithm {
 
   /// Argon2id algorithm version number.
   @nonVirtual
-  int get version => 0x13;
+  int get version => 19;
 
   @override
   bool operator ==(other) =>
       other is Argon2id &&
       parallelism == other.parallelism &&
-      memorySize == other.memorySize &&
+      memory == other.memory &&
       iterations == other.iterations &&
       hashLength == other.hashLength;
 
@@ -535,14 +557,14 @@ abstract class Argon2id extends KdfAlgorithm {
   Future<SecretKey> deriveKey({
     required SecretKey secretKey,
     required List<int> nonce,
-    List<int> k = const <int>[],
-    List<int> ad = const <int>[],
+    List<int> optionalSecret = const <int>[],
+    List<int> associatedData = const <int>[],
   });
 
   @override
-  String toString() => 'Argon2id(\n'
+  String toString() => '$runtimeType(\n'
       '  parallelism: $parallelism,\n'
-      '  memorySize: $memorySize,\n'
+      '  memory: $memory,\n'
       '  iterations: $iterations,\n'
       '  hashLength: $hashLength,\n'
       ')';
@@ -616,6 +638,19 @@ abstract class Blake2b extends HashAlgorithm implements MacAlgorithm {
     this.hashLengthInBytes = defaultHashLengthInBytes,
   })  : assert(hashLengthInBytes > 0),
         assert(hashLengthInBytes <= defaultHashLengthInBytes);
+
+  /// Enables you to replace [hashLengthInBytes].
+  ///
+  /// Subclasses should replace this with their own implementation.
+  Blake2b replace({int? hashLength}) {
+    hashLength ??= hashLengthInBytes;
+    if (hashLength == hashLengthInBytes) {
+      return this;
+    }
+    return Blake2b(
+      hashLengthInBytes: hashLength,
+    );
+  }
 
   @override
   void checkParameters({

@@ -108,8 +108,8 @@ abstract class Cryptography {
 
   /// A factory used by [Argon2id].
   Argon2id argon2id({
+    required int memory,
     required int parallelism,
-    required int memorySize,
     required int iterations,
     required int hashLength,
   });

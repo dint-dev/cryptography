@@ -34,7 +34,18 @@ class DartBlake2b extends Blake2b
   }
 
   @override
-  DartMacSinkMixin newMacSinkSync({
+  DartBlake2b replace({int? hashLength}) {
+    hashLength ??= hashLengthInBytes;
+    if (hashLength == hashLengthInBytes) {
+      return this;
+    }
+    return DartBlake2b(
+      hashLengthInBytes: hashLength,
+    );
+  }
+
+  @override
+  Blake2bSink newMacSinkSync({
     required SecretKeyData secretKeyData,
     List<int> nonce = const <int>[],
     List<int> aad = const <int>[],
@@ -49,7 +60,7 @@ class DartBlake2b extends Blake2b
   }
 
   @override
-  DartHashSink newHashSink() {
+  Blake2bSink newHashSink() {
     return Blake2bSink(
       hashLengthInBytes: hashLengthInBytes,
     );

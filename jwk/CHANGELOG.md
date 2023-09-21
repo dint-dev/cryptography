@@ -1,3 +1,6 @@
+## 0.2.4
+* Improves documentation.
+
 ## 0.2.3
 * Raises Dart SDK minimum to 3.1.0.
 

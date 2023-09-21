@@ -11,8 +11,8 @@ Licensed under the [Apache License 2.0](LICENSE).
 In _pubspec.yaml_
 ```yaml
 dependencies:
-  cryptography: ^2.5.1
-  jwk: ^0.2.3
+  cryptography: ^2.7.0
+  jwk: ^0.2.4
 ```
 
 # Examples
