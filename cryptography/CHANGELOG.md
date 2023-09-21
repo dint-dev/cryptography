@@ -1,3 +1,6 @@
+## 2.6.1
+* Fixes incorrect base class constraints.
+
 ## 2.6.0
 * Improves Blake2b/Blake2s support:
   * Adds support for using as a MAC algorithm

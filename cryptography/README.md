@@ -33,7 +33,7 @@ Android / iOS / Mac OS X operating system APIs whenever possible.
 In _pubspec.yaml_:
 ```yaml
 dependencies:
-  cryptography: ^2.5.1
+  cryptography: ^2.6.1
   cryptography_flutter: ^2.3.1 # Remove if you don't use Flutter
 ```
 

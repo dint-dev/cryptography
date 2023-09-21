@@ -79,7 +79,7 @@ abstract class DelegatingCipher implements Cipher {
 }
 
 /// Delegating base class for [Cryptography] implementations.
-abstract base class DelegatingCryptography implements Cryptography {
+abstract class DelegatingCryptography implements Cryptography {
   const DelegatingCryptography();
 
   Cryptography get fallback;
