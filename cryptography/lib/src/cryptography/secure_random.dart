@@ -15,7 +15,7 @@
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:cryptography/dart.dart';
+import 'package:cryptography_plus/dart.dart';
 import 'package:meta/meta.dart';
 
 const _bit20 = 0x100000;
@@ -54,7 +54,7 @@ abstract class SecureRandom implements Random {
   ///
   /// ## Example
   /// ```dart
-  /// import 'package:cryptography/random.dart';
+  /// import 'package:cryptography_plus/random.dart';
   ///
   /// void main() {
   ///   final random = SecureRandom.instance;
@@ -89,7 +89,7 @@ abstract class SecureRandom implements Random {
   ///
   /// ## Example
   /// ```dart
-  /// import 'package:cryptography/cryptography.dart';
+  /// import 'package:cryptography_plus/cryptography_plus.dart';
   ///
   /// void main() {
   ///   final random = SecureRandom.forTesting(seed: 0);

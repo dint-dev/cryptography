@@ -14,7 +14,7 @@
 
 import 'dart:async';
 
-import 'package:cryptography/cryptography.dart';
+import 'package:cryptography_plus/cryptography_plus.dart';
 
 /// A mixin for pure Dart implementations of [KeyExchangeAlgorithm].
 mixin DartKeyExchangeAlgorithmMixin implements KeyExchangeAlgorithm {
@@ -35,7 +35,7 @@ mixin DartKeyExchangeAlgorithmMixin implements KeyExchangeAlgorithm {
   /// ## Example
   /// In this example, we use [DartX25519] class:
   /// ```dart
-  /// import 'package:cryptography/cryptography.dart';
+  /// import 'package:cryptography_plus/cryptography_plus.dart';
   ///
   /// void main() async {
   ///   final algorithm = DartX25519();

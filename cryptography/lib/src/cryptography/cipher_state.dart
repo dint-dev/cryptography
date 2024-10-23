@@ -15,7 +15,7 @@
 import 'dart:async';
 import 'dart:typed_data';
 
-import '../../cryptography.dart';
+import '../../cryptography_plus.dart';
 
 /// A state of [Cipher], which helps you to encrypt or decrypt data that does
 /// not fit in memory.

@@ -14,8 +14,8 @@
 
 import 'dart:async';
 
-import 'package:cryptography/cryptography.dart';
-import 'package:cryptography_flutter/cryptography_flutter.dart';
+import 'package:cryptography_plus/cryptography_plus.dart';
+import 'package:cryptography_flutter_plus/cryptography_flutter_plus.dart';
 import 'package:flutter/foundation.dart';
 
 import '../_internal.dart';

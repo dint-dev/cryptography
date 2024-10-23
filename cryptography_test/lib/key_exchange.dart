@@ -16,10 +16,10 @@
 ///
 /// ## Example
 /// See [testKeyExchangeAlgorithm].
-library cryptography_test.key_exchange_algorithm;
+library cryptography_plus_test.key_exchange_algorithm;
 
-import 'package:cryptography/cryptography.dart';
-import 'package:cryptography/dart.dart';
+import 'package:cryptography_plus/cryptography_plus.dart';
+import 'package:cryptography_plus/dart.dart';
 import 'package:test/test.dart';
 
 import 'hex.dart';

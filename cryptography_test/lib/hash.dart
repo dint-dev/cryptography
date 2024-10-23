@@ -16,13 +16,13 @@
 ///
 /// ## Example
 /// See [testHashAlgorithm].
-library cryptography_test.hash_algorithm;
+library cryptography_plus_test.hash_algorithm;
 
 import 'dart:async';
 import 'dart:typed_data';
 
-import 'package:cryptography/cryptography.dart';
-import 'package:cryptography/dart.dart';
+import 'package:cryptography_plus/cryptography_plus.dart';
+import 'package:cryptography_plus/dart.dart';
 import 'package:test/test.dart';
 
 import 'hex.dart';

@@ -1,6 +1,6 @@
-name: cryptography
+name: cryptography_plus
 version: 2.7.0
-homepage: https://github.com/dint-dev/cryptography
+homepage: https://github.com/emz-hanauer/dart-cryptography
 description:
   Cryptographic algorithms for encryption, digital signatures, key agreement, authentication, and
   hashing. AES, Chacha20, ED25519, X25519, Argon2, and more. Good cross-platform support.
@@ -8,7 +8,7 @@ topics:
   - crypto
 
 environment:
-  sdk: '>=3.1.0 <4.0.0'
+  sdk: ">=3.1.0 <4.0.0"
 
 dependencies:
   #

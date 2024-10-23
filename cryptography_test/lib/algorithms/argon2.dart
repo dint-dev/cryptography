@@ -14,7 +14,7 @@
 
 import 'dart:convert';
 
-import 'package:cryptography/cryptography.dart';
+import 'package:cryptography_plus/cryptography_plus.dart';
 import 'package:test/test.dart';
 
 import '../hex.dart';

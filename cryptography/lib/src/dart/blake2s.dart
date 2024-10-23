@@ -14,9 +14,9 @@
 
 import 'dart:typed_data';
 
-import 'package:cryptography/cryptography.dart';
-import 'package:cryptography/dart.dart';
-import 'package:cryptography/src/dart/_helpers.dart';
+import 'package:cryptography_plus/cryptography_plus.dart';
+import 'package:cryptography_plus/dart.dart';
+import 'package:cryptography_plus/src/dart/_helpers.dart';
 
 import '../_internal/rotate.dart';
 

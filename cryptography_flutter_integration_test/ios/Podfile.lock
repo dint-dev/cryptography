@@ -6,12 +6,12 @@ PODS:
     - Flutter
 
 DEPENDENCIES:
-  - cryptography_flutter (from `.symlinks/plugins/cryptography_flutter/ios`)
+  - cryptography_flutter_plus (from `.symlinks/plugins/cryptography_flutter/ios`)
   - Flutter (from `Flutter`)
   - integration_test (from `.symlinks/plugins/integration_test/ios`)
 
 EXTERNAL SOURCES:
-  cryptography_flutter:
+  cryptography_flutter_plus:
     :path: ".symlinks/plugins/cryptography_flutter/ios"
   Flutter:
     :path: Flutter
@@ -19,7 +19,7 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/integration_test/ios"
 
 SPEC CHECKSUMS:
-  cryptography_flutter: 381bdacc984abcfbe3ca45ef7c76566ff061614c
+  cryptography_flutter_plus: 381bdacc984abcfbe3ca45ef7c76566ff061614c
   Flutter: f04841e97a9d0b0a8025694d0796dd46242b2854
   integration_test: 13825b8a9334a850581300559b8839134b124670
 

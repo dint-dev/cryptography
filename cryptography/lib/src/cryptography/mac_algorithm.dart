@@ -16,8 +16,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:cryptography/cryptography.dart';
-import 'package:cryptography/dart.dart';
+import 'package:cryptography_plus/cryptography_plus.dart';
+import 'package:cryptography_plus/dart.dart';
 
 /// A Message Authentication Code (MAC) algorithm.
 ///
@@ -94,7 +94,7 @@ abstract class MacAlgorithm {
   ///
   /// ## Example
   /// ```
-  /// import 'package:cryptography/cryptography.dart';
+  /// import 'package:cryptography_plus/cryptography_plus.dart';
   ///
   /// void main() {
   ///   final secretKey = SecretKey([1,2,3]);
@@ -156,7 +156,7 @@ abstract class MacAlgorithm {
 ///
 /// ## Example
 /// ```
-/// import 'package:cryptography/cryptography.dart';
+/// import 'package:cryptography_plus/cryptography_plus.dart';
 ///
 /// void main() {
 ///   final secretKey = SecretKey([1,2,3]);

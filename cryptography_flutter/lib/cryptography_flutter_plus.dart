@@ -15,9 +15,9 @@
 /// An optimized version of [package:cryptography](https://pub.dev/packages/cryptography).
 ///
 /// See [FlutterCryptography] for usage instructions.
-library cryptography_flutter;
+library cryptography_flutter_plus;
 
-import 'package:cryptography_flutter/cryptography_flutter.dart';
+import 'package:cryptography_flutter_plus/cryptography_flutter_plus.dart';
 
 export 'src/background/background_aes_gcm.dart';
 export 'src/background/background_chacha20.dart';

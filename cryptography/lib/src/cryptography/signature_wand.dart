@@ -14,7 +14,7 @@
 
 import 'dart:convert';
 
-import '../../cryptography.dart';
+import '../../cryptography_plus.dart';
 
 /// An opaque object that has some key pair and support for [sign].
 ///
@@ -23,7 +23,7 @@ import '../../cryptography.dart';
 ///
 /// ## Example
 /// ```dart
-/// import 'package:cryptography/cryptography.dart';
+/// import 'package:cryptography_plus/cryptography_plus.dart';
 ///
 /// Future<void> main() async {
 ///   final ed25519 = Ed25519();
@@ -42,7 +42,7 @@ abstract class SignatureWand extends Wand {
   ///
   /// ## Example
   /// ```dart
-  /// import 'package:cryptography/cryptography.dart';
+  /// import 'package:cryptography_plus/cryptography_plus.dart';
   ///
   /// Future<void> main() async {
   ///   final ed25519 = Ed25519();
@@ -61,7 +61,7 @@ abstract class SignatureWand extends Wand {
   ///
   /// ## Example
   /// ```dart
-  /// import 'package:cryptography/cryptography.dart';
+  /// import 'package:cryptography_plus/cryptography_plus.dart';
   ///
   /// Future<void> main() async {
   ///   final signedMessage = 'Hello, world!';

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:cryptography/src/dart/ed25519_impl.dart';
+import 'package:cryptography_plus/src/dart/ed25519_impl.dart';
 import 'package:test/test.dart';
 
 void main() {

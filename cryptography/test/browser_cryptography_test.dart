@@ -13,14 +13,14 @@
 // limitations under the License.
 
 @TestOn('chrome')
-import 'package:cryptography/cryptography.dart';
-import 'package:cryptography/dart.dart';
-import 'package:cryptography/src/browser/aes_cbc.dart';
-import 'package:cryptography/src/browser/aes_ctr.dart';
-import 'package:cryptography/src/browser/aes_gcm.dart';
-import 'package:cryptography/src/browser/hash.dart';
-import 'package:cryptography/src/browser/hmac.dart';
-import 'package:cryptography/src/browser/pbkdf2.dart';
+import 'package:cryptography_plus/cryptography_plus.dart';
+import 'package:cryptography_plus/dart.dart';
+import 'package:cryptography_plus/src/browser/aes_cbc.dart';
+import 'package:cryptography_plus/src/browser/aes_ctr.dart';
+import 'package:cryptography_plus/src/browser/aes_gcm.dart';
+import 'package:cryptography_plus/src/browser/hash.dart';
+import 'package:cryptography_plus/src/browser/hmac.dart';
+import 'package:cryptography_plus/src/browser/pbkdf2.dart';
 import 'package:test/expect.dart';
 import 'package:test/scaffolding.dart';
 

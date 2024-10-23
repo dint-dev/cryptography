@@ -14,7 +14,7 @@
 
 import 'dart:typed_data';
 
-import '../../cryptography.dart';
+import '../../cryptography_plus.dart';
 import '_javascript_bindings.dart' as web_crypto;
 
 class BrowserEcKeyPair extends KeyPair implements EcKeyPair {

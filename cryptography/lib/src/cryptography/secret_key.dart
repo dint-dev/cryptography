@@ -17,7 +17,7 @@ import 'dart:typed_data' show Uint8List;
 
 import 'package:meta/meta.dart';
 
-import '../../cryptography.dart';
+import '../../cryptography_plus.dart';
 import '../utils.dart';
 
 /// An opaque reference to a secret sequence of bytes used for encryption and

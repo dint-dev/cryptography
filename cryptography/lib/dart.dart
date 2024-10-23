@@ -15,9 +15,9 @@
 /// Cryptographic algorithms implemented in pure Dart.
 ///
 /// See [DartCryptography].
-library cryptography.dart;
+library cryptography_plus.dart;
 
-import 'package:cryptography/dart.dart';
+import 'package:cryptography_plus/dart.dart';
 
 export 'src/dart/aes_cbc.dart';
 export 'src/dart/aes_ctr.dart';

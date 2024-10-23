@@ -1,9 +1,9 @@
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:cryptography/cryptography.dart';
-import 'package:cryptography/dart.dart';
-import 'package:cryptography/helpers.dart';
+import 'package:cryptography_plus/cryptography_plus.dart';
+import 'package:cryptography_plus/dart.dart';
+import 'package:cryptography_plus/helpers.dart';
 import 'package:meta/meta.dart';
 
 /// _AES-CBC_ (cipher block chaining mode) [Cipher].
@@ -13,7 +13,7 @@ import 'package:meta/meta.dart';
 /// On other platforms, [DartAesCbc] will be used.
 ///
 /// If you use Flutter, you can enable
-/// [cryptography_flutter](https://pub.dev/packages/cryptography_flutter).
+/// [cryptography_flutter](https://pub.dev/packages/cryptography_flutter_plus).
 /// It can improve performance in many cases.
 ///
 /// ## Things to know
@@ -31,7 +31,7 @@ import 'package:meta/meta.dart';
 ///
 /// ## Example
 /// ```dart
-/// import 'package:cryptography/cryptography.dart';
+/// import 'package:cryptography_plus/cryptography_plus.dart';
 ///
 /// Future<void> main() async {
 ///   final message = <int>[1,2,3];
@@ -164,7 +164,7 @@ abstract class AesCbc extends Cipher {
 /// On other platforms, [DartAesCtr] will be used.
 ///
 /// If you use Flutter, you can enable
-/// [cryptography_flutter](https://pub.dev/packages/cryptography_flutter).
+/// [cryptography_flutter](https://pub.dev/packages/cryptography_flutter_plus).
 /// It can improve performance in many cases.
 ///
 /// ## Things to know
@@ -181,7 +181,7 @@ abstract class AesCbc extends Cipher {
 ///
 /// ## Example
 /// ```dart
-/// import 'package:cryptography/cryptography.dart';
+/// import 'package:cryptography_plus/cryptography_plus.dart';
 ///
 /// Future<void> main() async {
 ///   final message = <int>[1,2,3];
@@ -316,7 +316,7 @@ abstract class AesCtr extends StreamingCipher {
 /// On other platforms, [DartAesGcm] will be used.
 ///
 /// If you use Flutter, you can enable
-/// [cryptography_flutter](https://pub.dev/packages/cryptography_flutter).
+/// [cryptography_flutter](https://pub.dev/packages/cryptography_flutter_plus).
 /// It can improve performance in many cases.
 ///
 /// ## Things to know
@@ -334,7 +334,7 @@ abstract class AesCtr extends StreamingCipher {
 ///
 /// ## Example
 /// ```dart
-/// import 'package:cryptography/cryptography.dart';
+/// import 'package:cryptography_plus/cryptography_plus.dart';
 ///
 /// Future<void> main() async {
 ///   final message = <int>[1,2,3];
@@ -474,7 +474,7 @@ abstract class AesGcm extends Cipher {
 ///
 /// ## Example
 /// ```
-/// import 'package:cryptography/cryptography.dart';
+/// import 'package:cryptography_plus/cryptography_plus.dart';
 ///
 /// Future<void> main() async {
 ///   final algorithm = Argon2id(
@@ -497,7 +497,7 @@ abstract class AesGcm extends Cipher {
 /// ## In need of synchronous APIs?
 ///
 /// If you need to perform operations synchronously, use [DartArgon2id] in
-/// _package:cryptography/dart.dart_.
+/// _package:cryptography_plus/dart.dart_.
 ///
 abstract class Argon2id extends KdfAlgorithm {
   factory Argon2id({
@@ -585,7 +585,7 @@ abstract class Argon2id extends KdfAlgorithm {
 ///
 /// ## Example: Hashing a byte list
 /// ```
-/// import 'package:cryptography/cryptography.dart';
+/// import 'package:cryptography_plus/cryptography_plus.dart';
 ///
 /// Future<void> main() async {
 ///   final algorithm = Blake2b();
@@ -599,7 +599,7 @@ abstract class Argon2id extends KdfAlgorithm {
 ///
 /// ## Example: Hashing a sequence of chunks
 /// ```
-/// import 'package:cryptography/cryptography.dart';
+/// import 'package:cryptography_plus/cryptography_plus.dart';
 ///
 /// void main() async {
 ///   final algorithm = Blake2b();
@@ -714,7 +714,7 @@ abstract class Blake2b extends HashAlgorithm implements MacAlgorithm {
 ///
 /// ## Example: Hashing a byte list
 /// ```dart
-/// import 'package:cryptography/cryptography.dart';
+/// import 'package:cryptography_plus/cryptography_plus.dart';
 ///
 /// Future<void> main() async {
 ///   final algorithm = Blake2s();
@@ -726,7 +726,7 @@ abstract class Blake2b extends HashAlgorithm implements MacAlgorithm {
 ///
 /// ## Example: Hashing a sequence of chunks
 /// ```dart
-/// import 'package:cryptography/cryptography.dart';
+/// import 'package:cryptography_plus/cryptography_plus.dart';
 ///
 /// void main() async {
 ///   final algorithm = Blake2s();
@@ -825,7 +825,7 @@ abstract class Blake2s extends HashAlgorithm implements MacAlgorithm {
 /// By default, [DartChacha20] will be used. It is a pure Dart implementation.
 ///
 /// If you use Flutter, you can enable
-/// [cryptography_flutter](https://pub.dev/packages/cryptography_flutter).
+/// [cryptography_flutter](https://pub.dev/packages/cryptography_flutter_plus).
 /// It can improve performance in many cases.
 ///
 /// ## Things to know
@@ -836,7 +836,7 @@ abstract class Blake2s extends HashAlgorithm implements MacAlgorithm {
 ///
 /// ## Example
 /// ```dart
-/// import 'package:cryptography/cryptography.dart';
+/// import 'package:cryptography_plus/cryptography_plus.dart';
 ///
 /// Future<void> main() async {
 ///   final message = <int>[1,2,3];
@@ -886,7 +886,7 @@ abstract class Chacha20 extends StreamingCipher {
   /// on _ChaCha20_.
   ///
   /// If you use Flutter, you can enable
-  /// [cryptography_flutter](https://pub.dev/packages/cryptography_flutter).
+  /// [cryptography_flutter](https://pub.dev/packages/cryptography_flutter_plus).
   /// It can improve performance in many cases.
   ///
   /// ## Things to know
@@ -897,7 +897,7 @@ abstract class Chacha20 extends StreamingCipher {
   ///
   /// ## Example
   /// ```dart
-  /// import 'package:cryptography/cryptography.dart';
+  /// import 'package:cryptography_plus/cryptography_plus.dart';
   ///
   /// Future<void> main() async {
   ///   final message = <int>[1,2,3];
@@ -970,7 +970,7 @@ abstract class Chacha20 extends StreamingCipher {
 /// On other platforms, [DartEcdh] will be used.
 ///
 /// If you use Flutter, you can enable
-/// [cryptography_flutter](https://pub.dev/packages/cryptography_flutter).
+/// [cryptography_flutter](https://pub.dev/packages/cryptography_flutter_plus).
 /// It can improve performance in many cases.
 ///
 /// ## Things to know
@@ -981,7 +981,7 @@ abstract class Chacha20 extends StreamingCipher {
 ///
 /// ## Example
 /// ```dart
-/// import 'package:cryptography/cryptography.dart';
+/// import 'package:cryptography_plus/cryptography_plus.dart';
 ///
 /// Future<void> main() async {
 ///   final algorithm = Ecdh.p256();
@@ -1051,7 +1051,7 @@ abstract class Ecdh extends KeyExchangeAlgorithm {
 /// On other platforms, [DartEcdsa] will be used.
 ///
 /// If you use Flutter, you can enable
-/// [cryptography_flutter](https://pub.dev/packages/cryptography_flutter).
+/// [cryptography_flutter](https://pub.dev/packages/cryptography_flutter_plus).
 /// It can improve performance in many cases.
 ///
 /// ## Things to know
@@ -1062,7 +1062,7 @@ abstract class Ecdh extends KeyExchangeAlgorithm {
 ///
 /// ## Example
 /// ```
-/// import 'package:cryptography/cryptography.dart';
+/// import 'package:cryptography_plus/cryptography_plus.dart';
 ///
 /// Future<void> main() async {
 ///   // In this example, we use ECDSA-P256-SHA256
@@ -1136,7 +1136,7 @@ abstract class Ecdsa extends SignatureAlgorithm {
 ///
 /// By default, [DartEd25519] will be used.
 /// If you use Flutter, you can enable
-/// [cryptography_flutter](https://pub.dev/packages/cryptography_flutter).
+/// [cryptography_flutter](https://pub.dev/packages/cryptography_flutter_plus).
 /// It can improve performance in many cases.
 ///
 /// ## Things to know
@@ -1151,7 +1151,7 @@ abstract class Ecdsa extends SignatureAlgorithm {
 ///
 /// ## Example
 /// ```
-/// import 'package:cryptography/cryptography.dart';
+/// import 'package:cryptography_plus/cryptography_plus.dart';
 ///
 /// Future<void> main() async {
 ///   final algorithm = Ed25519();
@@ -1179,7 +1179,7 @@ abstract class Ecdsa extends SignatureAlgorithm {
 /// ## In need of synchronous APIs?
 ///
 /// If you need to perform operations synchronously, use [DartEd25519] in
-/// _package:cryptography/dart.dart_.
+/// _package:cryptography_plus/dart.dart_.
 ///
 abstract class Ed25519 extends SignatureAlgorithm {
   final Random? _random;
@@ -1244,12 +1244,12 @@ abstract class Hchacha20 {
 /// [Web Crypto API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API),
 /// which has very good HKDF performance.
 ///
-/// Flutter developers should add [cryptography_flutter](https://pub.dev/packages/cryptography_flutter),
+/// Flutter developers should add [cryptography_flutter](https://pub.dev/packages/cryptography_flutter_plus),
 /// as a dependency for the best possible HKDF performance.
 ///
 /// ## Example
 /// ```
-/// import 'package:cryptography/cryptography.dart';
+/// import 'package:cryptography_plus/cryptography_plus.dart';
 ///
 /// void main() async {
 ///   final algorithm = Hkdf(
@@ -1307,7 +1307,7 @@ abstract class Hkdf extends KdfAlgorithm {
 /// [Web Crypto API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API),
 /// which has very good HMAC performance.
 ///
-/// Flutter developers should add [cryptography_flutter](https://pub.dev/packages/cryptography_flutter),
+/// Flutter developers should add [cryptography_flutter](https://pub.dev/packages/cryptography_flutter_plus),
 /// as a dependency for the best possible HMAC performance.
 ///
 /// ## Things to know
@@ -1330,7 +1330,7 @@ abstract class Hkdf extends KdfAlgorithm {
 ///
 /// ## Example
 /// ```
-/// import 'package:cryptography/cryptography.dart';
+/// import 'package:cryptography_plus/cryptography_plus.dart';
 ///
 /// void main() async {
 ///   final message = [1,2,3];
@@ -1350,8 +1350,8 @@ abstract class Hkdf extends KdfAlgorithm {
 /// absolutely need do computations synchronously:
 ///
 /// ```dart
-/// import 'package:cryptography/cryptography.dart';
-/// import 'package:cryptography/dart.dart';
+/// import 'package:cryptography_plus/cryptography_plus.dart';
+/// import 'package:cryptography_plus/dart.dart';
 ///
 /// void main() {
 ///   final algorithm = DartHmac.sha256();
@@ -1445,7 +1445,7 @@ abstract class Hmac extends MacAlgorithm {
 /// [Web Crypto API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API),
 /// which has very good PBKDF2 performance.
 ///
-/// Flutter developers should add [cryptography_flutter](https://pub.dev/packages/cryptography_flutter),
+/// Flutter developers should add [cryptography_flutter](https://pub.dev/packages/cryptography_flutter_plus),
 /// as a dependency for the best possible PBKDF2 performance.
 ///
 /// ## Things to know
@@ -1461,7 +1461,7 @@ abstract class Hmac extends MacAlgorithm {
 ///
 /// ## Example
 /// ```dart
-/// import 'package:cryptography/cryptography.dart';
+/// import 'package:cryptography_plus/cryptography_plus.dart';
 ///
 /// Future<void> main() async {
 ///   final pbkdf2 = Pbkdf2(
@@ -1602,7 +1602,7 @@ abstract class Poly1305 extends MacAlgorithm {
 ///
 /// ## Example
 /// ```dart
-/// import 'package:cryptography/cryptography.dart';
+/// import 'package:cryptography_plus/cryptography_plus.dart';
 ///
 /// Future<void> main() async {
 ///   final algorithm = RsaPss(Sha256());
@@ -1715,7 +1715,7 @@ abstract class RsaPss extends SignatureAlgorithm {
 ///
 /// ## Example
 /// ```
-/// import 'package:cryptography/cryptography.dart';
+/// import 'package:cryptography_plus/cryptography_plus.dart';
 ///
 /// Future<void> main() async {
 ///   final algorithm = RsaSsaPkcs1v15(Sha256());
@@ -1791,7 +1791,7 @@ abstract class RsaSsaPkcs1v15 extends SignatureAlgorithm {
 ///
 /// ## Asynchronous usage (recommended)
 /// ```
-/// import 'package:cryptography/cryptography.dart';
+/// import 'package:cryptography_plus/cryptography_plus.dart';
 ///
 /// Future<void> main() async {
 ///   final message = <int>[1,2,3];
@@ -1807,7 +1807,7 @@ abstract class RsaSsaPkcs1v15 extends SignatureAlgorithm {
 /// This enables you to handle very large inputs without keeping everything in
 /// memory:
 /// ```
-/// import 'package:cryptography/cryptography.dart';
+/// import 'package:cryptography_plus/cryptography_plus.dart';
 ///
 /// void main() async {
 ///   // Create a sink
@@ -1853,7 +1853,7 @@ abstract class Sha1 extends HashAlgorithm {
 ///
 /// ## Asynchronous usage (recommended)
 /// ```
-/// import 'package:cryptography/cryptography.dart';
+/// import 'package:cryptography_plus/cryptography_plus.dart';
 ///
 /// Future<void> main() async {
 ///   final message = <int>[1,2,3];
@@ -1869,7 +1869,7 @@ abstract class Sha1 extends HashAlgorithm {
 /// This enables you to handle very large inputs without keeping everything in
 /// memory:
 /// ```
-/// import 'package:cryptography/cryptography.dart';
+/// import 'package:cryptography_plus/cryptography_plus.dart';
 ///
 /// void main() async {
 ///   // Create a sink
@@ -1917,7 +1917,7 @@ abstract class Sha224 extends HashAlgorithm {
 ///
 /// ## Asynchronous usage (recommended)
 /// ```
-/// import 'package:cryptography/cryptography.dart';
+/// import 'package:cryptography_plus/cryptography_plus.dart';
 ///
 /// Future<void> main() async {
 ///   final message = <int>[1,2,3];
@@ -1933,7 +1933,7 @@ abstract class Sha224 extends HashAlgorithm {
 /// This enables you to handle very large inputs without keeping everything in
 /// memory:
 /// ```
-/// import 'package:cryptography/cryptography.dart';
+/// import 'package:cryptography_plus/cryptography_plus.dart';
 ///
 /// void main() async {
 ///   // Create a sink
@@ -1981,7 +1981,7 @@ abstract class Sha256 extends HashAlgorithm {
 ///
 /// ## Asynchronous usage (recommended)
 /// ```
-/// import 'package:cryptography/cryptography.dart';
+/// import 'package:cryptography_plus/cryptography_plus.dart';
 ///
 /// Future<void> main() async {
 ///   final message = <int>[1,2,3];
@@ -1997,7 +1997,7 @@ abstract class Sha256 extends HashAlgorithm {
 /// This enables you to handle very large inputs without keeping everything in
 /// memory:
 /// ```
-/// import 'package:cryptography/cryptography.dart';
+/// import 'package:cryptography_plus/cryptography_plus.dart';
 ///
 /// void main() async {
 ///   // Create a sink
@@ -2045,7 +2045,7 @@ abstract class Sha384 extends HashAlgorithm {
 ///
 /// ## Asynchronous usage (recommended)
 /// ```
-/// import 'package:cryptography/cryptography.dart';
+/// import 'package:cryptography_plus/cryptography_plus.dart';
 ///
 /// Future<void> main() async {
 ///   final message = <int>[1,2,3];
@@ -2061,7 +2061,7 @@ abstract class Sha384 extends HashAlgorithm {
 /// This enables you to handle very large inputs without keeping everything in
 /// memory:
 /// ```
-/// import 'package:cryptography/cryptography.dart';
+/// import 'package:cryptography_plus/cryptography_plus.dart';
 ///
 /// void main() async {
 ///   // Create a sink
@@ -2147,7 +2147,7 @@ abstract class StreamingCipher extends Cipher {
 ///
 /// By default, [DartX25519] will be used.
 /// If you use Flutter, you can enable
-/// [cryptography_flutter](https://pub.dev/packages/cryptography_flutter).
+/// [cryptography_flutter](https://pub.dev/packages/cryptography_flutter_plus).
 /// It can improve performance in many cases.
 ///
 /// ## Things to know
@@ -2159,7 +2159,7 @@ abstract class StreamingCipher extends Cipher {
 ///
 /// ## Example
 /// ```
-/// import 'package:cryptography/cryptography.dart';
+/// import 'package:cryptography_plus/cryptography_plus.dart';
 ///
 /// Future<void> main() async {
 ///   final algorithm = X25519();
@@ -2181,7 +2181,7 @@ abstract class StreamingCipher extends Cipher {
 /// ## In need of synchronous APIs?
 ///
 /// If you need to perform operations synchronously, use [DartX25519] in
-/// _package:cryptography/dart.dart_.
+/// _package:cryptography_plus/dart.dart_.
 ///
 abstract class X25519 extends KeyExchangeAlgorithm {
   final Random? _random;
@@ -2216,7 +2216,7 @@ abstract class X25519 extends KeyExchangeAlgorithm {
 /// By default, [DartXchacha20] will be used.
 ///
 /// If you use Flutter, you can enable
-/// [cryptography_flutter](https://pub.dev/packages/cryptography_flutter).
+/// [cryptography_flutter](https://pub.dev/packages/cryptography_flutter_plus).
 /// It can improve performance in many cases.
 ///
 /// ## Things to know

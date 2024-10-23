@@ -15,9 +15,9 @@
 /// @nodoc
 @Deprecated(
   'This library will be removed in a future major version.'
-  ' You can find `BrowserCryptography` class in "package:cryptography/cryptography.dart".',
+  ' You can find `BrowserCryptography` class in "package:cryptography_plus/cryptography_plus.dart".',
 )
-library cryptography.browser;
+library cryptography_plus.browser;
 
 export 'src/browser/browser_cryptography_when_not_browser.dart'
     if (dart.library.html) 'src/browser/browser_cryptography.dart';

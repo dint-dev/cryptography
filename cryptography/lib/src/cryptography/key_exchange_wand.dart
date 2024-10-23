@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import '../../cryptography.dart';
+import '../../cryptography_plus.dart';
 
 /// An opaque object that has some key pair and support for [sharedSecretKey].
 ///
@@ -21,7 +21,7 @@ import '../../cryptography.dart';
 ///
 /// ## Example
 /// ```dart
-/// import 'package:cryptography/cryptography.dart';
+/// import 'package:cryptography_plus/cryptography_plus.dart';
 ///
 /// Future<void> main() async {
 ///   final x25519 = X25519();
@@ -44,7 +44,7 @@ abstract class KeyExchangeWand extends Wand {
   ///
   /// ## Example
   /// ```dart
-  /// import 'package:cryptography/cryptography.dart';
+  /// import 'package:cryptography_plus/cryptography_plus.dart';
   ///
   /// Future<void> main() async {
   ///   final x25519 = X25519();

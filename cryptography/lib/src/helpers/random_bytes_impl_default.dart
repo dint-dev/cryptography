@@ -15,7 +15,7 @@
 import 'dart:math';
 import 'dart:typed_data';
 
-import '../../cryptography.dart';
+import '../../cryptography_plus.dart';
 
 const _bit32 = 0x10000 * 0x10000;
 

@@ -1,4 +1,4 @@
-import 'package:cryptography/cryptography.dart';
+import 'package:cryptography_plus/cryptography_plus.dart';
 
 bool bytesStartsWith(List<int> bytes, List<int> prefix, int index) {
   if (bytes.length < index + prefix.length) {

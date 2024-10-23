@@ -14,7 +14,7 @@
 
 import 'dart:typed_data';
 
-import 'package:cryptography/dart.dart';
+import 'package:cryptography_plus/dart.dart';
 
 typedef DartArgon2StateImpl = DartArgon2StateImplBrowser;
 

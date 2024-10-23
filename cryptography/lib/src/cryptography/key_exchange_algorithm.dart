@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:cryptography/cryptography.dart';
+import 'package:cryptography_plus/cryptography_plus.dart';
 
 /// Abstract superclass for key exchange algorithms.
 ///
@@ -28,7 +28,7 @@ import 'package:cryptography/cryptography.dart';
 /// ## Example
 /// In this example, we use [X25519]:
 /// ```dart
-/// import 'package:cryptography/cryptography.dart';
+/// import 'package:cryptography_plus/cryptography_plus.dart';
 ///
 /// Future<void> main() async {
 ///   // Generate a key pair for Alice
@@ -72,7 +72,7 @@ abstract class KeyExchangeAlgorithm {
   /// ## Example
   /// In this example, we use [X25519]:
   /// ```dart
-  /// import 'package:cryptography/cryptography.dart';
+  /// import 'package:cryptography_plus/cryptography_plus.dart';
   ///
   /// Future<void> main() async {
   ///   final algorithm = X25519();
@@ -90,7 +90,7 @@ abstract class KeyExchangeAlgorithm {
   /// In this example, we use [X25519]:
   /// ```dart
   /// import 'dart:convert';
-  /// import 'package:cryptography/cryptography.dart';
+  /// import 'package:cryptography_plus/cryptography_plus.dart';
   ///
   /// Future<void> main() async {
   ///   // X25519 seed is any 32 bytes.
@@ -113,7 +113,7 @@ abstract class KeyExchangeAlgorithm {
   /// ## Example
   /// In this example, we use [X25519]:
   /// ```dart
-  /// import 'package:cryptography/cryptography.dart';
+  /// import 'package:cryptography_plus/cryptography_plus.dart';
   ///
   /// Future<void> main() async {
   ///   final algorithm = X25519();

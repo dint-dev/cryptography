@@ -14,10 +14,10 @@
 
 import 'dart:typed_data';
 
-import 'package:cryptography/cryptography.dart';
-import 'package:cryptography/src/_internal/hex.dart';
-import 'package:cryptography/src/dart/aes_impl.dart' as aes;
-import 'package:cryptography/src/dart/aes_impl_constants.dart' as constants;
+import 'package:cryptography_plus/cryptography_plus.dart';
+import 'package:cryptography_plus/src/_internal/hex.dart';
+import 'package:cryptography_plus/src/dart/aes_impl.dart' as aes;
+import 'package:cryptography_plus/src/dart/aes_impl_constants.dart' as constants;
 import 'package:test/expect.dart';
 import 'package:test/scaffolding.dart';
 

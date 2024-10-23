@@ -14,8 +14,8 @@
 
 import 'dart:typed_data';
 
-import 'package:cryptography/cryptography.dart';
-import 'package:cryptography/src/dart/dart_mac_algorithm.dart';
+import 'package:cryptography_plus/cryptography_plus.dart';
+import 'package:cryptography_plus/src/dart/dart_mac_algorithm.dart';
 import 'package:meta/meta.dart';
 
 import '../../helpers.dart';

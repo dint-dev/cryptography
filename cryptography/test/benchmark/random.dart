@@ -14,7 +14,7 @@
 
 import 'dart:math';
 
-import 'package:cryptography/cryptography.dart';
+import 'package:cryptography_plus/cryptography_plus.dart';
 
 import 'benchmark_helpers.dart';
 

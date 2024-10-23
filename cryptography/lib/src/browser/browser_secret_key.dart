@@ -15,7 +15,7 @@
 import 'dart:math';
 import 'dart:typed_data';
 
-import '../../cryptography.dart';
+import '../../cryptography_plus.dart';
 import '../../helpers.dart';
 import '_javascript_bindings.dart' as web_crypto;
 import '_javascript_bindings.dart';

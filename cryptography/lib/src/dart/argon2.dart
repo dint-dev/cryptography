@@ -16,11 +16,11 @@ import 'dart:async';
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:cryptography/cryptography.dart';
-import 'package:cryptography/dart.dart';
-import 'package:cryptography/src/dart/_helpers.dart';
-import 'package:cryptography/src/dart/argon2_impl_browser.dart'
-    if (dart.library.ffi) 'package:cryptography/src/dart/argon2_impl_vm.dart';
+import 'package:cryptography_plus/cryptography_plus.dart';
+import 'package:cryptography_plus/dart.dart';
+import 'package:cryptography_plus/src/dart/_helpers.dart';
+import 'package:cryptography_plus/src/dart/argon2_impl_browser.dart'
+    if (dart.library.ffi) 'package:cryptography_plus/src/dart/argon2_impl_vm.dart';
 import 'package:meta/meta.dart';
 
 const _bit32 = 0x100000000;

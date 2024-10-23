@@ -14,7 +14,7 @@
 
 import 'dart:typed_data';
 
-import 'package:cryptography/src/cryptography/secret_key.dart';
+import 'package:cryptography_plus/src/cryptography/secret_key.dart';
 
 import '../../dart.dart';
 import '_helpers.dart';

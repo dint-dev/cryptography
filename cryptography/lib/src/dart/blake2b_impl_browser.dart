@@ -14,9 +14,9 @@
 
 import 'dart:typed_data';
 
-import 'package:cryptography/src/utils.dart';
+import 'package:cryptography_plus/src/utils.dart';
 
-import '../../cryptography.dart';
+import '../../cryptography_plus.dart';
 import '../../dart.dart';
 import '_helpers.dart';
 

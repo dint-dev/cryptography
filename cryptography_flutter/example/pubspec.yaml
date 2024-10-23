@@ -1,14 +1,14 @@
 name: example
 description: A new Flutter project.
-publish_to: 'none'
+publish_to: "none"
 version: 1.0.0+1
 
 environment:
-  sdk: '>=2.19.2 <3.0.0'
+  sdk: ">=2.19.2 <3.0.0"
 
 dependencies:
-  cryptography:
-  cryptography_flutter:
+  cryptography_plus:
+  cryptography_flutter_plus:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.2
@@ -22,7 +22,7 @@ flutter:
   uses-material-design: true
 
 dependency_overrides:
-  cryptography:
+  cryptography_plus:
     path: ../../cryptography
-  cryptography_flutter:
+  cryptography_flutter_plus:
     path: ../

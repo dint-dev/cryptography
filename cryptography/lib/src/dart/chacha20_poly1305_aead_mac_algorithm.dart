@@ -14,8 +14,8 @@
 
 import 'dart:typed_data';
 
-import 'package:cryptography/cryptography.dart';
-import 'package:cryptography/src/utils.dart';
+import 'package:cryptography_plus/cryptography_plus.dart';
+import 'package:cryptography_plus/src/utils.dart';
 import 'package:meta/meta.dart';
 
 import '../../dart.dart';
@@ -36,7 +36,7 @@ class DartChacha20Poly1305AeadMacAlgorithm extends MacAlgorithm
   ///
   /// ## Example
   /// ```dart
-  /// import 'package:cryptography/dart.dart';
+  /// import 'package:cryptography_plus/dart.dart';
   ///
   /// void main() {
   ///   final algorithm = DartChacha20Poly1305AeadMacAlgorithm();

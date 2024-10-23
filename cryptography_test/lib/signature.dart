@@ -16,12 +16,12 @@
 ///
 /// ## Example
 /// See [testSignatureAlgorithm].
-library cryptography_test.signature_algorithm;
+library cryptography_plus_test.signature_algorithm;
 
 import 'dart:typed_data';
 
-import 'package:cryptography/cryptography.dart';
-import 'package:cryptography/dart.dart';
+import 'package:cryptography_plus/cryptography_plus.dart';
+import 'package:cryptography_plus/dart.dart';
 import 'package:test/expect.dart';
 import 'package:test/scaffolding.dart';
 

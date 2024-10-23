@@ -14,8 +14,8 @@
 
 import 'dart:math';
 
-import 'package:cryptography/cryptography.dart';
-import 'package:cryptography/dart.dart';
+import 'package:cryptography_plus/cryptography_plus.dart';
+import 'package:cryptography_plus/dart.dart';
 
 /// A factory for cryptographic algorithms.
 ///
@@ -26,14 +26,14 @@ import 'package:cryptography/dart.dart';
 /// ## Implementations
 ///   * [DartCryptography]
 ///   * [BrowserCryptography]
-///   * [FlutterCryptography](https://pub.dev/documentation/cryptography_flutter/latest/cryptography_flutter/FlutterCryptography-class.html) (_package:cryptography_flutter_)
+///   * [FlutterCryptography](https://pub.dev/documentation/cryptography_flutter_plus/latest/cryptography_flutter/FlutterCryptography-class.html) (_package:cryptography_flutter_)
 ///
 /// ## Setting implementation
 ///
 /// In shipped application, it's a good practice to freeze the value of static
 /// variable with [freezeInstance]:
 /// ```
-/// import 'package:cryptography/cryptography.dart';
+/// import 'package:cryptography_plus/cryptography_plus.dart';
 ///
 /// void main() {
 ///   Cryptography.freezeInstance(yourInstance);
@@ -44,8 +44,8 @@ import 'package:cryptography/dart.dart';
 ///
 /// ## Writing you own subclass
 /// ```dart
-/// import 'package:cryptography/browser.dart';
-/// import 'package:cryptography/cryptography.dart';
+/// import 'package:cryptography_plus/browser.dart';
+/// import 'package:cryptography_plus/cryptography_plus.dart';
 ///
 /// class MyCryptography extends BrowserCryptography {
 ///   @override

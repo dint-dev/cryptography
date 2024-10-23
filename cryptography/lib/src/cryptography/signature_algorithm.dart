@@ -14,7 +14,7 @@
 
 import 'dart:convert';
 
-import 'package:cryptography/cryptography.dart';
+import 'package:cryptography_plus/cryptography_plus.dart';
 
 /// An digital signature algorithm that supports [newKeyPair()], [sign()],
 /// [verify()].
@@ -30,7 +30,7 @@ import 'package:cryptography/cryptography.dart';
 /// ## Example
 /// In this example, we use [Ed25519]:
 /// ```dart
-/// import 'package:cryptography/cryptography.dart';
+/// import 'package:cryptography_plus/cryptography_plus.dart';
 ///
 /// Future<void> main() async {
 ///   final signedMessage = 'Hello, world!';
@@ -95,7 +95,7 @@ abstract class SignatureAlgorithm<T extends PublicKey> {
   /// ## Example
   /// In this example, we use [Ed25519]:
   /// ```dart
-  /// import 'package:cryptography/cryptography.dart';
+  /// import 'package:cryptography_plus/cryptography_plus.dart';
   ///
   /// Future<void> main() async {
   ///   final signedMessage = [1,2,3];
@@ -126,7 +126,7 @@ abstract class SignatureAlgorithm<T extends PublicKey> {
   /// ## Example
   /// In this example, we use [Ed25519]:
   /// ```dart
-  /// import 'package:cryptography/cryptography.dart';
+  /// import 'package:cryptography_plus/cryptography_plus.dart';
   ///
   /// Future<void> main() async {
   ///   final signedMessage = 'Hello, world!';
@@ -160,7 +160,7 @@ abstract class SignatureAlgorithm<T extends PublicKey> {
   /// ## Example
   /// In this example, we use [Ed25519]:
   /// ```dart
-  /// import 'package:cryptography/cryptography.dart';
+  /// import 'package:cryptography_plus/cryptography_plus.dart';
   ///
   /// Future<void> main() async {
   ///   final signedMessage = [1,2,3];
@@ -191,7 +191,7 @@ abstract class SignatureAlgorithm<T extends PublicKey> {
   /// ## Example
   /// In this example, we use [Ed25519]:
   /// ```dart
-  /// import 'package:cryptography/cryptography.dart';
+  /// import 'package:cryptography_plus/cryptography_plus.dart';
   ///
   /// Future<void> main() async {
   ///   final signedMessage = 'Hello, world!';

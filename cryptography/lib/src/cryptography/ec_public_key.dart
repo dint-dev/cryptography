@@ -15,8 +15,8 @@
 import 'dart:typed_data';
 
 import 'package:collection/collection.dart';
-import 'package:cryptography/cryptography.dart';
-import 'package:cryptography/src/cryptography/_cupertino_der.dart';
+import 'package:cryptography_plus/cryptography_plus.dart';
+import 'package:cryptography_plus/src/cryptography/_cupertino_der.dart';
 
 /// Public key of _P-256_ / _P-384_ / _P-521_ key pair.
 ///

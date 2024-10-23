@@ -15,8 +15,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:cryptography/cryptography.dart';
-import 'package:cryptography/dart.dart';
+import 'package:cryptography_plus/cryptography_plus.dart';
+import 'package:cryptography_plus/dart.dart';
 
 /// A hash algorithm that produces a [Hash].
 ///
@@ -31,7 +31,7 @@ import 'package:cryptography/dart.dart';
 ///
 /// ## Example: simple usage
 /// ```
-/// import 'package:cryptography/cryptography.dart';
+/// import 'package:cryptography_plus/cryptography_plus.dart';
 ///
 /// void main() async {
 ///   final algorithm = Sha256();
@@ -42,7 +42,7 @@ import 'package:cryptography/dart.dart';
 ///
 /// ## Example: hashing many chunks
 /// ```
-/// import 'package:cryptography/cryptography.dart';
+/// import 'package:cryptography_plus/cryptography_plus.dart';
 ///
 /// void main() async {
 ///   // Create a sink
@@ -84,7 +84,7 @@ abstract class HashAlgorithm {
   /// ## Example
   /// An example with [Sha256]:
   /// ```
-  /// import 'package:cryptography/cryptography.dart';
+  /// import 'package:cryptography_plus/cryptography_plus.dart';
   ///
   /// void main() async {
   ///   // Create a sink
@@ -117,7 +117,7 @@ abstract class HashAlgorithm {
 /// ## Example
 /// An example with [Sha256]:
 /// ```
-/// import 'package:cryptography/cryptography.dart';
+/// import 'package:cryptography_plus/cryptography_plus.dart';
 ///
 /// void main() async {
 ///   // Create a sink
