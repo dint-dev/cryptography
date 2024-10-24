@@ -1,5 +1,5 @@
 name: cryptography_plus
-version: 2.7.0
+version: 2.7.1
 homepage: https://github.com/emz-hanauer/dart-cryptography
 description:
   Cryptographic algorithms for encryption, digital signatures, key agreement, authentication, and

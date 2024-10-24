@@ -1,3 +1,9 @@
+## 2.3.3
+
+**Release of package under new name**
+
+- **fix**: AGP 8.x compatibility + Flutter 3.24
+
 ## 2.3.2
 
 - Improves documentation.

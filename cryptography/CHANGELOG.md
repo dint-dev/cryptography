@@ -1,3 +1,14 @@
+## 2.7.1
+
+**Release of package under new name**
+
+- **fix**: add super.destroy() to SecretKeyData
+- **fix**: remove Unnecessary casts
+- **ci**: github release action
+- **docs**: typo with X25519 Key Agreement example
+- **chore**: pubspec - Add topic crypto
+- **chore**: update js to 0.7.1 (was 0.6.7)
+
 ## 2.7.0
 
 - Adds a cross-platform of Argon2id, a highly recommended algorithm for password hashing.
