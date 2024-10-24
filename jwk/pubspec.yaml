@@ -1,4 +1,4 @@
-name: jwk
+name: jwk_plus
 version: 0.2.4
 homepage: https://github.com/emz-hanauer/dart-cryptography
 description: JWK (JSON Web Key) encoding and decoding (for package:cryptography).

@@ -22,7 +22,7 @@ Open-sourced under the [Apache License 2.0](LICENSE).
 - [cryptography_test](cryptography_flutter)
   - Cross-platform tests. Note that "cryptography" and "cryptography_flutter_integration_test"
     contain more tests than just these.
-- [jwk](jwk)
+- [jwk_plus](jwk)
   - JWK (JSON Web Key) encoding / decoding.
 
 ## Contributing
