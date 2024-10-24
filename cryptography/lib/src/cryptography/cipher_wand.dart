@@ -177,7 +177,7 @@ abstract class CipherWand extends Wand {
   /// }
   /// ```
   Future<SecretBox> encryptString(String clearText) async {
-    final bytes = utf8.encode(clearText) as Uint8List;
+    final bytes = utf8.encode(clearText);
     final secretBox = await encrypt(
       bytes,
       possibleBuffer: bytes,

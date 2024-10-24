@@ -399,7 +399,7 @@ abstract class Cipher {
     String clearText, {
     required SecretKey secretKey,
   }) async {
-    final bytes = utf8.encode(clearText) as Uint8List;
+    final bytes = utf8.encode(clearText);
     final secretBox = await encrypt(
       bytes,
       secretKey: secretKey,
