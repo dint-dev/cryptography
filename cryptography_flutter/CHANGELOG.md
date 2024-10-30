@@ -1,3 +1,8 @@
+## 2.3.4
+
+- **fix**(iOS, MacOS): compilation issue, rename podspec
+- **fix**(Android): Remove registrar build error on v1 plugin
+
 ## 2.3.3
 
 **Release of package under new name**

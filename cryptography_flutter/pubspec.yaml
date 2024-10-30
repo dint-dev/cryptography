@@ -1,5 +1,5 @@
 name: cryptography_flutter_plus
-version: 2.3.3
+version: 2.3.4
 homepage: https://github.com/emz-hanauer/dart-cryptography
 description:
   Makes 'package:cryptography_plus' use platform APIs in Android, iOS, and Mac OS X. The package can
