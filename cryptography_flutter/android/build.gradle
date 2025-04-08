@@ -25,7 +25,8 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
 android {
-    compileSdkVersion 31
+    compileSdkVersion 33
+    namespace 'dev.dint.cryptography_flutter'
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
