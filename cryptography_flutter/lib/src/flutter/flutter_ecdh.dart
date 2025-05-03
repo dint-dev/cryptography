@@ -59,7 +59,7 @@ class FlutterEcdh extends Ecdh implements PlatformCryptographicAlgorithm {
 
   @override
   bool get isSupportedPlatform =>
-      FlutterCryptography.isPluginPresent && isCupertino;
+      FlutterCryptography.isPluginPresent && (isAndroid || isCupertino);
 
   String get _curveName {
     switch (keyPairType) {
