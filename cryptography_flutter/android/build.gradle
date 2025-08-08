@@ -1,51 +1,42 @@
 group 'dev.dint.cryptography_flutter'
 version '1.0-SNAPSHOT'
 
-buildscript {
-    ext.kotlin_version = '1.7.10'
-    repositories {
-        google()
-        mavenCentral()
-    }
-
-    dependencies {
-        classpath 'com.android.tools.build:gradle:7.2.0'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-    }
-}
-
-allprojects {
-    repositories {
-        google()
-        mavenCentral()
-    }
-}
-
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
+repositories {
+    google()
+    mavenCentral()
+}
+
 android {
-    compileSdkVersion 31
+    // MUST match the package in android/src/main/AndroidManifest.xml
+    namespace "dev.dint.cryptography_flutter"
+
+    // Use a modern compile SDK compatible with AGP 8.x
+    compileSdkVersion 34
+
+    defaultConfig {
+        minSdkVersion 21
+    }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        // AGP 8.x expects Java 17
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = '17'
     }
 
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
     }
-
-    defaultConfig {
-        minSdkVersion 21
-    }
 }
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    // Rely on the root project's Kotlin version; stdlib only
+    implementation "org.jetbrains.kotlin:kotlin-stdlib"
     implementation "androidx.security:security-crypto:1.1.0-alpha05"
 }
