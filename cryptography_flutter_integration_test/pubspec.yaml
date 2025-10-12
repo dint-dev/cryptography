@@ -1,34 +1,31 @@
 name: cryptography_flutter_integration_test
+
 description: A new Flutter project.
+
 publish_to: "none"
+
 version: 1.0.0+1
 
+resolution: workspace
+
 environment:
-  sdk: ">=3.1.0 <4.0.0"
-  flutter: ">=3.13.0"
+  sdk: ^3.5.0
+  flutter: ^3.24.0
 
 dependencies:
-  cryptography_plus: ^2.6.0
-  cryptography_flutter_plus: ^2.3.1
+  cryptography_plus: ^3.0.0
+  cryptography_flutter_plus: ^3.0.0
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.2
 
 dev_dependencies:
-  cryptography_test: ^0.1.0
+  cryptography_test: ^1.0.0
   flutter_test:
     sdk: flutter
   integration_test:
     sdk: flutter
-  flutter_lints: ^2.0.3
+  flutter_lints: ^6.0.0
 
 flutter:
   uses-material-design: true
-
-dependency_overrides:
-  cryptography_plus:
-    path: ../cryptography
-  cryptography_flutter_plus:
-    path: ../cryptography_flutter
-  cryptography_test:
-    path: ../cryptography_test

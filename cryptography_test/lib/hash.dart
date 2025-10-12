@@ -16,7 +16,7 @@
 ///
 /// ## Example
 /// See [testHashAlgorithm].
-library cryptography_plus_test.hash_algorithm;
+library;
 
 import 'dart:async';
 import 'dart:typed_data';

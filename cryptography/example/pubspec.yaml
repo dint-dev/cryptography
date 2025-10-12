@@ -1,8 +1,9 @@
-name: example
+name: cryptography_example
 
 environment:
-  sdk: ">=2.17.0 <3.0.0"
+  sdk: ^3.5.0
+
+resolution: workspace
 
 dependencies:
-  cryptography_plus:
-    path: ".."
+  cryptography_plus: ^3.0.0

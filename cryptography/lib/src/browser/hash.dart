@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:js_interop';
 import 'dart:typed_data';
 
 import 'package:cryptography_plus/cryptography_plus.dart';
@@ -26,11 +27,8 @@ mixin BrowserHashAlgorithmMixin implements HashAlgorithm {
 
   @override
   Future<Hash> hash(List<int> bytes) async {
-    final byteBuffer = await web_crypto.digest(
-      webCryptoName,
-      jsArrayBufferFrom(bytes),
-    );
-    return Hash(Uint8List.view(byteBuffer));
+    final byteBuffer = await web_crypto.digest(webCryptoName.toJS, jsArrayBufferFrom(bytes));
+    return Hash(Uint8List.view(byteBuffer.toDart));
   }
 
   static String? hashAlgorithmNameFor(HashAlgorithm hashAlgorithm) {

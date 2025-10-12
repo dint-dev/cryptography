@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:js_interop';
 import 'dart:math';
 import 'dart:typed_data';
 
@@ -28,40 +29,19 @@ class BrowserEcdsa extends Ecdsa {
   @override
   final KeyPairType keyPairType;
 
-  BrowserEcdsa({
-    required this.keyPairType,
-    required this.hashAlgorithm,
-  }) : super.constructor();
+  BrowserEcdsa({required this.keyPairType, required this.hashAlgorithm}) : super.constructor();
 
-  BrowserEcdsa.p256(
-    HashAlgorithm hashAlgorithm, {
-    Random? random,
-  }) : this(
-          keyPairType: KeyPairType.p256,
-          hashAlgorithm: hashAlgorithm,
-        );
+  BrowserEcdsa.p256(HashAlgorithm hashAlgorithm, {Random? random})
+    : this(keyPairType: KeyPairType.p256, hashAlgorithm: hashAlgorithm);
 
-  BrowserEcdsa.p384(
-    HashAlgorithm hashAlgorithm, {
-    Random? random,
-  }) : this(
-          keyPairType: KeyPairType.p384,
-          hashAlgorithm: hashAlgorithm,
-        );
+  BrowserEcdsa.p384(HashAlgorithm hashAlgorithm, {Random? random})
+    : this(keyPairType: KeyPairType.p384, hashAlgorithm: hashAlgorithm);
 
-  BrowserEcdsa.p521(
-    HashAlgorithm hashAlgorithm, {
-    Random? random,
-  }) : this(
-          keyPairType: KeyPairType.p521,
-          hashAlgorithm: hashAlgorithm,
-        );
+  BrowserEcdsa.p521(HashAlgorithm hashAlgorithm, {Random? random})
+    : this(keyPairType: KeyPairType.p521, hashAlgorithm: hashAlgorithm);
 
   @override
-  Future<EcKeyPair> newKeyPair({
-    bool isExtractable = true,
-    bool allowDeriveBits = true,
-  }) async {
+  Future<EcKeyPair> newKeyPair({bool isExtractable = true, bool allowDeriveBits = true}) async {
     return BrowserEcKeyPair.generate(
       keyPairType: keyPairType,
       isExtractable: isExtractable,
@@ -79,11 +59,7 @@ class BrowserEcdsa extends Ecdsa {
   Future<Signature> sign(List<int> message, {required KeyPair keyPair}) async {
     keyPair = await keyPair.extract();
     if (keyPair is! EcKeyPair) {
-      throw ArgumentError.value(
-        keyPair,
-        'keyPair',
-        'Should be an instance of EcKeyPair',
-      );
+      throw ArgumentError.value(keyPair, 'keyPair', 'Should be an instance of EcKeyPair');
     }
     final publicKeyFuture = keyPair.extractPublicKey();
     final browserEcKeyPair = await BrowserEcKeyPair.from(
@@ -95,25 +71,17 @@ class BrowserEcdsa extends Ecdsa {
     final jsCryptoKey = browserEcKeyPair.jsPrivateKeyForEcdsa!;
     final byteBuffer = await web_crypto.sign(
       web_crypto.EcdsaParams(
-        name: 'ECDSA',
-        hash: BrowserHashAlgorithmMixin.hashAlgorithmNameFor(
-          hashAlgorithm,
-        )!,
+        name: 'ECDSA'.toJS,
+        hash: BrowserHashAlgorithmMixin.hashAlgorithmNameFor(hashAlgorithm)!.toJS,
       ),
       jsCryptoKey,
       web_crypto.jsArrayBufferFrom(message),
     );
-    return Signature(
-      Uint8List.view(byteBuffer),
-      publicKey: await publicKeyFuture,
-    );
+    return Signature(Uint8List.view(byteBuffer.toDart), publicKey: await publicKeyFuture);
   }
 
   @override
-  Future<bool> verify(
-    List<int> message, {
-    required Signature signature,
-  }) async {
+  Future<bool> verify(List<int> message, {required Signature signature}) async {
     final publicKey = signature.publicKey;
     if (publicKey is! EcPublicKey) {
       throw ArgumentError.value(
@@ -122,23 +90,18 @@ class BrowserEcdsa extends Ecdsa {
         'Public key should be an instance of EcPublicKey, not: $publicKey',
       );
     }
-    final hashAlgorithmName = BrowserHashAlgorithmMixin.hashAlgorithmNameFor(
-      hashAlgorithm,
-    )!;
+    final hashAlgorithmName = BrowserHashAlgorithmMixin.hashAlgorithmNameFor(hashAlgorithm)!;
     final jsCryptoKey = await jsPublicKeyFrom(
       signature.publicKey,
       webCryptoCurve: keyPairType.webCryptoCurve!,
       webCryptoHash: hashAlgorithmName,
     );
-    return await web_crypto.verify(
-      web_crypto.EcdsaParams(
-        name: 'ECDSA',
-        hash: hashAlgorithmName,
-      ),
+    return (await web_crypto.verify(
+      web_crypto.EcdsaParams(name: 'ECDSA'.toJS, hash: hashAlgorithmName.toJS),
       jsCryptoKey,
       web_crypto.jsArrayBufferFrom(signature.bytes),
       web_crypto.jsArrayBufferFrom(message),
-    );
+    )).toDart;
   }
 
   static Future<web_crypto.CryptoKey> jsPublicKeyFrom(
@@ -147,27 +110,20 @@ class BrowserEcdsa extends Ecdsa {
     required String webCryptoHash,
   }) async {
     if (publicKey is! EcPublicKey) {
-      throw ArgumentError.value(
-        publicKey,
-        'publicKey',
-        'Should be $EcPublicKey',
-      );
+      throw ArgumentError.value(publicKey, 'publicKey', 'Should be $EcPublicKey');
     }
     return web_crypto.importKeyWhenJwk(
-      web_crypto.Jwk(
+      web_crypto.JsonWebKey(
         kty: 'EC',
         crv: webCryptoCurve,
         ext: true,
-        key_ops: const ['verify'],
+        key_ops: const ['verify'].jsify() as JSArray<JSString>,
         x: web_crypto.base64UrlEncode(publicKey.x),
         y: web_crypto.base64UrlEncode(publicKey.y),
       ),
-      web_crypto.EcKeyImportParams(
-        name: 'ECDSA',
-        namedCurve: webCryptoCurve,
-      ),
-      false,
-      const ['verify'],
+      web_crypto.EcKeyImportParams(name: 'ECDSA'.toJS, namedCurve: webCryptoCurve.toJS),
+      false.toJS,
+      const ['verify'].jsify() as JSArray<JSString>,
     );
   }
 }

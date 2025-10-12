@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:js_interop';
 import 'dart:typed_data';
 
 import 'package:cryptography_plus/cryptography_plus.dart';
@@ -30,8 +31,7 @@ class BrowserHkdf extends Hkdf {
   @override
   final int outputLength;
 
-  const BrowserHkdf({required this.hmac, required this.outputLength})
-      : super.constructor();
+  const BrowserHkdf({required this.hmac, required this.outputLength}) : super.constructor();
 
   @override
   Future<SecretKeyData> deriveKey({
@@ -42,26 +42,24 @@ class BrowserHkdf extends Hkdf {
     final jsCryptoKey = await _jsCryptoKey(secretKey);
     final byteBuffer = await web_crypto.deriveBits(
       web_crypto.HkdfParams(
-        name: 'HKDF',
-        hash: BrowserHashAlgorithmMixin.hashAlgorithmNameFor(
-          hmac.hashAlgorithm,
-        )!,
+        name: 'HKDF'.toJS,
+        hash: BrowserHashAlgorithmMixin.hashAlgorithmNameFor(hmac.hashAlgorithm)!.toJS,
         salt: jsArrayBufferFrom(nonce),
         info: jsArrayBufferFrom(info),
       ),
       jsCryptoKey,
-      8 * outputLength,
+      (8 * outputLength).toJS,
     );
-    return SecretKeyData(Uint8List.view(byteBuffer));
+    return SecretKeyData(Uint8List.view(byteBuffer.toDart));
   }
 
   Future<web_crypto.CryptoKey> _jsCryptoKey(SecretKey secretKey) async {
     final secretKeyBytes = await secretKey.extractBytes();
     return await web_crypto.importKeyWhenRaw(
       web_crypto.jsArrayBufferFrom(secretKeyBytes),
-      'HKDF',
-      false,
-      const ['deriveBits'],
+      'HKDF'.toJS,
+      false.toJS,
+      const ['deriveBits'].jsify() as JSArray<JSString>,
     );
   }
 }

@@ -81,7 +81,7 @@ class BrowserCryptography extends DartCryptography {
   ///
   /// If [random] is not given, algorithms will use some cryptographically
   /// secure random number generator (CSRNG) such as [Random.secure].
-  BrowserCryptography({Random? random}) : super(random: random);
+  BrowserCryptography({super.random});
 
   @override
   BrowserCryptography withRandom(Random? random) {

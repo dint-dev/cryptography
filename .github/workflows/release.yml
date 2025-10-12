@@ -8,6 +8,8 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
+      - name: "document code"
+        run: dart doc
       - name: Checkout
         uses: actions/checkout@v1
       - name: Publish "cryptography"

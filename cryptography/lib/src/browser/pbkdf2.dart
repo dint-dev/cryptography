@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:js_interop';
 import 'dart:typed_data';
 
 import 'package:cryptography_plus/cryptography_plus.dart';
@@ -33,41 +34,35 @@ class BrowserPbkdf2 extends Pbkdf2 {
   @override
   final int iterations;
 
-  const BrowserPbkdf2({
-    required this.macAlgorithm,
-    required this.bits,
-    required this.iterations,
-  }) : super.constructor();
+  const BrowserPbkdf2({required this.macAlgorithm, required this.bits, required this.iterations})
+    : super.constructor();
 
   @override
-  Future<SecretKey> deriveKey({
-    required SecretKey secretKey,
-    required List<int> nonce,
-  }) async {
+  Future<SecretKey> deriveKey({required SecretKey secretKey, required List<int> nonce}) async {
     final jsCryptoKey = await _jsCryptoKey(secretKey);
 
     // subtle.deriveBits(...)
     final byteBuffer = await web_crypto.deriveBits(
       web_crypto.Pkdf2Params(
-        name: 'PBKDF2',
-        hash: macAlgorithm.hashAlgorithmWebCryptoName,
+        name: 'PBKDF2'.toJS,
+        hash: macAlgorithm.hashAlgorithmWebCryptoName.toJS,
         salt: jsArrayBufferFrom(nonce),
-        iterations: iterations,
+        iterations: iterations.toJS,
       ),
       jsCryptoKey,
-      bits,
+      bits.toJS,
     );
 
-    return SecretKey(Uint8List.view(byteBuffer));
+    return SecretKey(Uint8List.view(byteBuffer.toDart));
   }
 
   Future<web_crypto.CryptoKey> _jsCryptoKey(SecretKey secretKey) async {
     final secretKeyData = await secretKey.extract();
     return web_crypto.importKeyWhenRaw(
       jsArrayBufferFrom(secretKeyData.bytes),
-      'PBKDF2',
-      false,
-      const ['deriveBits'],
+      'PBKDF2'.toJS,
+      false.toJS,
+      const ['deriveBits'].jsify() as JSArray<JSString>,
     );
   }
 }

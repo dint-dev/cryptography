@@ -16,7 +16,7 @@
 ///
 /// ## Example
 /// See [testKeyExchangeAlgorithm].
-library cryptography_plus_test.key_exchange_algorithm;
+library;
 
 import 'package:cryptography_plus/cryptography_plus.dart';
 import 'package:cryptography_plus/dart.dart';

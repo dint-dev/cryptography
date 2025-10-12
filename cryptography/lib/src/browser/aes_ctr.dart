@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:js_interop';
 import 'dart:math';
 import 'dart:typed_data';
 
@@ -40,9 +41,9 @@ class BrowserAesCtr extends AesCtr {
     required this.macAlgorithm,
     this.secretKeyLength = 32,
     this.counterBits = 64,
-    Random? random,
-  })  : _random = random,
-        super.constructor(random: random);
+    super.random,
+  }) : _random = random,
+       super.constructor();
 
   @override
   Future<List<int>> decrypt(
@@ -62,11 +63,7 @@ class BrowserAesCtr extends AesCtr {
       cipherText = newCipherText;
     }
     // Authenticate
-    await secretBox.checkMac(
-      macAlgorithm: macAlgorithm,
-      secretKey: secretKey,
-      aad: aad,
-    );
+    await secretBox.checkMac(macAlgorithm: macAlgorithm, secretKey: secretKey, aad: aad);
 
     final counterBytes = Uint8List(16);
     counterBytes.setAll(0, secretBox.nonce);
@@ -80,14 +77,14 @@ class BrowserAesCtr extends AesCtr {
     );
     final byteBuffer = await web_crypto.decrypt(
       web_crypto.AesCtrParams(
-        name: _webCryptoName,
-        counter: counterBytes.buffer,
-        length: counterBits,
+        name: _webCryptoName.toJS,
+        counter: counterBytes.buffer.toJS,
+        length: counterBits.toJS,
       ),
       jsCryptoKey,
       jsArrayBufferFrom(cipherText),
     );
-    return Uint8List.view(byteBuffer, keyStreamIndex);
+    return Uint8List.view(byteBuffer.toDart, keyStreamIndex);
   }
 
   @override
@@ -120,14 +117,14 @@ class BrowserAesCtr extends AesCtr {
     );
     final byteBuffer = await web_crypto.encrypt(
       web_crypto.AesCtrParams(
-        name: _webCryptoName,
-        counter: counterBytes.buffer,
-        length: counterBits,
+        name: _webCryptoName.toJS,
+        counter: counterBytes.buffer.toJS,
+        length: counterBits.toJS,
       ),
       jsCryptoKey,
       jsArrayBufferFrom(clearText),
     );
-    final cipherText = Uint8List.view(byteBuffer, keyStreamIndex);
+    final cipherText = Uint8List.view(byteBuffer.toDart, keyStreamIndex);
 
     final mac = await macAlgorithm.calculateMac(
       cipherText,
@@ -136,11 +133,7 @@ class BrowserAesCtr extends AesCtr {
       aad: aad,
     );
 
-    return SecretBox(
-      cipherText,
-      nonce: nonce,
-      mac: mac,
-    );
+    return SecretBox(cipherText, nonce: nonce, mac: mac);
   }
 
   @override

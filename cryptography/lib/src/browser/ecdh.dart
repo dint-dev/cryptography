@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:js_interop';
 import 'dart:math';
 import 'dart:typed_data';
 
@@ -27,48 +28,24 @@ class BrowserEcdh extends Ecdh {
   final KeyPairType keyPairType;
 
   /// ECDH with P-256.
-  factory BrowserEcdh.p256({
-    required int length,
-    Random? random,
-  }) {
-    return BrowserEcdh._(
-      KeyPairType.p256,
-      length: length,
-    );
+  factory BrowserEcdh.p256({required int length, Random? random}) {
+    return BrowserEcdh._(KeyPairType.p256, length: length);
   }
 
   /// ECDH with P-384.
-  factory BrowserEcdh.p384({
-    required int length,
-    Random? random,
-  }) {
-    return BrowserEcdh._(
-      KeyPairType.p384,
-      length: length,
-    );
+  factory BrowserEcdh.p384({required int length, Random? random}) {
+    return BrowserEcdh._(KeyPairType.p384, length: length);
   }
 
   /// ECDH with P-521.
-  factory BrowserEcdh.p521({
-    required int length,
-    Random? random,
-  }) {
-    return BrowserEcdh._(
-      KeyPairType.p521,
-      length: length,
-    );
+  factory BrowserEcdh.p521({required int length, Random? random}) {
+    return BrowserEcdh._(KeyPairType.p521, length: length);
   }
 
-  const BrowserEcdh._(
-    this.keyPairType, {
-    required this.length,
-  }) : super.constructor();
+  const BrowserEcdh._(this.keyPairType, {required this.length}) : super.constructor();
 
   @override
-  Future<EcKeyPair> newKeyPair({
-    bool isExtractable = true,
-    bool allowSign = true,
-  }) async {
+  Future<EcKeyPair> newKeyPair({bool isExtractable = true, bool allowSign = true}) async {
     return BrowserEcKeyPair.generate(
       keyPairType: keyPairType,
       isExtractable: isExtractable,
@@ -108,18 +85,13 @@ class BrowserEcdh extends Ecdh {
     final jsPublicKey = await jsPublicKeyFuture;
     try {
       final byteBuffer = await web_crypto.deriveBits(
-        web_crypto.EcdhKeyDeriveParams(
-          name: 'ECDH',
-          public: jsPublicKey,
-        ),
+        web_crypto.EcdhKeyDeriveParams(name: 'ECDH'.toJS, public: jsPublicKey),
         jsPrivateKey.jsPrivateKeyForEcdh!,
-        8 * length,
+        (8 * length).toJS,
       );
-      return SecretKey(Uint8List.view(byteBuffer));
+      return SecretKey(Uint8List.view(byteBuffer.toDart));
     } catch (error, stackTrace) {
-      throw StateError(
-        'Web Cryptography throw an error: $error\n$stackTrace',
-      );
+      throw StateError('Web Cryptography throw an error: $error\n$stackTrace');
     }
   }
 
@@ -128,33 +100,24 @@ class BrowserEcdh extends Ecdh {
     required String webCryptoCurve,
   }) async {
     if (publicKey is! EcPublicKey) {
-      throw ArgumentError.value(
-        publicKey,
-        'publicKey',
-        'Should be EcPublicKey',
-      );
+      throw ArgumentError.value(publicKey, 'publicKey', 'Should be EcPublicKey');
     }
     try {
       return await web_crypto.importKeyWhenJwk(
-        web_crypto.Jwk(
+        web_crypto.JsonWebKey(
           kty: 'EC',
           crv: webCryptoCurve,
           ext: true,
-          key_ops: const ['deriveBits'],
+          key_ops: const ['deriveBits'].jsify() as JSArray<JSString>,
           x: web_crypto.base64UrlEncode(publicKey.x),
           y: web_crypto.base64UrlEncode(publicKey.y),
         ),
-        web_crypto.EcKeyImportParams(
-          name: 'ECDH',
-          namedCurve: webCryptoCurve,
-        ),
-        true,
-        const [],
+        web_crypto.EcKeyImportParams(name: 'ECDH'.toJS, namedCurve: webCryptoCurve.toJS),
+        true.toJS,
+        JSArray(),
       );
     } catch (error, stackTrace) {
-      throw StateError(
-        'Web Cryptography throw an error: $error\n$stackTrace',
-      );
+      throw StateError('Web Cryptography throw an error: $error\n$stackTrace');
     }
   }
 }

@@ -356,9 +356,9 @@ class _DartAesSecretKeyData extends SecretKeyData {
   Uint32List? _expandedBytesForDecrypting;
 
   _DartAesSecretKeyData(
-    List<int> bytes, {
-    bool overwriteWhenDestroyed = false,
-  }) : super(bytes, overwriteWhenDestroyed: overwriteWhenDestroyed);
+    super.bytes, {
+    super.overwriteWhenDestroyed,
+  });
 
   @override
   void destroy() {

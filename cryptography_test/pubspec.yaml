@@ -1,12 +1,17 @@
 name: cryptography_test
-version: 0.1.0
+
+version: 1.0.0
+
 homepage: https://github.com/emz-hanauer/dart-cryptography
+
 description:
   A package for testing and benchmarking cryptographic algorithm implementations that
   implement "package:cryptography" interfaces.
 
+resolution: workspace
+
 environment:
-  sdk: ">=3.1.0 <4.0.0"
+  sdk: ^3.5.0
 
 # Open-source contributors:
 #
@@ -25,14 +30,10 @@ dependencies:
   #
   # Packages by github.com/dint-dev:
   #
-  cryptography_plus: ^2.5.1
+  cryptography_plus: ^3.0.0
 
 dev_dependencies:
   #
   # Packages by Google:
   #
-  lints: ^2.1.1
-
-dependency_overrides:
-  cryptography_plus:
-    path: ../cryptography
+  lints: ^6.0.0

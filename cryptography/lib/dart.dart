@@ -15,7 +15,7 @@
 /// Cryptographic algorithms implemented in pure Dart.
 ///
 /// See [DartCryptography].
-library cryptography_plus.dart;
+library;
 
 import 'package:cryptography_plus/dart.dart';
 

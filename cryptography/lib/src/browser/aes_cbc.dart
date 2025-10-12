@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:js_interop';
 import 'dart:math';
 import 'dart:typed_data';
 
@@ -35,12 +36,9 @@ class BrowserAesCbc extends AesCbc {
 
   final Random? _random;
 
-  const BrowserAesCbc({
-    required this.macAlgorithm,
-    this.secretKeyLength = 32,
-    Random? random,
-  })  : _random = random,
-        super.constructor(random: random);
+  const BrowserAesCbc({required this.macAlgorithm, this.secretKeyLength = 32, super.random})
+    : _random = random,
+      super.constructor();
 
   @override
   PaddingAlgorithm get paddingAlgorithm => PaddingAlgorithm.pkcs7;
@@ -53,11 +51,7 @@ class BrowserAesCbc extends AesCbc {
     Uint8List? possibleBuffer,
   }) async {
     // Authenticate
-    await secretBox.checkMac(
-      macAlgorithm: macAlgorithm,
-      secretKey: secretKey,
-      aad: aad,
-    );
+    await secretBox.checkMac(macAlgorithm: macAlgorithm, secretKey: secretKey, aad: aad);
 
     final jsCryptoKey = await BrowserSecretKey.jsCryptoKeyForAes(
       secretKey,
@@ -68,14 +62,11 @@ class BrowserAesCbc extends AesCbc {
       allowDecrypt: true,
     );
     final byteBuffer = await web_crypto.decrypt(
-      web_crypto.AesCbcParams(
-        name: _webCryptoName,
-        iv: jsArrayBufferFrom(secretBox.nonce),
-      ),
+      web_crypto.AesCbcParams(name: _webCryptoName.toJS, iv: jsArrayBufferFrom(secretBox.nonce)),
       jsCryptoKey,
       jsArrayBufferFrom(secretBox.cipherText),
     );
-    return Uint8List.view(byteBuffer);
+    return Uint8List.view(byteBuffer.toDart);
   }
 
   @override
@@ -98,14 +89,11 @@ class BrowserAesCbc extends AesCbc {
       allowDecrypt: false,
     );
     final byteBuffer = await web_crypto.encrypt(
-      web_crypto.AesCbcParams(
-        name: _webCryptoName,
-        iv: jsArrayBufferFrom(nonce),
-      ),
+      web_crypto.AesCbcParams(name: _webCryptoName.toJS, iv: jsArrayBufferFrom(nonce)),
       jsCryptoKey,
       jsArrayBufferFrom(clearText),
     );
-    final cipherText = Uint8List.view(byteBuffer);
+    final cipherText = Uint8List.view(byteBuffer.toDart);
 
     final mac = await macAlgorithm.calculateMac(
       cipherText,
@@ -114,11 +102,7 @@ class BrowserAesCbc extends AesCbc {
       aad: aad,
     );
 
-    return SecretBox(
-      cipherText,
-      nonce: nonce,
-      mac: mac,
-    );
+    return SecretBox(cipherText, nonce: nonce, mac: mac);
   }
 
   @override

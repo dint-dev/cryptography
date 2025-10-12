@@ -1,0 +1,14 @@
+name: cryptography
+
+environment:
+  sdk: ^3.5.0
+
+workspace:
+  # - apps\portfolio
+  - cryptography
+  - cryptography/example
+  - cryptography_flutter
+  - cryptography_flutter/example
+  - cryptography_flutter_integration_test
+  - cryptography_test
+  - jwk

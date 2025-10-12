@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:js_interop';
 import 'dart:typed_data';
 
 import 'package:cryptography_plus/cryptography_plus.dart';
@@ -41,8 +42,7 @@ class BrowserHmac extends Hmac {
 
   final String hashAlgorithmWebCryptoName;
 
-  const BrowserHmac._(this.hashAlgorithm, this.hashAlgorithmWebCryptoName)
-      : super.constructor();
+  const BrowserHmac._(this.hashAlgorithm, this.hashAlgorithmWebCryptoName) : super.constructor();
 
   @override
   Future<Mac> calculateMac(
@@ -55,31 +55,20 @@ class BrowserHmac extends Hmac {
       throw ArgumentError.value(aad, 'aad', 'AAD is unsupported by HMAC');
     }
     final jsCryptoKey = await _jsCryptoKey(secretKey);
-    final byteBuffer = await web_crypto.sign(
-      'HMAC',
-      jsCryptoKey,
-      jsArrayBufferFrom(bytes),
-    );
-    return Mac(Uint8List.view(byteBuffer));
+    final byteBuffer = await web_crypto.sign('HMAC'.toJS, jsCryptoKey, jsArrayBufferFrom(bytes));
+    return Mac(Uint8List.view(byteBuffer.toDart));
   }
 
   Future<web_crypto.CryptoKey> _jsCryptoKey(SecretKey secretKey) async {
     final secretKeyBytes = await secretKey.extractBytes();
     if (secretKeyBytes.isEmpty) {
-      throw ArgumentError.value(
-        secretKey,
-        'secretKey',
-        'SecretKey bytes must be non-empty',
-      );
+      throw ArgumentError.value(secretKey, 'secretKey', 'SecretKey bytes must be non-empty');
     }
     return await web_crypto.importKeyWhenRaw(
       web_crypto.jsArrayBufferFrom(secretKeyBytes),
-      web_crypto.HmacImportParams(
-        name: 'HMAC',
-        hash: hashAlgorithmWebCryptoName,
-      ),
-      false,
-      const ['sign'],
+      web_crypto.HmacImportParams(name: 'HMAC'.toJS, hash: hashAlgorithmWebCryptoName.toJS),
+      false.toJS,
+      const ['sign'].jsify() as JSArray<JSString>,
     );
   }
 }

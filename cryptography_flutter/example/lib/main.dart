@@ -44,7 +44,7 @@ String _toHex(List<int> bytes) {
 }
 
 class CipherPage extends StatefulWidget {
-  const CipherPage({Key? key}) : super(key: key);
+  const CipherPage({super.key});
 
   @override
   State<StatefulWidget> createState() {
@@ -134,8 +134,7 @@ class _CipherPageState extends State<CipherPage> {
                       maxLines: 16,
                       enableInteractiveSelection: true,
                       decoration: InputDecoration(
-                          labelText:
-                              'Secret key  (${_cipher.secretKeyLength} bytes)'),
+                          labelText: 'Secret key  (${_cipher.secretKeyLength} bytes)'),
                     ),
                   ),
                   ElevatedButton(
@@ -159,8 +158,8 @@ class _CipherPageState extends State<CipherPage> {
                       minLines: 1,
                       maxLines: 16,
                       enableInteractiveSelection: true,
-                      decoration: InputDecoration(
-                          labelText: 'Nonce (${_cipher.nonceLength} bytes)'),
+                      decoration:
+                          InputDecoration(labelText: 'Nonce (${_cipher.nonceLength} bytes)'),
                     ),
                   ),
                   ElevatedButton(
@@ -187,8 +186,7 @@ class _CipherPageState extends State<CipherPage> {
                   minLines: 1,
                   maxLines: 16,
                   enableInteractiveSelection: true,
-                  decoration:
-                      const InputDecoration(labelText: 'Cleartext (text)'),
+                  decoration: const InputDecoration(labelText: 'Cleartext (text)'),
                 ),
                 const SizedBox(height: 10),
                 const Text('Decrypted Text'),
@@ -204,8 +202,7 @@ class _CipherPageState extends State<CipherPage> {
                   minLines: 1,
                   maxLines: 16,
                   enableInteractiveSelection: true,
-                  decoration:
-                      const InputDecoration(labelText: 'Ciphertext (hex)'),
+                  decoration: const InputDecoration(labelText: 'Ciphertext (hex)'),
                 ),
                 const SizedBox(height: 10),
                 TextField(
@@ -213,8 +210,7 @@ class _CipherPageState extends State<CipherPage> {
                   minLines: 1,
                   maxLines: 16,
                   enableInteractiveSelection: true,
-                  decoration: const InputDecoration(
-                      labelText: 'Message Authentication Code (MAC)'),
+                  decoration: const InputDecoration(labelText: 'Message Authentication Code (MAC)'),
                 ),
                 const SizedBox(height: 10),
                 if (error != null) Text(error.toString()),

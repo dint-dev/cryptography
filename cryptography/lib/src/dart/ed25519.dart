@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:cryptography_plus/cryptography_plus.dart';
@@ -29,9 +28,9 @@ class DartEd25519 extends Ed25519 {
 
   DartEd25519({
     Sha512? sha512,
-    Random? random,
+    super.random,
   })  : _sha512 = sha512 ?? Sha512(),
-        super.constructor(random: random);
+        super.constructor();
 
   @override
   KeyPairType get keyPairType => KeyPairType.ed25519;

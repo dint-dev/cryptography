@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:html' as html;
+import 'dart:js_interop';
 import 'dart:math';
 import 'dart:typed_data';
 
@@ -43,9 +43,9 @@ class BrowserAesGcm extends AesGcm implements StreamingCipher {
     this.secretKeyLength = 32,
     this.nonceLength = AesGcm.defaultNonceLength,
     this.fallback,
-    Random? random,
-  })  : _random = random,
-        super.constructor(random: random);
+    super.random,
+  }) : _random = random,
+       super.constructor();
 
   @override
   Future<List<int>> decrypt(
@@ -56,11 +56,7 @@ class BrowserAesGcm extends AesGcm implements StreamingCipher {
     Uint8List? possibleBuffer,
   }) async {
     if (keyStreamIndex != 0) {
-      throw ArgumentError.value(
-        keyStreamIndex,
-        'keyStreamIndex',
-        'Must be 0',
-      );
+      throw ArgumentError.value(keyStreamIndex, 'keyStreamIndex', 'Must be 0');
     }
 
     final actualMac = secretBox.mac;
@@ -89,17 +85,18 @@ class BrowserAesGcm extends AesGcm implements StreamingCipher {
     try {
       final byteBuffer = await web_crypto.decrypt(
         web_crypto.AesGcmParams(
-          name: _webCryptoName,
+          name: _webCryptoName.toJS,
           iv: jsArrayBufferFrom(secretBox.nonce),
           additionalData: jsArrayBufferFrom(aad),
-          tagLength: macBytes.length * 8,
+          tagLength: (macBytes.length * 8).toJS,
         ),
         jsCryptoKey,
         jsArrayBufferFrom(cipherTextAndMac),
       );
-      return Uint8List.view(byteBuffer);
-    } on html.DomException catch (e) {
-      if (e.name == 'OperationError') {
+      return Uint8List.view(byteBuffer.toDart);
+    } catch (e) {
+      // Check for OperationError by inspecting the error message
+      if (e.toString().contains('OperationError')) {
         throw SecretBoxAuthenticationError();
       }
       rethrow;
@@ -116,11 +113,7 @@ class BrowserAesGcm extends AesGcm implements StreamingCipher {
     Uint8List? possibleBuffer,
   }) async {
     if (keyStreamIndex != 0) {
-      throw ArgumentError.value(
-        keyStreamIndex,
-        'keyStreamIndex',
-        'Must be 0',
-      );
+      throw ArgumentError.value(keyStreamIndex, 'keyStreamIndex', 'Must be 0');
     }
 
     nonce ??= newNonce();
@@ -134,28 +127,20 @@ class BrowserAesGcm extends AesGcm implements StreamingCipher {
     );
     final byteBuffer = await web_crypto.encrypt(
       web_crypto.AesGcmParams(
-        name: 'AES-GCM',
+        name: 'AES-GCM'.toJS,
         iv: jsArrayBufferFrom(nonce),
         additionalData: jsArrayBufferFrom(aad),
-        tagLength: macAlgorithm.macLength * 8,
+        tagLength: (macAlgorithm.macLength * 8).toJS,
       ),
       jsCryptoKey,
       jsArrayBufferFrom(clearText),
     );
 
-    final cipherText = Uint8List.view(
-      byteBuffer,
-      0,
-      clearText.length,
-    );
+    final cipherText = Uint8List.view(byteBuffer.toDart, 0, clearText.length);
 
-    final mac = Mac(Uint8List.view(byteBuffer, clearText.length));
+    final mac = Mac(Uint8List.view(byteBuffer.toDart, clearText.length));
 
-    return SecretBox(
-      cipherText,
-      nonce: nonce,
-      mac: mac,
-    );
+    return SecretBox(cipherText, nonce: nonce, mac: mac);
   }
 
   @override

@@ -13,7 +13,7 @@
 // limitations under the License.
 
 /// Various helpers for cryptography.
-library cryptography_plus.helpers;
+library;
 
 export 'src/helpers/constant_time_equality.dart';
 export 'src/helpers/delegating_classes.dart';

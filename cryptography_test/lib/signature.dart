@@ -16,7 +16,7 @@
 ///
 /// ## Example
 /// See [testSignatureAlgorithm].
-library cryptography_plus_test.signature_algorithm;
+library;
 
 import 'dart:typed_data';
 

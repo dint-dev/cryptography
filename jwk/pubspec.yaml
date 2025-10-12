@@ -1,19 +1,20 @@
 name: jwk_plus
-version: 0.2.4
+
+version: 1.0.0
+
 homepage: https://github.com/emz-hanauer/dart-cryptography
+
 description: JWK (JSON Web Key) encoding and decoding (for package:cryptography).
 
+resolution: workspace
+
 environment:
-  sdk: ">=3.1.0 <4.0.0"
+  sdk: ^3.5.0
 
 dependencies:
   collection: ^1.17.0
-  cryptography_plus: ^2.7.1
+  cryptography_plus: ^3.0.0
 
 dev_dependencies:
-  lints: ^2.1.1
+  lints: ^6.0.0
   test: ^1.24.0
-
-dependency_overrides:
-  cryptography_plus:
-    path: ../cryptography

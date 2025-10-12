@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:js_interop';
 import 'dart:math';
 import 'dart:typed_data';
 
@@ -42,8 +43,8 @@ class BrowserSecretKey extends SecretKey {
     required this.isExtractable,
     required this.allowEncrypt,
     required this.allowDecrypt,
-  })  : _jsCryptoKey = jsCryptoKey,
-        super.constructor();
+  }) : _jsCryptoKey = jsCryptoKey,
+       super.constructor();
 
   @override
   int get hashCode => jsCryptoKey.hashCode;
@@ -54,9 +55,7 @@ class BrowserSecretKey extends SecretKey {
     if (existing != null) {
       return existing;
     }
-    throw StateError(
-      'The Web Cryptography secret key has been destroyed.',
-    );
+    throw StateError('The Web Cryptography secret key has been destroyed.');
   }
 
   @override
@@ -85,9 +84,7 @@ class BrowserSecretKey extends SecretKey {
   @override
   Future<SecretKeyData> extract() async {
     if (!isExtractable) {
-      throw UnsupportedError(
-        'The Web Cryptography secret key is not extractable.',
-      );
+      throw UnsupportedError('The Web Cryptography secret key is not extractable.');
     }
     final existing = _secretKeyData;
     if (existing != null) {
@@ -95,22 +92,18 @@ class BrowserSecretKey extends SecretKey {
     }
     try {
       final byteBuffer = await web_crypto.exportKeyWhenRaw(jsCryptoKey);
-      final bytes = Uint8List.view(byteBuffer);
-      final secretKeyData = SecretKeyData(
-        bytes,
-        overwriteWhenDestroyed: true,
-      );
+      final bytes = Uint8List.view(byteBuffer.toDart);
+      final secretKeyData = SecretKeyData(bytes, overwriteWhenDestroyed: true);
       _secretKeyData = secretKeyData;
       return secretKeyData;
     } catch (error, stackTrace) {
-      throw StateError(
-        'Web Cryptography throw an error: $error\n$stackTrace',
-      );
+      throw StateError('Web Cryptography throw an error: $error\n$stackTrace');
     }
   }
 
   @override
-  String toString() => 'BrowserSecretKey(\n'
+  String toString() =>
+      'BrowserSecretKey(\n'
       '  ...,\n'
       '  isExtractable: $isExtractable,\n'
       '  allowEncrypt: $allowEncrypt,\n'
@@ -126,18 +119,15 @@ class BrowserSecretKey extends SecretKey {
     required bool allowDecrypt,
     required Random? random,
   }) async {
-    final usages = [
-      if (allowEncrypt) 'encrypt',
-      if (allowDecrypt) 'decrypt',
-    ];
+    final usages = [if (allowEncrypt) 'encrypt', if (allowDecrypt) 'decrypt'];
     if (random != null) {
       final bytes = Uint8List(secretKeyLength);
       fillBytesWithSecureRandom(bytes, random: random);
       final jsCryptoKey = await web_crypto.importKeyWhenRaw(
         web_crypto.jsArrayBufferFrom(bytes),
-        webCryptoAlgorithm,
-        isExtractable,
-        usages,
+        webCryptoAlgorithm.toJS,
+        isExtractable.toJS,
+        usages.jsify() as JSArray<JSString>,
       );
       return BrowserSecretKey(
         jsCryptoKey: jsCryptoKey,
@@ -148,12 +138,9 @@ class BrowserSecretKey extends SecretKey {
       );
     }
     final jsCryptoKey = await web_crypto.generateKeyWhenKey(
-      web_crypto.AesKeyGenParams(
-        name: webCryptoAlgorithm,
-        length: secretKeyLength * 8,
-      ),
-      isExtractable,
-      usages,
+      web_crypto.AesKeyGenParams(name: webCryptoAlgorithm.toJS, length: (secretKeyLength * 8).toJS),
+      isExtractable.toJS,
+      usages.jsify() as JSArray<JSString>,
     );
     return BrowserSecretKey(
       jsCryptoKey: jsCryptoKey,
@@ -187,18 +174,13 @@ class BrowserSecretKey extends SecretKey {
     }
     return web_crypto.importKeyWhenRaw(
       jsArrayBufferFrom(secretKeyBytes),
-      webCryptoAlgorithm,
-      isExtractable,
-      [
-        if (allowEncrypt) 'encrypt',
-        if (allowDecrypt) 'decrypt',
-      ],
+      webCryptoAlgorithm.toJS,
+      isExtractable.toJS,
+      [if (allowEncrypt) 'encrypt', if (allowDecrypt) 'decrypt'].jsify() as JSArray<JSString>,
     );
   }
 
   static ArgumentError _secretKeyLengthError(int actual, int expected) {
-    return ArgumentError(
-      'Secret key is ${actual * 8} bits, expected ${expected * 8} bits.',
-    );
+    return ArgumentError('Secret key is ${actual * 8} bits, expected ${expected * 8} bits.');
   }
 }

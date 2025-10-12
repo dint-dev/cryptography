@@ -24,7 +24,7 @@
 ///
 /// ## Factory methods
 /// [Cryptography] contains factory methods for cryptographic algorithms.
-library cryptography_plus;
+library;
 
 import 'package:cryptography_plus/cryptography_plus.dart';
 
