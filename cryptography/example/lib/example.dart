@@ -1,4 +1,4 @@
-import 'package:cryptography/cryptography.dart';
+import 'package:cryptography_plus/cryptography_plus.dart';
 
 Future<void> main() async {
   final algorithm = AesGcm.with256bits();

@@ -11,4 +11,4 @@ PRODUCT_NAME = cryptography_flutter_integration_test
 PRODUCT_BUNDLE_IDENTIFIER = com.example.cryptographyFlutterIntegrationTest
 
 // The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2023 com.example. All rights reserved.
+PRODUCT_COPYRIGHT = Copyright © 2025 com.example. All rights reserved.

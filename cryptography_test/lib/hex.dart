@@ -31,7 +31,7 @@
 ///   testCryptography();
 /// }
 /// ```
-library cryptography_test.hex;
+library;
 
 import 'dart:typed_data';
 

@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import 'package:collection/collection.dart';
-import 'package:cryptography/cryptography.dart';
+import 'package:cryptography_plus/cryptography_plus.dart';
 
 /// A digital signature by some [SignatureAlgorithm].
 ///

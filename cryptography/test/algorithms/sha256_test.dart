@@ -16,9 +16,9 @@ import 'dart:typed_data';
 
 import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart' as google_crypto;
-import 'package:cryptography/cryptography.dart';
-import 'package:cryptography/dart.dart';
-import 'package:cryptography/src/utils.dart';
+import 'package:cryptography_plus/cryptography_plus.dart';
+import 'package:cryptography_plus/dart.dart';
+import 'package:cryptography_plus/src/utils.dart';
 import 'package:test/test.dart';
 
 void main() {

@@ -14,8 +14,8 @@
 
 import 'dart:math';
 
-import 'package:cryptography/cryptography.dart';
-import 'package:cryptography/dart.dart';
+import 'package:cryptography_plus/cryptography_plus.dart';
+import 'package:cryptography_plus/dart.dart';
 import 'package:meta/meta.dart';
 
 /// An implementation of [Cryptography] that uses [Web Cryptography API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API)
@@ -81,7 +81,7 @@ class BrowserCryptography extends DartCryptography {
   ///
   /// If [random] is not given, algorithms will use some cryptographically
   /// secure random number generator (CSRNG) such as [Random.secure].
-  BrowserCryptography({Random? random}) : super(random: random);
+  BrowserCryptography({super.random});
 
   @override
   BrowserCryptography withRandom(Random? random) {

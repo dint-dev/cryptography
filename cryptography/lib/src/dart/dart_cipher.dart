@@ -16,8 +16,8 @@ import 'dart:async';
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:cryptography/cryptography.dart';
-import 'package:cryptography/dart.dart';
+import 'package:cryptography_plus/cryptography_plus.dart';
+import 'package:cryptography_plus/dart.dart';
 import 'package:meta/meta.dart';
 
 /// Superclass for pure Dart implementations of [Cipher].

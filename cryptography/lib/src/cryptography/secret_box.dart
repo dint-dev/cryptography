@@ -14,8 +14,8 @@
 
 import 'dart:typed_data';
 
-import 'package:cryptography/cryptography.dart';
-import 'package:cryptography/src/utils.dart';
+import 'package:cryptography_plus/cryptography_plus.dart';
+import 'package:cryptography_plus/src/utils.dart';
 
 /// Output of encrypting bytes with a [Cipher].
 ///
@@ -29,7 +29,7 @@ import 'package:cryptography/src/utils.dart';
 /// You can use [concatenation] and [SecretBox.fromConcatenation] to concatenate
 /// the fields into a single byte array:
 /// ```
-/// import 'package:cryptography/cryptography.dart';
+/// import 'package:cryptography_plus/cryptography_plus.dart';
 ///
 /// void main() async {
 ///   final aesGcm = AesGcm.with256bits();

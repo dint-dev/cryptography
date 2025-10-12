@@ -13,8 +13,8 @@
 // limitations under the License.
 
 import 'package:crypto/crypto.dart' as other;
-import 'package:cryptography/cryptography.dart';
-import 'package:cryptography/dart.dart';
+import 'package:cryptography_plus/cryptography_plus.dart';
+import 'package:cryptography_plus/dart.dart';
 import 'package:meta/meta.dart';
 
 import '_helpers.dart';

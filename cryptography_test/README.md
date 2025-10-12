@@ -1,12 +1,12 @@
 # Introduction
 
 If you are implementing a cryptographic algorithm that implements interfaces of
-[pub.dev/packages/cryptography](https://pub.dev/packages/cryptography), this package helps you test
+[pub.dev/packages/cryptography_plus](https://pub.dev/packages/cryptography_plus), this package helps you test
 that:
 
-* Your implementation complies with the API specifications.
-* Your implementation doesn't fail any sanity checks.
-* Your implementation produces same outputs as some existing implementation (when there is one).
+- Your implementation complies with the API specifications.
+- Your implementation doesn't fail any sanity checks.
+- Your implementation produces same outputs as some existing implementation (when there is one).
 
 # Usage
 
@@ -18,8 +18,9 @@ dev_dependencies:
 ```
 
 If you have something like:
+
 ```dart
-import 'package:cryptography/cryptography.dart';
+import 'package:cryptography_plus/cryptography_plus.dart';
 
 class MyExample extends Cipher {
   // ...
@@ -27,6 +28,7 @@ class MyExample extends Cipher {
 ```
 
 Your unit tests will look like:
+
 ```dart
 import 'package:cryptography_test/cryptography_test.dart';
 import 'package:cryptography_test/cipher.dart';

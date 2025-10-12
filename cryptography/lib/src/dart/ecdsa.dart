@@ -14,7 +14,7 @@
 
 import 'dart:math';
 
-import 'package:cryptography/cryptography.dart';
+import 'package:cryptography_plus/cryptography_plus.dart';
 
 /// [Ecdsa] (P256, P384, P521) implementation in pure Dart. Currently it throws
 /// [UnimplementedError] if you try to use it.

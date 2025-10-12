@@ -14,10 +14,10 @@
 
 import 'dart:math';
 
-import 'package:cryptography/cryptography.dart';
+import 'package:cryptography_plus/cryptography_plus.dart';
 import 'package:flutter/services.dart';
 
-import '../../cryptography_flutter.dart';
+import '../../cryptography_flutter_plus.dart';
 import '../_internal.dart';
 
 /// [AesGcm] that uses platform APIs in Android, iOS, and Mac OS X.
@@ -51,14 +51,14 @@ class FlutterAesGcm extends AesGcm with FlutterCipherMixin {
     required this.secretKeyLength,
     CryptographyChannelPolicy? channelPolicy,
     AesGcm? fallback,
-    Random? random,
+    super.random,
   })  : fallback = fallback ??
             BackgroundAesGcm(
               secretKeyLength: secretKeyLength,
               random: random,
             ),
         channelPolicy = channelPolicy ?? FlutterCipher.defaultChannelPolicy,
-        super.constructor(random: random);
+        super.constructor();
 
   /// Constructs Flutter-optimized [AesGcm] which will use 128-bit keys.
   ///

@@ -14,10 +14,10 @@
 
 import 'dart:typed_data';
 
-import 'package:cryptography/dart.dart';
+import 'package:cryptography_plus/dart.dart';
 import 'package:meta/meta.dart';
 
-import '../../cryptography.dart';
+import '../../cryptography_plus.dart';
 import '../_internal/rotate.dart';
 
 /// A pure Dart implementation of [Sha224].

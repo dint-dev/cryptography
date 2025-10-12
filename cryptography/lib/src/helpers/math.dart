@@ -20,7 +20,7 @@ import 'dart:typed_data';
 ///
 /// ## Example
 /// ```
-/// import 'package:cryptography/helpers.dart';
+/// import 'package:cryptography_plus/helpers.dart';
 ///
 /// void main() {
 ///   final bytes = [0,2,255];

@@ -15,7 +15,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import '../../cryptography.dart';
+import '../../cryptography_plus.dart';
 
 /// An opaque object that possesses some non-extractable secret key.
 ///
@@ -24,7 +24,7 @@ import '../../cryptography.dart';
 /// ## Example
 /// In this example, we use [Chacha20.poly1305Aead]:
 /// ```dart
-/// import 'package:cryptography/cryptography.dart';
+/// import 'package:cryptography_plus/cryptography_plus.dart';
 ///
 /// Future<void> main() async {
 ///   final cipher = Chacha20.poly1305Aead();
@@ -54,7 +54,7 @@ abstract class CipherWand extends Wand {
   /// ## Example
   /// In this example, we use [Chacha20.poly1305Aead]:
   /// ```dart
-  /// import 'package:cryptography/cryptography.dart';
+  /// import 'package:cryptography_plus/cryptography_plus.dart';
   ///
   /// Future<void> main() async {
   ///   final cipher = Chacha20.poly1305Aead();
@@ -86,7 +86,7 @@ abstract class CipherWand extends Wand {
   /// ## Example
   /// In this example, we use [Chacha20.poly1305Aead]:
   /// ```dart
-  /// import 'package:cryptography/cryptography.dart';
+  /// import 'package:cryptography_plus/cryptography_plus.dart';
   ///
   /// Future<void> main() async {
   ///   final cipher = Chacha20.poly1305Aead();
@@ -124,7 +124,7 @@ abstract class CipherWand extends Wand {
   /// ## Example
   /// In this example, we use [Chacha20.poly1305Aead]:
   /// ```dart
-  /// import 'package:cryptography/cryptography.dart';
+  /// import 'package:cryptography_plus/cryptography_plus.dart';
   ///
   /// Future<void> main() async {
   ///   final cipher = Chacha20.poly1305Aead();
@@ -158,7 +158,7 @@ abstract class CipherWand extends Wand {
   /// ## Example
   /// In this example, we use [Chacha20.poly1305Aead]:
   /// ```dart
-  /// import 'package:cryptography/cryptography.dart';
+  /// import 'package:cryptography_plus/cryptography_plus.dart';
   ///
   /// Future<void> main() async {
   ///   final cipher = Chacha20.poly1305Aead();
@@ -177,7 +177,7 @@ abstract class CipherWand extends Wand {
   /// }
   /// ```
   Future<SecretBox> encryptString(String clearText) async {
-    final bytes = utf8.encode(clearText) as Uint8List;
+    final bytes = utf8.encode(clearText);
     final secretBox = await encrypt(
       bytes,
       possibleBuffer: bytes,

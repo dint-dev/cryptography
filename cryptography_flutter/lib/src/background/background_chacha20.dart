@@ -14,11 +14,11 @@
 
 import 'dart:math';
 
-import 'package:cryptography/cryptography.dart';
-import 'package:cryptography/dart.dart';
+import 'package:cryptography_plus/cryptography_plus.dart';
+import 'package:cryptography_plus/dart.dart';
 import 'package:flutter/foundation.dart';
 
-import '../../cryptography_flutter.dart';
+import '../../cryptography_flutter_plus.dart';
 
 /// [Chacha20.poly1305Aead] that's optimized to use [compute].
 class BackgroundChacha extends Chacha20 with BackgroundCipherMixin {
@@ -40,11 +40,11 @@ class BackgroundChacha extends Chacha20 with BackgroundCipherMixin {
   /// However, this disables the use of [compute].
   BackgroundChacha.poly1305Aead({
     CryptographyChannelPolicy? channelPolicy,
-    Random? random,
+    super.random,
   })  : channelPolicy = random != null
             ? CryptographyChannelPolicy.never
             : (channelPolicy ?? BackgroundCipher.defaultChannelPolicy),
-        super.constructor(random: random);
+        super.constructor();
 
   @override
   MacAlgorithm get macAlgorithm => const DartChacha20Poly1305AeadMacAlgorithm();

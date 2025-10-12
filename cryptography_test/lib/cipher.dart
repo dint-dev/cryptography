@@ -16,11 +16,11 @@
 ///
 /// ## Example
 /// See [testCipher].
-library cryptography_test.cipher;
+library;
 
 import 'dart:typed_data';
 
-import 'package:cryptography/cryptography.dart';
+import 'package:cryptography_plus/cryptography_plus.dart';
 import 'package:test/expect.dart';
 import 'package:test/scaffolding.dart';
 import 'package:typed_data/typed_buffers.dart';

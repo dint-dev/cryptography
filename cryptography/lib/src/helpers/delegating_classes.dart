@@ -14,7 +14,7 @@
 
 import 'dart:typed_data';
 
-import '../../cryptography.dart';
+import '../../cryptography_plus.dart';
 
 /// Delegating base class for [Cipher] implementations.
 abstract class DelegatingCipher implements Cipher {

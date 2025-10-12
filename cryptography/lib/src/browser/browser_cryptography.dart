@@ -14,10 +14,10 @@
 
 import 'dart:math';
 
-import 'package:cryptography/cryptography.dart';
-import 'package:cryptography/dart.dart';
-import 'package:cryptography/src/browser/rsa_pss.dart';
-import 'package:cryptography/src/browser/rsa_ssa_pkcs1v15.dart';
+import 'package:cryptography_plus/cryptography_plus.dart';
+import 'package:cryptography_plus/dart.dart';
+import 'package:cryptography_plus/src/browser/rsa_pss.dart';
+import 'package:cryptography_plus/src/browser/rsa_ssa_pkcs1v15.dart';
 import 'package:meta/meta.dart';
 
 import '_javascript_bindings.dart' show isWebCryptoAvailable;
@@ -48,9 +48,8 @@ class BrowserCryptography extends DartCryptography {
 
   // Documented in browser_cryptography_when_not_browser.dart
   BrowserCryptography({
-    Random? random,
-  })  : _random = random,
-        super(random: random);
+    super.random,
+  })  : _random = random;
 
   @override
   AesCbc aesCbc({

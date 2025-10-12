@@ -15,9 +15,9 @@
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:cryptography/helpers.dart';
+import 'package:cryptography_plus/helpers.dart';
 
-import '../../cryptography.dart';
+import '../../cryptography_plus.dart';
 
 export 'random_bytes_impl_default.dart'
     if (dart.library.html) 'random_bytes_impl_browser.dart';

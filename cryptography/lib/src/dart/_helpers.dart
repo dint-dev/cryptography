@@ -18,7 +18,7 @@ import 'dart:typed_data';
 import 'package:crypto/crypto.dart' as other;
 import 'package:meta/meta.dart';
 
-import '../../cryptography.dart';
+import '../../cryptography_plus.dart';
 import '../../dart.dart';
 
 /// Throws an error if the system is not little-endian.

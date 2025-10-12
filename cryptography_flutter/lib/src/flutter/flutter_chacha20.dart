@@ -14,10 +14,10 @@
 
 import 'dart:math';
 
-import 'package:cryptography/cryptography.dart';
-import 'package:cryptography/dart.dart';
+import 'package:cryptography_plus/cryptography_plus.dart';
+import 'package:cryptography_plus/dart.dart';
 
-import '../../cryptography_flutter.dart';
+import '../../cryptography_flutter_plus.dart';
 import '../_internal.dart';
 
 /// [Chacha20] that uses platform APIs in Android, iOS, and Mac OS X.
@@ -47,10 +47,10 @@ class FlutterChacha20 extends Chacha20 with FlutterCipherMixin {
   FlutterChacha20.poly1305Aead({
     Chacha20? fallback,
     CryptographyChannelPolicy? channelPolicy,
-    Random? random,
+    super.random,
   })  : fallback = fallback ?? BackgroundChacha.poly1305Aead(),
         channelPolicy = channelPolicy ?? FlutterCipher.defaultChannelPolicy,
-        super.constructor(random: random);
+        super.constructor();
 
   @override
   String get channelCipherName => 'CHACHA20_POLY1305_AEAD';

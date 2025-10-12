@@ -1,0 +1,37 @@
+name: Publish plugin
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "document code"
+        run: dart doc
+      - name: Checkout
+        uses: actions/checkout@v1
+      - name: Publish "cryptography"
+        uses: k-paxian/dart-package-publisher@v1.6
+        with:
+          relativePath: cryptography
+          skipTests: true
+          accessToken: ${{ secrets.OAUTH_ACCESS_TOKEN }}
+          refreshToken: ${{ secrets.OAUTH_REFRESH_TOKEN }}
+      - name: Publish "cryptography_flutter"
+        uses: k-paxian/dart-package-publisher@v1.6
+        with:
+          flutter: true
+          skipTests: true
+          relativePath: cryptography_flutter
+          accessToken: ${{ secrets.OAUTH_ACCESS_TOKEN }}
+          refreshToken: ${{ secrets.OAUTH_REFRESH_TOKEN }}
+      - name: Publish "jwk"
+        uses: k-paxian/dart-package-publisher@v1.6
+        with:
+          flutter: true
+          skipTests: true
+          relativePath: jwk
+          accessToken: ${{ secrets.OAUTH_ACCESS_TOKEN }}
+          refreshToken: ${{ secrets.OAUTH_REFRESH_TOKEN }}

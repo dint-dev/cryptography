@@ -17,7 +17,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
-import '../cryptography_flutter.dart';
+import '../cryptography_flutter_plus.dart';
 import '_internal_impl_non_browser.dart'
     if (dart.library.html) '_internal_impl_browser.dart';
 

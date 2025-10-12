@@ -14,8 +14,8 @@
 
 import 'dart:typed_data';
 
-import 'package:cryptography/cryptography.dart';
-import 'package:cryptography/helpers.dart';
+import 'package:cryptography_plus/cryptography_plus.dart';
+import 'package:cryptography_plus/helpers.dart';
 
 import '../../dart.dart';
 import 'aes_impl_constants.dart' as constants;
@@ -356,9 +356,9 @@ class _DartAesSecretKeyData extends SecretKeyData {
   Uint32List? _expandedBytesForDecrypting;
 
   _DartAesSecretKeyData(
-    List<int> bytes, {
-    bool overwriteWhenDestroyed = false,
-  }) : super(bytes, overwriteWhenDestroyed: overwriteWhenDestroyed);
+    super.bytes, {
+    super.overwriteWhenDestroyed,
+  });
 
   @override
   void destroy() {

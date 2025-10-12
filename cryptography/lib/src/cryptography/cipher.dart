@@ -17,8 +17,8 @@ import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:cryptography/cryptography.dart';
-import 'package:cryptography/helpers.dart';
+import 'package:cryptography_plus/cryptography_plus.dart';
+import 'package:cryptography_plus/helpers.dart';
 import 'package:meta/meta.dart';
 
 import '../../dart.dart';
@@ -37,7 +37,7 @@ import '../../dart.dart';
 /// ## Example
 /// An example of using [AesCtr] and [Hmac]:
 /// ```
-/// import 'package:cryptography/cryptography.dart';
+/// import 'package:cryptography_plus/cryptography_plus.dart';
 ///
 /// Future<void> main() async {
 ///   final message = <int>[1,2,3];
@@ -399,7 +399,7 @@ abstract class Cipher {
     String clearText, {
     required SecretKey secretKey,
   }) async {
-    final bytes = utf8.encode(clearText) as Uint8List;
+    final bytes = utf8.encode(clearText);
     final secretBox = await encrypt(
       bytes,
       secretKey: secretKey,
@@ -496,7 +496,7 @@ abstract class Cipher {
   ///
   /// ## Example
   /// ```
-  /// import 'package:cryptography/cryptography.dart';
+  /// import 'package:cryptography_plus/cryptography_plus.dart';
   ///
   /// void main() {
   ///   final cipher = Chacha20.poly1305Aead().toSync();

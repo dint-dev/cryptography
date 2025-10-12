@@ -12,11 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:cryptography/cryptography.dart';
-import 'package:cryptography/dart.dart';
+import 'package:cryptography_plus/cryptography_plus.dart';
+import 'package:cryptography_plus/dart.dart';
 
 import 'ed25519_impl.dart';
 import 'x25519_impl.dart';
@@ -41,7 +40,7 @@ class DartX25519 extends X25519 with DartKeyExchangeAlgorithmMixin {
   }();
 
   // Constant 121665 (0x1db41).
-  const DartX25519({Random? random}) : super.constructor(random: random);
+  const DartX25519({super.random}) : super.constructor();
 
   @override
   KeyPairType get keyPairType => KeyPairType.x25519;

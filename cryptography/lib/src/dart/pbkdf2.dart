@@ -14,7 +14,7 @@
 
 import 'dart:typed_data';
 
-import 'package:cryptography/cryptography.dart';
+import 'package:cryptography_plus/cryptography_plus.dart';
 
 /// [Pbkdf2] implemented in pure Dart.
 ///

@@ -15,14 +15,14 @@
 /// JWK (JSON Web Key) encoding and decoding.
 ///
 /// See documentation for the class [Jwk].
-library jwk;
+library;
 
 import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:collection/collection.dart';
-import 'package:cryptography/cryptography.dart';
-import 'package:cryptography/dart.dart';
+import 'package:cryptography_plus/cryptography_plus.dart';
+import 'package:cryptography_plus/dart.dart';
 
 /// A JWK ([RFC 7517](https://tools.ietf.org/html/rfc7517): "JSON Web Key")
 /// formatted cryptographic key.

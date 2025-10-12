@@ -15,7 +15,7 @@
 import 'dart:async';
 import 'dart:typed_data';
 
-import 'package:cryptography/cryptography.dart';
+import 'package:cryptography_plus/cryptography_plus.dart';
 import 'package:meta/meta.dart';
 
 abstract class DartHashAlgorithm extends HashAlgorithm {

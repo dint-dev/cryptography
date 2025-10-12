@@ -14,11 +14,11 @@
 
 import 'dart:math';
 
-import 'package:cryptography/cryptography.dart';
-import 'package:cryptography/dart.dart';
+import 'package:cryptography_plus/cryptography_plus.dart';
+import 'package:cryptography_plus/dart.dart';
 import 'package:flutter/foundation.dart';
 
-import '../../cryptography_flutter.dart';
+import '../../cryptography_flutter_plus.dart';
 
 /// [AesGcm] that's optimized to use [compute].
 class BackgroundAesGcm extends AesGcm with BackgroundCipherMixin {
@@ -51,14 +51,14 @@ class BackgroundAesGcm extends AesGcm with BackgroundCipherMixin {
     required this.secretKeyLength,
     this.nonceLength = AesGcm.defaultNonceLength,
     CryptographyChannelPolicy? channelPolicy,
-    Random? random,
+    super.random,
   })  : assert(secretKeyLength == 16 ||
             secretKeyLength == 24 ||
             secretKeyLength == 32),
         channelPolicy = random != null
             ? CryptographyChannelPolicy.never
             : (channelPolicy ?? BackgroundCipher.defaultChannelPolicy),
-        super.constructor(random: random);
+        super.constructor();
 
   BackgroundAesGcm.with128bits({
     int nonceLength = AesGcm.defaultNonceLength,

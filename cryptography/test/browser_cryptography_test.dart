@@ -13,14 +13,16 @@
 // limitations under the License.
 
 @TestOn('chrome')
-import 'package:cryptography/cryptography.dart';
-import 'package:cryptography/dart.dart';
-import 'package:cryptography/src/browser/aes_cbc.dart';
-import 'package:cryptography/src/browser/aes_ctr.dart';
-import 'package:cryptography/src/browser/aes_gcm.dart';
-import 'package:cryptography/src/browser/hash.dart';
-import 'package:cryptography/src/browser/hmac.dart';
-import 'package:cryptography/src/browser/pbkdf2.dart';
+library;
+
+import 'package:cryptography_plus/cryptography_plus.dart';
+import 'package:cryptography_plus/dart.dart';
+import 'package:cryptography_plus/src/browser/aes_cbc.dart';
+import 'package:cryptography_plus/src/browser/aes_ctr.dart';
+import 'package:cryptography_plus/src/browser/aes_gcm.dart';
+import 'package:cryptography_plus/src/browser/hash.dart';
+import 'package:cryptography_plus/src/browser/hmac.dart';
+import 'package:cryptography_plus/src/browser/pbkdf2.dart';
 import 'package:test/expect.dart';
 import 'package:test/scaffolding.dart';
 
@@ -44,10 +46,7 @@ void main() {
       expect(algorithm.secretKeyLength, 16);
 
       BrowserCryptography.isDisabledForTesting = true;
-      expect(
-        AesCbc.with128bits(macAlgorithm: MacAlgorithm.empty),
-        isNot(isA<BrowserAesCbc>()),
-      );
+      expect(AesCbc.with128bits(macAlgorithm: MacAlgorithm.empty), isNot(isA<BrowserAesCbc>()));
     });
 
     test('AesCbc.with192bits(...)', () {
@@ -56,10 +55,7 @@ void main() {
       expect(algorithm.secretKeyLength, 24);
 
       BrowserCryptography.isDisabledForTesting = true;
-      expect(
-        AesCbc.with256bits(macAlgorithm: MacAlgorithm.empty),
-        isNot(isA<BrowserAesCbc>()),
-      );
+      expect(AesCbc.with256bits(macAlgorithm: MacAlgorithm.empty), isNot(isA<BrowserAesCbc>()));
     });
 
     test('AesCbc.with256bits(...)', () {
@@ -68,15 +64,10 @@ void main() {
       expect(algorithm.secretKeyLength, 32);
 
       BrowserCryptography.isDisabledForTesting = true;
-      expect(
-        AesCbc.with256bits(macAlgorithm: MacAlgorithm.empty),
-        isNot(isA<BrowserAesCbc>()),
-      );
+      expect(AesCbc.with256bits(macAlgorithm: MacAlgorithm.empty), isNot(isA<BrowserAesCbc>()));
     });
 
-    test(
-        'AesCbc.with256bits(..., paddingAlgorithm: somethingElse) is not BrowserAesCbc',
-        () {
+    test('AesCbc.with256bits(..., paddingAlgorithm: somethingElse) is not BrowserAesCbc', () {
       final algorithm = AesCbc.with256bits(
         macAlgorithm: MacAlgorithm.empty,
         paddingAlgorithm: PaddingAlgorithm.zero,
@@ -91,10 +82,7 @@ void main() {
       expect(algorithm, isA<BrowserAesCtr>());
 
       BrowserCryptography.isDisabledForTesting = true;
-      expect(
-        AesCtr.with128bits(macAlgorithm: MacAlgorithm.empty),
-        isNot(isA<BrowserAesCtr>()),
-      );
+      expect(AesCtr.with128bits(macAlgorithm: MacAlgorithm.empty), isNot(isA<BrowserAesCtr>()));
     });
 
     test('AesCtr.with192bits(...) is DartAesCtr', () {
@@ -108,10 +96,7 @@ void main() {
       expect(algorithm, isA<BrowserAesCtr>());
 
       BrowserCryptography.isDisabledForTesting = true;
-      expect(
-        AesCtr.with256bits(macAlgorithm: MacAlgorithm.empty),
-        isNot(isA<BrowserAesCtr>()),
-      );
+      expect(AesCtr.with256bits(macAlgorithm: MacAlgorithm.empty), isNot(isA<BrowserAesCtr>()));
     });
   });
 
@@ -224,11 +209,7 @@ void main() {
 
   group('Pbkdf2:', () {
     test('using Hmac(Sha256())', () {
-      final algorithm = Pbkdf2(
-        macAlgorithm: Hmac(Sha256()),
-        iterations: 10,
-        bits: 128,
-      );
+      final algorithm = Pbkdf2(macAlgorithm: Hmac(Sha256()), iterations: 10, bits: 128);
       expect(algorithm, isA<BrowserPbkdf2>());
       expect(algorithm.iterations, 10);
       expect(algorithm.bits, 128);
@@ -237,22 +218,14 @@ void main() {
     test('using Hmac(Sha256()), Web Cryptography disabled', () {
       BrowserCryptography.isDisabledForTesting = true;
 
-      final algorithm = Pbkdf2(
-        macAlgorithm: Hmac(Sha256()),
-        iterations: 10,
-        bits: 128,
-      );
+      final algorithm = Pbkdf2(macAlgorithm: Hmac(Sha256()), iterations: 10, bits: 128);
       expect(algorithm, isNot(isA<BrowserPbkdf2>()));
       expect(algorithm.iterations, 10);
       expect(algorithm.bits, 128);
     });
 
     test('using Hmac(Sha512())', () {
-      final algorithm = Pbkdf2(
-        macAlgorithm: Hmac(Sha512()),
-        iterations: 10,
-        bits: 128,
-      );
+      final algorithm = Pbkdf2(macAlgorithm: Hmac(Sha512()), iterations: 10, bits: 128);
       expect(algorithm, isA<BrowserPbkdf2>());
       expect(algorithm.iterations, 10);
       expect(algorithm.bits, 128);
