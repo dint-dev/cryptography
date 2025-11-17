@@ -20,7 +20,7 @@ import 'package:cryptography/helpers.dart';
 import '../../cryptography.dart';
 
 export 'random_bytes_impl_default.dart'
-    if (dart.library.html) 'random_bytes_impl_browser.dart';
+    if (dart.library.js_interop) 'random_bytes_impl_browser.dart';
 
 const _hexChars = [
   '0',

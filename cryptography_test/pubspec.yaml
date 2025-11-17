@@ -5,7 +5,7 @@ description: A package for testing and benchmarking cryptographic algorithm impl
   implement "package:cryptography" interfaces.
 
 environment:
-  sdk: '>=3.1.0 <4.0.0'
+  sdk: '>=3.3.0 <4.0.0'
 
 # Open-source contributors:
 #
@@ -24,13 +24,13 @@ dependencies:
   #
   # Packages by github.com/dint-dev:
   #
-  cryptography: ^2.5.1
+  cryptography: ^2.8.0
 
 dev_dependencies:
   #
   # Packages by Google:
   #
-  lints: ^2.1.1
+  lints: ^6.0.0
 
 dependency_overrides:
   cryptography:

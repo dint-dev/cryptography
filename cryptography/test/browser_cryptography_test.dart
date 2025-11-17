@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-@TestOn('chrome')
+@TestOn('browser')
 library;
 
 import 'package:cryptography/cryptography.dart';

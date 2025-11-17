@@ -16,11 +16,9 @@ import 'dart:math';
 
 import 'package:cryptography/cryptography.dart';
 
-/// [DartRsaSsaPkcs1v15] implementation in pure Dart. Currently it throws
-/// [UnimplementedError] if you try to use it.
+/// [RsaSsaPkcs1v15] algorithm written in Dart.
 ///
-/// For examples and more information about the algorithm, see documentation for
-/// the class [Ecdh].
+/// Currently it throws [UnimplementedError] if you try to use it.
 class DartRsaSsaPkcs1v15 extends RsaSsaPkcs1v15 {
   @override
   final HashAlgorithm hashAlgorithm;

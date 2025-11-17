@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:html' as html;
+import 'dart:js_interop';
 import 'dart:math';
 import 'dart:typed_data';
 
@@ -20,15 +20,18 @@ import '../../cryptography.dart';
 
 const _bit32 = 0x10000 * 0x10000;
 
-// Store the function so it can't be mutated by Javascript libraries.
-final _webCryptoRandom = html.window.crypto!.getRandomValues;
-
 void fillBytesWithSecureRandom(Uint8List bytes, {Random? random}) {
-  if (random == null &&
-      bytes.runtimeType == Uint8List &&
-      BrowserCryptography.isSupported) {
+  if (random == null && BrowserCryptography.isSupported) {
     // Use Web Cryptography API directly (instead of Random.secure()).
-    _webCryptoRandom(bytes);
+    final jsArray = bytes.toJS;
+    _webCryptoRandom(jsArray);
+    final jsArrayToDart = jsArray.toDart;
+    if (!identical(jsArrayToDart, bytes)) {
+      for (var i = 0; i < bytes.length; i++) {
+        bytes[i] = jsArrayToDart[i];
+      }
+    }
+    return;
   }
   random ??= SecureRandom.safe;
   for (var i = 0; i < bytes.length;) {
@@ -47,3 +50,6 @@ void fillBytesWithSecureRandom(Uint8List bytes, {Random? random}) {
     }
   }
 }
+
+@JS('window.crypto.getRandomValues')
+external void _webCryptoRandom(JSUint8Array buffer);

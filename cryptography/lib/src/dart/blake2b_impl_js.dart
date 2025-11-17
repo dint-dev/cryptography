@@ -324,8 +324,8 @@ class Blake2bSink extends DartHashSink with DartMacSinkMixin {
     {
       final low = vbLow ^ vcLow;
       final high = vbHigh ^ vcHigh;
-      vbLow = ((high << 8)) | low >> 24;
-      vbHigh = ((low << 8)) | high >> 24;
+      vbLow = (uint32mask & (high << 8)) | low >> 24;
+      vbHigh = (uint32mask & (low << 8)) | high >> 24;
     }
 
     // va = va + vb + m[y]
@@ -339,8 +339,8 @@ class Blake2bSink extends DartHashSink with DartMacSinkMixin {
     {
       final low = vdLow ^ vaLow;
       final high = vdHigh ^ vaHigh;
-      vdLow = (high << 16) | low >> 16;
-      vdHigh = (low << 16) | high >> 16;
+      vdLow = (uint32mask & (high << 16)) | low >> 16;
+      vdHigh = (uint32mask & (low << 16)) | high >> 16;
     }
 
     // vc = c + d

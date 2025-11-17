@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:js_interop';
 import 'dart:math';
 import 'dart:typed_data';
 
@@ -127,16 +128,16 @@ class BrowserSecretKey extends SecretKey {
     required Random? random,
   }) async {
     final usages = [
-      if (allowEncrypt) 'encrypt',
-      if (allowDecrypt) 'decrypt',
-    ];
+      if (allowEncrypt) 'encrypt'.toJS,
+      if (allowDecrypt) 'decrypt'.toJS,
+    ].toJS;
     if (random != null) {
       final bytes = Uint8List(secretKeyLength);
       fillBytesWithSecureRandom(bytes, random: random);
       final jsCryptoKey = await web_crypto.importKeyWhenRaw(
-        web_crypto.jsArrayBufferFrom(bytes),
-        webCryptoAlgorithm,
-        isExtractable,
+        web_crypto.jsUint8ListFrom(bytes),
+        webCryptoAlgorithm.toJS,
+        isExtractable.toJS,
         usages,
       );
       return BrowserSecretKey(
@@ -149,10 +150,10 @@ class BrowserSecretKey extends SecretKey {
     }
     final jsCryptoKey = await web_crypto.generateKeyWhenKey(
       web_crypto.AesKeyGenParams(
-        name: webCryptoAlgorithm,
-        length: secretKeyLength * 8,
-      ),
-      isExtractable,
+        name: webCryptoAlgorithm.toJS,
+        length: (secretKeyLength * 8).toJS,
+      ).jsObject,
+      isExtractable.toJS,
       usages,
     );
     return BrowserSecretKey(
@@ -186,13 +187,13 @@ class BrowserSecretKey extends SecretKey {
       throw _secretKeyLengthError(actualSecretKeyLength, secretKeyLength);
     }
     return web_crypto.importKeyWhenRaw(
-      jsArrayBufferFrom(secretKeyBytes),
-      webCryptoAlgorithm,
-      isExtractable,
+      jsUint8ListFrom(secretKeyBytes),
+      webCryptoAlgorithm.toJS,
+      isExtractable.toJS,
       [
-        if (allowEncrypt) 'encrypt',
-        if (allowDecrypt) 'decrypt',
-      ],
+        if (allowEncrypt) 'encrypt'.toJS,
+        if (allowDecrypt) 'decrypt'.toJS,
+      ].toJS,
     );
   }
 

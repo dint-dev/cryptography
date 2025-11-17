@@ -1,3 +1,6 @@
+## 0.2.5
+* Improves dependency constraints.
+
 ## 0.2.4
 * Improves documentation.
 

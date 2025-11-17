@@ -20,4 +20,4 @@
 library;
 
 export 'src/browser/browser_cryptography_when_not_browser.dart'
-    if (dart.library.html) 'src/browser/browser_cryptography.dart';
+    if (dart.library.js_interop) 'src/browser/browser_cryptography.dart';
