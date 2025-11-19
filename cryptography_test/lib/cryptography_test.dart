@@ -31,7 +31,7 @@
 ///   testCryptography();
 /// }
 /// ```
-library cryptography_test;
+library;
 
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography_test/algorithms/argon2.dart';

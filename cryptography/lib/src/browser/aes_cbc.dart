@@ -38,9 +38,9 @@ class BrowserAesCbc extends AesCbc {
   const BrowserAesCbc({
     required this.macAlgorithm,
     this.secretKeyLength = 32,
-    Random? random,
+    super.random,
   })  : _random = random,
-        super.constructor(random: random);
+        super.constructor();
 
   @override
   PaddingAlgorithm get paddingAlgorithm => PaddingAlgorithm.pkcs7;

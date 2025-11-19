@@ -54,7 +54,7 @@ class FlutterCryptography extends BrowserCryptography {
   Ed25519? _ed25519;
   X25519? _x25519;
 
-  FlutterCryptography({Random? random}) : super(random: random);
+  FlutterCryptography({super.random});
 
   @override
   AesGcm aesGcm({

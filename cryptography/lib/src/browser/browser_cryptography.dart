@@ -48,9 +48,8 @@ class BrowserCryptography extends DartCryptography {
 
   // Documented in browser_cryptography_when_not_browser.dart
   BrowserCryptography({
-    Random? random,
-  })  : _random = random,
-        super(random: random);
+    super.random,
+  })  : _random = random;
 
   @override
   AesCbc aesCbc({

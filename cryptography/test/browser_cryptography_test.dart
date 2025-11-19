@@ -13,6 +13,8 @@
 // limitations under the License.
 
 @TestOn('chrome')
+library;
+
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/dart.dart';
 import 'package:cryptography/src/browser/aes_cbc.dart';

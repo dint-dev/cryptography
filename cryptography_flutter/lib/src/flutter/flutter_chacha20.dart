@@ -47,10 +47,10 @@ class FlutterChacha20 extends Chacha20 with FlutterCipherMixin {
   FlutterChacha20.poly1305Aead({
     Chacha20? fallback,
     CryptographyChannelPolicy? channelPolicy,
-    Random? random,
+    super.random,
   })  : fallback = fallback ?? BackgroundChacha.poly1305Aead(),
         channelPolicy = channelPolicy ?? FlutterCipher.defaultChannelPolicy,
-        super.constructor(random: random);
+        super.constructor();
 
   @override
   String get channelCipherName => 'CHACHA20_POLY1305_AEAD';

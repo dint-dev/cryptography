@@ -209,9 +209,9 @@ class _BrowserRsaPublicKey extends RsaPublicKey {
     required this.jsCryptoKey,
     required this.webCryptoAlgorithm,
     required this.webCryptoHash,
-    required List<int> n,
-    required List<int> e,
-  }) : super(n: n, e: e);
+    required super.n,
+    required super.e,
+  });
 }
 
 class _BrowserRsaSsaPkcs1v15KeyPair extends KeyPair implements RsaKeyPair {
