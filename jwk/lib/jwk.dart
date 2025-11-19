@@ -15,7 +15,7 @@
 /// JWK (JSON Web Key) encoding and decoding.
 ///
 /// See documentation for the class [Jwk].
-library jwk;
+library;
 
 import 'dart:convert';
 import 'dart:typed_data';

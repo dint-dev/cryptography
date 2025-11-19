@@ -1,5 +1,5 @@
 /// Helpers for Android.
-library cryptography_flutter.android;
+library;
 
 import 'package:flutter/services.dart';
 

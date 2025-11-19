@@ -13,7 +13,7 @@
 // limitations under the License.
 
 @JS()
-library web_crypto_api;
+library;
 
 import 'dart:convert' show base64Url;
 import 'dart:html' show CryptoKey;

@@ -40,9 +40,9 @@ class BrowserAesCtr extends AesCtr {
     required this.macAlgorithm,
     this.secretKeyLength = 32,
     this.counterBits = 64,
-    Random? random,
+    super.random,
   })  : _random = random,
-        super.constructor(random: random);
+        super.constructor();
 
   @override
   Future<List<int>> decrypt(

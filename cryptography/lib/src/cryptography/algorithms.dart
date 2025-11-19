@@ -66,8 +66,8 @@ abstract class AesCbc extends Cipher {
 
   /// Constructor for classes that extend this class.
   const AesCbc.constructor({
-    Random? random,
-  }) : super(random: random);
+    super.random,
+  });
 
   /// Constructs 128-bit AES-CBC.
   factory AesCbc.with128bits({
@@ -215,7 +215,7 @@ abstract class AesCtr extends StreamingCipher {
   static const int defaultCounterBits = 64;
 
   /// Constructor for classes that extend this class.
-  const AesCtr.constructor({Random? random}) : super(random: random);
+  const AesCtr.constructor({super.random});
 
   /// Constructs 128-bit AES-CTR.
   factory AesCtr.with128bits({
@@ -368,7 +368,7 @@ abstract class AesGcm extends Cipher {
   static const int defaultNonceLength = 12;
 
   /// Constructor for classes that extend this class.
-  const AesGcm.constructor({Random? random}) : super(random: random);
+  const AesGcm.constructor({super.random});
 
   factory AesGcm.with128bits({
     int nonceLength = AesGcm.defaultNonceLength,
@@ -878,7 +878,7 @@ abstract class Chacha20 extends StreamingCipher {
   /// Constructor for classes that extend this class.
   ///
   /// Optional parameter [random] is used by [newSecretKey] and [newNonce].
-  const Chacha20.constructor({Random? random}) : super(random: random);
+  const Chacha20.constructor({super.random});
 
   /// Constructs ChaCha20-Poly1305-AEAD cipher
   /// (([RFC 7539](https://tools.ietf.org/html/rfc7539), also known as
@@ -2107,7 +2107,7 @@ abstract class StreamingCipher extends Cipher {
   /// Constructor for subclasses.
   ///
   /// Optional parameter [random] is used by [newSecretKey] and [newNonce].
-  const StreamingCipher({Random? random}) : super(random: random);
+  const StreamingCipher({super.random});
 
   /// Decrypts a ciphertext.
   ///
@@ -2231,7 +2231,7 @@ abstract class Xchacha20 extends StreamingCipher {
   }
 
   /// Constructor for classes that extend this class.
-  const Xchacha20.constructor({Random? random}) : super(random: random);
+  const Xchacha20.constructor({super.random});
 
   /// _XAEAD_CHACHA20_POLY1305_ ([draft-irtf-cfrg-xchacha](https://tools.ietf.org/html/draft-arciszewski-xchacha-03)) cipher.
   ///

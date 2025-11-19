@@ -43,9 +43,9 @@ class BrowserAesGcm extends AesGcm implements StreamingCipher {
     this.secretKeyLength = 32,
     this.nonceLength = AesGcm.defaultNonceLength,
     this.fallback,
-    Random? random,
+    super.random,
   })  : _random = random,
-        super.constructor(random: random);
+        super.constructor();
 
   @override
   Future<List<int>> decrypt(
