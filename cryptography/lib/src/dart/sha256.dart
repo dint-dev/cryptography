@@ -20,7 +20,7 @@ import 'package:meta/meta.dart';
 import '../../cryptography.dart';
 import '../_internal/rotate.dart';
 
-/// A pure Dart implementation of [Sha224].
+/// [Sha224] algorithm written in Dart.
 ///
 /// For examples and more information about the algorithm, see documentation for
 /// the class [Sha224].
@@ -44,7 +44,7 @@ class DartSha224 extends Sha224 with DartHashAlgorithmMixin {
   }
 }
 
-/// A pure Dart implementation of [Sha256].
+/// [Sha256] implemented with pure Dart.
 ///
 /// For examples and more information about the algorithm, see documentation for
 /// the class [Sha256].

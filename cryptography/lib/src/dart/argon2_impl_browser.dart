@@ -16,12 +16,12 @@ import 'dart:typed_data';
 
 import 'package:cryptography/dart.dart';
 
-typedef DartArgon2StateImpl = DartArgon2StateImplBrowser;
+typedef DartArgon2StateImpl = DartArgon2StateImplNoFfi;
 
-class DartArgon2StateImplBrowser extends DartArgon2State {
+class DartArgon2StateImplNoFfi extends DartArgon2State {
   ByteBuffer? _buffer;
 
-  DartArgon2StateImplBrowser({
+  DartArgon2StateImplNoFfi({
     super.version,
     required super.mode,
     required super.parallelism,

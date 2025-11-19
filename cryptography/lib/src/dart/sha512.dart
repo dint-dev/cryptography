@@ -19,7 +19,7 @@ import 'package:meta/meta.dart';
 
 import '_helpers.dart';
 
-/// [Sha384] implemented by using in [package:crypto](https://pub.dev/packages/crypto)
+/// [Sha384] implemented with [package:crypto](https://pub.dev/packages/crypto)
 /// (a package by Google).
 ///
 /// For examples and more information about the algorithm, see documentation for
@@ -33,7 +33,7 @@ class DartSha384 extends Sha384
   other.Hash get impl => other.sha384;
 }
 
-/// [Sha512] implemented by using in [package:crypto](https://pub.dev/packages/crypto)
+/// [Sha512] implemented with [package:crypto](https://pub.dev/packages/crypto)
 /// (a package by Google).
 ///
 /// For examples and more information about the algorithm, see documentation for

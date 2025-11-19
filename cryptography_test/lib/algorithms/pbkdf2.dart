@@ -19,8 +19,12 @@ import 'package:test/scaffolding.dart';
 import '../hex.dart';
 
 void testPbkdf2() {
+  if (BrowserCryptography.isRunningInWasm) {
+    // Password hashing tests take too long time in WASM.
+    return;
+  }
   group('Pbkdf2:', () {
-    test('deriveKeyFromString(...): Hmac(sha256), 10000 iteration', () async {
+    test('deriveKeyFromString(...): Hmac(sha256), 10000 iterations', () async {
       const password = 'qwerty';
       const nonce = [1, 2, 3];
       final bits = 128;

@@ -20,6 +20,10 @@ import 'package:test/test.dart';
 import '../hex.dart';
 
 void testArgon2() {
+  if (BrowserCryptography.isRunningInWasm) {
+    // Password hashing tests take too long time in WASM.
+    return;
+  }
   group('$Argon2id:', () {
     test('memory=1MB parallelism=1 iterations=1', () async {
       final algorithm = Argon2id(

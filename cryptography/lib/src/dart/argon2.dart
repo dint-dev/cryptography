@@ -20,7 +20,7 @@ import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/dart.dart';
 import 'package:cryptography/src/dart/_helpers.dart';
 import 'package:cryptography/src/dart/argon2_impl_browser.dart'
-    if (dart.library.ffi) 'package:cryptography/src/dart/argon2_impl_vm.dart';
+    if (dart.library.ffi) 'package:cryptography/src/dart/argon2_impl_default.dart';
 import 'package:meta/meta.dart';
 
 const _bit32 = 0x100000000;

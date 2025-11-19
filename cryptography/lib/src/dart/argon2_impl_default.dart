@@ -24,9 +24,9 @@ import '../../dart.dart';
 
 const _mask32 = 0xFFFFFFFF;
 
-typedef DartArgon2StateImpl = DartArgon2StateImplVm;
+typedef DartArgon2StateImpl = DartArgon2StateImplFfi;
 
-class DartArgon2StateImplVm extends DartArgon2State {
+class DartArgon2StateImplFfi extends DartArgon2State {
   static final _allocator = calloc;
   static final _finalizer = Finalizer<Pointer>((p0) {
     _allocator.free(p0);
@@ -36,7 +36,7 @@ class DartArgon2StateImplVm extends DartArgon2State {
   ByteBuffer? _buffer;
   int _bufferAddress = 0;
 
-  DartArgon2StateImplVm({
+  DartArgon2StateImplFfi({
     super.version,
     required super.mode,
     required super.parallelism,
@@ -293,7 +293,7 @@ class DartArgon2StateImplVm extends DartArgon2State {
         final lanesLength = message[11] as int;
         final pointer = Pointer<Uint8>.fromAddress(bufferAddress);
         final buffer = pointer.asTypedList(1024 * memory).buffer;
-        final state = DartArgon2StateImplVm(
+        final state = DartArgon2StateImplFfi(
           version: version,
           mode: mode,
           memory: memory,

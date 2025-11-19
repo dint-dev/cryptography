@@ -44,12 +44,15 @@ class BrowserCryptography extends DartCryptography {
   // Documented in browser_cryptography_when_not_browser.dart
   static bool get isSupported => isWebCryptoAvailable && !isDisabledForTesting;
 
+  // Documented in browser_cryptography_when_not_browser.dart
+  static bool get isRunningInWasm => (0 as num) is! double;
+
   final Random? _random;
 
   // Documented in browser_cryptography_when_not_browser.dart
   BrowserCryptography({
     super.random,
-  })  : _random = random;
+  }) : _random = random;
 
   @override
   AesCbc aesCbc({

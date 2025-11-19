@@ -2,4 +2,5 @@ platforms:
   - vm
   - chrome
 compilers:
+  - dart2wasm
   - dart2js

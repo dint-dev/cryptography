@@ -7,7 +7,8 @@ This is a Flutter plugin that
 enables [pub.dev/packages/cryptography](https://pub.dev/packages/cryptography)
 to use native APIs of Android, iOS, and Mac OS X.
 
-Maintained by [gohilla.com](https://gohilla.com). Licensed under the [Apache License 2.0](LICENSE).
+Maintained by [terrier989](https://github.com/terrier989).
+Licensed under the [Apache License 2.0](LICENSE).
 
 ## Why?
 * __Secure__

@@ -64,6 +64,7 @@ jobs:
         compiler:
           - vm
           - dart2js
+          - dart2wasm
     steps:
       - uses: browser-actions/setup-chrome@v2
         if: ${{ matrix.compiler != 'vm' }}
@@ -79,8 +80,12 @@ jobs:
         run: dart test --platform vm
         working-directory: ./${{ matrix.package }}
       - name: "Test: JS build"
-        if: ${{ matrix.compiler == 'vm' }}
+        if: ${{ matrix.compiler == 'dart2js' }}
         run: dart test --platform chrome --compiler dart2js
+        working-directory: ./${{ matrix.package }}
+      - name: "Test: WASM build"
+        if: ${{ matrix.compiler == 'dart2wasm' }}
+        run: dart test --platform chrome --compiler dart2wasm
         working-directory: ./${{ matrix.package }}
 
   #

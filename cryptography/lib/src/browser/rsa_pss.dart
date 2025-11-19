@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:js_interop';
 import 'dart:math';
 import 'dart:typed_data';
 
@@ -23,7 +24,8 @@ import '_javascript_bindings.dart'
         base64UrlDecodeUnmodifiable,
         base64UrlDecodeUnmodifiableMaybe,
         base64UrlEncode,
-        base64UrlEncodeMaybe;
+        base64UrlEncodeMaybe,
+        jsUint8ListFrom;
 import 'hash.dart';
 
 /// RSA-PSS implementation that uses _Web Cryptography API_ in browsers.
@@ -71,13 +73,13 @@ class BrowserRsaPss extends RsaPss {
     // Generate CryptoKeyPair
     final jsCryptoKeyPair = await web_crypto.generateKeyWhenKeyPair(
       web_crypto.RsaHashedKeyGenParams(
-        name: _webCryptoAlgorithm,
-        modulusLength: modulusLength,
-        publicExponent: Uint8List.fromList(publicExponent),
-        hash: webCryptoHash,
-      ),
-      true,
-      ['sign', 'verify'],
+        name: _webCryptoAlgorithm.toJS,
+        modulusLength: modulusLength.toJS,
+        publicExponent: web_crypto.jsUint8ListFrom(publicExponent),
+        hash: webCryptoHash.toJS,
+      ).jsObject,
+      true.toJS,
+      ['sign'.toJS, 'verify'.toJS].toJS,
     );
     return _BrowserRsaPssKeyPair(
       jsCryptoKeyPair,
@@ -107,11 +109,11 @@ class BrowserRsaPss extends RsaPss {
     );
     final byteBuffer = await web_crypto.sign(
       web_crypto.RsaPssParams(
-        name: _webCryptoAlgorithm,
-        saltLength: nonceLengthInBytes,
-      ),
+        name: _webCryptoAlgorithm.toJS,
+        saltLength: nonceLengthInBytes.toJS,
+      ).jsObject,
       jsCryptoKey,
-      web_crypto.jsArrayBufferFrom(message),
+      Uint8List.fromList(message).toJS,
     );
     return Signature(
       Uint8List.view(byteBuffer),
@@ -139,12 +141,12 @@ class BrowserRsaPss extends RsaPss {
     );
     return await web_crypto.verify(
       web_crypto.RsaPssParams(
-        name: _webCryptoAlgorithm,
-        saltLength: nonceLengthInBytes,
-      ),
+        name: _webCryptoAlgorithm.toJS,
+        saltLength: nonceLengthInBytes.toJS,
+      ).jsObject,
       jsCryptoKey,
-      web_crypto.jsArrayBufferFrom(signature.bytes),
-      web_crypto.jsArrayBufferFrom(message),
+      jsUint8ListFrom(signature.bytes),
+      jsUint8ListFrom(message),
     );
   }
 
@@ -168,22 +170,22 @@ class BrowserRsaPss extends RsaPss {
     // Import JWK key
     return web_crypto.importKeyWhenJwk(
       web_crypto.Jwk(
-        kty: 'RSA',
-        n: base64UrlEncode(keyPairData.n),
-        e: base64UrlEncode(keyPairData.e),
-        p: base64UrlEncode(keyPairData.p),
-        d: base64UrlEncode(keyPairData.d),
-        q: base64UrlEncode(keyPairData.q),
-        dp: base64UrlEncodeMaybe(keyPairData.dp),
-        dq: base64UrlEncodeMaybe(keyPairData.dq),
-        qi: base64UrlEncodeMaybe(keyPairData.qi),
+        kty: 'RSA'.toJS,
+        n: base64UrlEncode(keyPairData.n).toJS,
+        e: base64UrlEncode(keyPairData.e).toJS,
+        p: base64UrlEncode(keyPairData.p).toJS,
+        d: base64UrlEncode(keyPairData.d).toJS,
+        q: base64UrlEncode(keyPairData.q).toJS,
+        dp: base64UrlEncodeMaybe(keyPairData.dp)?.toJS,
+        dq: base64UrlEncodeMaybe(keyPairData.dq)?.toJS,
+        qi: base64UrlEncodeMaybe(keyPairData.qi)?.toJS,
       ),
       web_crypto.RsaHashedImportParams(
-        name: webCryptoAlgorithm,
-        hash: webCryptoHash,
-      ),
-      false,
-      const ['sign'],
+        name: webCryptoAlgorithm.toJS,
+        hash: webCryptoHash.toJS,
+      ).jsObject,
+      false.toJS,
+      ['sign'.toJS].toJS,
     );
   }
 
@@ -206,16 +208,16 @@ class BrowserRsaPss extends RsaPss {
     }
     return web_crypto.importKeyWhenJwk(
       web_crypto.Jwk(
-        kty: 'RSA',
-        n: base64UrlEncode(publicKey.n),
-        e: base64UrlEncode(publicKey.e),
+        kty: 'RSA'.toJS,
+        n: base64UrlEncode(publicKey.n).toJS,
+        e: base64UrlEncode(publicKey.e).toJS,
       ),
       web_crypto.RsaHashedImportParams(
-        name: webCryptoAlgorithm,
-        hash: webCryptoHash,
-      ),
-      false,
-      const ['verify'],
+        name: webCryptoAlgorithm.toJS,
+        hash: webCryptoHash.toJS,
+      ).jsObject,
+      false.toJS,
+      ['verify'.toJS].toJS,
     );
   }
 }
@@ -237,14 +239,14 @@ class _BrowserRsaPssKeyPair extends RsaKeyPair {
       jsCryptoKeyPair.privateKey,
     );
     return RsaKeyPairData(
-      n: base64UrlDecodeUnmodifiable(jsJwk.n!),
-      e: base64UrlDecodeUnmodifiable(jsJwk.e!),
-      d: base64UrlDecodeUnmodifiable(jsJwk.d!),
-      p: base64UrlDecodeUnmodifiable(jsJwk.p!),
-      q: base64UrlDecodeUnmodifiable(jsJwk.q!),
-      dp: base64UrlDecodeUnmodifiableMaybe(jsJwk.dp),
-      dq: base64UrlDecodeUnmodifiableMaybe(jsJwk.dq),
-      qi: base64UrlDecodeUnmodifiableMaybe(jsJwk.qi),
+      n: base64UrlDecodeUnmodifiable(jsJwk.n!.toDart),
+      e: base64UrlDecodeUnmodifiable(jsJwk.e!.toDart),
+      d: base64UrlDecodeUnmodifiable(jsJwk.d!.toDart),
+      p: base64UrlDecodeUnmodifiable(jsJwk.p!.toDart),
+      q: base64UrlDecodeUnmodifiable(jsJwk.q!.toDart),
+      dp: base64UrlDecodeUnmodifiableMaybe(jsJwk.dp?.toDart),
+      dq: base64UrlDecodeUnmodifiableMaybe(jsJwk.dq?.toDart),
+      qi: base64UrlDecodeUnmodifiableMaybe(jsJwk.qi?.toDart),
     );
   }
 
@@ -257,8 +259,8 @@ class _BrowserRsaPssKeyPair extends RsaKeyPair {
       jsCryptoKey: jsCryptoKeyPair.publicKey,
       webCryptoAlgorithm: webCryptoAlgorithm,
       webCryptoHash: webCryptoHash,
-      n: base64UrlDecodeUnmodifiable(jsJwk.n!),
-      e: base64UrlDecodeUnmodifiable(jsJwk.e!),
+      n: base64UrlDecodeUnmodifiable(jsJwk.n!.toDart),
+      e: base64UrlDecodeUnmodifiable(jsJwk.e!.toDart),
     );
   }
 }

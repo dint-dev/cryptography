@@ -12,12 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:js_interop';
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
 
 import '_javascript_bindings.dart' as web_crypto;
-import '_javascript_bindings.dart' show jsArrayBufferFrom;
+import '_javascript_bindings.dart' show jsUint8ListFrom;
 import 'hash.dart';
 
 /// HMAC implementation that uses _Web Cryptography API_ in browsers.
@@ -56,9 +57,9 @@ class BrowserHmac extends Hmac {
     }
     final jsCryptoKey = await _jsCryptoKey(secretKey);
     final byteBuffer = await web_crypto.sign(
-      'HMAC',
+      'HMAC'.toJS,
       jsCryptoKey,
-      jsArrayBufferFrom(bytes),
+      jsUint8ListFrom(bytes),
     );
     return Mac(Uint8List.view(byteBuffer));
   }
@@ -73,13 +74,13 @@ class BrowserHmac extends Hmac {
       );
     }
     return await web_crypto.importKeyWhenRaw(
-      web_crypto.jsArrayBufferFrom(secretKeyBytes),
+      web_crypto.jsUint8ListFrom(secretKeyBytes),
       web_crypto.HmacImportParams(
-        name: 'HMAC',
-        hash: hashAlgorithmWebCryptoName,
-      ),
-      false,
-      const ['sign'],
+        name: 'HMAC'.toJS,
+        hash: hashAlgorithmWebCryptoName.toJS,
+      ).jsObject,
+      false.toJS,
+      ['sign'.toJS].toJS,
     );
   }
 }

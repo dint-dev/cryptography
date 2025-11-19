@@ -12,12 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:js_interop';
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/src/browser/hash.dart';
 
-import '_javascript_bindings.dart' show jsArrayBufferFrom;
+import '_javascript_bindings.dart' show jsUint8ListFrom;
 import '_javascript_bindings.dart' as web_crypto;
 
 /// HKDF implementation that uses _Web Cryptography API_ in browsers.
@@ -39,18 +40,24 @@ class BrowserHkdf extends Hkdf {
     List<int> nonce = const <int>[],
     List<int> info = const <int>[],
   }) async {
+    final hashAlgorithmName = BrowserHashAlgorithmMixin.hashAlgorithmNameFor(
+      hmac.hashAlgorithm,
+    );
+    if (hashAlgorithmName == null) {
+      throw UnsupportedError(
+        'The hash algorithm ${hmac.hashAlgorithm} is not supported by Web Crypto API.',
+      );
+    }
     final jsCryptoKey = await _jsCryptoKey(secretKey);
     final byteBuffer = await web_crypto.deriveBits(
       web_crypto.HkdfParams(
-        name: 'HKDF',
-        hash: BrowserHashAlgorithmMixin.hashAlgorithmNameFor(
-          hmac.hashAlgorithm,
-        )!,
-        salt: jsArrayBufferFrom(nonce),
-        info: jsArrayBufferFrom(info),
-      ),
+        name: 'HKDF'.toJS,
+        hash: hashAlgorithmName.toJS,
+        salt: jsUint8ListFrom(nonce),
+        info: jsUint8ListFrom(info),
+      ).jsObject,
       jsCryptoKey,
-      8 * outputLength,
+      (8 * outputLength).toJS,
     );
     return SecretKeyData(Uint8List.view(byteBuffer));
   }
@@ -58,10 +65,10 @@ class BrowserHkdf extends Hkdf {
   Future<web_crypto.CryptoKey> _jsCryptoKey(SecretKey secretKey) async {
     final secretKeyBytes = await secretKey.extractBytes();
     return await web_crypto.importKeyWhenRaw(
-      web_crypto.jsArrayBufferFrom(secretKeyBytes),
-      'HKDF',
-      false,
-      const ['deriveBits'],
+      web_crypto.jsUint8ListFrom(secretKeyBytes),
+      'HKDF'.toJS,
+      false.toJS,
+      ['deriveBits'.toJS].toJS,
     );
   }
 }

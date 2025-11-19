@@ -12,12 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:js_interop';
 import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
 
-import '_javascript_bindings.dart' show jsArrayBufferFrom;
+import '_javascript_bindings.dart' show jsUint8ListFrom;
 import '_javascript_bindings.dart' as web_crypto;
 import 'browser_secret_key.dart';
 
@@ -69,11 +70,11 @@ class BrowserAesCbc extends AesCbc {
     );
     final byteBuffer = await web_crypto.decrypt(
       web_crypto.AesCbcParams(
-        name: _webCryptoName,
-        iv: jsArrayBufferFrom(secretBox.nonce),
-      ),
+        name: _webCryptoName.toJS,
+        iv: jsUint8ListFrom(secretBox.nonce),
+      ).jsObject,
       jsCryptoKey,
-      jsArrayBufferFrom(secretBox.cipherText),
+      jsUint8ListFrom(secretBox.cipherText),
     );
     return Uint8List.view(byteBuffer);
   }
@@ -99,11 +100,11 @@ class BrowserAesCbc extends AesCbc {
     );
     final byteBuffer = await web_crypto.encrypt(
       web_crypto.AesCbcParams(
-        name: _webCryptoName,
-        iv: jsArrayBufferFrom(nonce),
-      ),
+        name: _webCryptoName.toJS,
+        iv: jsUint8ListFrom(nonce),
+      ).jsObject,
       jsCryptoKey,
-      jsArrayBufferFrom(clearText),
+      jsUint8ListFrom(clearText),
     );
     final cipherText = Uint8List.view(byteBuffer);
 
