@@ -1,31 +1,195 @@
 name: Dart CI
 
-on: [push, pull_request]
+env:
+  PANA_SCORE_THRESHOLD: 40
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+  schedule:
+    - cron: '0 0 1 * *'  # Monthly run on the first day of the month at 00:00 UTC
 
 jobs:
-  test:
-    runs-on: ${{ matrix.os }}
+
+  #
+  # Dart packages: format and analyze
+  #
+  dart_analyze:
+    name: "Analyze"
+    runs-on: ubuntu-slim
     strategy:
+      fail-fast: false
       matrix:
-        os: [ubuntu-latest]
-        sdk: [stable, beta, dev]
+        package:
+          - cryptography
+          - jwk
+        sdk:
+          # The oldest supported Dart SDK at the moment.
+          # Feel free to bump it up whenever needed.
+          - 3.3.0
+
+          # We want to support the latest beta SDK as well.
+          - beta
     steps:
-      - uses: actions/checkout@v3
       - uses: dart-lang/setup-dart@v1
         with:
           sdk: ${{ matrix.sdk }}
-      - name: Run tests (cryptography)
-        run: dart test --platform vm
-        working-directory: ./cryptography
-      - name: Run tests (cryptography_test)
-        run: dart test --platform vm
-        working-directory: ./cryptography_test
-      - name: Run tests (jwk)
-        run: dart test --platform vm
-        working-directory: ./jwk
-      - name: Analyze (cryptography)
+      - uses: actions/checkout@v3
+      - name: Get dependencies
+        run: dart pub get
+        working-directory: ./${{ matrix.package }}
+      - name: Verify that code is formatted
+        continue-on-error: true
+        run: dart format --set-exit-if-changed .
+        working-directory: "./${{ matrix.package }}"
+      - name: Analyze
         run: dart analyze
-        working-directory: ./cryptography
-      - name: Analyze (jwk)
-        run: dart analyze
-        working-directory: ./jwk
+        working-directory: ./${{ matrix.package }}
+
+  #
+  # Dart packages: test
+  #
+  dart_test:
+    name: "Test"
+    needs: dart_analyze
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        package:
+          - cryptography
+          - jwk
+        compiler:
+          - vm
+          - dart2js
+          - dart2wasm
+    steps:
+      - uses: browser-actions/setup-chrome@v2
+        if: ${{ matrix.compiler != 'vm' }}
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: beta
+      - uses: actions/checkout@v3
+      - name: Get dependencies
+        run: dart pub get
+        working-directory: ./${{ matrix.package }}
+      - name: "Test: VM build"
+        if: ${{ matrix.compiler == 'vm' }}
+        run: dart test --platform vm
+        working-directory: ./${{ matrix.package }}
+      - name: "Test: JS build"
+        if: ${{ matrix.compiler == 'dart2js' }}
+        run: dart test --platform chrome --compiler dart2js
+        working-directory: ./${{ matrix.package }}
+      - name: "Test: WASM build"
+        if: ${{ matrix.compiler == 'dart2wasm' }}
+        run: dart test --platform chrome --compiler dart2wasm
+        working-directory: ./${{ matrix.package }}
+
+  #
+  # Dart packages: PANA score
+  #
+  dart_package_health:
+    name: "PANA"
+    needs: dart_analyze
+    runs-on: ubuntu-slim
+    strategy:
+      fail-fast: false
+      matrix:
+        package:
+          - cryptography
+          - jwk
+    steps:
+      - uses: dart-lang/setup-dart@v1
+      - uses: actions/checkout@v3
+      - name: Get dependencies
+        run: dart pub get
+        working-directory: ./${{ matrix.package }}
+      - name: Print outdated dependencies
+        continue-on-error: true
+        run: dart pub outdated
+        working-directory: ./${{ matrix.package }}
+      - name: Install package analyzer
+        run: dart pub global activate pana
+      - name: Run package analyzer
+        continue-on-error: true
+        run: dart pub global run pana --exit-code-threshold $PANA_SCORE_THRESHOLD .
+        working-directory: ./${{ matrix.package }}
+  #
+  # Flutter packages: format and analyze
+  #
+  flutter_analyze:
+    name: "Analyze"
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        package:
+          - cryptography_flutter
+          - cryptography_flutter_integration_test
+        sdk:
+          # The oldest supported Dart SDK at the moment.
+          # Feel free to bump it up whenever needed.
+          - 3.35.0
+
+          # We want to support the latest beta SDK as well.
+          - beta
+    steps:
+      - name: Install Flutter
+        run: |
+          cd $HOME
+          git clone https://github.com/flutter/flutter.git --depth 1 -b ${{ matrix.sdk }} _flutter
+          echo "$HOME/_flutter/bin" >> $GITHUB_PATH
+          cd $GITHUB_WORKSPACE
+      - uses: actions/checkout@v3
+      - name: Get dependencies
+        run: flutter pub get
+        working-directory: ./${{ matrix.package }}
+      - name: Verify that code is formatted
+        continue-on-error: true
+        run: dart format --set-exit-if-changed .
+        working-directory: ./${{ matrix.package }}
+      - name: Analyze
+        run: flutter analyze
+        working-directory: ./${{ matrix.package }}
+
+  #
+  # Unfortunately we don't have Flutter integration tests in Github Actions yet. :(
+  #
+
+  #
+  # Flutter packages: PANA score
+  #
+  flutter_package_health:
+    name: "PANA"
+    needs: flutter_analyze
+    strategy:
+      fail-fast: false
+      matrix:
+        package:
+          - cryptography_flutter
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Flutter
+        run: |
+          cd $HOME
+          git clone https://github.com/flutter/flutter.git --depth 1 -b beta _flutter
+          echo "$HOME/_flutter/bin" >> $GITHUB_PATH
+          cd $GITHUB_WORKSPACE
+      - uses: actions/checkout@v3
+      - name: Get dependencies
+        run: flutter pub get
+        working-directory: ./${{ matrix.package }}
+      - name: Print outdated dependencies
+        continue-on-error: true
+        run: flutter pub outdated
+        working-directory: ./${{ matrix.package }}
+      - name: Install package analyzer
+        run: flutter pub global activate pana
+        working-directory: ./${{ matrix.package }}
+      - name: Run package analyzer
+        continue-on-error: true
+        run: flutter pub global run pana --exit-code-threshold $PANA_SCORE_THRESHOLD .
+        working-directory: ./${{ matrix.package }}

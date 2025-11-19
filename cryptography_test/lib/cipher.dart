@@ -16,7 +16,7 @@
 ///
 /// ## Example
 /// See [testCipher].
-library cryptography_test.cipher;
+library;
 
 import 'dart:typed_data';
 

@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:js_interop';
 import 'dart:math';
 import 'dart:typed_data';
 
@@ -95,13 +96,14 @@ class BrowserEcdsa extends Ecdsa {
     final jsCryptoKey = browserEcKeyPair.jsPrivateKeyForEcdsa!;
     final byteBuffer = await web_crypto.sign(
       web_crypto.EcdsaParams(
-        name: 'ECDSA',
+        name: 'ECDSA'.toJS,
         hash: BrowserHashAlgorithmMixin.hashAlgorithmNameFor(
           hashAlgorithm,
-        )!,
-      ),
+        )!
+            .toJS,
+      ).jsObject,
       jsCryptoKey,
-      web_crypto.jsArrayBufferFrom(message),
+      web_crypto.jsUint8ListFrom(message),
     );
     return Signature(
       Uint8List.view(byteBuffer),
@@ -132,12 +134,12 @@ class BrowserEcdsa extends Ecdsa {
     );
     return await web_crypto.verify(
       web_crypto.EcdsaParams(
-        name: 'ECDSA',
-        hash: hashAlgorithmName,
-      ),
+        name: 'ECDSA'.toJS,
+        hash: hashAlgorithmName.toJS,
+      ).jsObject,
       jsCryptoKey,
-      web_crypto.jsArrayBufferFrom(signature.bytes),
-      web_crypto.jsArrayBufferFrom(message),
+      web_crypto.jsUint8ListFrom(signature.bytes),
+      web_crypto.jsUint8ListFrom(message),
     );
   }
 
@@ -155,19 +157,19 @@ class BrowserEcdsa extends Ecdsa {
     }
     return web_crypto.importKeyWhenJwk(
       web_crypto.Jwk(
-        kty: 'EC',
-        crv: webCryptoCurve,
-        ext: true,
-        key_ops: const ['verify'],
-        x: web_crypto.base64UrlEncode(publicKey.x),
-        y: web_crypto.base64UrlEncode(publicKey.y),
+        kty: 'EC'.toJS,
+        crv: webCryptoCurve.toJS,
+        ext: true.toJS,
+        key_ops: ['verify'.toJS].toJS,
+        x: web_crypto.base64UrlEncode(publicKey.x).toJS,
+        y: web_crypto.base64UrlEncode(publicKey.y).toJS,
       ),
       web_crypto.EcKeyImportParams(
-        name: 'ECDSA',
-        namedCurve: webCryptoCurve,
-      ),
-      false,
-      const ['verify'],
+        name: 'ECDSA'.toJS,
+        namedCurve: webCryptoCurve.toJS,
+      ).jsObject,
+      false.toJS,
+      ['verify'.toJS].toJS,
     );
   }
 }

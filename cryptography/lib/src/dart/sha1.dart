@@ -19,7 +19,7 @@ import 'package:meta/meta.dart';
 
 import '_helpers.dart';
 
-/// [Sha1] implemented by using in [package:crypto](https://pub.dev/packages/crypto)
+/// [Sha1] implemented with [package:crypto](https://pub.dev/packages/crypto)
 /// (a package by Google).
 ///
 /// For examples and more information about the algorithm, see documentation for

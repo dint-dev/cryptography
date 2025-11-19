@@ -15,8 +15,8 @@
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/dart.dart';
 
-import 'blake2b_impl_vm.dart'
-    if (dart.library.html) 'blake2b_impl_browser.dart';
+import 'blake2b_impl_default.dart'
+    if (dart.library.js_interop) 'blake2b_impl_js.dart';
 
 /// [Blake2b] implemented in pure Dart.
 ///

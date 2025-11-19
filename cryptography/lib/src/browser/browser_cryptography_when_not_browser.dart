@@ -77,11 +77,14 @@ class BrowserCryptography extends DartCryptography {
   /// always available.
   static bool get isSupported => false;
 
+  /// Whether WASM is used.
+  static bool get isRunningInWasm => false;
+
   /// Constructs an instance of [BrowserCryptography].
   ///
   /// If [random] is not given, algorithms will use some cryptographically
   /// secure random number generator (CSRNG) such as [Random.secure].
-  BrowserCryptography({Random? random}) : super(random: random);
+  BrowserCryptography({super.random});
 
   @override
   BrowserCryptography withRandom(Random? random) {

@@ -1,3 +1,6 @@
+## 2.8.0
+* Adds WASM support. `BrowserCryptography` now uses 'dart:js_interop'.
+
 ## 2.7.0
 * Adds a cross-platform of Argon2id, a highly recommended algorithm for password hashing.
 * Introduces a dependency on "package:ffi" (a package by Google). A memory allocator in the package

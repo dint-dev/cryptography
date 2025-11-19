@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:js_interop';
 import 'dart:typed_data';
 
 import '../../cryptography.dart';
@@ -73,9 +74,9 @@ class BrowserEcKeyPair extends KeyPair implements EcKeyPair {
       );
       return EcKeyPairData(
         type: keyPairType,
-        d: web_crypto.base64UrlDecodeUnmodifiable(jwk.d!),
-        x: web_crypto.base64UrlDecodeUnmodifiable(jwk.x!),
-        y: web_crypto.base64UrlDecodeUnmodifiable(jwk.y!),
+        d: web_crypto.base64UrlDecodeUnmodifiable(jwk.d!.toDart),
+        x: web_crypto.base64UrlDecodeUnmodifiable(jwk.x!.toDart),
+        y: web_crypto.base64UrlDecodeUnmodifiable(jwk.y!.toDart),
       );
     } catch (error, stackTrace) {
       throw StateError(
@@ -147,83 +148,91 @@ class BrowserEcKeyPair extends KeyPair implements EcKeyPair {
       final futures = <Future>[];
       if (allowSign) {
         // Private key
-        futures.add(web_crypto.importKeyWhenJwk(
+        futures.add(web_crypto
+            .importKeyWhenJwk(
           web_crypto.Jwk(
-            kty: 'EC',
-            crv: webCryptoCurve,
-            ext: isExtractable,
-            key_ops: const ['sign'],
-            d: d_,
-            x: x_,
-            y: y_,
+            kty: 'EC'.toJS,
+            crv: webCryptoCurve.toJS,
+            ext: isExtractable.toJS,
+            key_ops: ['sign'.toJS].toJS,
+            d: d_.toJS,
+            x: x_.toJS,
+            y: y_.toJS,
           ),
           web_crypto.EcKeyImportParams(
-            name: 'ECDSA',
-            namedCurve: webCryptoCurve,
-          ),
-          isExtractable,
-          const ['sign'],
-        ).then((value) {
+            name: 'ECDSA'.toJS,
+            namedCurve: webCryptoCurve.toJS,
+          ).jsObject,
+          isExtractable.toJS,
+          ['sign'.toJS].toJS,
+        )
+            .then((value) {
           jsPrivateKeyForEcdsa = value;
         }));
         // Public key
-        futures.add(web_crypto.importKeyWhenJwk(
+        futures.add(web_crypto
+            .importKeyWhenJwk(
           web_crypto.Jwk(
-            kty: 'EC',
-            crv: webCryptoCurve,
-            ext: true,
-            key_ops: const ['verify'],
-            x: x_,
-            y: y_,
+            kty: 'EC'.toJS,
+            crv: webCryptoCurve.toJS,
+            ext: true.toJS,
+            key_ops: ['verify'.toJS].toJS,
+            x: x_.toJS,
+            y: y_.toJS,
           ),
           web_crypto.EcKeyImportParams(
-            name: 'ECDSA',
-            namedCurve: webCryptoCurve,
-          ),
-          true,
-          const [],
-        ).then((value) {
+            name: 'ECDSA'.toJS,
+            namedCurve: webCryptoCurve.toJS,
+          ).jsObject,
+          true.toJS,
+          (const <JSString>[]).toJS,
+        )
+            .then((value) {
           jsPublicKeyForEcdsa = value;
         }));
       }
       if (allowDeriveBits) {
         // Private key
-        futures.add(web_crypto.importKeyWhenJwk(
+        futures.add(web_crypto
+            .importKeyWhenJwk(
           web_crypto.Jwk(
-            kty: 'EC',
-            crv: webCryptoCurve,
-            ext: isExtractable,
-            key_ops: const ['deriveBits'],
-            d: d_,
-            x: x_,
-            y: y_,
+            kty: 'EC'.toJS,
+            crv: webCryptoCurve.toJS,
+            ext: isExtractable.toJS,
+            key_ops: ['deriveBits'.toJS].toJS,
+            d: d_.toJS,
+            x: x_.toJS,
+            y: y_.toJS,
           ),
           web_crypto.EcKeyImportParams(
-            name: 'ECDH',
-            namedCurve: webCryptoCurve,
-          ),
-          isExtractable,
-          const ['deriveBits'],
-        ).then((value) {
+            name: 'ECDH'.toJS,
+            namedCurve: webCryptoCurve.toJS,
+          ).jsObject,
+          isExtractable.toJS,
+          ['deriveBits'.toJS].toJS,
+        )
+            .then((value) {
           jsPrivateKeyForEcdh = value;
         }));
         // Public key
-        futures.add(web_crypto.importKeyWhenJwk(
+        futures.add(web_crypto
+            .importKeyWhenJwk(
           web_crypto.Jwk(
-            kty: 'EC',
-            crv: webCryptoCurve,
-            ext: true,
-            key_ops: const ['deriveBits'],
-            x: x_,
-            y: y_,
+            kty: 'EC'.toJS,
+            crv: webCryptoCurve.toJS,
+            ext: true.toJS,
+            key_ops: ['deriveBits'.toJS].toJS,
+            x: x_.toJS,
+            y: y_.toJS,
           ),
           web_crypto.EcKeyImportParams(
-            name: 'ECDH',
-            namedCurve: webCryptoCurve,
-          ),
-          true,
-          const [],
-        ).then((value) {
+            name: 'ECDH'.toJS,
+            namedCurve: webCryptoCurve.toJS,
+          ).jsObject,
+          true.toJS,
+          const <JSString>[].toJS,
+        )
+            .then((value) {
           jsPublicKeyForEcdh = value;
         }));
       }
@@ -259,20 +268,20 @@ class BrowserEcKeyPair extends KeyPair implements EcKeyPair {
     try {
       final jsKey = await web_crypto.generateKeyWhenKeyPair(
         web_crypto.EcKeyGenParams(
-          name: 'ECDSA',
-          namedCurve: keyPairType.webCryptoCurve!,
-        ),
-        true,
-        ['sign'],
+          name: 'ECDSA'.toJS,
+          namedCurve: keyPairType.webCryptoCurve!.toJS,
+        ).jsObject,
+        true.toJS,
+        ['sign'.toJS].toJS,
       );
       final jwk = await web_crypto.exportKeyWhenJwk(
         jsKey.privateKey,
       );
       return fromParameters(
         keyPairType: keyPairType,
-        d: web_crypto.base64UrlDecodeUnmodifiable(jwk.d!),
-        x: web_crypto.base64UrlDecodeUnmodifiable(jwk.x!),
-        y: web_crypto.base64UrlDecodeUnmodifiable(jwk.y!),
+        d: web_crypto.base64UrlDecodeUnmodifiable(jwk.d!.toDart),
+        x: web_crypto.base64UrlDecodeUnmodifiable(jwk.x!.toDart),
+        y: web_crypto.base64UrlDecodeUnmodifiable(jwk.y!.toDart),
         isExtractable: isExtractable,
         allowSign: allowSign,
         allowDeriveBits: allowDeriveBits,

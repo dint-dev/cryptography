@@ -4,12 +4,12 @@ publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.1.0 <4.0.0'
+  sdk: '>=3.3.0 <4.0.0'
   flutter: '>=3.13.0'
 
 dependencies:
-  cryptography: ^2.6.0
-  cryptography_flutter: ^2.3.1
+  cryptography: ^2.7.0
+  cryptography_flutter: ^2.3.3
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.2
@@ -20,7 +20,7 @@ dev_dependencies:
     sdk: flutter
   integration_test:
     sdk: flutter
-  flutter_lints: ^2.0.3
+  flutter_lints: ^6.0.0
 
 flutter:
   uses-material-design: true

@@ -31,7 +31,7 @@
 ///   testCryptography();
 /// }
 /// ```
-library cryptography_test;
+library;
 
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography_test/algorithms/argon2.dart';
@@ -64,16 +64,20 @@ import 'signature.dart';
 
 /// Tests the current or the given [Cryptography].
 void testCryptography({Cryptography? cryptography}) {
-  if (cryptography != null) {
-    group('$cryptography:', () {
-      setUpAll(() {
-        Cryptography.instance = cryptography;
-      });
-      testCryptography();
-    });
-    return;
+  cryptography ??= Cryptography.instance;
+  var description = '${cryptography.runtimeType}';
+  if (cryptography is BrowserCryptography) {
+    description = '$description (wasm: ${BrowserCryptography.isRunningInWasm})';
   }
+  group('$description:', () {
+    setUp(() {
+      Cryptography.instance = cryptography!;
+    });
+    _testCryptography();
+  });
+}
 
+void _testCryptography() {
   // Hash algorithms
   testBlake2s();
   testBlake2b();

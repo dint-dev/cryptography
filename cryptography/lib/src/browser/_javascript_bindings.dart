@@ -13,24 +13,21 @@
 // limitations under the License.
 
 @JS()
-library web_crypto_api;
+library;
 
 import 'dart:convert' show base64Url;
-import 'dart:html' show CryptoKey;
-import 'dart:html' as html;
+import 'dart:js_interop';
 import 'dart:typed_data';
-
-import 'package:js/js.dart';
-import 'package:js/js_util.dart' show promiseToFuture;
-
-export 'dart:html' show CryptoKey;
 
 /// Note that browsers support Web Cryptography only in secure contexts.
 final bool isWebCryptoAvailable =
-    _subtle != null && (html.window.isSecureContext ?? false);
+    _subtle.isDefinedAndNotNull && _isSecureContext.toDart;
 
 @JS('crypto.subtle')
-external Object? get _subtle;
+external JSAny get _subtle;
+
+@JS('window.isSecureContext')
+external JSBoolean get _isSecureContext;
 
 Uint8List base64UrlDecode(String s) {
   switch (s.length % 4) {
@@ -60,6 +57,13 @@ Uint8List? base64UrlDecodeUnmodifiableMaybe(String? s) {
   return bytes;
 }
 
+extension type CryptoKey._(JSObject _) implements JSObject {
+  external JSAny get type;
+  external bool get extractable;
+  external JSObject get algorithm;
+  external JSObject get usages;
+}
+
 String base64UrlEncode(List<int> data) {
   var s = base64Url.encode(data);
   // Remove trailing '=' characters
@@ -78,472 +82,402 @@ String? base64UrlEncodeMaybe(List<int>? data) {
 }
 
 Future<ByteBuffer> decrypt(
-  dynamic algorithm,
+  JSAny algorithm,
   CryptoKey key,
-  ByteBuffer data,
-) {
-  return promiseToFuture(
-    _decrypt(algorithm, key, data),
-  );
+  JSUint8Array data,
+) async {
+  final js = await _decrypt(algorithm, key, data).toDart;
+  return js.toDart;
 }
 
 Future<ByteBuffer> deriveBits(
-  dynamic algorithm,
+  JSAny algorithm,
   CryptoKey cryptoKey,
-  int bits,
-) {
-  return promiseToFuture(
-    _deriveBits(algorithm, cryptoKey, bits),
-  );
+  JSNumber bits,
+) async {
+  final js = await _deriveBits(algorithm, cryptoKey, bits).toDart;
+  return js.toDart;
 }
 
 Future<CryptoKey> deriveKey(
-  dynamic algorithm,
+  JSObject algorithm,
   CryptoKey baseKey,
-  dynamic derivedKeyAlgorithm,
-  dynamic extractable,
-  List<String> keyUsages,
-) {
-  return promiseToFuture(
-    _deriveKey(
-      algorithm,
-      baseKey,
-      derivedKeyAlgorithm,
-      extractable,
-      keyUsages,
-    ),
-  );
+  JSObject derivedKeyAlgorithm,
+  JSBoolean extractable,
+  JSArray<JSString> keyUsages,
+) async {
+  final js = await _deriveKey(
+    algorithm,
+    baseKey,
+    derivedKeyAlgorithm,
+    extractable,
+    keyUsages,
+  ).toDart;
+  return js;
 }
 
 Future<ByteBuffer> digest(
   String name,
-  ByteBuffer data,
-) {
-  return promiseToFuture(
-    _digest(name, data),
-  );
+  JSUint8Array data,
+) async {
+  final js = await _digest(name.toJS, data).toDart;
+  return js.toDart;
 }
 
 Future<ByteBuffer> encrypt(
-  dynamic algorithm,
+  JSAny algorithm,
   CryptoKey key,
-  ByteBuffer data,
-) {
-  return promiseToFuture(
-    _encrypt(algorithm, key, data),
-  );
+  JSUint8Array data,
+) async {
+  final js = await _encrypt(algorithm, key, data).toDart;
+  return js.toDart;
 }
 
-Future<Jwk> exportKeyWhenJwk(CryptoKey key) {
-  return promiseToFuture<Jwk>(
-    _exportKey('jwk', key),
-  );
+Future<Jwk> exportKeyWhenJwk(CryptoKey key) async {
+  final js = await _exportKey('jwk'.toJS, key).toDart;
+  return js as Jwk;
 }
 
-Future<ByteBuffer> exportKeyWhenRaw(CryptoKey key) {
-  return promiseToFuture<ByteBuffer>(
-    _exportKey('raw', key),
-  );
+Future<ByteBuffer> exportKeyWhenRaw(CryptoKey key) async {
+  final js = await _exportKey('raw'.toJS, key).toDart;
+  return (js as JSArrayBuffer).toDart;
 }
 
 Future<CryptoKey> generateKeyWhenKey(
-  Object algorithm,
-  bool extractable,
-  List<String> keyUsages,
-) {
-  return promiseToFuture<CryptoKey>(
-    _generateKey(algorithm, extractable, keyUsages),
-  );
+  JSAny algorithm,
+  JSBoolean extractable,
+  JSArray<JSString> keyUsages,
+) async {
+  final js = await _generateKey(algorithm, extractable, keyUsages).toDart;
+  return js as CryptoKey;
 }
 
 Future<CryptoKeyPair> generateKeyWhenKeyPair(
-  Object algorithm,
-  bool extractable,
-  List<String> keyUsages,
-) {
-  return promiseToFuture<CryptoKeyPair>(
-    _generateKey(algorithm, extractable, keyUsages),
-  );
+  JSObject algorithm,
+  JSBoolean extractable,
+  JSArray<JSString> keyUsages,
+) async {
+  final js = await _generateKey(algorithm, extractable, keyUsages).toDart;
+  return js as CryptoKeyPair;
 }
 
 Future<CryptoKey> importKeyWhenJwk(
   Jwk keyData,
-  dynamic algorithm,
-  bool extractable,
-  List<String> keyUsages,
-) {
-  return promiseToFuture(
-    _importKey(
-      'jwk',
-      keyData,
-      algorithm,
-      extractable,
-      keyUsages,
-    ),
-  );
+  JSAny algorithm,
+  JSBoolean extractable,
+  JSArray<JSString> keyUsages,
+) async {
+  final js = await _importKey(
+    'jwk'.toJS,
+    keyData.jsObject,
+    algorithm,
+    extractable,
+    keyUsages,
+  ).toDart;
+  return js;
 }
 
 Future<CryptoKey> importKeyWhenRaw(
-  ByteBuffer keyData,
-  dynamic algorithm,
-  bool extractable,
-  List<String> keyUsages,
-) {
-  return promiseToFuture(
-    _importKey(
-      'raw',
-      keyData,
-      algorithm,
-      extractable,
-      keyUsages,
-    ),
-  );
+  JSUint8Array keyData,
+  JSAny algorithm,
+  JSBoolean extractable,
+  JSArray<JSString> keyUsages,
+) async {
+  final js = await _importKey(
+    'raw'.toJS,
+    keyData,
+    algorithm,
+    extractable,
+    keyUsages,
+  ).toDart;
+  return js;
 }
 
-ByteBuffer jsArrayBufferFrom(List<int> data) {
-  // Avoid copying if possible
-  //
-  if (data is Uint8List &&
-      data.offsetInBytes == 0 &&
-      data.lengthInBytes == data.buffer.lengthInBytes) {
-    // We need to check the type because UnmodifiableByteBufferView would cause
-    // an error.
-    final buffer = data.buffer;
-    if (identical(buffer.runtimeType, ByteBuffer)) {
-      return buffer;
-    }
+JSUint8Array jsUint8ListFrom(List<int> data) {
+  if (data is Uint8List) {
+    return data.toJS;
   }
-
-  // Copy
-  return Uint8List.fromList(data).buffer;
+  return Uint8List.fromList(data).toJS;
 }
 
 Future<ByteBuffer> sign(
-  dynamic algorithm,
+  JSAny algorithm,
   CryptoKey key,
-  ByteBuffer data,
-) {
-  return promiseToFuture(
-    _sign(algorithm, key, data),
-  );
+  JSUint8Array data,
+) async {
+  final js = await _sign(algorithm, key, data).toDart;
+  return js.toDart;
 }
 
 Future<bool> verify(
-  dynamic algorithm,
+  JSAny algorithm,
   CryptoKey key,
-  ByteBuffer signature,
-  ByteBuffer data,
-) {
-  return promiseToFuture(
-    _verify(algorithm, key, signature, data),
-  );
+  JSUint8Array signature,
+  JSUint8Array data,
+) async {
+  final js = await _verify(algorithm, key, signature, data).toDart;
+  return js.toDart;
 }
 
 @JS('crypto.subtle.decrypt')
-external Promise<ByteBuffer> _decrypt(
-  dynamic algorithm,
+external JSPromise<JSArrayBuffer> _decrypt(
+  JSAny algorithm,
   CryptoKey key,
-  ByteBuffer data,
+  JSUint8Array data,
 );
 
 @JS('crypto.subtle.deriveBits')
-external Promise<ByteBuffer> _deriveBits(
-  dynamic algorithm,
+external JSPromise<JSArrayBuffer> _deriveBits(
+  JSAny algorithm,
   CryptoKey cryptoKey,
-  int bits,
+  JSNumber bits,
 );
 
 @JS('crypto.subtle.deriveKey')
-external Promise<CryptoKey> _deriveKey(
-  dynamic algorithm,
+external JSPromise<CryptoKey> _deriveKey(
+  JSAny algorithm,
   CryptoKey baseKey,
-  dynamic derivedKeyAlgorithm,
-  dynamic extractable,
-  List<String> keyUsages,
+  JSAny derivedKeyAlgorithm,
+  JSBoolean extractable,
+  JSArray<JSString> keyUsages,
 );
 
 @JS('crypto.subtle.digest')
-external Promise<ByteBuffer> _digest(
-  String name,
-  ByteBuffer data,
+external JSPromise<JSArrayBuffer> _digest(
+  JSString name,
+  JSUint8Array data,
 );
 
 @JS('crypto.subtle.encrypt')
-external Promise<ByteBuffer> _encrypt(
-  dynamic algorithm,
+external JSPromise<JSArrayBuffer> _encrypt(
+  JSAny algorithm,
   CryptoKey key,
-  ByteBuffer data,
+  JSUint8Array data,
 );
 
 @JS('crypto.subtle.exportKey')
-external Promise _exportKey(
-  String format,
+external JSPromise _exportKey(
+  JSString format,
   CryptoKey key,
 );
 
 @JS('crypto.subtle.generateKey')
-external Promise _generateKey(
-  Object algorithm,
-  bool extractable,
-  List<String> keyUsages,
+external JSPromise _generateKey(
+  JSAny algorithm,
+  JSBoolean extractable,
+  JSArray<JSString> keyUsages,
 );
 
 @JS('crypto.subtle.importKey')
-external Promise<CryptoKey> _importKey(
-  String format,
-  dynamic keyData,
-  dynamic algorithm,
-  bool extractable,
-  List<String> keyUsages,
+external JSPromise<CryptoKey> _importKey(
+  JSString format,
+  JSAny keyData,
+  JSAny algorithm,
+  JSBoolean extractable,
+  JSArray<JSString> keyUsages,
 );
 
 @JS('crypto.subtle.sign')
-external Promise<ByteBuffer> _sign(
-  dynamic algorithm,
+external JSPromise<JSArrayBuffer> _sign(
+  JSAny algorithm,
   CryptoKey key,
-  ByteBuffer data,
+  JSUint8Array data,
 );
 
 @JS('crypto.subtle.verify')
-external Promise<bool> _verify(
-  dynamic algorithm,
+external JSPromise<JSBoolean> _verify(
+  JSAny algorithm,
   CryptoKey key,
-  ByteBuffer signature,
-  ByteBuffer data,
+  JSUint8Array signature,
+  JSUint8Array data,
 );
 
-@JS()
-@anonymous
-class AesCbcParams {
+extension type AesCbcParams._(JSObject jsObject) {
   external factory AesCbcParams({
-    required String name,
-    required ByteBuffer iv,
+    required JSString name,
+    required JSUint8Array iv,
   });
 }
 
-@JS()
-@anonymous
-class AesCtrParams {
+extension type AesCtrParams._(JSObject jsObject) {
   external factory AesCtrParams({
-    required String name,
-    required ByteBuffer counter,
-    required int length,
+    required JSString name,
+    required JSUint8Array counter,
+    required JSNumber length,
   });
 }
 
-@JS()
-@anonymous
-class AesGcmParams {
+extension type AesGcmParams._(JSObject jsObject) {
   external factory AesGcmParams({
-    required String name,
-    required ByteBuffer iv,
-    ByteBuffer? additionalData,
-    required int tagLength,
+    required JSString name,
+    required JSUint8Array iv,
+    JSUint8Array? additionalData,
+    required JSNumber tagLength,
   });
 }
 
-@JS()
-@anonymous
-class AesKeyGenParams {
+extension type AesKeyGenParams._(JSObject jsObject) {
   external factory AesKeyGenParams({
-    required String name,
-    required int length,
+    required JSString name,
+    required JSNumber length,
   });
 }
 
-@JS('CryptoKeyPair')
-class CryptoKeyPair {
-  external factory CryptoKeyPair._();
-
+extension type CryptoKeyPair._(JSObject jsObject) {
   external CryptoKey get privateKey;
 
   external CryptoKey get publicKey;
 }
 
-@JS()
-@anonymous
-class EcdhKeyDeriveParams {
+extension type EcdhKeyDeriveParams._(JSObject jsObject) {
   external factory EcdhKeyDeriveParams({
-    required String name,
+    required JSString name,
     required CryptoKey public,
   });
 }
 
-@JS()
-@anonymous
-class EcdhParams {
+extension type EcdhParams._(JSObject jsObject) {
   external factory EcdhParams({
-    required String name,
-    required String namedCurve,
+    required JSString name,
+    required JSString namedCurve,
   });
 }
 
-@JS()
-@anonymous
-class EcdsaParams {
+extension type EcdsaParams._(JSObject jsObject) {
   external factory EcdsaParams({
-    required String name,
-    required String hash,
+    required JSString name,
+    required JSString hash,
   });
 }
 
-@JS()
-@anonymous
-class EcKeyGenParams {
+extension type EcKeyGenParams._(JSObject jsObject) {
   external factory EcKeyGenParams({
-    required String name,
-    required String namedCurve,
+    required JSString name,
+    required JSString namedCurve,
   });
 }
 
-@JS()
-@anonymous
-class EcKeyImportParams {
+extension type EcKeyImportParams._(JSObject jsObject) {
   external factory EcKeyImportParams({
-    required String name,
-    required String namedCurve,
+    required JSString name,
+    required JSString namedCurve,
   });
 }
 
-@JS()
-@anonymous
-class HkdfParams {
+extension type HkdfParams._(JSObject jsObject) {
   external factory HkdfParams({
-    required String name,
-    required String hash,
-    required ByteBuffer salt,
-    required ByteBuffer info,
+    required JSString name,
+    required JSString hash,
+    required JSUint8Array salt,
+    required JSUint8Array info,
   });
 }
 
-@JS()
-@anonymous
-class HmacImportParams {
+extension type HmacImportParams._(JSObject jsObject) {
   external factory HmacImportParams({
-    required String name,
-    required String hash,
-    int? length,
+    required JSString name,
+    required JSString hash,
+    JSNumber? length,
   });
 }
 
-@JS()
-@anonymous
-class HmacKeyGenParams {
+extension type HmacKeyGenParams._(JSObject jsObject) {
   external factory HmacKeyGenParams({
-    required String name,
-    required String hash,
-    required int length,
+    required JSString name,
+    required JSString hash,
+    required JSNumber length,
   });
 }
 
-@JS()
-@anonymous
-class Jwk {
+extension type Jwk._(JSObject jsObject) {
   external factory Jwk({
-    String? crv,
-    String? n,
-    String? e,
-    String? d,
-    String? p,
-    String? q,
-    String? dp,
-    String? dq,
-    String? qi,
-    bool? ext,
+    JSString? crv,
+    JSString? n,
+    JSString? e,
+    JSString? d,
+    JSString? p,
+    JSString? q,
+    JSString? dp,
+    JSString? dq,
+    JSString? qi,
+    JSBoolean? ext,
     // ignore: non_constant_identifier_names
-    List<String>? key_ops,
-    required String kty,
-    String? x,
-    String? y,
+    JSArray<JSString>? key_ops,
+    required JSString kty,
+    JSString? x,
+    JSString? y,
   });
 
-  external String? get crv;
+  external JSString? get crv;
 
-  external String? get d;
+  external JSString? get d;
 
-  external String? get dp;
+  external JSString? get dp;
 
-  external String? get dq;
+  external JSString? get dq;
 
-  external String? get e;
+  external JSString? get e;
 
-  external bool get ext;
+  external JSBoolean get ext;
 
   // ignore: non_constant_identifier_names
-  external List<String> get key_ops;
+  external JSArray<JSString> get key_ops;
 
-  external String get kty;
+  external JSString get kty;
 
-  external String? get n;
+  external JSString? get n;
 
-  external String? get p;
+  external JSString? get p;
 
-  external String? get q;
+  external JSString? get q;
 
-  external String? get qi;
+  external JSString? get qi;
 
-  external String? get x;
+  external JSString? get x;
 
-  external String? get y;
+  external JSString? get y;
 }
 
-@JS()
-@anonymous
-class Pkdf2Params {
+extension type Pkdf2Params._(JSObject jsObject) {
   external factory Pkdf2Params({
-    required String name,
-    required String hash,
-    required ByteBuffer salt,
-    required int iterations,
+    required JSString name,
+    required JSString hash,
+    required JSUint8Array salt,
+    required JSNumber iterations,
   });
 }
 
-@JS('Promise')
-class Promise<T> {
-  external factory Promise._();
-}
-
-@JS()
-@anonymous
-class RsaHashedImportParams {
+extension type RsaHashedImportParams._(JSObject jsObject) {
   external factory RsaHashedImportParams({
-    required String name,
-    required String hash,
+    required JSString name,
+    required JSString hash,
   });
 }
 
-@JS()
-@anonymous
-class RsaHashedKeyGenParams {
+extension type RsaHashedKeyGenParams._(JSObject jsObject) {
   external factory RsaHashedKeyGenParams({
-    required String name,
-    required int modulusLength,
-    required dynamic publicExponent,
-    required String hash,
+    required JSString name,
+    required JSNumber modulusLength,
+    required JSUint8Array publicExponent,
+    required JSString hash,
   });
 }
 
-@JS()
-@anonymous
-class RsaPssParams {
+extension type RsaPssParams._(JSObject jsObject) {
   external factory RsaPssParams({
-    required String name,
-    int? saltLength,
+    required JSString name,
+    JSNumber? saltLength,
   });
 }
 
-@JS()
-@anonymous
-class SignParams {
+extension type SignParams._(JSObject jsObject) {
   external factory SignParams({
-    required String name,
+    required JSString name,
   });
 }
 
-@JS()
-@anonymous
-class VerifyParams {
+extension type VerifyParams._(JSObject jsObject) {
   external factory VerifyParams({
-    required String name,
+    required JSString name,
   });
 }

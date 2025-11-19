@@ -287,39 +287,11 @@ void main() {
 
         final state = algorithm.newState();
         expect(state.maxIsolates, maxIsolates);
-        final isJs = 1.0 is int;
+        final isJs = BrowserCryptography.isSupported;
         if (isJs) {
           expect(state.isolateCount, 0);
         } else {
-          switch (maxIsolates) {
-            case 0:
-              expect(state.isolateCount, 0);
-              break;
-            case 1:
-              expect(state.isolateCount, 1);
-              break;
-            case 2:
-              expect(state.isolateCount, 2);
-              break;
-            case 3:
-              expect(state.isolateCount, 3);
-              break;
-            case 4:
-              expect(state.isolateCount, 4);
-              break;
-            case 5:
-              expect(state.isolateCount, 4);
-              break;
-            case 6:
-              expect(state.isolateCount, 4);
-              break;
-            case 7:
-              expect(state.isolateCount, 4);
-              break;
-            case 8:
-              expect(state.isolateCount, 4);
-              break;
-          }
+          expect(state.isolateCount, maxIsolates.clamp(0, 4));
         }
 
         final actual = await state.deriveKeyBytes(

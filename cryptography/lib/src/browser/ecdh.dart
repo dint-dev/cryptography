@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:js_interop';
 import 'dart:math';
 import 'dart:typed_data';
 
@@ -109,11 +110,11 @@ class BrowserEcdh extends Ecdh {
     try {
       final byteBuffer = await web_crypto.deriveBits(
         web_crypto.EcdhKeyDeriveParams(
-          name: 'ECDH',
+          name: 'ECDH'.toJS,
           public: jsPublicKey,
-        ),
+        ).jsObject,
         jsPrivateKey.jsPrivateKeyForEcdh!,
-        8 * length,
+        (8 * length).toJS,
       );
       return SecretKey(Uint8List.view(byteBuffer));
     } catch (error, stackTrace) {
@@ -137,19 +138,19 @@ class BrowserEcdh extends Ecdh {
     try {
       return await web_crypto.importKeyWhenJwk(
         web_crypto.Jwk(
-          kty: 'EC',
-          crv: webCryptoCurve,
-          ext: true,
-          key_ops: const ['deriveBits'],
-          x: web_crypto.base64UrlEncode(publicKey.x),
-          y: web_crypto.base64UrlEncode(publicKey.y),
+          kty: 'EC'.toJS,
+          crv: webCryptoCurve.toJS,
+          ext: true.toJS,
+          key_ops: ['deriveBits'.toJS].toJS,
+          x: web_crypto.base64UrlEncode(publicKey.x).toJS,
+          y: web_crypto.base64UrlEncode(publicKey.y).toJS,
         ),
         web_crypto.EcKeyImportParams(
-          name: 'ECDH',
-          namedCurve: webCryptoCurve,
-        ),
-        true,
-        const [],
+          name: 'ECDH'.toJS,
+          namedCurve: webCryptoCurve.toJS,
+        ).jsObject,
+        true.toJS,
+        const <JSString>[].toJS,
       );
     } catch (error, stackTrace) {
       throw StateError(

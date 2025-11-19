@@ -18,7 +18,7 @@ import 'package:cryptography/cryptography.dart';
 import 'package:meta/meta.dart';
 
 import '_javascript_bindings.dart' as web_crypto;
-import '_javascript_bindings.dart' show jsArrayBufferFrom;
+import '_javascript_bindings.dart' show jsUint8ListFrom;
 
 mixin BrowserHashAlgorithmMixin implements HashAlgorithm {
   /// Web Cryptography API algorithm name ("SHA-256", etc.).
@@ -28,7 +28,7 @@ mixin BrowserHashAlgorithmMixin implements HashAlgorithm {
   Future<Hash> hash(List<int> bytes) async {
     final byteBuffer = await web_crypto.digest(
       webCryptoName,
-      jsArrayBufferFrom(bytes),
+      jsUint8ListFrom(bytes),
     );
     return Hash(Uint8List.view(byteBuffer));
   }

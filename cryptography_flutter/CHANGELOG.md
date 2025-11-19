@@ -1,3 +1,6 @@
+## 2.3.3
+* Improves dependency constraints.
+
 ## 2.3.2
 * Improves documentation.
 

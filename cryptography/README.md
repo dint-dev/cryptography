@@ -6,14 +6,27 @@
 Popular cryptographic algorithms for [Dart](https://dart.dev) / [Flutter](https://flutter.dev)
 developers.
 
-Maintained by [gohilla.com](https://gohilla.com). Licensed under the [Apache License 2.0](LICENSE).
+Maintained by [terrier989](https://github.com/terrier989).
+Licensed under the [Apache License 2.0](LICENSE).
 
-This package is designed to be:
-
-* __Easy to use__. The API is easy to understand and encourages good defaults.
-* __Multi-platform__. It's easy to customize implementation of X in platform Y.
-* __Fast.__ We use platform APIs when available. For example, SHA-512 is over 100 times faster than
-  _package:crypto_ in browsers.
+## Key features
+* __Defaults to platform-provided implementations.__
+  * Android: [javax.crypto](https://developer.android.com/reference/javax/crypto/package-summary)
+  * iOS / Mac OS X: [Apple CryptoKit](https://developer.apple.com/documentation/cryptokit/)
+  * Web: [Web Crypto API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API)
+* __Works in all platforms.__
+  * We have written Dart implementations for the vast majority of algorithms. When a platform does
+    not provide a required algorithm, the package automatically falls back to pure Dart
+    implementation.
+  * In browsers, both Javascript and WASM compilers are supported. Dart implementations of 64-bit
+    algorithms like Blake2B have been written to work with Javascript's 53-bit integers.
+* __Flexible.__
+  * You can override factory methods in [Cryptography](https://pub.dev/documentation/cryptography/latest/cryptography/Cryptography-class.html)
+    class if you want to use something else. Note that algorithms that you don't use do not affect
+    size of the executable because of tree pruning.
+  * You can override random number generator with a deterministic one for tests.
+* __Fast.__
+  * For example, SHA-512 is over 100 times faster than _package:crypto_ in browsers.
 
 Any feedback, issue reports, or pull requests are appreciated!
 
@@ -33,8 +46,10 @@ Android / iOS / Mac OS X operating system APIs whenever possible.
 In _pubspec.yaml_:
 ```yaml
 dependencies:
-  cryptography: ^2.7.0
-  cryptography_flutter: ^2.3.2 # Remove if you don't use Flutter
+  cryptography: ^2.8.0
+  
+  # If you are writing a Flutter app/package, also add this:
+  cryptography_flutter: ^2.3.3
 ```
 
 You are ready to go!
@@ -239,8 +254,8 @@ We wrote the following three implementations of `Cryptography`:
       for list algorithms supported by it.
 * [BrowserCryptography](https://pub.dev/documentation/cryptography/latest/cryptography/BrowserCryptography-class.html)
     * Uses [Web Cryptography API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API)
-      (_crypto.subtle_) whenever possible. Methods return pure Dart implementations when Web
-      Cryptography API is not available.
+      whenever possible. Methods return pure Dart implementations when Web Cryptography API is not
+      available.
     * See the [class documentation](https://pub.dev/documentation/cryptography/latest/cryptography/BrowserCryptography-class.html)
       for list algorithms supported by it.
 * [FlutterCryptography](https://pub.dev/documentation/cryptography_flutter/latest/cryptography_flutter/FlutterCryptography-class.html)

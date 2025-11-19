@@ -12,14 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:html' as html;
+import 'dart:js_interop';
+import 'dart:js_interop_unsafe';
+
 import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/src/browser/browser_secret_key.dart';
 
-import '_javascript_bindings.dart' show jsArrayBufferFrom;
+import '_javascript_bindings.dart' show jsUint8ListFrom;
 import '_javascript_bindings.dart' as web_crypto;
 
 /// AES-GCM implementation that uses _Web Cryptography API_ in browsers.
@@ -43,9 +45,9 @@ class BrowserAesGcm extends AesGcm implements StreamingCipher {
     this.secretKeyLength = 32,
     this.nonceLength = AesGcm.defaultNonceLength,
     this.fallback,
-    Random? random,
+    super.random,
   })  : _random = random,
-        super.constructor(random: random);
+        super.constructor();
 
   @override
   Future<List<int>> decrypt(
@@ -89,18 +91,22 @@ class BrowserAesGcm extends AesGcm implements StreamingCipher {
     try {
       final byteBuffer = await web_crypto.decrypt(
         web_crypto.AesGcmParams(
-          name: _webCryptoName,
-          iv: jsArrayBufferFrom(secretBox.nonce),
-          additionalData: jsArrayBufferFrom(aad),
-          tagLength: macBytes.length * 8,
-        ),
+          name: _webCryptoName.toJS,
+          iv: jsUint8ListFrom(secretBox.nonce),
+          additionalData: jsUint8ListFrom(aad),
+          tagLength: (macBytes.length * 8).toJS,
+        ).jsObject,
         jsCryptoKey,
-        jsArrayBufferFrom(cipherTextAndMac),
+        jsUint8ListFrom(cipherTextAndMac),
       );
       return Uint8List.view(byteBuffer);
-    } on html.DomException catch (e) {
-      if (e.name == 'OperationError') {
-        throw SecretBoxAuthenticationError();
+    } catch (e) {
+      final js = JSObject.fromInteropObject(e);
+      if (js.hasProperty('name'.toJS).toDart) {
+        final name = (js.getProperty('name'.toJS) as JSString).toDart;
+        if (name == 'OperationError') {
+          throw SecretBoxAuthenticationError();
+        }
       }
       rethrow;
     }
@@ -134,13 +140,13 @@ class BrowserAesGcm extends AesGcm implements StreamingCipher {
     );
     final byteBuffer = await web_crypto.encrypt(
       web_crypto.AesGcmParams(
-        name: 'AES-GCM',
-        iv: jsArrayBufferFrom(nonce),
-        additionalData: jsArrayBufferFrom(aad),
-        tagLength: macAlgorithm.macLength * 8,
-      ),
+        name: 'AES-GCM'.toJS,
+        iv: jsUint8ListFrom(nonce),
+        additionalData: jsUint8ListFrom(aad),
+        tagLength: (macAlgorithm.macLength * 8).toJS,
+      ).jsObject,
       jsCryptoKey,
-      jsArrayBufferFrom(clearText),
+      jsUint8ListFrom(clearText),
     );
 
     final cipherText = Uint8List.view(
