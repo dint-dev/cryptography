@@ -316,7 +316,7 @@ void _test() {
           );
         });
 
-        test('sign()', () async {
+        test('sign() returns the correct signature', () async {
           final keyPair = await algorithm.newKeyPairFromSeed(privateKeyBytes);
           final actualSignature = await algorithm.sign(
             message,
@@ -326,16 +326,38 @@ void _test() {
             hexFromBytes(actualSignature.bytes),
             hexFromBytes(signature.bytes),
           );
-          expect(
-            actualSignature.publicKey,
-            SimplePublicKey(publicKeyBytes, type: algorithm.keyPairType),
+          expect(actualSignature, signature);
+
+          // This is not supported on iOS due to a platform limitation.
+          // iOS uses randomized signatures.
+        }, testOn: '!ios');
+
+        test('sign() returns the right public key', () async {
+          final keyPair = await algorithm.newKeyPairFromSeed(privateKeyBytes);
+          final actualSignature = await algorithm.sign(
+            message,
+            keyPair: keyPair,
           );
           expect(
             actualSignature.publicKey,
             await keyPair.extractPublicKey(),
           );
-          expect(actualSignature, signature);
         });
+
+        test('result of sign() can be verified', () async {
+          final keyPair = await algorithm.newKeyPairFromSeed(privateKeyBytes);
+          final signature = await algorithm.sign(
+            message,
+            keyPair: keyPair,
+          );
+          expect(
+            await algorithm.verify(
+              message,
+              signature: signature,
+            ),
+            isTrue,
+          );
+        }, testOn: 'ios');
 
         test('verify(...)', () async {
           final isOk = await algorithm.verify(

@@ -93,7 +93,7 @@ BEGIN
             VALUE "FileDescription", "cryptography_flutter_integration_test" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "cryptography_flutter_integration_test" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2023 com.example. All rights reserved." "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2025 com.example. All rights reserved." "\0"
             VALUE "OriginalFilename", "cryptography_flutter_integration_test.exe" "\0"
             VALUE "ProductName", "cryptography_flutter_integration_test" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
