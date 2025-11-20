@@ -30,7 +30,7 @@ dev_dependencies:
   #
   # Packages by Google:
   #
-  lints: ^6.0.0
+  lints: '>=3.0.0 <7.0.0' # A large range is needed because we support old Flutter SDKs
 
 dependency_overrides:
   cryptography:

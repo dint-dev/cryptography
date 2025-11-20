@@ -24,5 +24,5 @@ dev_dependencies:
   #
   # Packages by Google:
   #
-  lints: '>=3.0.0 <7.0.0'
+  lints: '>=3.0.0 <7.0.0' # A large range is needed because we support old Flutter SDKs
   test: ^1.24.0

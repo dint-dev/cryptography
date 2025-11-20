@@ -44,7 +44,7 @@ String _toHex(List<int> bytes) {
 }
 
 class CipherPage extends StatefulWidget {
-  const CipherPage({Key? key}) : super(key: key);
+  const CipherPage({super.key});
 
   @override
   State<StatefulWidget> createState() {

@@ -24,6 +24,7 @@ jobs:
       matrix:
         package:
           - cryptography
+          - cryptography_test
           - jwk
         sdk:
           # The oldest supported Dart SDK at the moment.
@@ -128,6 +129,7 @@ jobs:
       matrix:
         package:
           - cryptography_flutter
+          - cryptography_flutter/example
           - cryptography_flutter_integration_test
         sdk:
           # The oldest supported Dart SDK at the moment.
