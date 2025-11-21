@@ -21,7 +21,7 @@ const _bit32 = 0x10000 * 0x10000;
 
 /// Fills a list with random bytes (using [Random.secure()].
 void fillBytesWithSecureRandom(Uint8List bytes, {Random? random}) {
-  random ??= SecureRandom.safe;
+  random ??= SecureRandom.defaultRandom;
   for (var i = 0; i < bytes.length;) {
     if (i + 3 < bytes.length) {
       // Read 32 bits at a time.

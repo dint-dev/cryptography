@@ -16,7 +16,7 @@ import 'package:cryptography/cryptography.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group('SecureRandom.instance', () {
+  group('SecureRandom.fast', () {
     test('toString()', () {
       expect(SecureRandom.fast.toString(), 'SecureRandom()');
     });
@@ -32,40 +32,58 @@ void main() {
   });
 
   group('SecureRandom.forTesting(...):', () {
+    late SecureRandom random;
+    setUp(() {
+      random = SecureRandom.forTesting();
+    });
+
     test('example', () {
-      final random = SecureRandom.forTesting();
       expect(random.nextUint32(), 3150129412);
       expect(random.nextUint32(), 343203913);
       expect(random.nextUint32(), 2777219198);
     });
 
     test('example with non-default seed', () {
-      final random = SecureRandom.forTesting(seed: 1);
+      random = SecureRandom.forTesting(seed: 1);
       expect(random.nextUint32(), 663495753);
       expect(random.nextUint32(), 257774224);
       expect(random.nextUint32(), 4279763603);
     });
 
     test('isSecure', () {
-      expect(
-        SecureRandom.forTesting().isSecure,
-        isFalse,
-      );
+      expect(random.isSecure, isFalse);
     });
 
     test('toString()', () {
       expect(
-        SecureRandom.forTesting().toString(),
+        random.toString(),
         'SecureRandom.forTesting(seed: 0)',
       );
     });
   });
 
-  group('SecureRandom', () {
-    final random = SecureRandom.fast;
+  testSecureRandom('ChaChaRandom.chaCha', () => ChaChaRandom());
+  testSecureRandom('ChaChaRandom.chaCha(maxDurationBeforeReseed: null)',
+      () => ChaChaRandom(maxDurationBeforeReseed: null));
+}
 
-    test('nextBool', () {
+void testSecureRandom(String name, SecureRandom Function() f) {
+  group(name, () {
+    test('nextBool(): first values are random', () {
       const n = 1000;
+      var trueCount = 0;
+      for (var i = 0; i < n; i++) {
+        if (f().nextBool()) {
+          trueCount++;
+        }
+      }
+      expect(trueCount, greaterThan(n ~/ 3));
+      expect(trueCount, lessThan(2 * n ~/ 3));
+    });
+
+    test('nextBool(): distribution looks correct', () {
+      final random = f();
+      const n = 10000;
       var trueCount = 0;
       for (var i = 0; i < n; i++) {
         if (random.nextBool()) {
@@ -73,10 +91,12 @@ void main() {
         }
       }
       expect(trueCount, greaterThan(n ~/ 3));
+      expect(trueCount, lessThan(2 * n ~/ 3));
     });
 
-    test('nextInt', () {
-      const n = 1000;
+    test('nextInt(): distribution looks correct', () {
+      final random = f();
+      const n = 10000;
       final counts = <int, int>{};
       for (var i = 0; i < n; i++) {
         final x = random.nextInt(3);
@@ -87,20 +107,34 @@ void main() {
       final count0 = counts[0] ?? 0;
       final count1 = counts[1] ?? 0;
       final count2 = counts[2] ?? 0;
+
       expect(count0, greaterThan(n ~/ 4));
       expect(count1, greaterThan(n ~/ 4));
       expect(count2, greaterThan(n ~/ 4));
+
+      expect(count0, lessThan(3 * n ~/ 4));
+      expect(count1, lessThan(3 * n ~/ 4));
+      expect(count2, lessThan(3 * n ~/ 4));
     });
 
-    test('nextUint52', () {
-      const n = 1000;
+    test('nextUint52(): distribution looks correct', () {
+      final random = f();
+      const n = 10000;
+      var count = 0;
       for (var i = 0; i < n; i++) {
         final x = random.nextDouble();
         expect(x, greaterThanOrEqualTo(0.0));
         expect(x, lessThan(1.0));
+        if (x < 0.5) {
+          count++;
+        }
       }
+      expect(count, greaterThan(n ~/ 4));
+      expect(count, lessThan(3 * n ~/ 4));
     });
-    test('nextUint52', () {
+
+    test('nextUint52(): distribution looks correct', () {
+      final random = f();
       const n = 1000;
 
       var countOf51bitIntegers = 0;
@@ -114,11 +148,11 @@ void main() {
         }
       }
       expect(countOf51bitIntegers, greaterThan(100));
+      expect(countOf51bitIntegers, lessThan(900));
     });
   });
 }
 
 int _bit16 = 0x10000;
 int _bit32 = 0x100000000;
-
 int _bit52 = (1 << 4) * _bit16 * _bit32;
