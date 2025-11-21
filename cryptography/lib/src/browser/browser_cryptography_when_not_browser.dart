@@ -66,6 +66,9 @@ class BrowserCryptography extends DartCryptography {
   @visibleForTesting
   static bool isDisabledForTesting = false;
 
+  /// Whether WASM is used.
+  static bool get isRunningInWasm => false;
+
   /// Whether Web Cryptography is supported in this platform.
   ///
   /// Browsers support Web Cryptography only in
@@ -76,9 +79,6 @@ class BrowserCryptography extends DartCryptography {
   /// because the fallback implementations implemented in pure Dart are
   /// always available.
   static bool get isSupported => false;
-
-  /// Whether WASM is used.
-  static bool get isRunningInWasm => false;
 
   /// Constructs an instance of [BrowserCryptography].
   ///

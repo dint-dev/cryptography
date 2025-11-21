@@ -18,7 +18,6 @@ import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
 
-import '_javascript_bindings.dart' as web_crypto;
 import '_javascript_bindings.dart'
     show
         base64UrlEncode,
@@ -26,6 +25,7 @@ import '_javascript_bindings.dart'
         jsUint8ListFrom,
         base64UrlDecode,
         base64UrlDecodeMaybe;
+import '_javascript_bindings.dart' as web_crypto;
 import 'hash.dart';
 
 /// RSA-PSS implementation that uses _Web Cryptography API_ in browsers.

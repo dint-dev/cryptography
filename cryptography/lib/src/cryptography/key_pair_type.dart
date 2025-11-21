@@ -107,6 +107,30 @@ class KeyPairType<S extends KeyPairData, P extends PublicKey> {
     this.webCryptoCurve,
   });
 
+  void checkPrivateKeyBytesFormat(List<int> bytes) {
+    final length = bytes.length;
+    final expectedLength = privateKeyLength;
+    if (expectedLength != -1 && length != expectedLength) {
+      throw ArgumentError.value(
+        length,
+        'length',
+        'Algorithm $name expects a private key with $expectedLength bytes, but got: $length bytes',
+      );
+    }
+  }
+
+  void checkPublicKeyBytesFormat(List<int> bytes) {
+    final length = bytes.length;
+    final expectedLength = publicKeyLength;
+    if (expectedLength != -1 && length != expectedLength) {
+      throw ArgumentError.value(
+        length,
+        'length',
+        'Algorithm $name expects a public key with $expectedLength bytes, but got: $length bytes',
+      );
+    }
+  }
+
   bool isValidKeyPairData(KeyPairData keyPair) =>
       keyPair is S && keyPair.type == this;
 

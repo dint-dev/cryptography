@@ -36,7 +36,7 @@ abstract class SecureRandom implements Random {
   ///
   /// Currently this is always [SecureRandom.system].
   static final Random defaultRandom = system;
-  
+
   @Deprecated('Use SecureRandom.defaultRandom instead')
   static Random get safe => defaultRandom;
 

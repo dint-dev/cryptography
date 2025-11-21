@@ -16,8 +16,8 @@ import 'dart:js_interop';
 
 import 'package:cryptography/cryptography.dart';
 
-import '_javascript_bindings.dart' show jsUint8ListFrom;
 import '_javascript_bindings.dart' as web_crypto;
+import '_javascript_bindings.dart' show jsUint8ListFrom;
 import 'hmac.dart';
 
 /// PBKDF2 implementation that uses _Web Cryptography API_ in browsers.

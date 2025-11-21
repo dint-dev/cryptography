@@ -53,6 +53,7 @@ class DartEd25519 extends Ed25519 {
   }) async {
     final keyPairData = (await keyPair.extract()) as SimpleKeyPairData;
     final privateKeyBytes = keyPairData.bytes;
+    KeyPairType.ed25519.checkPrivateKeyBytesFormat(privateKeyBytes);
 
     // Take SHA512 hash of the private key.
     final privateKeyHash = await _sha512.hash(privateKeyBytes);
@@ -64,6 +65,7 @@ class DartEd25519 extends Ed25519 {
       Register25519()..setBytes(Uint8List.fromList(privateKeyHashFixed)),
       Ed25519Point.base,
     ));
+    KeyPairType.ed25519.checkPublicKeyBytesFormat(publicKeyBytes);
     final publicKey = SimplePublicKey(
       publicKeyBytes,
       type: KeyPairType.ed25519,
@@ -109,20 +111,8 @@ class DartEd25519 extends Ed25519 {
     // Check that parameters appear valid
     final publicKeyBytes = (signature.publicKey as SimplePublicKey).bytes;
     final signatureBytes = signature.bytes;
-    if (publicKeyBytes.length != 32) {
-      throw ArgumentError.value(
-        signature,
-        'signature',
-        'Invalid public key length',
-      );
-    }
-    if (signatureBytes.length != 64) {
-      throw ArgumentError.value(
-        signature,
-        'signature',
-        'Invalid signature length',
-      );
-    }
+    KeyPairType.ed25519.checkPublicKeyBytesFormat(publicKeyBytes);
+    Ed25519.checkSignatureLength(signatureBytes.length);
 
     // Decompress `a`
     final a = _pointDecompress(publicKeyBytes);

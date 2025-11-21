@@ -191,8 +191,11 @@ void _testCryptography(Cryptography Function(Random? random) f) {
 
 // XorShift
 //
-class _TestRandom implements Random {
+class _TestRandom implements SecureRandom {
   int _state = 2463534242;
+
+  @override
+  bool get isSecure => false;
 
   @override
   bool nextBool() => nextInt(2) != 0;
@@ -214,4 +217,17 @@ class _TestRandom implements Random {
     _state = x;
     return x % max;
   }
+
+  @override
+  int nextUint32() {
+    throw UnimplementedError();
+  }
+
+  @override
+  int nextUint52([int? max]) {
+    throw UnimplementedError();
+  }
+
+  @override
+  void reset() {}
 }

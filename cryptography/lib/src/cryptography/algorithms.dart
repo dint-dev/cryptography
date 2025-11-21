@@ -1208,26 +1208,11 @@ abstract class Ed25519 extends SignatureAlgorithm {
   @override
   String toString() => '$runtimeType()';
 
-  static void checkPrivateKeyLength(int length) {
-    if (length != 32) {
-      throw ArgumentError(
-        'Private key must be 32 bytes (got $length bytes)',
-      );
-    }
-  }
-
-  static void checkPublicKeyLength(int length) {
-    if (length != 32) {
-      throw ArgumentError(
-        'Public key must be 32 bytes (got $length bytes)',
-      );
-    }
-  }
-
+  /// Checks that the signature length is correct.
   static void checkSignatureLength(int length) {
     if (length != 64) {
-      throw ArgumentError(
-        'Signature must be 64 bytes (got $length bytes)',
+      throw StateError(
+        'Ed25519 signature must be 64 bytes (got $length bytes)',
       );
     }
   }
