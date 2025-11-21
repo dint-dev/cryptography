@@ -10,14 +10,20 @@ to use native APIs of Android, iOS, and Mac OS X.
 Maintained by [terrier989](https://github.com/terrier989).
 Licensed under the [Apache License 2.0](LICENSE).
 
-## Why?
-* __Secure__
-  * Operating system APIs are preferable from security point of view.
-* __Performant__.
-  * Operating system APIs are up to 100 times faster than pure Dart implementations.
-* __Cross-platform__.
-  * The implementations fall back to "package:cryptography" implementations when operating system
-    APIs can't be used.
+## Trade-offs of using operating system APIs
+### Pros
+* __Compliant__.
+  * Operating system implementations of algorithms are often compliant with various compliance
+    requirements (such as FIPS 140-2).
+* __Speed__.
+  * For some algorithms, operating system implementations are up to 100 times faster than pure Dart
+    implementations.
+
+### Cons
+* __Easier to inspect__
+  * If someone reverse engineers you application, it may be easier to inspect operating system calls
+    than pure Dart implementations provided by
+    [package:cryptography](https://pub.dev/packages/cryptography).
 
 ## General behavior
 
@@ -51,8 +57,8 @@ In _pubspec.yaml_:
 
 ```yaml
 dependencies:
-  cryptography: ^2.8.0
-  cryptography_flutter: ^2.3.3
+  cryptography: ^2.8.1g
+  cryptography_flutter: ^2.3.4
 ```
 
 That's it!

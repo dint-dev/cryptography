@@ -21,12 +21,15 @@ import '../cryptography_flutter.dart';
 
 const MethodChannel _methodChannel = MethodChannel('cryptography_flutter');
 
+@internal
 bool get isAndroid => defaultTargetPlatform == TargetPlatform.android;
 
+@internal
 bool get isCupertino => (defaultTargetPlatform == TargetPlatform.iOS ||
     defaultTargetPlatform == TargetPlatform.macOS);
 
 /// Returns the bytes as [Uint8List].
+@internal
 Uint8List asUint8List(List<int> bytes) {
   // It's important that it's NOT something like UnmodifiableUint8ListView.
   // That's why we check runtimeType.
@@ -36,14 +39,9 @@ Uint8List asUint8List(List<int> bytes) {
 }
 
 /// Invokes plugin method.
-///
-/// Throws [CryptographyUnsupportedError] if the platform is web or plugin is
-/// not available.
+@internal
 Future<Map> invokeMethod(String name, Map<String, Object?> arguments,
     {bool useQueue = true}) async {
-  if (kIsWeb) {
-    throw UnsupportedError('Running in a browser.');
-  }
   final isPluginAvailable = FlutterCryptography.isPluginPresent;
   if (!isPluginAvailable) {
     throw UnsupportedError('Unsupported platform.');

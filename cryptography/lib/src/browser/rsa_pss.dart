@@ -21,11 +21,11 @@ import 'package:cryptography/cryptography.dart';
 import '_javascript_bindings.dart' as web_crypto;
 import '_javascript_bindings.dart'
     show
-        base64UrlDecodeUnmodifiable,
-        base64UrlDecodeUnmodifiableMaybe,
         base64UrlEncode,
         base64UrlEncodeMaybe,
-        jsUint8ListFrom;
+        jsUint8ListFrom,
+        base64UrlDecode,
+        base64UrlDecodeMaybe;
 import 'hash.dart';
 
 /// RSA-PSS implementation that uses _Web Cryptography API_ in browsers.
@@ -239,14 +239,14 @@ class _BrowserRsaPssKeyPair extends RsaKeyPair {
       jsCryptoKeyPair.privateKey,
     );
     return RsaKeyPairData(
-      n: base64UrlDecodeUnmodifiable(jsJwk.n!.toDart),
-      e: base64UrlDecodeUnmodifiable(jsJwk.e!.toDart),
-      d: base64UrlDecodeUnmodifiable(jsJwk.d!.toDart),
-      p: base64UrlDecodeUnmodifiable(jsJwk.p!.toDart),
-      q: base64UrlDecodeUnmodifiable(jsJwk.q!.toDart),
-      dp: base64UrlDecodeUnmodifiableMaybe(jsJwk.dp?.toDart),
-      dq: base64UrlDecodeUnmodifiableMaybe(jsJwk.dq?.toDart),
-      qi: base64UrlDecodeUnmodifiableMaybe(jsJwk.qi?.toDart),
+      n: base64UrlDecode(jsJwk.n!.toDart),
+      e: base64UrlDecode(jsJwk.e!.toDart),
+      d: base64UrlDecode(jsJwk.d!.toDart),
+      p: base64UrlDecode(jsJwk.p!.toDart),
+      q: base64UrlDecode(jsJwk.q!.toDart),
+      dp: base64UrlDecodeMaybe(jsJwk.dp?.toDart),
+      dq: base64UrlDecodeMaybe(jsJwk.dq?.toDart),
+      qi: base64UrlDecodeMaybe(jsJwk.qi?.toDart),
     );
   }
 
@@ -259,8 +259,8 @@ class _BrowserRsaPssKeyPair extends RsaKeyPair {
       jsCryptoKey: jsCryptoKeyPair.publicKey,
       webCryptoAlgorithm: webCryptoAlgorithm,
       webCryptoHash: webCryptoHash,
-      n: base64UrlDecodeUnmodifiable(jsJwk.n!.toDart),
-      e: base64UrlDecodeUnmodifiable(jsJwk.e!.toDart),
+      n: base64UrlDecode(jsJwk.n!.toDart),
+      e: base64UrlDecode(jsJwk.e!.toDart),
     );
   }
 }

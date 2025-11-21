@@ -48,9 +48,9 @@ import 'package:meta/meta.dart';
 ///     message,
 ///     secretKey: secretKey,
 ///   );
-///   print('Nonce: ${secretBox.nonce}')
-///   print('Ciphertext: ${secretBox.cipherText}')
-///   print('MAC: ${secretBox.mac.bytes}')
+///   print('Nonce: ${secretBox.nonce}');
+///   print('Ciphertext: ${secretBox.cipherText}');
+///   print('MAC: ${secretBox.mac.bytes}');
 ///
 ///   // Decrypt
 ///   final clearText = await algorithm.encrypt(
@@ -198,9 +198,9 @@ abstract class AesCbc extends Cipher {
 ///     message,
 ///     secretKey: secretKey,
 ///   );
-///   print('Nonce: ${secretBox.nonce}')
-///   print('Ciphertext: ${secretBox.cipherText}')
-///   print('MAC: ${secretBox.mac.bytes}')
+///   print('Nonce: ${secretBox.nonce}');
+///   print('Ciphertext: ${secretBox.cipherText}');
+///   print('MAC: ${secretBox.mac.bytes}');
 ///
 ///   // Decrypt
 ///   final clearText = await algorithm.encrypt(
@@ -349,9 +349,9 @@ abstract class AesCtr extends StreamingCipher {
 ///     secretKey: secretKey,
 ///     nonce: nonce,
 ///   );
-///   print('Nonce: ${secretBox.nonce}')
-///   print('Ciphertext: ${secretBox.cipherText}')
-///   print('MAC: ${secretBox.mac.bytes}')
+///   print('Nonce: ${secretBox.nonce}');
+///   print('Ciphertext: ${secretBox.cipherText}');
+///   print('MAC: ${secretBox.mac.bytes}');
 ///
 ///   // Decrypt
 ///   final clearText = await algorithm.encrypt(
@@ -849,9 +849,9 @@ abstract class Blake2s extends HashAlgorithm implements MacAlgorithm {
 ///     message,
 ///     secretKey: secretKey,
 ///   );
-///   print('Nonce: ${secretBox.nonce}')
-///   print('Ciphertext: ${secretBox.cipherText}')
-///   print('MAC: ${secretBox.mac.bytes}')
+///   print('Nonce: ${secretBox.nonce}');
+///   print('Ciphertext: ${secretBox.cipherText}');
+///   print('MAC: ${secretBox.mac.bytes}');
 ///
 ///   // Decrypt
 ///   final clearText = await algorithm.decrypt(
@@ -910,9 +910,9 @@ abstract class Chacha20 extends StreamingCipher {
   ///     message,
   ///     secretKey: secretKey,
   ///   );
-  ///   print('Nonce: ${secretBox.nonce}')
-  ///   print('Ciphertext: ${secretBox.cipherText}')
-  ///   print('MAC: ${secretBox.mac.bytes}')
+  ///   print('Nonce: ${secretBox.nonce}');
+  ///   print('Ciphertext: ${secretBox.cipherText}');
+  ///   print('MAC: ${secretBox.mac.bytes}');
   ///
   ///   // Decrypt
   ///   final clearText = await algorithm.decrypt(

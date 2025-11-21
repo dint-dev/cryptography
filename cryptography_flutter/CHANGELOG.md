@@ -1,3 +1,6 @@
+## 2.3.4
+* Bug fixes.
+
 ## 2.3.3
 * Improves dependency constraints.
 * Fixes problems when building the plugin.

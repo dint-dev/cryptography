@@ -46,10 +46,10 @@ Android / iOS / Mac OS X operating system APIs whenever possible.
 In _pubspec.yaml_:
 ```yaml
 dependencies:
-  cryptography: ^2.8.0
+  cryptography: ^2.8.1
   
   # If you are writing a Flutter app/package, also add this:
-  cryptography_flutter: ^2.3.3
+  cryptography_flutter: ^2.3.4
 ```
 
 You are ready to go!
