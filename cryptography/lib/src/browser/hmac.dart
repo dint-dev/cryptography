@@ -66,13 +66,6 @@ class BrowserHmac extends Hmac {
 
   Future<web_crypto.CryptoKey> _jsCryptoKey(SecretKey secretKey) async {
     final secretKeyBytes = await secretKey.extractBytes();
-    if (secretKeyBytes.isEmpty) {
-      throw ArgumentError.value(
-        secretKey,
-        'secretKey',
-        'SecretKey bytes must be non-empty',
-      );
-    }
     return await web_crypto.importKeyWhenRaw(
       web_crypto.jsUint8ListFrom(secretKeyBytes),
       web_crypto.HmacImportParams(

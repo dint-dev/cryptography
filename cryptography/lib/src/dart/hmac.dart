@@ -120,13 +120,6 @@ class _DartHmacSink extends MacSink with DartMacSinkMixin {
         'AAD is not supported by HMAC',
       );
     }
-    if (secretKey.bytes.isEmpty) {
-      throw ArgumentError.value(
-        secretKey,
-        'secretKey',
-        'Secret key must be non-empty',
-      );
-    }
     _isClosed = false;
     var hmacKey = secretKey.bytes;
     var eraseKey = false;
