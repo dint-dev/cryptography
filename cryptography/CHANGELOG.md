@@ -1,3 +1,8 @@
+## 2.9.0
+* Adds support for Web Crypto Ed25519 signatures.
+* Adds support for Web Crypto X25519 key exchange.
+* Bug fixes and refactoring.
+
 ## 2.8.1
 * Bug fixes.
 

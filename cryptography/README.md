@@ -46,7 +46,7 @@ Android / iOS / Mac OS X operating system APIs whenever possible.
 In _pubspec.yaml_:
 ```yaml
 dependencies:
-  cryptography: ^2.8.1
+  cryptography: ^2.9.0
   
   # If you are writing a Flutter app/package, also add this:
   cryptography_flutter: ^2.3.4
@@ -144,8 +144,6 @@ implementations are available:
 
 * [Ed25519](https://pub.dev/documentation/cryptography/latest/cryptography/Ed25519-class.html) (
   curve25519 EdDSA)
-    * Performance of the pure Dart implementation is around 200 (signatures or verifications) per
-      second in VM and about 50 in browsers.
 * Elliptic curves approved by NIST
     * [Ecdsa.p256](https://pub.dev/documentation/cryptography/latest/cryptography/Ecdsa/Ecdsa.p256.html) (
       ECDSA P256 / secp256r1 / prime256v1 + SHA256)
@@ -176,7 +174,6 @@ implementations are available:
     * We don't have implementations of these in pure Dart.
 * [X25519](https://pub.dev/documentation/cryptography/latest/cryptography/X25519-class.html) (
   curve25519 Diffie-Hellman)
-    * Throughput of the pure Dart implementation is around 1000 key agreements per second (in VM).
 
 ### Key derivation / password hashing algorithms
 
