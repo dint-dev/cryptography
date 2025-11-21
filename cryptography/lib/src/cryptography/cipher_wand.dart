@@ -15,6 +15,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:cryptography/src/helpers/erase_bytes.dart';
+
 import '../../cryptography.dart';
 
 /// An opaque object that possesses some non-extractable secret key.
@@ -109,11 +111,9 @@ abstract class CipherWand extends Wand {
     try {
       return utf8.decode(clearText);
     } finally {
-      try {
-        // Cut the amount of possibly sensitive data in the heap.
-        // This should be a cheap operation relative to decryption.
-        clearText.fillRange(0, clearText.length, 0);
-      } catch (_) {}
+      // Cut the amount of possibly sensitive data in the heap.
+      // This should be a cheap operation relative to decryption.
+      tryEraseBytes(clearText);
     }
   }
 
@@ -185,11 +185,7 @@ abstract class CipherWand extends Wand {
 
     // Cut the amount of possibly sensitive data in the heap.
     // This should be a cheap operation relative to encryption.
-    final cipherText = secretBox.cipherText;
-    if (cipherText is! Uint8List ||
-        !identical(bytes.buffer, cipherText.buffer)) {
-      bytes.fillRange(0, bytes.length, 0);
-    }
+    tryEraseBytes(bytes, unlessUsedIn: secretBox.cipherText);
 
     return secretBox;
   }

@@ -16,6 +16,7 @@ import 'dart:collection';
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
+import 'package:cryptography/src/helpers/erase_bytes.dart';
 
 /// List of security-sensitive bytes that can be destroyed with [destroy].
 ///
@@ -74,15 +75,7 @@ class SensitiveBytes extends ListBase<int> {
     if (bytes != null) {
       _bytes = null;
       if (overwriteWhenDestroyed) {
-        try {
-          for (var i = 0; i < bytes.length; i++) {
-            bytes[i] = 0;
-          }
-        } on UnsupportedError {
-          // Ignore error
-        } on StateError {
-          // Ignore error
-        }
+        tryEraseBytes(bytes);
       }
     }
   }
