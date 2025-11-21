@@ -26,7 +26,6 @@ export 'src/background/background_cipher.dart';
 export 'src/background/background_pbkdf2.dart';
 export 'src/cryptography_channel_policy.dart';
 export 'src/cryptography_channel_queue.dart';
-export 'src/cryptography_unsupported_error.dart';
 export 'src/flutter/flutter_aes_gcm.dart';
 export 'src/flutter/flutter_chacha20.dart';
 export 'src/flutter/flutter_cipher.dart';

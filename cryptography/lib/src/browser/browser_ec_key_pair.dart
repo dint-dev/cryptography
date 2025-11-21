@@ -74,9 +74,9 @@ class BrowserEcKeyPair extends KeyPair implements EcKeyPair {
       );
       return EcKeyPairData(
         type: keyPairType,
-        d: web_crypto.base64UrlDecodeUnmodifiable(jwk.d!.toDart),
-        x: web_crypto.base64UrlDecodeUnmodifiable(jwk.x!.toDart),
-        y: web_crypto.base64UrlDecodeUnmodifiable(jwk.y!.toDart),
+        d: web_crypto.base64UrlDecode(jwk.d!.toDart),
+        x: web_crypto.base64UrlDecode(jwk.x!.toDart),
+        y: web_crypto.base64UrlDecode(jwk.y!.toDart),
       );
     } catch (error, stackTrace) {
       throw StateError(
@@ -279,9 +279,9 @@ class BrowserEcKeyPair extends KeyPair implements EcKeyPair {
       );
       return fromParameters(
         keyPairType: keyPairType,
-        d: web_crypto.base64UrlDecodeUnmodifiable(jwk.d!.toDart),
-        x: web_crypto.base64UrlDecodeUnmodifiable(jwk.x!.toDart),
-        y: web_crypto.base64UrlDecodeUnmodifiable(jwk.y!.toDart),
+        d: web_crypto.base64UrlDecode(jwk.d!.toDart),
+        x: web_crypto.base64UrlDecode(jwk.x!.toDart),
+        y: web_crypto.base64UrlDecode(jwk.y!.toDart),
         isExtractable: isExtractable,
         allowSign: allowSign,
         allowDeriveBits: allowDeriveBits,

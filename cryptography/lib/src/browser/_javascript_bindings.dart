@@ -19,16 +19,20 @@ import 'dart:convert' show base64Url;
 import 'dart:js_interop';
 import 'dart:typed_data';
 
+import 'package:meta/meta.dart';
+
 /// Note that browsers support Web Cryptography only in secure contexts.
+@internal
 final bool isWebCryptoAvailable =
     _subtle.isDefinedAndNotNull && _isSecureContext.toDart;
-
-@JS('crypto.subtle')
-external JSAny get _subtle;
 
 @JS('window.isSecureContext')
 external JSBoolean get _isSecureContext;
 
+@JS('crypto.subtle')
+external JSAny get _subtle;
+
+@internal
 Uint8List base64UrlDecode(String s) {
   switch (s.length % 4) {
     case 1:
@@ -42,28 +46,12 @@ Uint8List base64UrlDecode(String s) {
   }
 }
 
-Uint8List base64UrlDecodeUnmodifiable(String s) {
-  final bytes = base64UrlDecode(s);
-  // UnmodifiableUint8ListView has bugs so we removed it
-  return bytes;
+@internal
+Uint8List? base64UrlDecodeMaybe(String? s) {
+  return s == null ? null : base64UrlDecode(s);
 }
 
-Uint8List? base64UrlDecodeUnmodifiableMaybe(String? s) {
-  if (s == null) {
-    return null;
-  }
-  final bytes = base64UrlDecode(s);
-  // UnmodifiableUint8ListView has bugs so we removed it
-  return bytes;
-}
-
-extension type CryptoKey._(JSObject _) implements JSObject {
-  external JSAny get type;
-  external bool get extractable;
-  external JSObject get algorithm;
-  external JSObject get usages;
-}
-
+@internal
 String base64UrlEncode(List<int> data) {
   var s = base64Url.encode(data);
   // Remove trailing '=' characters
@@ -74,6 +62,7 @@ String base64UrlEncode(List<int> data) {
   return s.substring(0, length);
 }
 
+@internal
 String? base64UrlEncodeMaybe(List<int>? data) {
   if (data == null) {
     return null;
@@ -81,6 +70,7 @@ String? base64UrlEncodeMaybe(List<int>? data) {
   return base64UrlEncode(data);
 }
 
+@internal
 Future<ByteBuffer> decrypt(
   JSAny algorithm,
   CryptoKey key,
@@ -90,6 +80,7 @@ Future<ByteBuffer> decrypt(
   return js.toDart;
 }
 
+@internal
 Future<ByteBuffer> deriveBits(
   JSAny algorithm,
   CryptoKey cryptoKey,
@@ -99,6 +90,7 @@ Future<ByteBuffer> deriveBits(
   return js.toDart;
 }
 
+@internal
 Future<CryptoKey> deriveKey(
   JSObject algorithm,
   CryptoKey baseKey,
@@ -116,6 +108,7 @@ Future<CryptoKey> deriveKey(
   return js;
 }
 
+@internal
 Future<ByteBuffer> digest(
   String name,
   JSUint8Array data,
@@ -124,6 +117,7 @@ Future<ByteBuffer> digest(
   return js.toDart;
 }
 
+@internal
 Future<ByteBuffer> encrypt(
   JSAny algorithm,
   CryptoKey key,
@@ -133,16 +127,19 @@ Future<ByteBuffer> encrypt(
   return js.toDart;
 }
 
+@internal
 Future<Jwk> exportKeyWhenJwk(CryptoKey key) async {
   final js = await _exportKey('jwk'.toJS, key).toDart;
   return js as Jwk;
 }
 
+@internal
 Future<ByteBuffer> exportKeyWhenRaw(CryptoKey key) async {
   final js = await _exportKey('raw'.toJS, key).toDart;
   return (js as JSArrayBuffer).toDart;
 }
 
+@internal
 Future<CryptoKey> generateKeyWhenKey(
   JSAny algorithm,
   JSBoolean extractable,
@@ -152,6 +149,7 @@ Future<CryptoKey> generateKeyWhenKey(
   return js as CryptoKey;
 }
 
+@internal
 Future<CryptoKeyPair> generateKeyWhenKeyPair(
   JSObject algorithm,
   JSBoolean extractable,
@@ -161,6 +159,7 @@ Future<CryptoKeyPair> generateKeyWhenKeyPair(
   return js as CryptoKeyPair;
 }
 
+@internal
 Future<CryptoKey> importKeyWhenJwk(
   Jwk keyData,
   JSAny algorithm,
@@ -177,6 +176,7 @@ Future<CryptoKey> importKeyWhenJwk(
   return js;
 }
 
+@internal
 Future<CryptoKey> importKeyWhenRaw(
   JSUint8Array keyData,
   JSAny algorithm,
@@ -193,6 +193,7 @@ Future<CryptoKey> importKeyWhenRaw(
   return js;
 }
 
+@internal
 JSUint8Array jsUint8ListFrom(List<int> data) {
   if (data is Uint8List) {
     return data.toJS;
@@ -200,6 +201,7 @@ JSUint8Array jsUint8ListFrom(List<int> data) {
   return Uint8List.fromList(data).toJS;
 }
 
+@internal
 Future<ByteBuffer> sign(
   JSAny algorithm,
   CryptoKey key,
@@ -209,6 +211,7 @@ Future<ByteBuffer> sign(
   return js.toDart;
 }
 
+@internal
 Future<bool> verify(
   JSAny algorithm,
   CryptoKey key,
@@ -292,6 +295,7 @@ external JSPromise<JSBoolean> _verify(
   JSUint8Array data,
 );
 
+@internal
 extension type AesCbcParams._(JSObject jsObject) {
   external factory AesCbcParams({
     required JSString name,
@@ -299,6 +303,7 @@ extension type AesCbcParams._(JSObject jsObject) {
   });
 }
 
+@internal
 extension type AesCtrParams._(JSObject jsObject) {
   external factory AesCtrParams({
     required JSString name,
@@ -307,6 +312,7 @@ extension type AesCtrParams._(JSObject jsObject) {
   });
 }
 
+@internal
 extension type AesGcmParams._(JSObject jsObject) {
   external factory AesGcmParams({
     required JSString name,
@@ -316,6 +322,7 @@ extension type AesGcmParams._(JSObject jsObject) {
   });
 }
 
+@internal
 extension type AesKeyGenParams._(JSObject jsObject) {
   external factory AesKeyGenParams({
     required JSString name,
@@ -323,12 +330,22 @@ extension type AesKeyGenParams._(JSObject jsObject) {
   });
 }
 
+@internal
+extension type CryptoKey._(JSObject _) implements JSObject {
+  external JSObject get algorithm;
+  external bool get extractable;
+  external JSAny get type;
+  external JSObject get usages;
+}
+
+@internal
 extension type CryptoKeyPair._(JSObject jsObject) {
   external CryptoKey get privateKey;
 
   external CryptoKey get publicKey;
 }
 
+@internal
 extension type EcdhKeyDeriveParams._(JSObject jsObject) {
   external factory EcdhKeyDeriveParams({
     required JSString name,
@@ -336,6 +353,7 @@ extension type EcdhKeyDeriveParams._(JSObject jsObject) {
   });
 }
 
+@internal
 extension type EcdhParams._(JSObject jsObject) {
   external factory EcdhParams({
     required JSString name,
@@ -343,6 +361,7 @@ extension type EcdhParams._(JSObject jsObject) {
   });
 }
 
+@internal
 extension type EcdsaParams._(JSObject jsObject) {
   external factory EcdsaParams({
     required JSString name,
@@ -350,6 +369,7 @@ extension type EcdsaParams._(JSObject jsObject) {
   });
 }
 
+@internal
 extension type EcKeyGenParams._(JSObject jsObject) {
   external factory EcKeyGenParams({
     required JSString name,
@@ -357,6 +377,7 @@ extension type EcKeyGenParams._(JSObject jsObject) {
   });
 }
 
+@internal
 extension type EcKeyImportParams._(JSObject jsObject) {
   external factory EcKeyImportParams({
     required JSString name,
@@ -364,6 +385,7 @@ extension type EcKeyImportParams._(JSObject jsObject) {
   });
 }
 
+@internal
 extension type HkdfParams._(JSObject jsObject) {
   external factory HkdfParams({
     required JSString name,
@@ -373,6 +395,7 @@ extension type HkdfParams._(JSObject jsObject) {
   });
 }
 
+@internal
 extension type HmacImportParams._(JSObject jsObject) {
   external factory HmacImportParams({
     required JSString name,
@@ -381,6 +404,7 @@ extension type HmacImportParams._(JSObject jsObject) {
   });
 }
 
+@internal
 extension type HmacKeyGenParams._(JSObject jsObject) {
   external factory HmacKeyGenParams({
     required JSString name,
@@ -389,6 +413,7 @@ extension type HmacKeyGenParams._(JSObject jsObject) {
   });
 }
 
+@internal
 extension type Jwk._(JSObject jsObject) {
   external factory Jwk({
     JSString? crv,
@@ -438,6 +463,7 @@ extension type Jwk._(JSObject jsObject) {
   external JSString? get y;
 }
 
+@internal
 extension type Pkdf2Params._(JSObject jsObject) {
   external factory Pkdf2Params({
     required JSString name,
@@ -447,6 +473,7 @@ extension type Pkdf2Params._(JSObject jsObject) {
   });
 }
 
+@internal
 extension type RsaHashedImportParams._(JSObject jsObject) {
   external factory RsaHashedImportParams({
     required JSString name,
@@ -454,6 +481,7 @@ extension type RsaHashedImportParams._(JSObject jsObject) {
   });
 }
 
+@internal
 extension type RsaHashedKeyGenParams._(JSObject jsObject) {
   external factory RsaHashedKeyGenParams({
     required JSString name,
@@ -463,6 +491,7 @@ extension type RsaHashedKeyGenParams._(JSObject jsObject) {
   });
 }
 
+@internal
 extension type RsaPssParams._(JSObject jsObject) {
   external factory RsaPssParams({
     required JSString name,
@@ -470,12 +499,14 @@ extension type RsaPssParams._(JSObject jsObject) {
   });
 }
 
+@internal
 extension type SignParams._(JSObject jsObject) {
   external factory SignParams({
     required JSString name,
   });
 }
 
+@internal
 extension type VerifyParams._(JSObject jsObject) {
   external factory VerifyParams({
     required JSString name,

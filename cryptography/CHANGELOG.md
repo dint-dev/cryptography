@@ -1,3 +1,6 @@
+## 2.8.1
+* Bug fixes.
+
 ## 2.8.0
 * Adds WASM support. `BrowserCryptography` now uses 'dart:js_interop'.
 

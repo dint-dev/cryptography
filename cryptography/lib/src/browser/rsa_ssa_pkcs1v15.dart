@@ -20,7 +20,7 @@ import 'package:cryptography/cryptography.dart';
 
 import '_javascript_bindings.dart' as web_crypto;
 import '_javascript_bindings.dart'
-    show base64UrlDecodeUnmodifiable, base64UrlEncode, base64UrlEncodeMaybe;
+    show base64UrlEncode, base64UrlEncodeMaybe, base64UrlDecode;
 import 'hash.dart';
 
 /// RSA-SSA-PKCS1v15 implementation that uses _Web Cryptography API_ in browsers.
@@ -232,14 +232,14 @@ class _BrowserRsaSsaPkcs1v15KeyPair extends KeyPair implements RsaKeyPair {
       jsCryptoKeyPair.privateKey,
     );
     return RsaKeyPairData(
-      n: web_crypto.base64UrlDecodeUnmodifiable(jsJwk.n!.toDart),
-      e: web_crypto.base64UrlDecodeUnmodifiable(jsJwk.e!.toDart),
-      d: web_crypto.base64UrlDecodeUnmodifiable(jsJwk.d!.toDart),
-      p: web_crypto.base64UrlDecodeUnmodifiable(jsJwk.p!.toDart),
-      q: web_crypto.base64UrlDecodeUnmodifiable(jsJwk.q!.toDart),
-      dp: web_crypto.base64UrlDecodeUnmodifiableMaybe(jsJwk.dp?.toDart),
-      dq: web_crypto.base64UrlDecodeUnmodifiableMaybe(jsJwk.dq?.toDart),
-      qi: web_crypto.base64UrlDecodeUnmodifiableMaybe(jsJwk.qi?.toDart),
+      n: web_crypto.base64UrlDecode(jsJwk.n!.toDart),
+      e: web_crypto.base64UrlDecode(jsJwk.e!.toDart),
+      d: web_crypto.base64UrlDecode(jsJwk.d!.toDart),
+      p: web_crypto.base64UrlDecode(jsJwk.p!.toDart),
+      q: web_crypto.base64UrlDecode(jsJwk.q!.toDart),
+      dp: web_crypto.base64UrlDecodeMaybe(jsJwk.dp?.toDart),
+      dq: web_crypto.base64UrlDecodeMaybe(jsJwk.dq?.toDart),
+      qi: web_crypto.base64UrlDecodeMaybe(jsJwk.qi?.toDart),
     );
   }
 
@@ -252,8 +252,8 @@ class _BrowserRsaSsaPkcs1v15KeyPair extends KeyPair implements RsaKeyPair {
       jsCryptoKey: jsCryptoKeyPair.publicKey,
       webCryptoAlgorithm: webCryptoAlgorithm,
       webCryptoHash: webCryptoHash,
-      n: base64UrlDecodeUnmodifiable(jsJwk.n!.toDart),
-      e: base64UrlDecodeUnmodifiable(jsJwk.e!.toDart),
+      n: base64UrlDecode(jsJwk.n!.toDart),
+      e: base64UrlDecode(jsJwk.e!.toDart),
     );
   }
 }
