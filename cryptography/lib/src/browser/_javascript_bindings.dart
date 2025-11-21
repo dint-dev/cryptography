@@ -340,8 +340,11 @@ extension type AlgorithmNameParams._(JSObject jsObject) {
 @internal
 extension type CryptoKey._(JSObject _) implements JSObject {
   external JSObject get algorithm;
+
   external bool get extractable;
+
   external JSAny get type;
+
   external JSObject get usages;
 }
 

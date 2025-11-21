@@ -44,6 +44,7 @@ class DartX25519 extends X25519 with DartKeyExchangeAlgorithmMixin {
 
   @override
   Future<SimpleKeyPair> newKeyPairFromSeed(List<int> seed) async {
+    KeyPairType.x25519.checkPrivateKeyBytesFormat(seed);
     final modifiedBytes = DartX25519.modifiedPrivateKeyBytes(seed);
     return SimpleKeyPairData(
       modifiedBytes,
@@ -72,11 +73,14 @@ class DartX25519 extends X25519 with DartKeyExchangeAlgorithmMixin {
       );
     }
     final privateKeyBytes = modifiedPrivateKeyBytes(keyPairData.bytes);
+    final publicKeyBytes = remotePublicKey.bytes;
+    KeyPairType.x25519.checkPrivateKeyBytesFormat(privateKeyBytes);
+    KeyPairType.x25519.checkPublicKeyBytesFormat(publicKeyBytes);
     final result = Uint8List(32);
     _calculate(
       result,
       privateKeyBytes,
-      Uint8List.fromList(remotePublicKey.bytes),
+      Uint8List.fromList(publicKeyBytes),
     );
     return SecretKey(result);
   }

@@ -14,15 +14,14 @@
 
 import 'dart:js_interop';
 import 'dart:js_interop_unsafe';
-
 import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/src/browser/browser_secret_key.dart';
 
-import '_javascript_bindings.dart' show jsUint8ListFrom;
 import '_javascript_bindings.dart' as web_crypto;
+import '_javascript_bindings.dart' show jsUint8ListFrom;
 
 /// AES-GCM implementation that uses _Web Cryptography API_ in browsers.
 class BrowserAesGcm extends AesGcm implements StreamingCipher {

@@ -22,13 +22,11 @@ import '../signature.dart';
 void testEd25519() {
   testSignatureAlgorithm(
     builder: () => Ed25519(),
-    otherTests: () {
-      _test();
-    },
+    otherTests: _otherTests,
   );
 }
 
-void _test() {
+void _otherTests() {
   group('ed25519:', () {
     late Ed25519 algorithm;
 

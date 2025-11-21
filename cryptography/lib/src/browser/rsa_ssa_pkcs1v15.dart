@@ -17,9 +17,9 @@ import 'dart:math';
 
 import 'package:cryptography/cryptography.dart';
 
-import '_javascript_bindings.dart' as web_crypto;
 import '_javascript_bindings.dart'
     show base64UrlEncode, base64UrlEncodeMaybe, base64UrlDecode;
+import '_javascript_bindings.dart' as web_crypto;
 import 'hash.dart';
 
 /// RSA-SSA-PKCS1v15 implementation that uses _Web Cryptography API_ in browsers.

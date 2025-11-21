@@ -16,8 +16,6 @@ import 'dart:math';
 
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/dart.dart';
-import 'package:cryptography/src/browser/rsa_pss.dart';
-import 'package:cryptography/src/browser/rsa_ssa_pkcs1v15.dart';
 import 'package:meta/meta.dart';
 
 import '_javascript_bindings.dart' show isWebCryptoAvailable;
@@ -26,10 +24,14 @@ import 'aes_ctr.dart';
 import 'aes_gcm.dart';
 import 'ecdh.dart';
 import 'ecdsa.dart';
+import 'ed25519.dart';
 import 'hash.dart';
 import 'hkdf.dart';
 import 'hmac.dart';
 import 'pbkdf2.dart';
+import 'rsa_pss.dart';
+import 'rsa_ssa_pkcs1v15.dart';
+import 'x25519.dart';
 
 class BrowserCryptography extends DartCryptography {
   // Documented in browser_cryptography_when_not_browser.dart
@@ -42,10 +44,10 @@ class BrowserCryptography extends DartCryptography {
   static bool isDisabledForTesting = false;
 
   // Documented in browser_cryptography_when_not_browser.dart
-  static bool get isSupported => isWebCryptoAvailable && !isDisabledForTesting;
+  static bool get isRunningInWasm => (0 as num) is! double;
 
   // Documented in browser_cryptography_when_not_browser.dart
-  static bool get isRunningInWasm => (0 as num) is! double;
+  static bool get isSupported => isWebCryptoAvailable && !isDisabledForTesting;
 
   final Random? _random;
 
@@ -53,6 +55,11 @@ class BrowserCryptography extends DartCryptography {
   BrowserCryptography({
     super.random,
   }) : _random = random;
+
+  bool get _isDeterministicTest {
+    final random = _random;
+    return random is SecureRandom && !random.isSecure;
+  }
 
   @override
   AesCbc aesCbc({
@@ -181,6 +188,15 @@ class BrowserCryptography extends DartCryptography {
       );
     }
     return super.ecdsaP521(hashAlgorithm);
+  }
+
+  @override
+  Ed25519 ed25519() {
+    final fallback = super.ed25519();
+    if (isSupported && !_isDeterministicTest) {
+      return BrowserEd25519(fallback: fallback);
+    }
+    return fallback;
   }
 
   @override
@@ -323,5 +339,13 @@ class BrowserCryptography extends DartCryptography {
   @override
   BrowserCryptography withRandom(Random? random) {
     return BrowserCryptography(random: random);
+  }
+
+  @override
+  X25519 x25519() {
+    if (isSupported && !_isDeterministicTest) {
+      return const BrowserX25519(fallback: DartX25519());
+    }
+    return super.x25519();
   }
 }

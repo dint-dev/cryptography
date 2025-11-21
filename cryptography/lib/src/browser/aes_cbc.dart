@@ -18,8 +18,8 @@ import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
 
-import '_javascript_bindings.dart' show jsUint8ListFrom;
 import '_javascript_bindings.dart' as web_crypto;
+import '_javascript_bindings.dart' show jsUint8ListFrom;
 import 'browser_secret_key.dart';
 
 /// AES-CBC implementation that uses _Web Cryptography API_ in browsers.
