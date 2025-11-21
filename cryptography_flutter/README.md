@@ -11,15 +11,14 @@ Maintained by [terrier989](https://github.com/terrier989).
 Licensed under the [Apache License 2.0](LICENSE).
 
 ## Trade-offs of using operating system APIs
-### Pros
+### Advantages
 * __Compliant__.
   * Operating system implementations of algorithms are often compliant with various compliance
     requirements (such as FIPS 140-2).
-* __Speed__.
-  * For some algorithms, operating system implementations are up to 100 times faster than pure Dart
-    implementations.
+* __Performance__.
+  * Some operating system implementations are much faster than pure Dart implementations.
 
-### Cons
+### Disadvantages
 * __Easier to inspect__
   * If someone reverse engineers you application, it may be easier to inspect operating system calls
     than pure Dart implementations provided by
@@ -57,7 +56,7 @@ In _pubspec.yaml_:
 
 ```yaml
 dependencies:
-  cryptography: ^2.8.1g
+  cryptography: ^2.9.0
   cryptography_flutter: ^2.3.4
 ```
 

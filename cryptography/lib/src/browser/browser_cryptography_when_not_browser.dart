@@ -39,6 +39,7 @@ import 'package:meta/meta.dart';
 ///   * [Ecdh]
 ///   * [Ecdsa]
 ///     * Only when `hash` is [Sha256], [Sha384], or [Sha512].
+///   * [Ed25519]
 ///   * [Hkdf]
 ///     * Only when `hmac` is [Hmac.sha256], [Hmac.sha384], or [Hmac.sha512].
 ///   * [Hmac]
@@ -50,6 +51,7 @@ import 'package:meta/meta.dart';
 ///   * [Sha256]
 ///   * [Sha384]
 ///   * [Sha512]
+///   * [X25519]
 ///
 /// The class extends [DartCryptography] so other factory methods will return
 /// pure Dart implementations.
