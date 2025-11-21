@@ -61,6 +61,7 @@ jobs:
       matrix:
         package:
           - cryptography
+          - cryptography_test
           - jwk
         compiler:
           - vm

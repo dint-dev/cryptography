@@ -13,7 +13,6 @@
 // limitations under the License.
 
 import 'dart:js_interop';
-import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
 
@@ -56,12 +55,12 @@ class BrowserHmac extends Hmac {
       throw ArgumentError.value(aad, 'aad', 'AAD is unsupported by HMAC');
     }
     final jsCryptoKey = await _jsCryptoKey(secretKey);
-    final byteBuffer = await web_crypto.sign(
+    final macBytes = await web_crypto.sign(
       'HMAC'.toJS,
       jsCryptoKey,
       jsUint8ListFrom(bytes),
     );
-    return Mac(Uint8List.view(byteBuffer));
+    return Mac(macBytes);
   }
 
   Future<web_crypto.CryptoKey> _jsCryptoKey(SecretKey secretKey) async {

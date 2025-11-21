@@ -122,19 +122,11 @@ abstract class MacAlgorithm {
     List<int> nonce = const <int>[],
     List<int> aad = const <int>[],
   }) async {
-    final secretKeyBytes = await secretKey.extractBytes();
-    if (secretKeyBytes.isEmpty) {
-      throw ArgumentError.value(
-        secretKey,
-        'secretKey',
-        'SecretKey bytes must be non-empty',
-      );
-    }
     if (aad.isNotEmpty && !supportsAad) {
       throw ArgumentError.value(
         aad,
         'aad',
-        'AAD is not supported',
+        'AAD is not supported by $runtimeType',
       );
     }
     return _MacSink(

@@ -28,11 +28,10 @@ void testHmac() {
 }
 
 void _testHmac(Hmac hmac) {
-  test('newSink(): empty key fails', () async {
+  test('newSink(): empty key is ok', () async {
     final secretKey = SecretKey(<int>[]);
     expect(await secretKey.extractBytes(), hasLength(0));
-    final future = hmac.newMacSink(secretKey: secretKey);
-    await expectLater(future, throwsArgumentError);
+    await hmac.newMacSink(secretKey: secretKey);
   });
 
   test('newSink(): closing twice is ok', () async {

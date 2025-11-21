@@ -95,8 +95,7 @@ class BrowserSecretKey extends SecretKey {
       return existing;
     }
     try {
-      final byteBuffer = await web_crypto.exportKeyWhenRaw(jsCryptoKey);
-      final bytes = Uint8List.view(byteBuffer);
+      final bytes = await web_crypto.exportKeyWhenRaw(jsCryptoKey);
       final secretKeyData = SecretKeyData(
         bytes,
         overwriteWhenDestroyed: true,

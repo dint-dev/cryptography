@@ -13,13 +13,12 @@
 // limitations under the License.
 
 import 'dart:js_interop';
-import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/src/browser/hash.dart';
 
-import '_javascript_bindings.dart' show jsUint8ListFrom;
 import '_javascript_bindings.dart' as web_crypto;
+import '_javascript_bindings.dart' show jsUint8ListFrom;
 
 /// HKDF implementation that uses _Web Cryptography API_ in browsers.
 ///
@@ -49,7 +48,7 @@ class BrowserHkdf extends Hkdf {
       );
     }
     final jsCryptoKey = await _jsCryptoKey(secretKey);
-    final byteBuffer = await web_crypto.deriveBits(
+    final bytes = await web_crypto.deriveBits(
       web_crypto.HkdfParams(
         name: 'HKDF'.toJS,
         hash: hashAlgorithmName.toJS,
@@ -59,7 +58,7 @@ class BrowserHkdf extends Hkdf {
       jsCryptoKey,
       (8 * outputLength).toJS,
     );
-    return SecretKeyData(Uint8List.view(byteBuffer));
+    return SecretKeyData(bytes);
   }
 
   Future<web_crypto.CryptoKey> _jsCryptoKey(SecretKey secretKey) async {

@@ -81,13 +81,13 @@ Future<ByteBuffer> decrypt(
 }
 
 @internal
-Future<ByteBuffer> deriveBits(
+Future<Uint8List> deriveBits(
   JSAny algorithm,
   CryptoKey cryptoKey,
   JSNumber bits,
 ) async {
   final js = await _deriveBits(algorithm, cryptoKey, bits).toDart;
-  return js.toDart;
+  return js.toDart.asUint8List();
 }
 
 @internal
@@ -134,9 +134,9 @@ Future<Jwk> exportKeyWhenJwk(CryptoKey key) async {
 }
 
 @internal
-Future<ByteBuffer> exportKeyWhenRaw(CryptoKey key) async {
+Future<Uint8List> exportKeyWhenRaw(CryptoKey key) async {
   final js = await _exportKey('raw'.toJS, key).toDart;
-  return (js as JSArrayBuffer).toDart;
+  return (js as JSArrayBuffer).toDart.asUint8List();
 }
 
 @internal
@@ -202,13 +202,13 @@ JSUint8Array jsUint8ListFrom(List<int> data) {
 }
 
 @internal
-Future<ByteBuffer> sign(
+Future<Uint8List> sign(
   JSAny algorithm,
   CryptoKey key,
   JSUint8Array data,
 ) async {
   final js = await _sign(algorithm, key, data).toDart;
-  return js.toDart;
+  return js.toDart.asUint8List();
 }
 
 @internal
@@ -331,6 +331,13 @@ extension type AesKeyGenParams._(JSObject jsObject) {
 }
 
 @internal
+extension type AlgorithmNameParams._(JSObject jsObject) {
+  external factory AlgorithmNameParams({
+    required JSString name,
+  });
+}
+
+@internal
 extension type CryptoKey._(JSObject _) implements JSObject {
   external JSObject get algorithm;
   external bool get extractable;
@@ -346,8 +353,8 @@ extension type CryptoKeyPair._(JSObject jsObject) {
 }
 
 @internal
-extension type EcdhKeyDeriveParams._(JSObject jsObject) {
-  external factory EcdhKeyDeriveParams({
+extension type DeriveParamsWhenPublicKey._(JSObject jsObject) {
+  external factory DeriveParamsWhenPublicKey({
     required JSString name,
     required CryptoKey public,
   });
