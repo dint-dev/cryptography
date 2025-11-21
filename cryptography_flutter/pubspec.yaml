@@ -42,10 +42,6 @@ flutter:
       ios:
         pluginClass: CryptographyFlutterPlugin
         dartPluginClass: FlutterCryptography
-      linux:
-        dartPluginClass: FlutterCryptography
       macos:
         pluginClass: CryptographyFlutterPlugin
-        dartPluginClass: FlutterCryptography
-      windows:
         dartPluginClass: FlutterCryptography
