@@ -20,7 +20,6 @@ import 'package:cryptography_flutter/src/flutter/flutter_hmac.dart';
 import 'package:flutter/foundation.dart';
 
 import '../cryptography_flutter.dart';
-import '_internal.dart';
 
 /// An implementation [Cryptography] that uses native operating system APIs.
 ///
@@ -41,14 +40,14 @@ import '_internal.dart';
 class FlutterCryptography extends BrowserCryptography {
   /// Either [FlutterCryptography] or [BrowserCryptography] depending on
   /// [FlutterCryptography.isPluginPresent].
-  static final Cryptography defaultInstance =
-      kIsWeb ? BrowserCryptography.defaultInstance : FlutterCryptography();
+  static final Cryptography defaultInstance = isPluginPresent
+      ? FlutterCryptography()
+      : BrowserCryptography.defaultInstance;
 
-  /// Tells whether the current platform has a plugin.
-  ///
-  /// Only Android, iOS, and Mac OS X are supported at the moment.
-  static bool get isPluginPresent =>
-      !kIsWeb && !hasSeenMissingPluginException && (isAndroid || isCupertino);
+  static bool _hasInitializedPlugin = false;
+
+  /// Tells whether registerWith() has been called.
+  static bool get isPluginPresent => !kIsWeb && _hasInitializedPlugin;
 
   Chacha20? _chacha20Poly1305Aead;
   Ed25519? _ed25519;
@@ -126,15 +125,6 @@ class FlutterCryptography extends BrowserCryptography {
   }
 
   @override
-  Hmac hmac(HashAlgorithm hashAlgorithm) {
-    final impl = FlutterHmac(hashAlgorithm);
-    if (impl.isSupportedPlatform) {
-      return impl;
-    }
-    return super.hmac(hashAlgorithm);
-  }
-
-  @override
   Ecdsa ecdsaP384(HashAlgorithm hashAlgorithm) {
     final impl = FlutterEcdsa.p384(hashAlgorithm);
     if (impl.isSupportedPlatform) {
@@ -158,6 +148,15 @@ class FlutterCryptography extends BrowserCryptography {
       return super.ed25519();
     }
     return _ed25519 ??= _chooseEd25519();
+  }
+
+  @override
+  Hmac hmac(HashAlgorithm hashAlgorithm) {
+    final impl = FlutterHmac(hashAlgorithm);
+    if (impl.isSupportedPlatform) {
+      return impl;
+    }
+    return super.hmac(hashAlgorithm);
   }
 
   @override
@@ -247,6 +246,7 @@ class FlutterCryptography extends BrowserCryptography {
 
   /// Called by Flutter when the plugin is registered.
   static void registerWith() {
+    _hasInitializedPlugin = true;
     Cryptography.instance = defaultInstance;
   }
 }

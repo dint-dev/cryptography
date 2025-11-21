@@ -18,18 +18,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import '../cryptography_flutter.dart';
-import '_internal_impl_non_browser.dart'
-    if (dart.library.html) '_internal_impl_browser.dart';
-
-export '_internal_impl_non_browser.dart'
-    if (dart.library.html) '_internal_impl_browser.dart';
 
 const MethodChannel _methodChannel = MethodChannel('cryptography_flutter');
 
-bool hasSeenMissingPluginException = false;
+bool get isAndroid => defaultTargetPlatform == TargetPlatform.android;
 
-/// True if the platform is iOS and Mac OS X.
-bool get isCupertino => isIOS || isMacOS;
+bool get isCupertino => (defaultTargetPlatform == TargetPlatform.iOS ||
+    defaultTargetPlatform == TargetPlatform.macOS);
 
 /// Returns the bytes as [Uint8List].
 Uint8List asUint8List(List<int> bytes) {
@@ -40,18 +35,6 @@ Uint8List asUint8List(List<int> bytes) {
       : Uint8List.fromList(bytes);
 }
 
-final Future<bool> _isPluginAvailable = () async {
-  try {
-    await _methodChannel.invokeMethod('encrypt', {});
-    return true;
-  } on MissingPluginException {
-    hasSeenMissingPluginException = true;
-    return false;
-  } catch (e) {
-    return true;
-  }
-}();
-
 /// Invokes plugin method.
 ///
 /// Throws [CryptographyUnsupportedError] if the platform is web or plugin is
@@ -61,7 +44,7 @@ Future<Map> invokeMethod(String name, Map<String, Object?> arguments,
   if (kIsWeb) {
     throw UnsupportedError('Running in a browser.');
   }
-  final isPluginAvailable = await _isPluginAvailable;
+  final isPluginAvailable = FlutterCryptography.isPluginPresent;
   if (!isPluginAvailable) {
     throw UnsupportedError('Unsupported platform.');
   }
@@ -78,10 +61,6 @@ Future<Map> invokeMethod(String name, Map<String, Object?> arguments,
   }
   try {
     return await _methodChannel.invokeMethod(name, arguments) as Map;
-  } on MissingPluginException catch (error, stackTrace) {
-    // Update the top-level variable
-    hasSeenMissingPluginException = true;
-    throw UnsupportedError('Caught: $error\n$stackTrace');
   } on PlatformException catch (error) {
     if (error.code == 'UNSUPPORTED_ALGORITHM') {
       throw UnsupportedError(
