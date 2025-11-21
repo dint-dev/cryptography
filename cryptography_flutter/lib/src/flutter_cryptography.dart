@@ -46,7 +46,7 @@ class FlutterCryptography extends BrowserCryptography {
 
   static bool _hasInitializedPlugin = false;
 
-  /// Tells whether the plugin has been loaded.
+  /// Tells whether registerWith() has been called.
   static bool get isPluginPresent => !kIsWeb && _hasInitializedPlugin;
 
   Chacha20? _chacha20Poly1305Aead;
