@@ -201,6 +201,7 @@ class SecretKeyData extends SecretKey {
   @override
   void destroy() {
     _bytes.destroy();
+    super.destroy();
   }
 
   @override
