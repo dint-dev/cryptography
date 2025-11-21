@@ -16,7 +16,6 @@ import 'package:cryptography/cryptography.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
-import '../../cryptography_flutter.dart';
 import '../_flutter_cryptography_implementation.dart';
 import '../_internal.dart';
 
@@ -58,9 +57,8 @@ class FlutterEcdh extends Ecdh implements PlatformCryptographicAlgorithm {
         super.constructor();
 
   @override
-  bool get isSupportedPlatform =>
-      FlutterCryptography.isPluginPresent && isCupertino;
-
+  bool get isSupportedPlatform => isAndroid || isCupertino;
+  bool get isSupportedPlatform => FlutterCryptography.isPluginPresent && (isAndroid || isCupertino);
   String get _curveName {
     switch (keyPairType) {
       case KeyPairType.p256:
