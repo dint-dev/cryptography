@@ -55,7 +55,7 @@ Uint8List randomBytes(int length, {Random? random}) {
 /// By default, cryptographically secure [SecureRandom.fast] is used.
 String randomBytesAsHexString(int length, {Random? random}) {
   final sb = StringBuffer();
-  random ??= SecureRandom.safe;
+  random ??= SecureRandom.defaultRandom;
   for (var i = 0; i < length; i++) {
     final x = random.nextInt(256);
     sb.write(_hexChars[x >> 4]);

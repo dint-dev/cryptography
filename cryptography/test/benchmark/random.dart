@@ -21,7 +21,7 @@ import 'benchmark_helpers.dart';
 Future<void> main() async {
   const times = 1 << 16;
   await _Random(SecureRandom.fast, times).report();
-  await _Random(SecureRandom.safe, times).report();
+  await _Random(SecureRandom.defaultRandom, times).report();
 }
 
 class _Random extends SimpleBenchmark {

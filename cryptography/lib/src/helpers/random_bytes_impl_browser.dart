@@ -33,7 +33,7 @@ void fillBytesWithSecureRandom(Uint8List bytes, {Random? random}) {
     }
     return;
   }
-  random ??= SecureRandom.safe;
+  random ??= SecureRandom.defaultRandom;
   for (var i = 0; i < bytes.length;) {
     if (i + 3 < bytes.length) {
       // Read 32 bits at a time.
