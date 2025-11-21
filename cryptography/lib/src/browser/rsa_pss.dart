@@ -107,7 +107,7 @@ class BrowserRsaPss extends RsaPss {
       webCryptoAlgorithm: _webCryptoAlgorithm,
       webCryptoHash: webCryptoHash,
     );
-    final byteBuffer = await web_crypto.sign(
+    final signatureBytes = await web_crypto.sign(
       web_crypto.RsaPssParams(
         name: _webCryptoAlgorithm.toJS,
         saltLength: nonceLengthInBytes.toJS,
@@ -116,7 +116,7 @@ class BrowserRsaPss extends RsaPss {
       Uint8List.fromList(message).toJS,
     );
     return Signature(
-      Uint8List.view(byteBuffer),
+      signatureBytes,
       publicKey: await publicKeyFuture,
     );
   }

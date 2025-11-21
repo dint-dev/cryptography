@@ -13,7 +13,6 @@
 // limitations under the License.
 
 import 'dart:js_interop';
-import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
 
@@ -48,7 +47,7 @@ class BrowserPbkdf2 extends Pbkdf2 {
     final jsCryptoKey = await _jsCryptoKey(secretKey);
 
     // subtle.deriveBits(...)
-    final byteBuffer = await web_crypto.deriveBits(
+    final derivedBytes = await web_crypto.deriveBits(
       web_crypto.Pkdf2Params(
         name: 'PBKDF2'.toJS,
         hash: macAlgorithm.hashAlgorithmWebCryptoName.toJS,
@@ -59,7 +58,7 @@ class BrowserPbkdf2 extends Pbkdf2 {
       bits.toJS,
     );
 
-    return SecretKey(Uint8List.view(byteBuffer));
+    return SecretKey(derivedBytes);
   }
 
   Future<web_crypto.CryptoKey> _jsCryptoKey(SecretKey secretKey) async {

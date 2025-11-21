@@ -14,7 +14,6 @@
 
 import 'dart:js_interop';
 import 'dart:math';
-import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
 
@@ -108,15 +107,15 @@ class BrowserEcdh extends Ecdh {
     final jsPrivateKey = await jsPrivateKeyFuture;
     final jsPublicKey = await jsPublicKeyFuture;
     try {
-      final byteBuffer = await web_crypto.deriveBits(
-        web_crypto.EcdhKeyDeriveParams(
+      final derivedBytes = await web_crypto.deriveBits(
+        web_crypto.DeriveParamsWhenPublicKey(
           name: 'ECDH'.toJS,
           public: jsPublicKey,
         ).jsObject,
         jsPrivateKey.jsPrivateKeyForEcdh!,
         (8 * length).toJS,
       );
-      return SecretKey(Uint8List.view(byteBuffer));
+      return SecretKey(derivedBytes);
     } catch (error, stackTrace) {
       throw StateError(
         'Web Cryptography throw an error: $error\n$stackTrace',

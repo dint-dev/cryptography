@@ -33,9 +33,6 @@ class DartEd25519 extends Ed25519 {
         super.constructor();
 
   @override
-  KeyPairType get keyPairType => KeyPairType.ed25519;
-
-  @override
   Future<SimpleKeyPair> newKeyPairFromSeed(List<int> seed) async {
     if (seed.length != 32) {
       throw ArgumentError('Seed must have 32 bytes');

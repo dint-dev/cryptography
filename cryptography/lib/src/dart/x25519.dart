@@ -43,9 +43,6 @@ class DartX25519 extends X25519 with DartKeyExchangeAlgorithmMixin {
   const DartX25519({super.random}) : super.constructor();
 
   @override
-  KeyPairType get keyPairType => KeyPairType.x25519;
-
-  @override
   Future<SimpleKeyPair> newKeyPairFromSeed(List<int> seed) async {
     final modifiedBytes = DartX25519.modifiedPrivateKeyBytes(seed);
     return SimpleKeyPairData(

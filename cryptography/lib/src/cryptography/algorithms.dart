@@ -622,6 +622,9 @@ abstract class Blake2b extends HashAlgorithm implements MacAlgorithm {
   /// Default value of [hashLengthInBytes] and [macLength].
   static const int defaultHashLengthInBytes = 64;
 
+  @override
+  final int hashLengthInBytes;
+
   factory Blake2b({
     int hashLengthInBytes = defaultHashLengthInBytes,
   }) {
@@ -639,27 +642,11 @@ abstract class Blake2b extends HashAlgorithm implements MacAlgorithm {
   })  : assert(hashLengthInBytes > 0),
         assert(hashLengthInBytes <= defaultHashLengthInBytes);
 
-  /// Enables you to replace [hashLengthInBytes].
-  ///
-  /// Subclasses should replace this with their own implementation.
-  Blake2b replace({int? hashLength}) {
-    hashLength ??= hashLengthInBytes;
-    if (hashLength == hashLengthInBytes) {
-      return this;
-    }
-    return Blake2b(
-      hashLengthInBytes: hashLength,
-    );
-  }
+  @override
+  int get blockLengthInBytes => 64;
 
   @override
-  void checkParameters({
-    int? length,
-    required SecretKey secretKey,
-    required int nonceLength,
-    required int aadLength,
-    required int keyStreamIndex,
-  }) {}
+  int get hashCode => (Blake2b).hashCode;
 
   @override
   int get keyStreamUsed => 0;
@@ -674,21 +661,29 @@ abstract class Blake2b extends HashAlgorithm implements MacAlgorithm {
   bool get supportsKeyStreamIndex => false;
 
   @override
-  int get blockLengthInBytes => 64;
-
-  @override
-  int get hashCode => (Blake2b).hashCode;
-
-  @override
-  final int hashLengthInBytes;
-
-  @override
   bool operator ==(other) => other is Blake2b;
 
   @override
-  DartBlake2b toSync() => DartBlake2b(
-        hashLengthInBytes: hashLengthInBytes,
-      );
+  void checkParameters({
+    int? length,
+    required SecretKey secretKey,
+    required int nonceLength,
+    required int aadLength,
+    required int keyStreamIndex,
+  }) {}
+
+  /// Enables you to replace [hashLengthInBytes].
+  ///
+  /// Subclasses should replace this with their own implementation.
+  Blake2b replace({int? hashLength}) {
+    hashLength ??= hashLengthInBytes;
+    if (hashLength == hashLengthInBytes) {
+      return this;
+    }
+    return Blake2b(
+      hashLengthInBytes: hashLength,
+    );
+  }
 
   @override
   String toString() {
@@ -697,6 +692,11 @@ abstract class Blake2b extends HashAlgorithm implements MacAlgorithm {
     }
     return 'Blake2b(hashLengthInBytes: $hashLengthInBytes)';
   }
+
+  @override
+  DartBlake2b toSync() => DartBlake2b(
+        hashLengthInBytes: hashLengthInBytes,
+      );
 }
 
 /// _BLAKE2S_ ([RFC 7693](https://tools.ietf.org/html/rfc7693)), which can be
@@ -750,6 +750,9 @@ abstract class Blake2s extends HashAlgorithm implements MacAlgorithm {
   /// Default value of [hashLengthInBytes] and [macLength].
   static const int defaultHashLengthInBytes = 32;
 
+  @override
+  final int hashLengthInBytes;
+
   factory Blake2s({
     int hashLengthInBytes = defaultHashLengthInBytes,
   }) {
@@ -774,18 +777,6 @@ abstract class Blake2s extends HashAlgorithm implements MacAlgorithm {
   int get hashCode => (Blake2s).hashCode;
 
   @override
-  final int hashLengthInBytes;
-
-  @override
-  void checkParameters({
-    int? length,
-    required SecretKey secretKey,
-    required int nonceLength,
-    required int aadLength,
-    required int keyStreamIndex,
-  }) {}
-
-  @override
   int get keyStreamUsed => 0;
 
   @override
@@ -799,6 +790,15 @@ abstract class Blake2s extends HashAlgorithm implements MacAlgorithm {
 
   @override
   bool operator ==(other) => other is Blake2s;
+
+  @override
+  void checkParameters({
+    int? length,
+    required SecretKey secretKey,
+    required int nonceLength,
+    required int aadLength,
+    required int keyStreamIndex,
+  }) {}
 
   @override
   String toString() {
@@ -1191,6 +1191,10 @@ abstract class Ed25519 extends SignatureAlgorithm {
   /// Constructor for classes that extend this class.
   const Ed25519.constructor({Random? random}) : _random = random;
 
+  @nonVirtual
+  @override
+  KeyPairType get keyPairType => KeyPairType.ed25519;
+
   @override
   Future<SimpleKeyPair> newKeyPair() {
     final seed = Uint8List(keyPairType.privateKeyLength);
@@ -1203,6 +1207,30 @@ abstract class Ed25519 extends SignatureAlgorithm {
 
   @override
   String toString() => '$runtimeType()';
+
+  static void checkPrivateKeyLength(int length) {
+    if (length != 32) {
+      throw ArgumentError(
+        'Private key must be 32 bytes (got $length bytes)',
+      );
+    }
+  }
+
+  static void checkPublicKeyLength(int length) {
+    if (length != 32) {
+      throw ArgumentError(
+        'Public key must be 32 bytes (got $length bytes)',
+      );
+    }
+  }
+
+  static void checkSignatureLength(int length) {
+    if (length != 64) {
+      throw ArgumentError(
+        'Signature must be 64 bytes (got $length bytes)',
+      );
+    }
+  }
 }
 
 /// _Hchacha20_ ([draft-irtf-cfrg-xchacha](https://tools.ietf.org/html/draft-arciszewski-xchacha-03))
@@ -2192,6 +2220,10 @@ abstract class X25519 extends KeyExchangeAlgorithm {
 
   /// Constructor for classes that extend this class.
   const X25519.constructor({Random? random}) : _random = random;
+
+  @nonVirtual
+  @override
+  KeyPairType<KeyPairData, PublicKey> get keyPairType => KeyPairType.x25519;
 
   @override
   Future<SimpleKeyPair> newKeyPair() {

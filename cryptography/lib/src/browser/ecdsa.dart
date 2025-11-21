@@ -14,7 +14,6 @@
 
 import 'dart:js_interop';
 import 'dart:math';
-import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
 
@@ -94,7 +93,7 @@ class BrowserEcdsa extends Ecdsa {
       allowDeriveBits: true,
     );
     final jsCryptoKey = browserEcKeyPair.jsPrivateKeyForEcdsa!;
-    final byteBuffer = await web_crypto.sign(
+    final signatureBytes = await web_crypto.sign(
       web_crypto.EcdsaParams(
         name: 'ECDSA'.toJS,
         hash: BrowserHashAlgorithmMixin.hashAlgorithmNameFor(
@@ -106,7 +105,7 @@ class BrowserEcdsa extends Ecdsa {
       web_crypto.jsUint8ListFrom(message),
     );
     return Signature(
-      Uint8List.view(byteBuffer),
+      signatureBytes,
       publicKey: await publicKeyFuture,
     );
   }

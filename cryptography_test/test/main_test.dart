@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:cryptography_test/cryptography_test.dart';
+import 'package:cryptography_test/cryptography_testing.dart';
 
 void main() {
   testCryptography();
