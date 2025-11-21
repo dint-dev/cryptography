@@ -1605,7 +1605,7 @@ abstract class Poly1305 extends MacAlgorithm {
 /// import 'package:cryptography/cryptography.dart';
 ///
 /// Future<void> main() async {
-///   final algorithm = RsaPss(Sha256());
+///   final algorithm = RsaPss.sha256();
 ///
 ///   // Generate a key pair
 ///   final keyPair = await algorithm.newKeyPair();

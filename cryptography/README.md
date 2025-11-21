@@ -349,7 +349,7 @@ Future<void> main() async {
     keyPair: aliceKeyPair,
     remotePublicKey: bobPublicKey,
   );
-  final sharedSecretBytes = await aliceKeyPair.extractBytes();
+  final sharedSecretBytes = await sharedSecret.extractBytes();
   print('Shared secret: $sharedSecretBytes');
 }
 ```

@@ -348,7 +348,7 @@ abstract class Cipher {
   ///       secretKey: secretKey,
   ///       nonce: nonce,
   ///     );
-  ///     await encryptedSink.addStream(encryptedStream);
+  ///     await sink.addStream(encryptedStream);
   ///   } finally {
   ///     sink.close();
   ///   }
