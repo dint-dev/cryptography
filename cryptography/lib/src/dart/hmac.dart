@@ -16,6 +16,7 @@ import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/dart.dart';
+import 'package:cryptography/src/helpers/erase_bytes.dart';
 
 /// An implementation of [Hmac] in pure Dart.
 ///
@@ -153,7 +154,7 @@ class _DartHmacSink extends MacSink with DartMacSinkMixin {
     // (safer to not leave the data in memory)
     tmp.fillRange(0, tmp.length, 0);
     if (eraseKey) {
-      hmacKey.fillRange(0, hmacKey.length, 0);
+      tryEraseBytes(hmacKey);
     }
   }
 

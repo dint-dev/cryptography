@@ -19,6 +19,7 @@ import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/helpers.dart';
+import 'package:cryptography/src/helpers/erase_bytes.dart';
 import 'package:meta/meta.dart';
 
 import '../../dart.dart';
@@ -267,7 +268,7 @@ abstract class Cipher {
       return utf8.decode(clearText);
     } finally {
       // Don't leave possibly sensitive data in the heap.
-      clearText.fillRange(0, clearText.length, 0);
+      tryEraseBytes(clearText);
     }
   }
 
@@ -407,11 +408,7 @@ abstract class Cipher {
     );
 
     // Overwrite `bytes` if it was not overwritten by the cipher.
-    final cipherText = secretBox.cipherText;
-    if (cipherText is! Uint8List ||
-        !identical(bytes.buffer, cipherText.buffer)) {
-      bytes.fillRange(0, bytes.length, 0);
-    }
+    tryEraseBytes(bytes, unlessUsedIn: secretBox.cipherText);
 
     return secretBox;
   }

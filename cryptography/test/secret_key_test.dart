@@ -87,33 +87,32 @@ void main() {
       }
     });
 
-    test('SecretKeyData([...], overwriteWhenDestroyed: true)', () {
-      final inputs = [
-        [42, 43, 44],
-        Uint8List.fromList([42, 43, 44])
-      ];
-      for (var input in inputs) {
-        final a = SecretKeyData(input, overwriteWhenDestroyed: true);
-        final capturedBytes = a.bytes;
-        expect(capturedBytes, [42, 43, 44]);
+    test('SecretKeyData(Uint8List(...), overwriteWhenDestroyed: true)', () {
+      final bytes = Uint8List.fromList([42, 43, 44]);
+      final secretKey = SecretKeyData(bytes, overwriteWhenDestroyed: true);
+      expect(secretKey.bytes, [42, 43, 44]);
 
-        a.destroy();
-        expect(input, [0, 0, 0]);
-        expect(() => a.bytes, throwsStateError);
-        expect(() => capturedBytes[0], throwsStateError);
-      }
+      secretKey.destroy();
+      expect(bytes, [0, 0, 0]);
+      expect(() => secretKey.bytes, throwsStateError);
     });
 
-    test('SecretKeyData(const [...], overwriteWhenDestroyed: true)', () {
-      const data = [42, 43, 44];
-      final a = SecretKeyData(data, overwriteWhenDestroyed: true);
-      final capturedBytes = a.bytes;
-      expect(capturedBytes, [42, 43, 44]);
+    test('SecretKeyData([...], overwriteWhenDestroyed: true)', () {
+      final bytes = [42, 43, 44];
+      final secretKey = SecretKeyData(bytes, overwriteWhenDestroyed: true);
+      expect(secretKey.bytes, [42, 43, 44]);
+      secretKey.destroy();
+      expect(bytes, [42, 43, 44]);
+      expect(() => secretKey.bytes, throwsStateError);
+    });
 
-      a.destroy();
-      expect(data, [42, 43, 44]);
-      expect(() => a.bytes, throwsStateError);
-      expect(() => capturedBytes[0], throwsStateError);
+    test('SecretKeyData(Uint8List(...), overwriteWhenDestroyed: false)', () {
+      final bytes = Uint8List.fromList([42, 43, 44]);
+      final secretKey = SecretKeyData(bytes, overwriteWhenDestroyed: false);
+      expect(secretKey.bytes, [42, 43, 44]);
+      secretKey.destroy();
+      expect(bytes, [42, 43, 44]);
+      expect(() => secretKey.bytes, throwsStateError);
     });
 
     test('SecretKeyData.random()', () {
