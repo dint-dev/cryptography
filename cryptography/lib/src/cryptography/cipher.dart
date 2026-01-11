@@ -217,7 +217,7 @@ abstract class Cipher {
     required SecretKey secretKey,
     required List<int> nonce,
     required FutureOr<Mac> mac,
-    List<int> aad = const [],
+    List<int> aad = const <int>[],
     bool allowUseSameBytes = false,
   }) async* {
     final state = newState();
@@ -259,10 +259,12 @@ abstract class Cipher {
   Future<String> decryptString(
     SecretBox secretBox, {
     required SecretKey secretKey,
+    List<int> aad = const <int>[],
   }) async {
     final clearText = await decrypt(
       secretBox,
       secretKey: secretKey,
+      aad: aad,
     );
     try {
       return utf8.decode(clearText);
