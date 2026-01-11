@@ -1068,20 +1068,19 @@ abstract class Ecdh extends KeyExchangeAlgorithm {
 ///   // In this example, we use ECDSA-P256-SHA256
 ///   final algorithm = Ecdsa.p256(Sha256());
 ///
-///   // Generate a random key pair
-///   final secretKey = await algorithm.newSecretKey();
-///   final publicKey = await algorithm.publicKey(secretKey);
+///   // Generate a key pair
+///   final keyPair = await algorithm.newKeyPair();
 ///
 ///   // Sign a message
 ///   final message = <int>[1,2,3];
 ///   final signature = await algorithm.sign(
-///     [1,2,3],
-///     secretKey: secretKey,
+///     message,
+///     keyPair: keyPair,
 ///   );
 ///
 ///   // Anyone can verify the signature
-///   final isVerified = await algorithm.verify(
-///     message: message,
+///   final isSignatureCorrect = await algorithm.verify(
+///     message,
 ///     signature: signature,
 ///   );
 /// }
