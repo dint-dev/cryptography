@@ -47,14 +47,16 @@ class BrowserX25519 extends X25519 {
       }
       throw StateError('$runtimeType.newKeyPair(...) failed: $e');
     }
-    return SimpleKeyPairData(
+    final keyPair = SimpleKeyPairData(
       Uint8List.fromList(web_crypto.base64UrlDecode(jwk.d!.toDart)),
       publicKey: SimplePublicKey(
         Uint8List.fromList(web_crypto.base64UrlDecode(jwk.x!.toDart)),
         type: KeyPairType.x25519,
       ),
-      type: KeyPairType.ed25519,
+      type: KeyPairType.x25519,
     );
+    final seed = await keyPair.extractPrivateKeyBytes();
+    return newKeyPairFromSeed(seed);
   }
 
   @override
