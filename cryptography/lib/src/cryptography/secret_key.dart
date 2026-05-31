@@ -179,6 +179,7 @@ class SecretKeyData extends SecretKey {
       return false;
     }
     return other is SecretKeyData &&
+        !other.hasBeenDestroyed &&
         constantTimeBytesEquality.equals(bytes, other.bytes);
   }
 

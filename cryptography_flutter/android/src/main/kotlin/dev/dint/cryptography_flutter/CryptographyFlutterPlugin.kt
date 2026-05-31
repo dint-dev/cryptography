@@ -321,13 +321,13 @@ class CryptographyFlutterPlugin : FlutterPlugin, MethodCallHandler {
         parameters.init(ECGenParameterSpec(curve))
         val ecParameters = parameters.getParameterSpec(ECParameterSpec::class.java)
         val privateKeySpec = ECPrivateKeySpec(
-            BigInteger(d),
+            BigInteger(1, d),
             ecParameters
         )
 
         val remoteX = call.argument<ByteArray>("remoteX")!!
         val remoteY = call.argument<ByteArray>("remoteY")!!
-        val remotePublicPoint = ECPoint(BigInteger(remoteX), BigInteger(remoteY))
+        val remotePublicPoint = ECPoint(BigInteger(1, remoteX), BigInteger(1, remoteY))
         val remotePublicKeySpec = ECPublicKeySpec(remotePublicPoint, ecParameters)
 
         val keyFactory = when (provider) {
@@ -386,7 +386,7 @@ class CryptographyFlutterPlugin : FlutterPlugin, MethodCallHandler {
         parameters.init(ECGenParameterSpec(curve))
         val ecParameters = parameters.getParameterSpec(ECParameterSpec::class.java)
         val privateKeySpec = ECPrivateKeySpec(
-            BigInteger(d),
+            BigInteger(1, d),
             ecParameters
         )
 
@@ -430,8 +430,8 @@ class CryptographyFlutterPlugin : FlutterPlugin, MethodCallHandler {
         }!!
 
         val message = call.argument<ByteArray>("data")!!
-        val x = BigInteger(call.argument<ByteArray>("x")!!)
-        val y = BigInteger(call.argument<ByteArray>("y")!!)
+        val x = BigInteger(1, call.argument<ByteArray>("x")!!)
+        val y = BigInteger(1, call.argument<ByteArray>("y")!!)
         val verifiedSignatureBytes = call.argument<ByteArray>("signature")!!
         val provider = call.argument<String>("androidProvider")
 

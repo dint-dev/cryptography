@@ -22,7 +22,12 @@ allprojects {
 }
 
 apply plugin: "com.android.library"
-apply plugin: "kotlin-android"
+
+def agpVersion = com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION
+def agpMajor = agpVersion.tokenize('.')[0].toInteger()
+if (agpMajor < 9) {
+    apply plugin: "kotlin-android"
+}
 
 android {
     namespace = "dev.dint.cryptography_flutter"
@@ -34,13 +39,9 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17
-    }
-
     sourceSets {
-        main.java.srcDirs += "src/main/kotlin"
-        test.java.srcDirs += "src/test/kotlin"
+        main.kotlin.srcDirs += "src/main/kotlin"
+        test.kotlin.srcDirs += "src/test/kotlin"
     }
 
     defaultConfig {
@@ -61,6 +62,15 @@ android {
                outputs.upToDateWhen {false}
                showStandardStreams = true
             }
+        }
+    }
+}
+
+// Access the extension by name to be safe in Groovy
+if (project.extensions.findByName("kotlin")) {
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
         }
     }
 }
