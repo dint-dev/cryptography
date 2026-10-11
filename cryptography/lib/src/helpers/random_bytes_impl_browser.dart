@@ -51,5 +51,5 @@ void fillBytesWithSecureRandom(Uint8List bytes, {Random? random}) {
   }
 }
 
-@JS('window.crypto.getRandomValues')
+@JS('crypto.getRandomValues')
 external void _webCryptoRandom(JSUint8Array buffer);

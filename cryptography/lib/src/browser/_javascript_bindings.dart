@@ -24,10 +24,10 @@ import 'package:meta/meta.dart';
 /// Note that browsers support Web Cryptography only in secure contexts.
 @internal
 final bool isWebCryptoAvailable =
-    _subtle.isDefinedAndNotNull && _isSecureContext.toDart;
+    _subtle.isDefinedAndNotNull && (_isSecureContext?.toDart ?? false);
 
-@JS('window.isSecureContext')
-external JSBoolean get _isSecureContext;
+@JS('isSecureContext')
+external JSBoolean? get _isSecureContext;
 
 @JS('crypto.subtle')
 external JSAny get _subtle;

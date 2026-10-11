@@ -106,7 +106,7 @@ class SecretKeyData extends SecretKey {
   /// Generates _N_ random bytes.
   ///
   /// A description of the random number generator:
-  ///   * In browsers, `window.crypto.getRandomValues() is used directly.
+  ///   * In browsers, `crypto.getRandomValues()` is used directly.
   ///   * In other platforms, _dart:math_ [Random.secure()] is used.
   ///
   /// You can give a custom random number generator. This can be useful for
